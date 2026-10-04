@@ -71,6 +71,10 @@ def test_blink_connectivity_matches_kicad_fixture():
 
 def test_two_uart_headers_share_ground_but_not_signals(tmp_path):
     source = (ROOT / "examples/stm32h523.nosch").read_text()
+    (tmp_path / "stm32h523_parts.nosch").write_text(
+        (ROOT / "examples/stm32h523_parts.nosch").read_text()
+    )
+
     p = make(tmp_path, source)
     (p / "main.nosch").write_text(source)
     config = p / "noscheme.toml"

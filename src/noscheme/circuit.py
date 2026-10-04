@@ -611,6 +611,7 @@ class Elaborator:
             "schema_version": 1,
             "stage": "circuit",
             "erc_performed": False,
+            "erc_modules": [str(p) for p in self.project.config.erc_modules],
             "board": f"{self.project.board.module}.{self.project.board.name}",
             "source": a.to_data(board.source.span),
             "erc_choice_scopes": self.choice_scopes,

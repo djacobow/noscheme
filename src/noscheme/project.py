@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import re
 import tomllib
+from functools import cached_property
 
 from . import ast as a
 from .diagnostics import Diagnostic, DiagnosticError, Related
@@ -15,7 +16,7 @@ from .parser import Builder, parse
 
 IDENTIFIER = r"[A-Za-z_#][A-Za-z0-9_#]*"
 QUALIFIED = re.compile(rf"{IDENTIFIER}(?:\.{IDENTIFIER})*\Z")
-BUILTINS = frozenset({"role", "nettype", "unused", "f", "num"})
+BUILTINS = frozenset({"role", "nettype", "unused", "f", "num", "bias"})
 
 
 class ProjectError(DiagnosticError):
@@ -34,6 +35,13 @@ class ProjectConfig:
     library_paths: tuple[Path, ...]
     output_dir: Path
     span: a.Span
+    erc_modules: tuple[Path, ...] = ()
+
+    @cached_property
+    def erc_registry(self):
+        from .erc_registry import load_registry
+
+        return load_registry(self.erc_modules, self.span)
 
     @property
     def search_paths(self):
@@ -89,7 +97,7 @@ def read_config(path: Path | str = ".") -> ProjectConfig:
     except tomllib.TOMLDecodeError as exc:
         fail("project.toml", str(exc), file_span, config=True)
     expected = {"language_version", "board", "source_paths", "library_paths", "output_dir"}
-    unknown = sorted(data.keys() - expected)
+    unknown = sorted(data.keys() - expected - {"erc_modules"})
     if unknown:
         invalid(re.escape(unknown[0]), f"unknown configuration key {unknown[0]!r}")
     missing = sorted(expected - data.keys())
@@ -128,7 +136,19 @@ def read_config(path: Path | str = ".") -> ProjectConfig:
     output = (path.parent / output).resolve()
     if output.exists() and not output.is_dir():
         invalid("output_dir", "output_dir is not a directory")
-    return ProjectConfig(path, "0.1", module, name, sources, libraries, output, span("board"))
+    modules = data.get("erc_modules", [])
+    if not isinstance(modules, list) or any(
+        not isinstance(v, str) or not v or "\0" in v for v in modules
+    ):
+        invalid("erc_modules", "erc_modules must be an array of Python file paths")
+    modules = tuple((path.parent / v).resolve() for v in modules)
+    if len(set(modules)) != len(modules) or any(
+        not v.is_file() or v.suffix != ".py" for v in modules
+    ):
+        invalid("erc_modules", "erc_modules must name distinct existing Python files")
+    return ProjectConfig(
+        path, "0.1", module, name, sources, libraries, output, span("board"), modules
+    )
 
 
 def module_path(config, name, span):
@@ -244,6 +264,7 @@ def project_summary(project):
         "language_version": project.config.language_version,
         "board": f"{project.board.module}.{project.board.name}",
         "output_dir": str(project.config.output_dir),
+        "erc_modules": [str(p) for p in project.config.erc_modules],
         "modules": [
             {
                 "name": name,

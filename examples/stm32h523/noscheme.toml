@@ -1,0 +1,5 @@
+language_version = "0.1"
+board = "stm32h523.STM32H523Reference"
+source_paths = [".."]
+library_paths = []
+output_dir = "build"

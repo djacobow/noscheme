@@ -162,6 +162,10 @@ def test_cli_reports_errors_but_compiles_and_exports(tmp_path, capsys):
 
 
 def test_uart_and_button_draft_connectivity(tmp_path):
+    (tmp_path / "stm32h523_parts.nosch").write_text(
+        (ROOT / "examples/stm32h523_parts.nosch").read_text()
+    )
+
     source = (
         (ROOT / "examples/stm32h523.nosch")
         .read_text()

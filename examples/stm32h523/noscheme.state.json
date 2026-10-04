@@ -1,0 +1,1531 @@
+{
+  "entries": {
+    "boot_header": {
+      "active": true,
+      "reference": "J1",
+      "reserved_references": [
+        "J1"
+      ],
+      "uuid": "1f1cbabf-b8a1-560d-9d61-c3cdc864156b"
+    },
+    "boot_pulldown": {
+      "active": true,
+      "reference": "R1",
+      "reserved_references": [
+        "R1"
+      ],
+      "uuid": "49683909-458d-50d2-a438-45acfdbeeb38"
+    },
+    "button_pullups[0]": {
+      "active": true,
+      "reference": "R2",
+      "reserved_references": [
+        "R2"
+      ],
+      "uuid": "dc4bb324-ebba-57e6-b70a-331bdaf8c6bb"
+    },
+    "button_pullups[1]": {
+      "active": true,
+      "reference": "R3",
+      "reserved_references": [
+        "R3"
+      ],
+      "uuid": "6c3df0c1-926b-5149-87d1-109b241a2bda"
+    },
+    "buttons[0]": {
+      "active": true,
+      "reference": "SW1",
+      "reserved_references": [
+        "SW1"
+      ],
+      "uuid": "90763b0f-204a-558c-a2d7-0404309a6329"
+    },
+    "buttons[1]": {
+      "active": true,
+      "reference": "SW2",
+      "reserved_references": [
+        "SW2"
+      ],
+      "uuid": "d961ab3b-79c3-5d28-8607-1f0801f98d86"
+    },
+    "expansion": {
+      "active": true,
+      "reference": "J2",
+      "reserved_references": [
+        "J2"
+      ],
+      "uuid": "7856bda3-5433-55c0-833f-31ab87235add"
+    },
+    "expansion_scl_pullup": {
+      "active": true,
+      "reference": "R4",
+      "reserved_references": [
+        "R4"
+      ],
+      "uuid": "635416b0-27fd-544e-b4fa-f1ffac61e234"
+    },
+    "expansion_sda_pullup": {
+      "active": true,
+      "reference": "R5",
+      "reserved_references": [
+        "R5"
+      ],
+      "uuid": "2f86a5d2-477a-519a-bee6-93a40f0ed546"
+    },
+    "indicators[0].led": {
+      "active": true,
+      "reference": "D1",
+      "reserved_references": [
+        "D1"
+      ],
+      "uuid": "f5183b6c-c9a6-5176-84e1-ad250e0ad330"
+    },
+    "indicators[0].resistor": {
+      "active": true,
+      "reference": "R6",
+      "reserved_references": [
+        "R6"
+      ],
+      "uuid": "1afcf165-35ce-5e4e-b1ba-f5f489cc22c2"
+    },
+    "indicators[1].led": {
+      "active": true,
+      "reference": "D2",
+      "reserved_references": [
+        "D2"
+      ],
+      "uuid": "a9cae233-b610-5ea3-8945-d16b66620b6f"
+    },
+    "indicators[1].resistor": {
+      "active": true,
+      "reference": "R7",
+      "reserved_references": [
+        "R7"
+      ],
+      "uuid": "a6af2961-a314-5031-b035-f7761b7ee01e"
+    },
+    "indicators[2].led": {
+      "active": true,
+      "reference": "D3",
+      "reserved_references": [
+        "D3"
+      ],
+      "uuid": "21c9a19f-787f-525a-8025-5df5febb08ef"
+    },
+    "indicators[2].resistor": {
+      "active": true,
+      "reference": "R8",
+      "reserved_references": [
+        "R8"
+      ],
+      "uuid": "2125e31d-f32b-5efe-9462-4f01d6e24332"
+    },
+    "mcu.analog_bulk": {
+      "active": true,
+      "reference": "C1",
+      "reserved_references": [
+        "C1"
+      ],
+      "uuid": "2ab4e9de-cea0-53c9-809c-d8eced9bf0f4"
+    },
+    "mcu.chip": {
+      "active": true,
+      "reference": "U1",
+      "reserved_references": [
+        "U1"
+      ],
+      "uuid": "5c79e06d-a048-59af-a402-13860aeb4a05"
+    },
+    "mcu.crystal": {
+      "active": true,
+      "reference": "Y1",
+      "reserved_references": [
+        "Y1"
+      ],
+      "uuid": "92eed21f-cf25-514c-94fe-0ef33725bbe9"
+    },
+    "mcu.crystal_load_in": {
+      "active": true,
+      "reference": "C2",
+      "reserved_references": [
+        "C2"
+      ],
+      "uuid": "b7bb3faf-381b-5777-8b4e-985def2e7f87"
+    },
+    "mcu.crystal_load_out": {
+      "active": true,
+      "reference": "C3",
+      "reserved_references": [
+        "C3"
+      ],
+      "uuid": "3bb0773f-656b-5104-8d9e-17bf1ede944e"
+    },
+    "mcu.decouple_pin_100": {
+      "active": true,
+      "reference": "C4",
+      "reserved_references": [
+        "C4"
+      ],
+      "uuid": "e2d6a4f2-890d-53a7-aac6-6c0fa7935234"
+    },
+    "mcu.decouple_pin_11": {
+      "active": true,
+      "reference": "C5",
+      "reserved_references": [
+        "C5"
+      ],
+      "uuid": "ecc8d2e1-7e8a-5f4a-b88d-67f004883083"
+    },
+    "mcu.decouple_pin_21": {
+      "active": true,
+      "reference": "C6",
+      "reserved_references": [
+        "C6"
+      ],
+      "uuid": "3d8122ac-93b7-5e43-b1d8-b07fb6c83d9e"
+    },
+    "mcu.decouple_pin_22": {
+      "active": true,
+      "reference": "C7",
+      "reserved_references": [
+        "C7"
+      ],
+      "uuid": "45feda71-706d-54ae-8a0e-95fa6d469df6"
+    },
+    "mcu.decouple_pin_28": {
+      "active": true,
+      "reference": "C8",
+      "reserved_references": [
+        "C8"
+      ],
+      "uuid": "b5ddeb9b-2cef-5a0e-93eb-e14534f821c9"
+    },
+    "mcu.decouple_pin_50": {
+      "active": true,
+      "reference": "C9",
+      "reserved_references": [
+        "C9"
+      ],
+      "uuid": "79b103bb-b9fe-5650-918a-a63204159389"
+    },
+    "mcu.decouple_pin_6": {
+      "active": true,
+      "reference": "C10",
+      "reserved_references": [
+        "C10"
+      ],
+      "uuid": "d49401ad-70ab-52a9-b399-a38dba81a678"
+    },
+    "mcu.decouple_pin_73": {
+      "active": true,
+      "reference": "C11",
+      "reserved_references": [
+        "C11"
+      ],
+      "uuid": "b339ba98-e9cf-5fbf-8a6e-14d1b6dda31c"
+    },
+    "mcu.decouple_pin_75": {
+      "active": true,
+      "reference": "C12",
+      "reserved_references": [
+        "C12"
+      ],
+      "uuid": "799e4dd4-8f92-572c-8d1d-9ac15a1be9e5"
+    },
+    "mcu.reference_bulk": {
+      "active": true,
+      "reference": "C13",
+      "reserved_references": [
+        "C13"
+      ],
+      "uuid": "9e7d4323-47f8-5f38-ada0-5ab5369aee5a"
+    },
+    "mcu.reset_cap": {
+      "active": true,
+      "reference": "C14",
+      "reserved_references": [
+        "C14"
+      ],
+      "uuid": "b2df8e63-2086-568c-9c43-49bd48c544f4"
+    },
+    "mcu.supply_bulk": {
+      "active": true,
+      "reference": "C15",
+      "reserved_references": [
+        "C15"
+      ],
+      "uuid": "9540bf55-885b-50b3-bde8-98ca2898808d"
+    },
+    "mcu.usb_bulk": {
+      "active": true,
+      "reference": "C16",
+      "reserved_references": [
+        "C16"
+      ],
+      "uuid": "1cd5da78-e5b9-5724-808e-8bc148c4de49"
+    },
+    "mcu.vcap_pin_48": {
+      "active": true,
+      "reference": "C17",
+      "reserved_references": [
+        "C17"
+      ],
+      "uuid": "670a54b1-8882-5352-8623-7f8b49ad988b"
+    },
+    "mcu.vcap_pin_98": {
+      "active": true,
+      "reference": "C18",
+      "reserved_references": [
+        "C18"
+      ],
+      "uuid": "63fcb8c4-0ff8-5993-86da-7b1b6fc12eed"
+    },
+    "micro_sd.bulk": {
+      "active": true,
+      "reference": "C19",
+      "reserved_references": [
+        "C19"
+      ],
+      "uuid": "87e86201-4e53-5a96-9ee9-dc11b922fcd1"
+    },
+    "micro_sd.cs_pullup": {
+      "active": true,
+      "reference": "R9",
+      "reserved_references": [
+        "R9"
+      ],
+      "uuid": "846089a2-c293-5b82-95a5-e84d7e955a8d"
+    },
+    "micro_sd.decouple": {
+      "active": true,
+      "reference": "C20",
+      "reserved_references": [
+        "C20"
+      ],
+      "uuid": "089ed85d-150a-5055-95e1-d7b0bb7be8ae"
+    },
+    "micro_sd.detect_pullup": {
+      "active": true,
+      "reference": "R10",
+      "reserved_references": [
+        "R10"
+      ],
+      "uuid": "3cb5f717-9dcc-58e8-abec-af0bc5498796"
+    },
+    "micro_sd.miso_pullup": {
+      "active": true,
+      "reference": "R11",
+      "reserved_references": [
+        "R11"
+      ],
+      "uuid": "1ddec827-9238-52bf-9d40-d0d6a1b06d37"
+    },
+    "micro_sd.socket": {
+      "active": true,
+      "reference": "J3",
+      "reserved_references": [
+        "J3"
+      ],
+      "uuid": "3fc3c7af-6f69-5cb2-bc91-b8a42ac2f002"
+    },
+    "micro_sd.unused_dat_pullups[0]": {
+      "active": true,
+      "reference": "R12",
+      "reserved_references": [
+        "R12"
+      ],
+      "uuid": "d08632f1-09f0-5078-9046-2af1627da78f"
+    },
+    "micro_sd.unused_dat_pullups[1]": {
+      "active": true,
+      "reference": "R13",
+      "reserved_references": [
+        "R13"
+      ],
+      "uuid": "598ef479-6ecd-57dc-a77d-d3aa5a626abb"
+    },
+    "oled_bulk": {
+      "active": true,
+      "reference": "C21",
+      "reserved_references": [
+        "C21"
+      ],
+      "uuid": "f4d850d9-39cb-5ca7-8fa1-5cdf050da717"
+    },
+    "oled_decouple": {
+      "active": true,
+      "reference": "C22",
+      "reserved_references": [
+        "C22"
+      ],
+      "uuid": "3a206a2c-f414-5ebe-8d3e-9ade6b333150"
+    },
+    "oled_header": {
+      "active": true,
+      "reference": "J4",
+      "reserved_references": [
+        "J4"
+      ],
+      "uuid": "ff08acf1-b1d0-5a66-b422-d9adc9b294e3"
+    },
+    "oled_scl_pullup": {
+      "active": true,
+      "reference": "R14",
+      "reserved_references": [
+        "R14"
+      ],
+      "uuid": "901ef5af-86dd-58cf-8027-eb57ae082263"
+    },
+    "oled_sda_pullup": {
+      "active": true,
+      "reference": "R15",
+      "reserved_references": [
+        "R15"
+      ],
+      "uuid": "5ec81b99-f9c1-5f3c-95e2-d0fcdda275af"
+    },
+    "regulator.input_cap": {
+      "active": true,
+      "reference": "C23",
+      "reserved_references": [
+        "C23"
+      ],
+      "uuid": "b541158c-0b51-56ae-b233-9425051424c6"
+    },
+    "regulator.output_cap": {
+      "active": true,
+      "reference": "C24",
+      "reserved_references": [
+        "C24"
+      ],
+      "uuid": "eac1da36-3c97-5c1c-b9d7-d2e580a58e0a"
+    },
+    "regulator.regulator": {
+      "active": true,
+      "reference": "U2",
+      "reserved_references": [
+        "U2"
+      ],
+      "uuid": "1aee752d-6e27-5c5b-a936-48cb0586b941"
+    },
+    "reset_button": {
+      "active": true,
+      "reference": "SW3",
+      "reserved_references": [
+        "SW3"
+      ],
+      "uuid": "3afd2fed-7893-52b5-975c-14606f318157"
+    },
+    "swd.header": {
+      "active": true,
+      "reference": "J5",
+      "reserved_references": [
+        "J5"
+      ],
+      "uuid": "c46ae526-db45-54fe-a5e7-7d7005f3b8b1"
+    },
+    "uart_headers[0]": {
+      "active": true,
+      "reference": "J6",
+      "reserved_references": [
+        "J6"
+      ],
+      "uuid": "4f551a76-80e5-5d63-ba33-89fd7501e78b"
+    },
+    "uart_headers[1]": {
+      "active": true,
+      "reference": "J7",
+      "reserved_references": [
+        "J7"
+      ],
+      "uuid": "bd389c88-f042-5222-8e94-cce541f04bbc"
+    },
+    "usb_c.cc_pulldowns[0]": {
+      "active": true,
+      "reference": "R16",
+      "reserved_references": [
+        "R16"
+      ],
+      "uuid": "0163822e-47df-5ddb-b870-cd8f57082cc0"
+    },
+    "usb_c.cc_pulldowns[1]": {
+      "active": true,
+      "reference": "R17",
+      "reserved_references": [
+        "R17"
+      ],
+      "uuid": "3104eaf0-f7e2-53b6-98b5-ed847f646d07"
+    },
+    "usb_c.connector": {
+      "active": true,
+      "reference": "J8",
+      "reserved_references": [
+        "J8"
+      ],
+      "uuid": "13077cc9-37bd-5b5c-85be-d7b11ecc08a7"
+    }
+  },
+  "namespace": "f598cac1-7806-4caa-aba1-72aa3c518bf9",
+  "netlist_sha256": "15cdf5cd88fbec7cc239b9d7a854e3011b2364e8e52c968b92c1a15c3c9fa01f",
+  "previous_parts": {
+    "boot_header": {
+      "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical_SMD_Pin1Left",
+      "path": [
+        "boot_header"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "boot0"
+      },
+      "reference": "J1",
+      "value": null
+    },
+    "boot_pulldown": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "boot_pulldown"
+      ],
+      "pins": {
+        "1": "boot0",
+        "2": "gnd"
+      },
+      "reference": "R1",
+      "value": {
+        "type": "string",
+        "value": "10kOhm"
+      }
+    },
+    "button_pullups[0]": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "button_pullups",
+        0
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "buttons#[0]"
+      },
+      "reference": "R2",
+      "value": {
+        "type": "string",
+        "value": "10kOhm"
+      }
+    },
+    "button_pullups[1]": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "button_pullups",
+        1
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "buttons#[1]"
+      },
+      "reference": "R3",
+      "value": {
+        "type": "string",
+        "value": "10kOhm"
+      }
+    },
+    "buttons[0]": {
+      "footprint": "Button_Switch_SMD:SW_SPST_TL3342",
+      "path": [
+        "buttons",
+        0
+      ],
+      "pins": {
+        "1": "buttons#[0]",
+        "2": "gnd"
+      },
+      "reference": "SW1",
+      "value": {
+        "type": "string",
+        "value": "TS18-5-15-SL-260-SMT-TR"
+      }
+    },
+    "buttons[1]": {
+      "footprint": "Button_Switch_SMD:SW_SPST_TL3342",
+      "path": [
+        "buttons",
+        1
+      ],
+      "pins": {
+        "1": "buttons#[1]",
+        "2": "gnd"
+      },
+      "reference": "SW2",
+      "value": {
+        "type": "string",
+        "value": "TS18-5-15-SL-260-SMT-TR"
+      }
+    },
+    "expansion": {
+      "footprint": "Connector_PinHeader_2.54mm:PinHeader_2x10_P2.54mm_Vertical_SMD",
+      "path": [
+        "expansion"
+      ],
+      "pins": {
+        "1": "gnd",
+        "10": "expansion_spi.cs#",
+        "11": "expansion_gpio[0]",
+        "12": "expansion_gpio[1]",
+        "13": "expansion_gpio[2]",
+        "14": "expansion_gpio[3]",
+        "15": "expansion_gpio[4]",
+        "16": "expansion_gpio[5]",
+        "17": "expansion_gpio[6]",
+        "18": "expansion_gpio[7]",
+        "19": "expansion_gpio[8]",
+        "2": "gnd",
+        "20": "expansion_gpio[9]",
+        "3": "v5",
+        "4": "v3v3",
+        "5": "expansion_i2c.scl",
+        "6": "expansion_i2c.sda",
+        "7": "expansion_spi.sck",
+        "8": "expansion_spi.mosi",
+        "9": "expansion_spi.miso"
+      },
+      "reference": "J2",
+      "value": null
+    },
+    "expansion_scl_pullup": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "expansion_scl_pullup"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "expansion_i2c.scl"
+      },
+      "reference": "R4",
+      "value": {
+        "type": "string",
+        "value": "4.7kOhm"
+      }
+    },
+    "expansion_sda_pullup": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "expansion_sda_pullup"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "expansion_i2c.sda"
+      },
+      "reference": "R5",
+      "value": {
+        "type": "string",
+        "value": "4.7kOhm"
+      }
+    },
+    "indicators[0].led": {
+      "footprint": "LED_SMD:LED_0603_1608Metric",
+      "path": [
+        "indicators",
+        0,
+        "led"
+      ],
+      "pins": {
+        "1": "gnd",
+        "2": "indicators[0].anode"
+      },
+      "reference": "D1",
+      "value": {
+        "type": "string",
+        "value": "Green"
+      }
+    },
+    "indicators[0].resistor": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "indicators",
+        0,
+        "resistor"
+      ],
+      "pins": {
+        "1": "led_drive[0]",
+        "2": "indicators[0].anode"
+      },
+      "reference": "R6",
+      "value": {
+        "type": "string",
+        "value": "1kOhm"
+      }
+    },
+    "indicators[1].led": {
+      "footprint": "LED_SMD:LED_0603_1608Metric",
+      "path": [
+        "indicators",
+        1,
+        "led"
+      ],
+      "pins": {
+        "1": "gnd",
+        "2": "indicators[1].anode"
+      },
+      "reference": "D2",
+      "value": {
+        "type": "string",
+        "value": "Green"
+      }
+    },
+    "indicators[1].resistor": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "indicators",
+        1,
+        "resistor"
+      ],
+      "pins": {
+        "1": "led_drive[1]",
+        "2": "indicators[1].anode"
+      },
+      "reference": "R7",
+      "value": {
+        "type": "string",
+        "value": "1kOhm"
+      }
+    },
+    "indicators[2].led": {
+      "footprint": "LED_SMD:LED_0603_1608Metric",
+      "path": [
+        "indicators",
+        2,
+        "led"
+      ],
+      "pins": {
+        "1": "gnd",
+        "2": "indicators[2].anode"
+      },
+      "reference": "D3",
+      "value": {
+        "type": "string",
+        "value": "Green"
+      }
+    },
+    "indicators[2].resistor": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "indicators",
+        2,
+        "resistor"
+      ],
+      "pins": {
+        "1": "led_drive[2]",
+        "2": "indicators[2].anode"
+      },
+      "reference": "R8",
+      "value": {
+        "type": "string",
+        "value": "1kOhm"
+      }
+    },
+    "mcu.analog_bulk": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "mcu",
+        "analog_bulk"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "gnd"
+      },
+      "reference": "C1",
+      "value": {
+        "type": "string",
+        "value": "1uF"
+      }
+    },
+    "mcu.chip": {
+      "footprint": "Package_QFP:LQFP-100_14x14mm_P0.5mm",
+      "path": [
+        "mcu",
+        "chip"
+      ],
+      "pins": {
+        "1": "expansion_gpio[0]",
+        "10": "gnd",
+        "100": "v3v3",
+        "11": "v3v3",
+        "12": "mcu.osc_in",
+        "13": "mcu.osc_out",
+        "14": "debug.reset#",
+        "15": "led_drive[0]",
+        "16": "led_drive[1]",
+        "17": "led_drive[2]",
+        "18": "sd_detect#",
+        "19": "gnd",
+        "2": "expansion_gpio[1]",
+        "20": "gnd",
+        "21": "v3v3",
+        "22": "v3v3",
+        "23": null,
+        "24": null,
+        "25": "uart_tx[0]",
+        "26": "uart_rx[0]",
+        "27": "gnd",
+        "28": "v3v3",
+        "29": "sd.cs#",
+        "3": "expansion_gpio[2]",
+        "30": "sd.sck",
+        "31": "sd.miso",
+        "32": "sd.mosi",
+        "33": "buttons#[0]",
+        "34": "buttons#[1]",
+        "35": null,
+        "36": null,
+        "37": null,
+        "38": "expansion_gpio[5]",
+        "39": "expansion_gpio[6]",
+        "4": "expansion_gpio[3]",
+        "40": "expansion_gpio[7]",
+        "41": "expansion_gpio[8]",
+        "42": "expansion_spi.cs#",
+        "43": "expansion_spi.sck",
+        "44": "expansion_spi.miso",
+        "45": "expansion_spi.mosi",
+        "46": "expansion_gpio[9]",
+        "47": null,
+        "48": "mcu.vcap",
+        "49": "gnd",
+        "5": "expansion_gpio[4]",
+        "50": "v3v3",
+        "51": null,
+        "52": null,
+        "53": null,
+        "54": null,
+        "55": "uart_tx[1]",
+        "56": "uart_rx[1]",
+        "57": null,
+        "58": null,
+        "59": null,
+        "6": "v3v3",
+        "60": null,
+        "61": null,
+        "62": null,
+        "63": null,
+        "64": null,
+        "65": null,
+        "66": "expansion_i2c.sda",
+        "67": "expansion_i2c.scl",
+        "68": null,
+        "69": null,
+        "7": null,
+        "70": "usb.dm",
+        "71": "usb.dp",
+        "72": "debug.swdio",
+        "73": "v3v3",
+        "74": "gnd",
+        "75": "v3v3",
+        "76": "debug.swclk",
+        "77": null,
+        "78": null,
+        "79": null,
+        "8": null,
+        "80": null,
+        "81": null,
+        "82": null,
+        "83": null,
+        "84": null,
+        "85": null,
+        "86": null,
+        "87": null,
+        "88": null,
+        "89": "debug.swo",
+        "9": null,
+        "90": null,
+        "91": null,
+        "92": "oled.scl",
+        "93": "oled.sda",
+        "94": "boot0",
+        "95": null,
+        "96": null,
+        "97": null,
+        "98": "mcu.vcap",
+        "99": "gnd"
+      },
+      "reference": "U1",
+      "value": {
+        "type": "string",
+        "value": "STM32H523VCT6"
+      }
+    },
+    "mcu.crystal": {
+      "footprint": "Crystal:Crystal_SMD_HC49-SD",
+      "path": [
+        "mcu",
+        "crystal"
+      ],
+      "pins": {
+        "1": "mcu.osc_in",
+        "2": "mcu.osc_out"
+      },
+      "reference": "Y1",
+      "value": {
+        "type": "string",
+        "value": "8MHz CL18pF"
+      }
+    },
+    "mcu.crystal_load_in": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "mcu",
+        "crystal_load_in"
+      ],
+      "pins": {
+        "1": "mcu.osc_in",
+        "2": "gnd"
+      },
+      "reference": "C2",
+      "value": {
+        "type": "string",
+        "value": "27pF"
+      }
+    },
+    "mcu.crystal_load_out": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "mcu",
+        "crystal_load_out"
+      ],
+      "pins": {
+        "1": "mcu.osc_out",
+        "2": "gnd"
+      },
+      "reference": "C3",
+      "value": {
+        "type": "string",
+        "value": "27pF"
+      }
+    },
+    "mcu.decouple_pin_100": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "mcu",
+        "decouple_pin_100"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "gnd"
+      },
+      "reference": "C4",
+      "value": {
+        "type": "string",
+        "value": "100nF"
+      }
+    },
+    "mcu.decouple_pin_11": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "mcu",
+        "decouple_pin_11"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "gnd"
+      },
+      "reference": "C5",
+      "value": {
+        "type": "string",
+        "value": "100nF"
+      }
+    },
+    "mcu.decouple_pin_21": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "mcu",
+        "decouple_pin_21"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "gnd"
+      },
+      "reference": "C6",
+      "value": {
+        "type": "string",
+        "value": "100nF"
+      }
+    },
+    "mcu.decouple_pin_22": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "mcu",
+        "decouple_pin_22"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "gnd"
+      },
+      "reference": "C7",
+      "value": {
+        "type": "string",
+        "value": "100nF"
+      }
+    },
+    "mcu.decouple_pin_28": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "mcu",
+        "decouple_pin_28"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "gnd"
+      },
+      "reference": "C8",
+      "value": {
+        "type": "string",
+        "value": "100nF"
+      }
+    },
+    "mcu.decouple_pin_50": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "mcu",
+        "decouple_pin_50"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "gnd"
+      },
+      "reference": "C9",
+      "value": {
+        "type": "string",
+        "value": "100nF"
+      }
+    },
+    "mcu.decouple_pin_6": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "mcu",
+        "decouple_pin_6"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "gnd"
+      },
+      "reference": "C10",
+      "value": {
+        "type": "string",
+        "value": "100nF"
+      }
+    },
+    "mcu.decouple_pin_73": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "mcu",
+        "decouple_pin_73"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "gnd"
+      },
+      "reference": "C11",
+      "value": {
+        "type": "string",
+        "value": "100nF"
+      }
+    },
+    "mcu.decouple_pin_75": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "mcu",
+        "decouple_pin_75"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "gnd"
+      },
+      "reference": "C12",
+      "value": {
+        "type": "string",
+        "value": "100nF"
+      }
+    },
+    "mcu.reference_bulk": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "mcu",
+        "reference_bulk"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "gnd"
+      },
+      "reference": "C13",
+      "value": {
+        "type": "string",
+        "value": "1uF"
+      }
+    },
+    "mcu.reset_cap": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "mcu",
+        "reset_cap"
+      ],
+      "pins": {
+        "1": "debug.reset#",
+        "2": "gnd"
+      },
+      "reference": "C14",
+      "value": {
+        "type": "string",
+        "value": "100nF"
+      }
+    },
+    "mcu.supply_bulk": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "mcu",
+        "supply_bulk"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "gnd"
+      },
+      "reference": "C15",
+      "value": {
+        "type": "string",
+        "value": "4.7uF"
+      }
+    },
+    "mcu.usb_bulk": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "mcu",
+        "usb_bulk"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "gnd"
+      },
+      "reference": "C16",
+      "value": {
+        "type": "string",
+        "value": "1uF"
+      }
+    },
+    "mcu.vcap_pin_48": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "mcu",
+        "vcap_pin_48"
+      ],
+      "pins": {
+        "1": "mcu.vcap",
+        "2": "gnd"
+      },
+      "reference": "C17",
+      "value": {
+        "type": "string",
+        "value": "2.2uF"
+      }
+    },
+    "mcu.vcap_pin_98": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "mcu",
+        "vcap_pin_98"
+      ],
+      "pins": {
+        "1": "mcu.vcap",
+        "2": "gnd"
+      },
+      "reference": "C18",
+      "value": {
+        "type": "string",
+        "value": "2.2uF"
+      }
+    },
+    "micro_sd.bulk": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "micro_sd",
+        "bulk"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "gnd"
+      },
+      "reference": "C19",
+      "value": {
+        "type": "string",
+        "value": "4.7uF"
+      }
+    },
+    "micro_sd.cs_pullup": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "micro_sd",
+        "cs_pullup"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "sd.cs#"
+      },
+      "reference": "R9",
+      "value": {
+        "type": "string",
+        "value": "10kOhm"
+      }
+    },
+    "micro_sd.decouple": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "micro_sd",
+        "decouple"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "gnd"
+      },
+      "reference": "C20",
+      "value": {
+        "type": "string",
+        "value": "100nF"
+      }
+    },
+    "micro_sd.detect_pullup": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "micro_sd",
+        "detect_pullup"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "sd_detect#"
+      },
+      "reference": "R10",
+      "value": {
+        "type": "string",
+        "value": "10kOhm"
+      }
+    },
+    "micro_sd.miso_pullup": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "micro_sd",
+        "miso_pullup"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "sd.miso"
+      },
+      "reference": "R11",
+      "value": {
+        "type": "string",
+        "value": "10kOhm"
+      }
+    },
+    "micro_sd.socket": {
+      "footprint": "Connector_Card:microSD_HC_Hirose_DM3AT-SF-PEJM5",
+      "path": [
+        "micro_sd",
+        "socket"
+      ],
+      "pins": {
+        "1": "micro_sd.unused_dat[0]",
+        "10": "sd_detect#",
+        "2": "sd.cs#",
+        "3": "sd.mosi",
+        "4": "v3v3",
+        "5": "sd.sck",
+        "6": "gnd",
+        "7": "sd.miso",
+        "8": "micro_sd.unused_dat[1]",
+        "9": "gnd",
+        "SH": "gnd"
+      },
+      "reference": "J3",
+      "value": null
+    },
+    "micro_sd.unused_dat_pullups[0]": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "micro_sd",
+        "unused_dat_pullups",
+        0
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "micro_sd.unused_dat[0]"
+      },
+      "reference": "R12",
+      "value": {
+        "type": "string",
+        "value": "10kOhm"
+      }
+    },
+    "micro_sd.unused_dat_pullups[1]": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "micro_sd",
+        "unused_dat_pullups",
+        1
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "micro_sd.unused_dat[1]"
+      },
+      "reference": "R13",
+      "value": {
+        "type": "string",
+        "value": "10kOhm"
+      }
+    },
+    "oled_bulk": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "oled_bulk"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "gnd"
+      },
+      "reference": "C21",
+      "value": {
+        "type": "string",
+        "value": "4.7uF"
+      }
+    },
+    "oled_decouple": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "oled_decouple"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "gnd"
+      },
+      "reference": "C22",
+      "value": {
+        "type": "string",
+        "value": "100nF"
+      }
+    },
+    "oled_header": {
+      "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical_SMD_Pin1Left",
+      "path": [
+        "oled_header"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "gnd",
+        "3": "oled.scl",
+        "4": "oled.sda"
+      },
+      "reference": "J4",
+      "value": null
+    },
+    "oled_scl_pullup": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "oled_scl_pullup"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "oled.scl"
+      },
+      "reference": "R14",
+      "value": {
+        "type": "string",
+        "value": "4.7kOhm"
+      }
+    },
+    "oled_sda_pullup": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "oled_sda_pullup"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "oled.sda"
+      },
+      "reference": "R15",
+      "value": {
+        "type": "string",
+        "value": "4.7kOhm"
+      }
+    },
+    "regulator.input_cap": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "regulator",
+        "input_cap"
+      ],
+      "pins": {
+        "1": "v5",
+        "2": "gnd"
+      },
+      "reference": "C23",
+      "value": {
+        "type": "string",
+        "value": "1uF"
+      }
+    },
+    "regulator.output_cap": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "regulator",
+        "output_cap"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "2": "gnd"
+      },
+      "reference": "C24",
+      "value": {
+        "type": "string",
+        "value": "4.7uF"
+      }
+    },
+    "regulator.regulator": {
+      "footprint": "Package_TO_SOT_SMD:SOT-223-3_TabPin2",
+      "path": [
+        "regulator",
+        "regulator"
+      ],
+      "pins": {
+        "1": "gnd",
+        "2": "v3v3",
+        "3": "v5"
+      },
+      "reference": "U2",
+      "value": {
+        "type": "string",
+        "value": "TLV1117LV33DCYR"
+      }
+    },
+    "reset_button": {
+      "footprint": "Button_Switch_SMD:SW_SPST_TL3342",
+      "path": [
+        "reset_button"
+      ],
+      "pins": {
+        "1": "debug.reset#",
+        "2": "gnd"
+      },
+      "reference": "SW3",
+      "value": {
+        "type": "string",
+        "value": "TS18-5-15-SL-260-SMT-TR"
+      }
+    },
+    "swd.header": {
+      "footprint": "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD",
+      "path": [
+        "swd",
+        "header"
+      ],
+      "pins": {
+        "1": "v3v3",
+        "10": "debug.reset#",
+        "2": "debug.swdio",
+        "3": "gnd",
+        "4": "debug.swclk",
+        "5": "gnd",
+        "6": "debug.swo",
+        "7": null,
+        "8": null,
+        "9": "gnd"
+      },
+      "reference": "J5",
+      "value": null
+    },
+    "uart_headers[0]": {
+      "footprint": "Connector_JST:JST_XH_S3B-XH-SM4-TB_1x03-1MP_P2.50mm_Horizontal",
+      "path": [
+        "uart_headers",
+        0
+      ],
+      "pins": {
+        "1": "gnd",
+        "2": "uart_tx[0]",
+        "3": "uart_rx[0]",
+        "MP": null
+      },
+      "reference": "J6",
+      "value": null
+    },
+    "uart_headers[1]": {
+      "footprint": "Connector_JST:JST_XH_S3B-XH-SM4-TB_1x03-1MP_P2.50mm_Horizontal",
+      "path": [
+        "uart_headers",
+        1
+      ],
+      "pins": {
+        "1": "gnd",
+        "2": "uart_tx[1]",
+        "3": "uart_rx[1]",
+        "MP": null
+      },
+      "reference": "J7",
+      "value": null
+    },
+    "usb_c.cc_pulldowns[0]": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "usb_c",
+        "cc_pulldowns",
+        0
+      ],
+      "pins": {
+        "1": "usb_c.cc[0]",
+        "2": "gnd"
+      },
+      "reference": "R16",
+      "value": {
+        "type": "string",
+        "value": "5.1kOhm"
+      }
+    },
+    "usb_c.cc_pulldowns[1]": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "usb_c",
+        "cc_pulldowns",
+        1
+      ],
+      "pins": {
+        "1": "usb_c.cc[1]",
+        "2": "gnd"
+      },
+      "reference": "R17",
+      "value": {
+        "type": "string",
+        "value": "5.1kOhm"
+      }
+    },
+    "usb_c.connector": {
+      "footprint": "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12",
+      "path": [
+        "usb_c",
+        "connector"
+      ],
+      "pins": {
+        "A1": "gnd",
+        "A12": "gnd",
+        "A4": "v5",
+        "A5": "usb_c.cc[0]",
+        "A6": "usb.dp",
+        "A7": "usb.dm",
+        "A8": null,
+        "A9": "v5",
+        "B1": "gnd",
+        "B12": "gnd",
+        "B4": "v5",
+        "B5": "usb_c.cc[1]",
+        "B6": "usb.dp",
+        "B7": "usb.dm",
+        "B8": null,
+        "B9": "v5",
+        "SH": "gnd"
+      },
+      "reference": "J8",
+      "value": null
+    }
+  },
+  "schema_version": 1
+}

@@ -1,7 +1,6 @@
 """Electrical checks on flattened physical endpoints, without component traversal.
 
-Reports explicitly list remaining checks. Bias models and aggregate budgets
-remain separate work.
+Reports explicitly list remaining checks. Tri-state models remain separate work.
 """
 
 from fractions import Fraction
@@ -13,11 +12,9 @@ from .circuit import path_text
 from .diagnostics import Diagnostic, Related, render_text
 from .erc_rules import CHECKS, ALLOWED_ROLES, PORT_ALLOWED, PORT_EVIDENCE
 from .erc_config import configuration_views
+from .erc_registry import NetContext, load_registry
 
-PENDING = (
-    "bias_and_tristate",
-    "aggregate_current_budgets",
-)
+PENDING = ("tristate",)
 
 
 def attribute(record, name, default=None):
@@ -122,7 +119,120 @@ def check_port(port, endpoints, emit):
         )
 
 
-def check_circuit(circuit, *, waiver_records=None):
+def grouped_current_loads(circuit, emit):
+    """Count each valid group once; invalid groups never hide missing pin budgets."""
+    demands, covered, annotated = {}, set(), set()
+    for part in circuit["parts"]:
+        path = path_text(part["path"])
+        for name, group in attribute(part, "current_loads", {}).items():
+            fields = group["value"]
+            numbers = fields["pins"]["value"]
+            pins = [part["pins"][number] for number in numbers]
+            nets = {pin["net"] for pin in pins}
+            annotated.update(nets - {None})
+            related = [
+                Related(f"{path}.{number}", Span(**(pin.get("binding_span") or pin["span"])))
+                for number, pin in zip(numbers, pins)
+            ]
+            if None in nets or len(nets) != 1:
+                emit(
+                    "current_load_group",
+                    f"current load {path}.{name} requires every member pin on the same net",
+                    group,
+                    path,
+                    related=related,
+                )
+                continue
+            roles = [attribute(pin, "external_role", attribute(pin, "role", [])) for pin in pins]
+            if any(role != ["power_input"] for role in roles):
+                unknown = any(len(role) != 1 or "unchecked" in role for role in roles)
+                emit(
+                    "current_load_group",
+                    f"current load {path}.{name} requires power_input roles on every member pin",
+                    group,
+                    path,
+                    severity="warning" if unknown else "error",
+                    related=related,
+                )
+                continue
+            net = next(iter(nets))
+            demands.setdefault(net, []).append(
+                (part["path"], fields["max_load_current_mA"]["value"])
+            )
+            covered.update(f"{path}.{number}" for number in numbers)
+    return demands, covered, annotated
+
+
+def aggregate_current_loads(declarations, endpoints, demands, emit):
+    """Replace descendants' demands from deepest supply boundary outward."""
+    boundaries = [d for d in declarations if attribute(d, "aggregate_load") is not None]
+    for port in sorted(boundaries, key=lambda d: (-len(d["scope"]), path_text(d["path"]))):
+        scope = port["scope"]
+        label = path_text(port["path"])
+        annotation = port["metadata"]["aggregate_load"]
+        amount = annotation["value"]["max_load_current_mA"]["value"]
+
+        def inside(path):
+            return path[: len(scope)] == scope
+
+        internal = [(name, pin) for name, pin in endpoints if inside(pin["scope"])]
+        roles = attribute(port, "external_role", attribute(port, "role", []))
+        overlap = sum(d["scope"] == scope for d in boundaries) > 1
+        sources = [
+            pin
+            for _, pin in internal
+            if "power_output" in attribute(pin, "external_role", attribute(pin, "role", []))
+        ]
+        if (
+            not scope
+            or port["kind"] != "port"
+            or overlap
+            or sources
+            or "external_role" in port["metadata"]
+            or roles != ["power_input"]
+        ):
+            emit(
+                "aggregate_load_boundary",
+                f"aggregate load {label} requires a unique power_input boundary with no internal source on this net",
+                annotation,
+                label,
+            )
+            continue
+        local = [(path, value) for path, value in demands if inside(path)]
+        unknown_roles = any(
+            len(attribute(pin, "external_role", attribute(pin, "role", []))) != 1
+            or "unchecked" in attribute(pin, "external_role", attribute(pin, "role", []))
+            for _, pin in internal
+        )
+        related = [
+            Related(name, Span(**(pin.get("binding_span") or pin["span"])))
+            for name, pin in internal
+        ]
+        if not internal or unknown_roles or any(value is None for _, value in local):
+            emit(
+                "incomplete_aggregate_load",
+                f"aggregate load {label} has incomplete internal load information",
+                annotation,
+                label,
+                severity="warning",
+                related=related,
+            )
+        total = sum((Fraction(str(value)) for _, value in local if value is not None), Fraction())
+        if total > Fraction(str(amount)):
+            emit(
+                "aggregate_current_overload",
+                f"known internal loads exceed aggregate {label} ({amount} mA)",
+                annotation,
+                label,
+                related=related,
+            )
+        demands = [(path, value) for path, value in demands if not inside(path)]
+        demands.append((scope, amount))
+    return demands
+
+
+def check_circuit(circuit, *, waiver_records=None, registry=None):
+    registry = registry or load_registry(circuit.get("erc_modules", ()), Span(**circuit["source"]))
     diagnostics = []
     waiver_records = waiver_records if waiver_records is not None else []
     active_waivers = {}
@@ -137,6 +247,8 @@ def check_circuit(circuit, *, waiver_records=None):
             active_waivers[code]["diagnostics"].append(to_data(diagnostic))
         else:
             diagnostics.append(diagnostic)
+
+    grouped_demands, grouped_pins, grouped_nets = grouped_current_loads(circuit, emit)
 
     for part in circuit["parts"]:
         for number, pin in part["pins"].items():
@@ -210,6 +322,13 @@ def check_circuit(circuit, *, waiver_records=None):
                         waiver,
                         related=[Related("outermost declaration", Span(**origin["span"]))],
                     )
+        if origin["type"] != "unchecked":
+            for diagnostic in registry.run(NetContext(circuit, net, endpoints, origin)):
+                check = diagnostic.code.removeprefix("erc.")
+                if check in active_waivers:
+                    active_waivers[check]["diagnostics"].append(to_data(diagnostic))
+                else:
+                    diagnostics.append(diagnostic)
         # Ports do not add endpoints. An external role replaces the connector's
         # passive contact for driver/load accounting, not an additional source.
         for label, pin in endpoints:
@@ -272,6 +391,15 @@ def check_circuit(circuit, *, waiver_records=None):
             elif any(not roles <= ALLOWED_ROLES[d["type"]] for d in constraints):
                 compatibility_uncertain = True
         types = {d["type"] for d in constraints}
+        demands = [
+            (pin["scope"], attribute(pin, "max_load_current_mA"))
+            for label, pin in endpoints
+            if label not in grouped_pins
+            and attribute(pin, "external_role", attribute(pin, "role", [])) == ["power_input"]
+        ]
+        demands.extend(grouped_demands.get(name, ()))
+        demands = aggregate_current_loads(declarations, endpoints, demands, emit)
+        amounts = [amount for _, amount in demands]
         if origin["type"] == "unchecked":
             emit(
                 "unchecked_net",
@@ -288,8 +416,8 @@ def check_circuit(circuit, *, waiver_records=None):
             else:
                 known.append((roles[0], label, pin))
         drivers = [e for e in known if e[0] in {"digital_output", "analog_output", "power_output"}]
-        open_drivers = [e for e in known if e[0] == "open_drain"]
-        if len(drivers) > 1 or (drivers and open_drivers):
+        open_drivers = [e for e in known if e[0] in {"open_drain", "open_source"}]
+        if len(drivers) > 1 or (drivers and open_drivers) or len({e[0] for e in open_drivers}) > 1:
             conflicting = drivers + open_drivers
             emit(
                 "multiple_drivers",
@@ -329,19 +457,28 @@ def check_circuit(circuit, *, waiver_records=None):
                     severity="warning",
                 )
             elif not matching:
-                emit("missing_driver", f"net {name!r} requires a {expected} endpoint", origin)
+                biases = {attribute(pin, "bias") for _, pin in endpoints} - {None, "none"}
+                biased = expected == "digital_output" and biases in ({"pull_up"}, {"pull_down"})
+                biased = biased and all(
+                    ("pull_up" if e[0] == "open_drain" else "pull_down") in biases
+                    for e in open_drivers
+                )
+                if not biased:
+                    emit("missing_driver", f"net {name!r} requires a {expected} endpoint", origin)
         sources = [e for e in known if e[0] == "power_output"]
-        loads = [e for e in known if e[0] == "power_input"]
-        annotated = any(
-            attribute(pin, key) is not None
-            for _, pin in endpoints
-            for key in ("max_source_current_mA", "max_load_current_mA")
+        annotated = (
+            any(attribute(d, "aggregate_load") is not None for d in declarations)
+            or name in grouped_nets
+            or any(
+                attribute(pin, key) is not None
+                for _, pin in endpoints
+                for key in ("max_source_current_mA", "max_load_current_mA")
+            )
         )
         if not annotated:
             continue
         capacities = [attribute(e[2], "max_source_current_mA") for e in sources]
-        demands = [attribute(e[2], "max_load_current_mA") for e in loads]
-        if uncertain or len(sources) != 1 or any(x is None for x in capacities + demands):
+        if uncertain or len(sources) != 1 or any(x is None for x in capacities + amounts):
             emit(
                 "incomplete_budget",
                 f"net {name!r} lacks a single annotated source or complete load information",
@@ -350,7 +487,7 @@ def check_circuit(circuit, *, waiver_records=None):
             )
         if len(sources) == 1 and capacities[0] is not None:
             # Decimal spelling preserves finite metadata without floating sum overflow.
-            total = sum((Fraction(str(x)) for x in demands if x is not None), Fraction())
+            total = sum((Fraction(str(x)) for x in amounts if x is not None), Fraction())
             if total > Fraction(str(capacities[0])):
                 emit(
                     "current_overload",
@@ -362,12 +499,15 @@ def check_circuit(circuit, *, waiver_records=None):
 
 
 def apply_erc(circuit, configurations=None):
+    registry = load_registry(circuit.get("erc_modules", ()), Span(**circuit["source"]))
     waivers, diagnostics, reports = [], [], []
     for name, view, selections in configuration_views(circuit, configurations):
+        view["erc_configuration"] = name
+        view["erc_effective_choices"] = selections
         local_waivers = []
         local = tuple(
             replace(d, configuration=name)
-            for d in check_circuit(view, waiver_records=local_waivers)
+            for d in check_circuit(view, waiver_records=local_waivers, registry=registry)
         )
         for waiver in local_waivers:
             waiver["configuration"] = name
@@ -386,7 +526,7 @@ def apply_erc(circuit, configurations=None):
     circuit["erc_performed"] = True
     circuit["erc"] = {
         "schema_version": 1,
-        "checks": list(CHECKS),
+        "checks": list(CHECKS) + list(registry.checks),
         "pending": list(PENDING),
         "errors": sum(d.severity == "error" for d in diagnostics),
         "warnings": sum(d.severity == "warning" for d in diagnostics),

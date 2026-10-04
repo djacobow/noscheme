@@ -1,0 +1,31 @@
+// Electrical-check example; simplified pin models, not a fabrication design.
+from noscheme import role, nettype
+from noscheme import bias
+component Pull:
+    pins:
+        1:
+            role: role.passive
+            bias: bias.pull_up
+            pull_resistance_ohm: 4700
+            capacitance_pF: 2
+component Device:
+    pins:
+        1:
+            role: role.open_drain
+            capacitance_pF: 10
+board B:
+    net bus: nettype.open_drain
+        demo:
+            max_pins: 3
+        min_pull_up_resistance_ohm: 2000
+        max_pull_up_resistance_ohm: 5000
+        max_capacitance_pF: 20
+        wiring_capacitance_pF: 2
+    inst pull[2]: Pull(
+        connections:
+            1: bus
+    )
+    inst device: Device(
+        connections:
+            1: bus
+    )

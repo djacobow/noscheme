@@ -1,41 +1,21 @@
 /*
-NoScheme reference board — syntax draft for discussion.
+STM32H523VCT6 proof-of-concept board, LQFP100.
 
-This is the STM32H523VCT6 board from PROJECT.md, used as a structural compiler
-fixture rather than a verified electrical design. The compiler resolves and expands this draft,
-including its arrayed UART headers; electrical checking and hardware validation
-remain pending. Placeholder blocks still need real implementations.
-Definitions are kept together here for review; library definitions will later
-move into modules accessed through explicit named imports.
+All parts now have physical pin maps and footprints. This is a placement/routing
+example, not a production-qualified design. See PROJECT.md for source references
+and pin allocation. USB and external power are operator-controlled: no reverse
+feed protection or automatic source selection is provided.
 
-Accepted choices include parenthesized inst declarations, params/defaults,
-aliases lists, numeric pin labels, ranges/slices, and explicit built-in imports.
-The complete grammar is not yet defined. Definition forms, placeholder metadata
-placement, standard-library module path, and the full role vocabulary still need
-formalization. PROJECT.md records the current decisions and remaining work.
-
-HARDWARE TODO:
-  Replace placeholder blocks with explicit physical parts after checking the
-  MCU datasheet, package pinout, alternate functions, and support requirements.
-  Choose connector and LDO parts; verify pad maps and footprints.
-  Add MCU decoupling, reset/boot and clock circuitry, USB-C configuration and
-  protection, and regulator capacitors appropriate to the selected devices.
-  Verify USB capability and clock requirements for the selected MCU.
-  Confirm separate expansion SPI/I2C peripherals and all sixteen GPIOs fit.
-  Assign two independent UART peripherals and choose the JST series/pitch and
-  footprint for their three-pin headers (1 GND, 2 MCU TX, 3 MCU RX).
-  Assign two button GPIOs; select normally-open switches and verify their pads.
-  Verify BOOT0 package mapping, option-byte behavior, and pull-down value.
-  Finalize connector roles and ERC power configurations; declare real current
-  budgets. No invented current capacities are used in this draft.
-
-Placeholder ports have no physical pin mapping and do not imply drivers or
-loads. They create no footprints. Known incomplete ERC information remains
-visible; the presence of a placeholder itself does not produce a warning.
+Hardware follow-up: tune the 8 MHz HC49 crystal's provisional 27 pF load caps;
+verify capacitor effective capacitance and regulator thermal headroom after
+layout; configure MCU alternate functions, USB clocking, and boot option bytes.
+Use the placement notes on decoupling capacitors during PCB layout. All small
+resistors/capacitors use 0603. No unverified current capacities are annotated.
 */
 
-// Proposed standard-library module name; imports are explicit.
-from noscheme import role, nettype, unused, f
+// Explicit builtins and the converted KiCad MCU symbol.
+from noscheme import role, nettype, unused, f, bias
+from stm32h523_parts import STM32H523VCTx
 
 bundle I2C:
     scl: nettype.open_drain
@@ -57,7 +37,7 @@ bundle SWD:
     swo: nettype.digital
     reset#: nettype.open_drain
 
-// Minimal physical definitions to illustrate the language, not library imports.
+// Explicit physical definitions for the remaining standard parts.
 component Resistor:
     params:
         value: string
@@ -81,6 +61,10 @@ component LedResistor extends Resistor0603:
         value: f.kOhm(1)
 
 component I2CPullup extends Resistor0603:
+    pins:
+        2:
+            bias: bias.pull_up
+            pull_resistance_ohm: 4700
     defaults:
         value: f.kOhm(4.7)
 
@@ -101,7 +85,9 @@ component PushButton:
             unused: unused.never
     metadata:
         ref_prefix: "SW"
-        // Normally open. Exact switch, physical pad mapping, and footprint pending.
+        value: "TS18-5-15-SL-260-SMT-TR"
+        // TL3342 matches TS18 lands; each row is one internally common contact.
+        footprint: "Button_Switch_SMD:SW_SPST_TL3342"
 
 component Header1x2:
     pins:
@@ -110,7 +96,7 @@ component Header1x2:
             unused: unused.never
     metadata:
         ref_prefix: "J"
-        footprint: "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical"
+        footprint: "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical_SMD_Pin1Left"
 
 component Led:
     params:
@@ -162,7 +148,7 @@ component Header1x4:
             unused: unused.explicit
     metadata:
         ref_prefix: "J"
-        // 0.1 inch pitch; exact part and footprint remain to be selected.
+        footprint: "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical_SMD_Pin1Left"
 
 component Header2x10:
     pins:
@@ -170,10 +156,13 @@ component Header2x10:
             unused: unused.explicit
     metadata:
         ref_prefix: "J"
-        // 0.1 inch pitch; exact part and footprint remain to be selected.
+        footprint: "Connector_PinHeader_2.54mm:PinHeader_2x10_P2.54mm_Vertical_SMD"
 
 component UartHeaderJST3:
     pins:
+        MP:
+            role: role.do_not_connect
+            unused: unused.always
         1:
             aliases: [gnd]
             unused: unused.explicit
@@ -187,92 +176,877 @@ component UartHeaderJST3:
         ref_prefix: "J"
         custom:
             connector_family: "JST"
-        // Series, pitch, mating connector, and footprint remain to be selected.
+        footprint: "Connector_JST:JST_XH_S3B-XH-SM4-TB_1x03-1MP_P2.50mm_Horizontal"
 
-// These blocks declare the intended interfaces, not aliases for real MCU pins.
-// Their eventual implementations will explicitly instantiate all support parts.
-block MCU_H523_Pending:
+component Capacitor0603:
+    params:
+        value: string = "100nF"
+    pins:
+        1..2:
+            role: role.passive
+            unused: unused.never
+    metadata:
+        ref_prefix: "C"
+        footprint: "Capacitor_SMD:C_0603_1608Metric"
+
+component CrystalHC49:
+    params:
+        value: string = "8MHz CL18pF"
+    pins:
+        1..2:
+            role: role.passive
+            unused: unused.never
+    metadata:
+        ref_prefix: "Y"
+        footprint: "Crystal:Crystal_SMD_HC49-SD"
+
+component STM32H523Board extends STM32H523VCTx:
+    defaults:
+        value: "STM32H523VCT6"
+    pins:
+        1:
+            role: role.digital_bidirectional
+            unused: unused.never
+        2:
+            role: role.digital_bidirectional
+            unused: unused.never
+        3:
+            role: role.digital_bidirectional
+            unused: unused.never
+        4:
+            role: role.digital_bidirectional
+            unused: unused.never
+        5:
+            role: role.digital_bidirectional
+            unused: unused.never
+        6:
+            role: role.power_input
+            unused: unused.never
+        10:
+            role: role.ground
+            unused: unused.never
+        11:
+            role: role.power_input
+            unused: unused.never
+        12:
+            role: role.analog_input
+            unused: unused.never
+        13:
+            role: role.analog_output
+            unused: unused.never
+        14:
+            role: role.open_drain
+            unused: unused.never
+        15:
+            role: role.digital_output
+            unused: unused.never
+        16:
+            role: role.digital_output
+            unused: unused.never
+        17:
+            role: role.digital_output
+            unused: unused.never
+        18:
+            role: role.digital_input
+            unused: unused.never
+        19:
+            role: role.ground
+            unused: unused.never
+        20:
+            role: role.ground
+            unused: unused.never
+        21:
+            role: role.power_input
+            unused: unused.never
+        22:
+            role: role.power_input
+            unused: unused.never
+        25:
+            role: role.digital_output
+            unused: unused.never
+        26:
+            role: role.digital_input
+            unused: unused.never
+        27:
+            role: role.ground
+            unused: unused.never
+        28:
+            role: role.power_input
+            unused: unused.never
+        29:
+            role: role.digital_output
+            unused: unused.never
+        30:
+            role: role.digital_output
+            unused: unused.never
+        31:
+            role: role.digital_input
+            unused: unused.never
+        32:
+            role: role.digital_output
+            unused: unused.never
+        33:
+            role: role.digital_input
+            unused: unused.never
+        34:
+            role: role.digital_input
+            unused: unused.never
+        38:
+            role: role.digital_bidirectional
+            unused: unused.never
+        39:
+            role: role.digital_bidirectional
+            unused: unused.never
+        40:
+            role: role.digital_bidirectional
+            unused: unused.never
+        41:
+            role: role.digital_bidirectional
+            unused: unused.never
+        42:
+            role: role.digital_output
+            unused: unused.never
+        43:
+            role: role.digital_output
+            unused: unused.never
+        44:
+            role: role.digital_input
+            unused: unused.never
+        45:
+            role: role.digital_output
+            unused: unused.never
+        46:
+            role: role.digital_bidirectional
+            unused: unused.never
+        48:
+            role: role.power_output
+            unused: unused.never
+        49:
+            role: role.ground
+            unused: unused.never
+        50:
+            role: role.power_input
+            unused: unused.never
+        55:
+            role: role.digital_output
+            unused: unused.never
+        56:
+            role: role.digital_input
+            unused: unused.never
+        66:
+            role: role.open_drain
+            unused: unused.never
+        67:
+            role: role.open_drain
+            unused: unused.never
+        70:
+            role: role.digital_bidirectional
+            unused: unused.never
+        71:
+            role: role.digital_bidirectional
+            unused: unused.never
+        72:
+            role: role.digital_bidirectional
+            unused: unused.never
+        73:
+            role: role.power_input
+            unused: unused.never
+        74:
+            role: role.ground
+            unused: unused.never
+        75:
+            role: role.power_input
+            unused: unused.never
+        76:
+            role: role.digital_input
+            unused: unused.never
+        89:
+            role: role.digital_output
+            unused: unused.never
+        92:
+            role: role.open_drain
+            unused: unused.never
+        93:
+            role: role.open_drain
+            unused: unused.never
+        94:
+            role: role.digital_input
+            unused: unused.never
+        98:
+            role: role.power_output
+            unused: unused.never
+        99:
+            role: role.ground
+            unused: unused.never
+        100:
+            role: role.power_input
+            unused: unused.never
+// Concrete reference-board implementations.
+// Sources and pin allocation are recorded in PROJECT.md.
+// These blocks expose logical interfaces over explicit physical pins.
+// Support parts are explicitly instantiated inside each block.
+block MCU_H523:
     ports:
         supply: nettype.power
-            placeholder: true
         ground: nettype.ground
-            placeholder: true
         usb: USB2
-            placeholder: true
         debug: SWD
-            placeholder: true
         sd: SPI
-            placeholder: true
         sd_detect#: nettype.digital
-            placeholder: true
         oled: I2C
-            placeholder: true
         expansion_i2c: I2C
-            placeholder: true
         expansion_spi: SPI
-            placeholder: true
         expansion_gpio: nettype.bidirectional[10]
-            placeholder: true
         led_drive: nettype.digital[3]
-            placeholder: true
         buttons#: nettype.digital[2]
-            placeholder: true
         boot0: nettype.digital
-            placeholder: true
         uart_tx: nettype.digital[2]
-            placeholder: true
         uart_rx: nettype.digital[2]
-            placeholder: true
     metadata:
         custom:
             intended_mcu: "STM32H523VCT6"
             intended_package: "LQFP-100"
 
-block UsbC_Pending:
+    net osc_in: nettype.analog
+    net osc_out: nettype.analog
+    net vcap: nettype.power
+        waivers:
+            multiple_drivers: "VCAP pins 48 and 98 belong to the same internal regulator (AN5711)."
+    inst chip: STM32H523Board(
+        connections:
+            1: expansion_gpio[0]
+            2: expansion_gpio[1]
+            3: expansion_gpio[2]
+            4: expansion_gpio[3]
+            5: expansion_gpio[4]
+            6: supply
+            7: no_connect
+            8: no_connect
+            9: no_connect
+            10: ground
+            11: supply
+            12: osc_in
+            13: osc_out
+            14: debug.reset#
+            15: led_drive[0]
+            16: led_drive[1]
+            17: led_drive[2]
+            18: sd_detect#
+            19: ground
+            20: ground
+            21: supply
+            22: supply
+            23: no_connect
+            24: no_connect
+            25: uart_tx[0]
+            26: uart_rx[0]
+            27: ground
+            28: supply
+            29: sd.cs#
+            30: sd.sck
+            31: sd.miso
+            32: sd.mosi
+            33: buttons#[0]
+            34: buttons#[1]
+            35: no_connect
+            36: no_connect
+            37: no_connect
+            38: expansion_gpio[5]
+            39: expansion_gpio[6]
+            40: expansion_gpio[7]
+            41: expansion_gpio[8]
+            42: expansion_spi.cs#
+            43: expansion_spi.sck
+            44: expansion_spi.miso
+            45: expansion_spi.mosi
+            46: expansion_gpio[9]
+            47: no_connect
+            48: vcap
+            49: ground
+            50: supply
+            51: no_connect
+            52: no_connect
+            53: no_connect
+            54: no_connect
+            55: uart_tx[1]
+            56: uart_rx[1]
+            57: no_connect
+            58: no_connect
+            59: no_connect
+            60: no_connect
+            61: no_connect
+            62: no_connect
+            63: no_connect
+            64: no_connect
+            65: no_connect
+            66: expansion_i2c.sda
+            67: expansion_i2c.scl
+            68: no_connect
+            69: no_connect
+            70: usb.dm
+            71: usb.dp
+            72: debug.swdio
+            73: supply
+            74: ground
+            75: supply
+            76: debug.swclk
+            77: no_connect
+            78: no_connect
+            79: no_connect
+            80: no_connect
+            81: no_connect
+            82: no_connect
+            83: no_connect
+            84: no_connect
+            85: no_connect
+            86: no_connect
+            87: no_connect
+            88: no_connect
+            89: debug.swo
+            90: no_connect
+            91: no_connect
+            92: oled.scl
+            93: oled.sda
+            94: boot0
+            95: no_connect
+            96: no_connect
+            97: no_connect
+            98: vcap
+            99: ground
+            100: supply
+    )
+    inst decouple_pin_6: Capacitor0603(
+        connections:
+            1: supply
+            2: ground
+        params:
+            value: "100nF"
+        metadata:
+            custom:
+                placement: "Place beside MCU pad 6, short return to ground."
+    )
+    inst decouple_pin_11: Capacitor0603(
+        connections:
+            1: supply
+            2: ground
+        params:
+            value: "100nF"
+        metadata:
+            custom:
+                placement: "Place beside MCU pad 11, short return to ground."
+    )
+    inst decouple_pin_21: Capacitor0603(
+        connections:
+            1: supply
+            2: ground
+        params:
+            value: "100nF"
+        metadata:
+            custom:
+                placement: "Place beside MCU pad 21, short return to ground."
+    )
+    inst decouple_pin_22: Capacitor0603(
+        connections:
+            1: supply
+            2: ground
+        params:
+            value: "100nF"
+        metadata:
+            custom:
+                placement: "Place beside MCU pad 22, short return to ground."
+    )
+    inst decouple_pin_28: Capacitor0603(
+        connections:
+            1: supply
+            2: ground
+        params:
+            value: "100nF"
+        metadata:
+            custom:
+                placement: "Place beside MCU pad 28, short return to ground."
+    )
+    inst decouple_pin_50: Capacitor0603(
+        connections:
+            1: supply
+            2: ground
+        params:
+            value: "100nF"
+        metadata:
+            custom:
+                placement: "Place beside MCU pad 50, short return to ground."
+    )
+    inst decouple_pin_73: Capacitor0603(
+        connections:
+            1: supply
+            2: ground
+        params:
+            value: "100nF"
+        metadata:
+            custom:
+                placement: "Place beside MCU pad 73, short return to ground."
+    )
+    inst decouple_pin_75: Capacitor0603(
+        connections:
+            1: supply
+            2: ground
+        params:
+            value: "100nF"
+        metadata:
+            custom:
+                placement: "Place beside MCU pad 75, short return to ground."
+    )
+    inst decouple_pin_100: Capacitor0603(
+        connections:
+            1: supply
+            2: ground
+        params:
+            value: "100nF"
+        metadata:
+            custom:
+                placement: "Place beside MCU pad 100, short return to ground."
+    )
+    inst supply_bulk: Capacitor0603(
+        connections:
+            1: supply
+            2: ground
+        params:
+            value: "4.7uF"
+    )
+    inst analog_bulk: Capacitor0603(
+        connections:
+            1: supply
+            2: ground
+        params:
+            value: "1uF"
+        metadata:
+            custom:
+                placement: "Place beside MCU pad 22."
+    )
+    inst reference_bulk: Capacitor0603(
+        connections:
+            1: supply
+            2: ground
+        params:
+            value: "1uF"
+        metadata:
+            custom:
+                placement: "Place beside MCU pad 21."
+    )
+    inst usb_bulk: Capacitor0603(
+        connections:
+            1: supply
+            2: ground
+        params:
+            value: "1uF"
+        metadata:
+            custom:
+                placement: "Place beside MCU pad 73."
+    )
+    inst vcap_pin_48: Capacitor0603(
+        connections:
+            1: vcap
+            2: ground
+        params:
+            value: "2.2uF"
+        metadata:
+            custom:
+                placement: "Place beside MCU pad 48; low ESR, do not connect VCAP to 3.3 V."
+    )
+    inst vcap_pin_98: Capacitor0603(
+        connections:
+            1: vcap
+            2: ground
+        params:
+            value: "2.2uF"
+        metadata:
+            custom:
+                placement: "Place beside MCU pad 98; low ESR, do not connect VCAP to 3.3 V."
+    )
+    inst crystal: CrystalHC49(
+        connections:
+            1: osc_in
+            2: osc_out
+    )
+    inst crystal_load_in: Capacitor0603(
+        connections:
+            1: osc_in
+            2: ground
+        params:
+            value: "27pF"
+        metadata:
+            custom:
+                placement: "C0G; provisional for CL18pF crystal, tune for PCB stray capacitance."
+    )
+    inst crystal_load_out: Capacitor0603(
+        connections:
+            1: osc_out
+            2: ground
+        params:
+            value: "27pF"
+        metadata:
+            custom:
+                placement: "C0G; provisional for CL18pF crystal, tune for PCB stray capacitance."
+    )
+    inst reset_cap: Capacitor0603(
+        connections:
+            1: debug.reset#
+            2: ground
+        params:
+            value: "100nF"
+    )
+
+component UsbCConnector:
+    pins:
+        "A1":
+            role: role.passive
+            unused: unused.explicit
+        "A12":
+            role: role.passive
+            unused: unused.explicit
+        "A4":
+            role: role.passive
+            unused: unused.explicit
+        "A5":
+            role: role.passive
+            unused: unused.explicit
+        "A6":
+            role: role.passive
+            unused: unused.explicit
+        "A7":
+            role: role.passive
+            unused: unused.explicit
+        "A8":
+            role: role.passive
+            unused: unused.explicit
+        "A9":
+            role: role.passive
+            unused: unused.explicit
+        "B1":
+            role: role.passive
+            unused: unused.explicit
+        "B12":
+            role: role.passive
+            unused: unused.explicit
+        "B4":
+            role: role.passive
+            unused: unused.explicit
+        "B5":
+            role: role.passive
+            unused: unused.explicit
+        "B6":
+            role: role.passive
+            unused: unused.explicit
+        "B7":
+            role: role.passive
+            unused: unused.explicit
+        "B8":
+            role: role.passive
+            unused: unused.explicit
+        "B9":
+            role: role.passive
+            unused: unused.explicit
+        "SH":
+            role: role.passive
+            unused: unused.explicit
+    metadata:
+        ref_prefix: "J"
+        footprint: "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12"
+
+component TLV1117LV33:
+    pins:
+        "1":
+            role: role.ground
+            unused: unused.explicit
+        "2":
+            role: role.power_output
+            unused: unused.explicit
+        "3":
+            role: role.power_input
+            unused: unused.explicit
+    metadata:
+        value: "TLV1117LV33DCYR"
+        ref_prefix: "U"
+        footprint: "Package_TO_SOT_SMD:SOT-223-3_TabPin2"
+
+component MicroSDConnector:
+    pins:
+        "1":
+            role: role.passive
+            unused: unused.explicit
+        "2":
+            role: role.passive
+            unused: unused.explicit
+        "3":
+            role: role.passive
+            unused: unused.explicit
+        "4":
+            role: role.passive
+            unused: unused.explicit
+        "5":
+            role: role.passive
+            unused: unused.explicit
+        "6":
+            role: role.passive
+            unused: unused.explicit
+        "7":
+            role: role.passive
+            unused: unused.explicit
+        "8":
+            role: role.passive
+            unused: unused.explicit
+        "9":
+            role: role.passive
+            unused: unused.explicit
+        "10":
+            role: role.passive
+            unused: unused.explicit
+        "SH":
+            role: role.passive
+            unused: unused.explicit
+    metadata:
+        ref_prefix: "J"
+        footprint: "Connector_Card:microSD_HC_Hirose_DM3AT-SF-PEJM5"
+
+component CortexHeader:
+    pins:
+        "1":
+            role: role.passive
+            unused: unused.explicit
+        "2":
+            role: role.passive
+            unused: unused.explicit
+        "3":
+            role: role.passive
+            unused: unused.explicit
+        "4":
+            role: role.passive
+            unused: unused.explicit
+        "5":
+            role: role.passive
+            unused: unused.explicit
+        "6":
+            role: role.passive
+            unused: unused.explicit
+        "7":
+            role: role.passive
+            unused: unused.explicit
+        "8":
+            role: role.passive
+            unused: unused.explicit
+        "9":
+            role: role.passive
+            unused: unused.explicit
+        "10":
+            role: role.passive
+            unused: unused.explicit
+    metadata:
+        ref_prefix: "J"
+        footprint: "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD"
+
+block UsbC:
+    metadata:
+        erc_choices:
+            power_mode: ["source", "absent"]
     ports:
         vbus: nettype.power
-            placeholder: true
         ground: nettype.ground
-            placeholder: true
         data: USB2
-            placeholder: true
-    // Explicit USB-C connector pins, CC circuitry, shield treatment, and
-    // protection will go here after part selection. VBUS is the shared 5 V net.
+    net cc: nettype.passive[2]
+    inst connector: UsbCConnector(
+        connections:
+            A1: ground
+            A12: ground
+            A4: vbus
+            A5: cc[0]
+            A6: data.dp
+            A7: data.dm
+            A8: no_connect
+            A9: vbus
+            B1: ground
+            B12: ground
+            B4: vbus
+            B5: cc[1]
+            B6: data.dp
+            B7: data.dm
+            B8: no_connect
+            B9: vbus
+            SH: ground
+        metadata:
+            pins:
+                A4:
+                    external_role:
+                        choice: "power_mode"
+                        cases:
+                            source: role.power_output
+                            absent: role.passive
+                A6:
+                    external_role: role.digital_bidirectional
+                A7:
+                    external_role: role.digital_bidirectional
+    )
+    inst cc_pulldowns[2]: Resistor0603(
+        connections:
+            1: cc
+            2: ground
+        params:
+            value: "5.1kOhm"
+    )
 
-block Ldo_Pending:
+block Ldo3v3:
     ports:
         input: nettype.power
-            placeholder: true
         output: nettype.power
-            placeholder: true
         ground: nettype.ground
-            placeholder: true
-    // Select an 1117-style 3.3 V regulator and its supporting passives.
-    // Verify external powering of its output; an ERC configuration cannot remove the LDO.
+    inst regulator: TLV1117LV33(
+        connections:
+            1: ground
+            2: output
+            3: input
+    )
+    inst input_cap: Capacitor0603(
+        connections:
+            1: input
+            2: ground
+        params:
+            value: "1uF"
+    )
+    inst output_cap: Capacitor0603(
+        connections:
+            1: output
+            2: ground
+        params:
+            value: "4.7uF"
+    )
+    // POC: direct rails, no reverse-feed isolation or automatic power selection.
 
-block MicroSD_Pending:
+block MicroSD:
     ports:
         supply: nettype.power
-            placeholder: true
         ground: nettype.ground
-            placeholder: true
         bus: SPI
-            placeholder: true
         detect#: nettype.digital
-            placeholder: true
-    // Replace with the chosen socket, explicit unused contacts, and support parts.
+    net unused_dat: nettype.passive[2]
+    inst socket: MicroSDConnector(
+        connections:
+            1: unused_dat[0]
+            2: bus.cs#
+            3: bus.mosi
+            4: supply
+            5: bus.sck
+            6: ground
+            7: bus.miso
+            8: unused_dat[1]
+            9: ground
+            10: detect#
+            SH: ground
+        metadata:
+            pins:
+                2..3:
+                    external_role: role.digital_input
+                4:
+                    external_role: role.power_input
+                5:
+                    external_role: role.digital_input
+                6:
+                    external_role: role.ground
+                7:
+                    external_role: role.digital_output
+    )
+    inst unused_dat_pullups[2]: InputBias0603(
+        connections:
+            1: supply
+            2: unused_dat
+    )
+    inst cs_pullup: InputBias0603(
+        connections:
+            1: supply
+            2: bus.cs#
+        metadata:
+            pins:
+                2:
+                    bias: bias.pull_up
+                    pull_resistance_ohm: 10000
+    )
+    inst miso_pullup: InputBias0603(
+        connections:
+            1: supply
+            2: bus.miso
+        metadata:
+            pins:
+                2:
+                    bias: bias.pull_up
+                    pull_resistance_ohm: 10000
+    )
+    inst detect_pullup: InputBias0603(
+        connections:
+            1: supply
+            2: detect#
+        metadata:
+            pins:
+                2:
+                    bias: bias.pull_up
+                    pull_resistance_ohm: 10000
+    )
+    inst decouple: Capacitor0603(
+        connections:
+            1: supply
+            2: ground
+        params:
+            value: "100nF"
+        metadata:
+            custom:
+                placement: "Place adjacent to microSD VDD pad."
+    )
+    inst bulk: Capacitor0603(
+        connections:
+            1: supply
+            2: ground
+        params:
+            value: "4.7uF"
+    )
 
-block CortexDebug_Pending:
+block CortexDebug:
     ports:
         reference: nettype.power
-            placeholder: true
         ground: nettype.ground
-            placeholder: true
         debug: SWD
-            placeholder: true
-    // Standard 10-pin Cortex arrangement; physical pin map awaits verification.
+    inst header: CortexHeader(
+        connections:
+            1: reference
+            2: debug.swdio
+            3: ground
+            4: debug.swclk
+            5: ground
+            6: debug.swo
+            7: no_connect
+            8: no_connect
+            9: ground
+            10: debug.reset#
+        metadata:
+            pins:
+                1:
+                    external_role: role.power_input
+                2:
+                    external_role: role.digital_bidirectional
+                3:
+                    external_role: role.ground
+                4:
+                    external_role: role.digital_output
+                6:
+                    external_role: role.digital_input
+                10:
+                    external_role: role.open_drain
+    )
 
 board STM32H523Reference:
+    metadata:
+        erc_choices:
+            power_source: ["usb", "header5v"]
+        configurations:
+            usb_powered:
+                power_source: "usb"
+            header_5v_powered:
+                power_source: "header5v"
     global net gnd: nettype.ground
     global net v5: nettype.power
     global net v3v3: nettype.power
@@ -291,7 +1065,7 @@ board STM32H523Reference:
     net uart_tx: nettype.digital[2]
     net uart_rx: nettype.digital[2]
 
-    inst mcu: MCU_H523_Pending(
+    inst mcu: MCU_H523(
         connections:
             supply: global.v3v3
             ground: global.gnd
@@ -310,21 +1084,28 @@ board STM32H523Reference:
             uart_rx: uart_rx
     )
 
-    inst usb_c: UsbC_Pending(
+    inst usb_c: UsbC(
         connections:
             vbus: global.v5
             ground: global.gnd
             data: usb
+        metadata:
+            erc_choices:
+                power_mode:
+                    choice: "power_source"
+                    cases:
+                        usb: "source"
+                        header5v: "absent"
     )
 
-    inst regulator: Ldo_Pending(
+    inst regulator: Ldo3v3(
         connections:
             input: global.v5
             output: global.v3v3
             ground: global.gnd
     )
 
-    inst micro_sd: MicroSD_Pending(
+    inst micro_sd: MicroSD(
         connections:
             supply: global.v3v3
             ground: global.gnd
@@ -332,14 +1113,32 @@ board STM32H523Reference:
             detect#: sd_detect#
     )
 
-    inst swd: CortexDebug_Pending(
+    inst swd: CortexDebug(
         connections:
             reference: global.v3v3
             ground: global.gnd
             debug: debug
     )
 
-    // Proposed order; check the intended OLED module's pin order and voltage.
+    // OLED header order: 3.3 V, ground, SCL, SDA; match the module cable to it.
+    inst oled_decouple: Capacitor0603(
+        connections:
+            1: global.v3v3
+            2: global.gnd
+        params:
+            value: "100nF"
+        metadata:
+            custom:
+                placement: "Place beside display header supply pin."
+    )
+    inst oled_bulk: Capacitor0603(
+        connections:
+            1: global.v3v3
+            2: global.gnd
+        params:
+            value: "4.7uF"
+    )
+
     inst oled_header: Header1x4(
         connections:
             1: global.v3v3
@@ -368,8 +1167,8 @@ board STM32H523Reference:
             1: global.v3v3
             2: oled.sda
     )
-    // TODO: bias annotations; generic passive pins do not establish pullup
-    // behavior. Check whether the chosen OLED module already has pullups.
+    // Bias is explicitly modeled; check whether the chosen OLED module already
+    // has pullups. Choose net resistance/capacitance limits after hardware review.
 
     // Illustrative header order: 4 power/ground + 2 I2C + 4 SPI + 10 other GPIO.
     // Bus pins are also GPIO-capable MCU pins, giving 16 GPIO connections total.
@@ -392,7 +1191,14 @@ board STM32H523Reference:
                     external_role: role.ground
                 2:
                     external_role: role.ground
-                // 3 and 4: source/load roles await ERC configuration syntax.
+                3:
+                    external_role:
+                        choice: "power_source"
+                        cases:
+                            usb: role.power_input
+                            header5v: role.power_output
+                4:
+                    external_role: role.power_input
                 5:
                     external_role: role.open_drain
                 6:
@@ -410,7 +1216,16 @@ board STM32H523Reference:
     )
     // Connector roles above describe the external equipment's endpoints.
     // Example SPI roles assume the board is controller; other uses need ERC configurations.
-    // Expansion I2C pullup placement remains to be decided with external loads.
+    inst expansion_scl_pullup: I2CPullup(
+        connections:
+            1: global.v3v3
+            2: expansion_i2c.scl
+    )
+    inst expansion_sda_pullup: I2CPullup(
+        connections:
+            1: global.v3v3
+            2: expansion_i2c.sda
+    )
 
     // TX/RX are named from the MCU's perspective. Each header gets its own UART.
     inst uart_headers[2]: UartHeaderJST3(
@@ -438,7 +1253,19 @@ board STM32H523Reference:
         connections:
             1: global.v3v3
             2: buttons#
+        metadata:
+            pins:
+                2:
+                    bias: bias.pull_up
+                    pull_resistance_ohm: 10000
     )
+    // NRST uses the MCU internal pull-up and the existing 100 nF reset capacitor.
+    inst reset_button: PushButton(
+        connections:
+            signal: debug.reset#
+            ground: global.gnd
+    )
+
     // Shunt installed: BOOT0 high. Shunt absent: resistor pulls BOOT0 low.
     inst boot_header: Header1x2(
         connections:
@@ -449,8 +1276,13 @@ board STM32H523Reference:
         connections:
             1: boot0
             2: global.gnd
+        metadata:
+            pins:
+                1:
+                    bias: bias.pull_down
+                    pull_resistance_ohm: 10000
     )
-    // Passive parts do not imply signal propagation or bias to ERC.
+    // Bias annotations are explicit; passive parts alone do not imply propagation.
 
     inst indicators[3]: Indicator(
         connections:
@@ -461,13 +1293,6 @@ board STM32H523Reference:
     // Equivalent whole-array binding: drive: led_drive.
     // Use one form or the other; overlapping bindings are errors.
 
-    /*
-    ERC configurations to express after choosing their syntax:
-      USB-powered: USB supplies v5; expansion power pins are loads or unused.
-      Header-5V-powered: expansion pin 3 supplies v5; USB supply absent.
-      Header-3V3-powered: expansion pin 4 supplies v3v3; verify the real LDO's
-        behavior with its output externally powered and input supply absent.
-    These are checking assumptions, not different netlists. Physical regulator
-    connections remain present in every configuration. Supply capacities and
-    consumption will be explicit annotations after part selection.
-    */
+    // USB and header-5V configurations check the same direct physical rails.
+    // External 3.3 V operation remains an operator-controlled experiment;
+    // there is no LDO isolation and no model for a deliberately unpowered v5 rail.

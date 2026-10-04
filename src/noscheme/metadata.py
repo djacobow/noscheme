@@ -21,21 +21,34 @@ ROLES = frozenset(
         "power_output",
         "ground",
         "open_drain",
+        "open_source",
         "unchecked",
         "do_not_connect",
     }
 )
 NETTYPES = frozenset(
-    {"passive", "digital", "analog", "power", "ground", "open_drain", "bidirectional", "unchecked"}
+    {
+        "passive",
+        "digital",
+        "analog",
+        "power",
+        "ground",
+        "open_drain",
+        "open_source",
+        "bidirectional",
+        "unchecked",
+    }
 )
 UNUSED = frozenset({"always", "explicit", "never"})
 SCHEMAS = {
     "component": {
         "footprint": "string",
         "ref_prefix": "string",
+        "current_loads": "current_loads",
         "value": "expression",
         "custom": "custom",
     },
+    "current_load": {"pins": "aliases", "max_load_current_mA": "nonnegative"},
     "block": {"custom": "custom", "erc_choices": "choice_declarations"},
     "board": {
         "custom": "custom",
@@ -51,7 +64,9 @@ SCHEMAS = {
         "max_source_current_mA": "nonnegative",
         "max_load_current_mA": "nonnegative",
     },
+    "aggregate_load": {"max_load_current_mA": "nonnegative"},
     "port": {
+        "aggregate_load": "aggregate_load",
         "placeholder": "bool",
         "role": "roles",
         "unused": "unused",
@@ -72,9 +87,7 @@ SCHEMAS = {
 UNIMPLEMENTED = {
     "erc",
     "differential_pair",
-    "aggregate_load",
     "permitted_roles",
-    "capacitance_pF",
 }
 
 
@@ -135,7 +148,15 @@ def read_metadata(fields, scope, project, module, local_names=()):
         if scope == "custom":
             kind = "custom" if field.fields else "literal"
         else:
-            kind = SCHEMAS[scope].get(key)
+            schema = scope if isinstance(scope, dict) else SCHEMAS[scope]
+            extension = (
+                {}
+                if isinstance(scope, dict)
+                else project.config.erc_registry.schemas.get(scope, {})
+            )
+            if schema.keys() & extension.keys():
+                fail("metadata.schema", "ERC module duplicates core metadata fields", field.span)
+            kind = schema.get(key, extension.get(key))
             if kind is None:
                 code = "metadata.unsupported" if key in UNIMPLEMENTED else "metadata.unknown"
                 fail(
@@ -144,12 +165,42 @@ def read_metadata(fields, scope, project, module, local_names=()):
                     field.span,
                 )
         expr = field.value
-        if kind in {"choice_declarations", "choice_bindings", "configurations"}:
+        if isinstance(kind, dict):
+            if expr is not None or not field.fields:
+                fail("metadata.value", f"{key!r} requires an indented mapping", field.span)
+            value = read_metadata(field.fields, kind, project, module, local_names)
+        elif isinstance(kind, tuple):
+            if expr is None or field.fields:
+                fail("metadata.value", f"{key!r} requires an enum value", field.span)
+            namespace, alternatives = kind
+            value = enum(expr, namespace, alternatives, project, module, local_names)
+        elif kind in {"choice_declarations", "choice_bindings", "configurations"}:
             value = read_choices(field, kind, module)
         elif scope == "instance_pin" and kind in {"roles", "role"} and field.fields:
             value = read_selection(
                 field, module, lambda expr: enum(expr, "role", ROLES, project, module, local_names)
             )
+        elif kind == "aggregate_load":
+            if expr is not None or not field.fields:
+                fail(
+                    "metadata.current_load",
+                    "aggregate_load requires max_load_current_mA",
+                    field.span,
+                )
+            value = read_metadata(field.fields, "aggregate_load", project, module, local_names)
+        elif kind == "current_loads":
+            value = {}
+            for name, group in mapping(field).items():
+                entries = read_metadata(group.fields, "current_load", project, module, local_names)
+                if group.value is not None or not entries:
+                    fail(
+                        "metadata.current_load",
+                        "each current load requires pins and max_load_current_mA",
+                        group.span,
+                    )
+                if "pins" in entries and not entries["pins"].value:
+                    fail("metadata.current_load", "current load pins cannot be empty", group.span)
+                value[name] = Value(entries, group.span, module)
         elif kind == "waivers":
             if expr is not None or not field.fields:
                 fail(
@@ -160,7 +211,10 @@ def read_metadata(fields, scope, project, module, local_names=()):
             value = {}
             for waiver in field.fields:
                 check = waiver.key.first.text
-                if waiver.key.last or check not in WAIVABLE:
+                if (
+                    waiver.key.last
+                    or check not in WAIVABLE | project.config.erc_registry.checks.keys()
+                ):
                     fail(
                         "metadata.waiver",
                         f"{check!r} is not a waivable implemented net check",
@@ -214,9 +268,9 @@ def read_metadata(fields, scope, project, module, local_names=()):
                     and isinstance(value, str)
                     or kind == "bool"
                     and isinstance(value, bool)
-                    or kind == "nonnegative"
+                    or kind in {"positive", "nonnegative"}
                     and type(value) in {int, float}
-                    and value >= 0
+                    and (value > 0 if kind == "positive" else value >= 0)
                 )
                 if not valid:
                     fail("metadata.value", f"{key!r} requires {kind} metadata", expr.span)

@@ -214,6 +214,8 @@ class Resolver:
             else tuple(n for n in source.body if isinstance(n, (a.Net, a.Instance)))
         )
         combined = merge(parent.metadata, metadata) if parent else metadata
+        if source.kind == "component":
+            combined = validate_current_loads(combined, interface, aliases)
         choices = combined.get("erc_choices", Value({}, source.span, module)).value
         configurations = combined.get("configurations", Value({}, source.span, module)).value
         for configuration in configurations.values():
@@ -610,3 +612,50 @@ def resolution_summary(project, definitions):
         ],
         "remaining_stages": ["expression-evaluation", "elaboration", "ERC", "export"],
     }
+
+
+def validate_current_loads(metadata, interface, aliases):
+    """Resolve group members to physical pads after inheritance and alias merging."""
+    groups = metadata.get("current_loads")
+    if groups is None:
+        return metadata
+    resolved, seen = {}, set()
+    for name, group in groups.value.items():
+        if set(group.value) != {"pins", "max_load_current_mA"}:
+            fail(
+                "metadata.current_load",
+                "each current load requires pins and max_load_current_mA",
+                group.span,
+            )
+        members = group.value["pins"]
+        numbers = []
+        for member in members.value:
+            number = aliases.get(member)
+            if number is None:
+                fail("metadata.current_load", f"unknown current load pin {member!r}", members.span)
+            if number in seen:
+                fail(
+                    "metadata.current_load",
+                    f"pin {number!r} belongs to more than one current load entry",
+                    members.span,
+                )
+            seen.add(number)
+            pin = interface[number]
+            roles = pin.metadata.get("role")
+            if roles is None or "power_input" not in roles.value:
+                fail(
+                    "metadata.current_load",
+                    f"current load pin {number!r} must permit role.power_input",
+                    members.span,
+                )
+            if "max_load_current_mA" in pin.metadata:
+                fail(
+                    "metadata.current_load",
+                    f"pin {number!r} cannot have both an individual and grouped load",
+                    members.span,
+                )
+            numbers.append(number)
+        resolved[name] = replace(
+            group, value={**group.value, "pins": replace(members, value=tuple(numbers))}
+        )
+    return {**metadata, "current_loads": replace(groups, value=resolved)}

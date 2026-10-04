@@ -10,6 +10,10 @@ CHECKS = (
     "power_ground_conflict",
     "incomplete_roles",
     "unchecked_net",
+    "aggregate_load_boundary",
+    "aggregate_current_overload",
+    "incomplete_aggregate_load",
+    "current_load_group",
     "current_overload",
     "incomplete_budget",
     "waiver_scope",
@@ -20,6 +24,10 @@ CHECKS = (
     "unused_port",
 )
 WAIVABLE = frozenset(CHECKS) - {
+    "aggregate_load_boundary",
+    "aggregate_current_overload",
+    "incomplete_aggregate_load",
+    "current_load_group",
     "do_not_connect",
     "required_connection",
     "unused_pin",
@@ -31,7 +39,7 @@ WAIVABLE = frozenset(CHECKS) - {
 # Passive contacts impose no electrical domain. Unknown/unchecked and forbidden
 # roles are handled separately; they are never inferred to be passive.
 PASSIVE = {"passive"}
-DIGITAL = {"digital_input", "digital_output", "digital_bidirectional", "open_drain"}
+DIGITAL = {"digital_input", "digital_output", "digital_bidirectional", "open_drain", "open_source"}
 ANALOG = {"analog_input", "analog_output", "analog_bidirectional"}
 INPUTS = {"digital_input", "analog_input", "power_input"}
 ALLOWED_ROLES = {
@@ -39,6 +47,7 @@ ALLOWED_ROLES = {
     "digital": PASSIVE | DIGITAL,
     "bidirectional": PASSIVE | DIGITAL,
     "open_drain": PASSIVE | {"digital_input", "open_drain"},
+    "open_source": PASSIVE | {"digital_input", "open_source"},
     "analog": PASSIVE | ANALOG,
     "power": PASSIVE | INPUTS | {"power_output"},
     "ground": PASSIVE | INPUTS | {"ground"},
@@ -58,6 +67,7 @@ PORT_ALLOWED = {
     "power_output": PASSIVE | {"power_input", "power_output"},
     "ground": PASSIVE | INPUTS | {"ground"},
     "open_drain": PASSIVE | {"digital_input", "open_drain"},
+    "open_source": PASSIVE | {"digital_input", "open_source"},
     "unchecked": ALLOWED_ROLES["passive"],
     "do_not_connect": set(),
 }
@@ -72,4 +82,5 @@ PORT_EVIDENCE = {
     "power_output": {"power_output"},
     "ground": {"ground"},
     "open_drain": {"open_drain"},
+    "open_source": {"open_source"},
 }

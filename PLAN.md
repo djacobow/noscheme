@@ -1,16 +1,39 @@
 # NoScheme implementation plan
 
-## Current milestone: initial ERC and reporting
+## Current milestone: physical STM32 proof-of-concept and KiCad handoff
 
-Status: compiler-core steps 1–5 are implemented for the documented initial
-metadata schema. Explicit library conversion and the first persistent KiCad
-exporter are implemented. Initial physical-pin ERC and text/JSON reporting are
-implemented; advanced ERC and production-output GUI validation remain.
-The combined suite has 358 passing tests.
-The feasibility milestone below is complete;
-results and limitations are in [experiments/FINDINGS.md](experiments/FINDINGS.md).
-PROJECT.md remains the language authority. Proposed policies below resolve open
-items for implementation; they are not retroactive changes to agreed semantics.
+Compiler-core steps 1–5, explicit library conversion, persistent KiCad export,
+role/configuration ERC, grouped and aggregate currents, and opt-in extensible
+bias/resistance/capacitance checks are implemented. The Vim/Neovim runtime is
+implemented with installation instructions in README.md.
+
+The STM32 reference now compiles and exports 58 physical parts on 52 nets with
+14 validated footprint types, no omitted parts, and zero active ERC errors or
+warnings in USB-powered and header-5-V-powered configurations. The MCU symbol
+was explicitly converted from the installed KiCad library; physical pin roles
+are specialized in the example. Added the HC49 crystal/load capacitors, all MCU
+supply decoupling, local SD/display decoupling, concrete connectors, and a
+ceramic-stable TLV1117LV33 supply. Direct header/LDO power connections are retained
+for this operator-controlled POC. No additional protection circuitry is planned.
+
+Next: import `examples/stm32h523/build/board.net` into a new KiCad board, confirm
+58 footprints and connectivity, place a few parts, and verify reimport preserves
+the layout. Automated coverage checks MCU pins/supplies, VCAP isolation, buses,
+USB contacts, local capacitors, all footprint pads, and repeat export stability.
+Crystal capacitor tuning, firmware clock/boot settings, and physical layout
+validation remain hardware tasks; tri-state ERC remains separate compiler work.
+The completed feasibility experiment findings remain in
+[experiments/FINDINGS.md](experiments/FINDINGS.md).
+
+### Vim/Neovim highlighting
+
+The shared runtime in `editors/vim` detects `.nosch`, colors language constructs,
+and supplies buffer-local indentation/comment/identifier settings. Tests use
+headless Vim and, when installed, Neovim. With vim-plug, register the runtime as
+a local `Plug` entry; do not prepend it before a no-argument `plug#begin()`.
+
+The following compiler-core sequence records the original milestone and its
+historical implementation steps. Current behavior is documented in PROJECT.md.
 
 ### Outcome
 
@@ -412,6 +435,49 @@ uv run --locked noscheme check --project examples/power_modes
 uv run --locked noscheme compile --project examples/power_modes --erc-configuration usb_powered
 ```
 
+### ERC: grouped component current loads
+
+Implemented `metadata.current_loads` with named physical-pin groups and explicit
+maximum load in mA. Aliases resolve to physical pads; groups cannot overlap or
+mix individual and grouped demands. Every member must connect to the same net.
+The checker counts each group once per instance, checks effective roles per ERC
+configuration, and reports split/disconnected groups with member locations.
+Metadata subclasses can override a group amount without repeating membership.
+
+Tests cover arrays, aliases, inheritance, separate supply groups, ordinary loads,
+missing capacity, invalid metadata, disconnected/split groups, external roles,
+and named configurations.
+
+Block supply ports now support `aggregate_load.max_load_current_mA`. Descendant
+loads on the same net are checked against that aggregate before their demands
+are replaced for parent accounting. Nested blocks are processed from the inside
+outward; internal overloads and incomplete budgets remain visible. Same-scope
+overlapping boundaries and internal same-net sources are rejected. Tests cover
+nested/arrayed blocks, grouped physical loads, inheritance, named configurations,
+unchecked nets, source locations, and compile with electrical errors.
+### ERC: opt-in electrical budgets and extensions
+
+Implemented a project-local registry for metadata schemas and net checks. Optional
+`erc_modules` in TOML loads Python files exposing `register(registry)`. Built-in
+pull-resistance and capacitance checks use this API, activate only on declared
+net/port limits, and report unknown contributions without inventing zero loads.
+Pin bias annotations follow physical connections; open-source roles mirror
+open-drain roles. The STM32 draft now explicitly annotates its existing OLED,
+button, and BOOT0 bias resistors; bus budget limits await hardware selection.
+
+Callbacks receive isolated circuit/net/endpoint contexts per configuration.
+Registered checks support source-located diagnostics and scoped waivers; plugin
+failures block publication. Tests cover applicability, parallel pulls, incomplete
+budgets, hierarchy, configuration context, schema validation, callback isolation,
+and preservation of previous artifacts on failure.
+
+```sh
+uv run --locked noscheme check --project examples/erc_extensions
+```
+
+Tri-state models, tolerance/range handling, and parameter-derived electrical
+metadata remain future work. The example uses simplified physical pin models.
+
 ### ERC: implemented first pass
 
 `check`, `compile`, and `export-kicad` run physical pin policies, known driver
@@ -428,8 +494,8 @@ pending checks; the circuit now records `erc_performed: true` after checking.
 The elaboration-only Python API still returns `erc_performed: false`.
 
 Role/net-type compatibility and public-port contracts are now implemented.
-Named ERC configurations are implemented; bias/tristate models and aggregate
-budgets remain pending. Explicit digital-input ports may tie to power/ground rails while retaining
+Named ERC configurations and hierarchical aggregate budgets are implemented;
+tri-state models remain pending. Explicit digital-input ports may tie to power/ground rails while retaining
 their internal input contracts and the rail checks.
 Waivers now require the outermost declaration of the flattened net. Inner-port
 waivers produce a scope error and cannot suppress checks on caller circuitry.

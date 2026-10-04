@@ -72,8 +72,9 @@ not require footprints.
 ### Deferred features
 
 V1 excludes algorithmic circuit generation, conditional part inclusion, physical
-quantity parameter types, automatic I2C capacitance and pullup-strength checks,
-and full assembly variants. Parameter use is limited as described below.
+quantity parameter types, and full assembly variants. Explicit metadata-based
+pull-strength and capacitance checks are implemented; automatic extraction from
+part values, routing, or datasheets remains deferred. Parameter use is limited as described below.
 
 The design should leave room for a future generation API, potentially Python,
 that creates the same nets and instances as the native language. Its execution
@@ -81,7 +82,8 @@ and extension model has not been chosen. A separate logical-pin/package layer
 and a dedicated pin-group feature are not needed in v1; wrappers can provide
 convenient interfaces over explicit physical pins.
 
-Basic Vim/Neovim syntax highlighting accompanies the first usable compiler.
+Basic Vim/Neovim syntax highlighting is implemented in `editors/vim`; README.md
+describes installation.
 LSP diagnostics and completion follow afterward. Canonical formatting/linter
 support follows once the syntax stabilizes.
 
@@ -94,14 +96,16 @@ The worked example is an STM32H523 board with:
 | MCU | STM32H523VCT6, 100-pin LQFP |
 | Debug | Standard 10-pin Cortex SWD connector |
 | USB | USB-C connector carrying data and supplying 5 V |
-| Regulation | 5 V to 3.3 V LDO, such as an 1117-style device |
+| Regulation | TLV1117LV33DCYR, 5 V to 3.3 V, SOT-223; ceramic input/output capacitors |
 | Indicators | A few LEDs; the draft uses three |
 | Storage | microSD socket using SPI, with card detection if provided |
 | Display | 1x4, 0.1-inch header carrying power, ground, SCL, SDA for an SSD1306-style I2C OLED |
 | Expansion | 2x10, 0.1-inch header with two grounds, 5 V, 3.3 V, and sixteen GPIO connections, including I2C- and SPI-capable pins |
 | UARTs | Two independent UART ports on three-pin JST headers, ordered GND, MCU TX, MCU RX; instantiate the headers as a two-element array |
-| Buttons | Two normally-open, active-low buttons with individual pull-up resistors; GPIO assignments pending |
+| Buttons | Three TS18-compatible SMT buttons: PC4/PC5 with 10 kOhm pull-ups, plus NRST to ground |
 | BOOT0 | 2-pin, 0.1-inch header: jumper to 3.3 V, pull-down resistor for a default low level; verify MCU boot configuration |
+| Decoupling | Local 100 nF capacitors at all MCU supply pins, bulk/domain capacitors, two 2.2 uF VCAP capacitors, and local microSD/display capacitors |
+| Crystal | 8 MHz, HC49/US SMT footprint, CL18pF target, two provisional 27 pF C0G load capacitors |
 | Passives | 0603 packages |
 
 Prefer expansion I2C and SPI peripherals independent of the OLED and microSD
@@ -112,13 +116,77 @@ those physical connections.
 
 The UART draft uses `uart_tx[2]` and `uart_rx[2]` nets with
 `inst uart_headers[2]: UartHeaderJST3(...)`. Ground is shared across both headers;
-each TX/RX element connects to the corresponding header. JST series/pitch,
-footprints, and UART-capable MCU pins remain to be selected.
+each TX/RX element connects to the corresponding header. The selected connector
+is JST XH S3B-XH-SM4-TB, 2.50 mm pitch, side-entry SMT. Its mounting tabs
+are electrically unconnected. See the [JST XH datasheet](https://www.jst-mfg.com/product/pdf/eng/eXH.pdf).
 
-Exact support parts, MCU pin assignments and alternate functions, connector
-parts and pin order, LED details, and power arrangements need verification
-against manufacturer documentation. The draft uses placeholder blocks where
-those decisions have not been made.
+### Physical proof-of-concept implementation
+
+The example is now 58 physical parts and 52 nets with no placeholders or missing
+footprints. Its project file is `examples/stm32h523/noscheme.toml`; the main source
+remains `examples/stm32h523.nosch`. The imported `stm32h523_parts.nosch` is the
+explicit conversion of KiCad's `STM32H523VCTx` symbol. `STM32H523Board` specializes
+its pin roles for this board; unused physical GPIOs explicitly bind `no_connect`.
+The conversion report and all 14 footprint snapshots are retained in the project.
+Repeated exports retain reference assignments and UUIDs through the project state.
+
+The MCU's USB FS support and package pinout were checked against
+[ST DS14540](https://www.st.com/resource/en/datasheet/stm32h523vc.pdf), using the
+installed KiCad symbol as the machine-readable pin map. Allocation:
+
+| Function | MCU pins (LQFP100 pad numbers) |
+|---|---|
+| USB D-/D+ | PA11 (70), PA12 (71) |
+| SWDIO / SWCLK / SWO / reset | PA13 (72), PA14 (76), PB3 (89), NRST (14) |
+| microSD SPI1: CS / SCK / MISO / MOSI | PA4 (29), PA5 (30), PA6 (31), PA7 (32) |
+| microSD detect | PC3 (18) |
+| OLED I2C1 SCL / SDA | PB6 (92), PB7 (93) |
+| Expansion I2C3 SCL / SDA | PA8 (67), PC9 (66) |
+| Expansion SPI4: CS / SCK / MISO / MOSI | PE11 (42), PE12 (43), PE13 (44), PE14 (45) |
+| UART header 0, USART2 TX / RX | PA2 (25), PA3 (26) |
+| UART header 1, USART3 TX / RX | PD8 (55), PD9 (56) |
+| Expansion GPIOs, in header order | PE2, PE3, PE4, PE5, PE6, PE7, PE8, PE9, PE10, PE15 |
+| LEDs / buttons | PC0–PC2 / PC4–PC5 |
+| BOOT0 / HSE crystal | BOOT0 (94) / PH0 (12), PH1 (13) |
+
+The supply connections follow the LDO-enabled arrangement in
+[ST AN5711](https://www.st.com/resource/en/application_note/an5711-getting-started-with-stm32h5-mcu-hardware-development-stmicroelectronics.pdf).
+VDD, VDDA, VREF+, VDDUSB, and VBAT connect to 3.3 V; VSSA/VREF- connect to ground.
+This package has no separate VDDIO2 pad. VCAP pads 48/98 share an isolated core
+rail, with one 2.2 uF capacitor at each pad. A scoped `multiple_drivers` waiver
+records that both pads belong to the same internal regulator. Never attach this
+rail to 3.3 V. Firmware must leave VREFBUF disabled with VREF+ tied to VDDA.
+Capacitor instance metadata records intended placement near the relevant pads.
+
+The regulator is specifically the ceramic-stable
+[TI TLV1117LV33](https://www.ti.com/lit/gpn/TLV1117LV), with 1 uF input and 4.7 uF
+output capacitors. No reverse-feed isolation, power mux, or series jumper is
+included: this board is an operator-controlled flow proof of concept. The header
+and regulator output remain on the same 3.3 V net, as requested. USB-powered and
+header-5-V-powered ERC configurations are implemented; externally supplied 3.3 V
+with an unpowered 5 V rail is not yet modeled. These assumptions do not add
+physical protection. No nominal LDO rating is treated as a verified board budget.
+
+USB uses the HRO TYPE-C-31-M-12 footprint, two 5.1 kOhm CC pull-downs, tied duplicate
+USB2 contacts, and a grounded shield. The microSD socket uses the Hirose
+DM3AT-SF-PEJM5 footprint, explicit SPI roles and detect contacts, pull-ups, and
+local 100 nF/4.7 uF capacitors. The OLED header has the same local capacitor pair.
+Both I2C buses have 4.7 kOhm pull-ups; all these resistors/capacitors use 0603.
+The Cortex connector uses a vertical SMT 2x5 1.27 mm footprint with the standard
+SWD pinout. OLED, expansion, and BOOT0 headers also use vertical SMT footprints
+at 2.54 mm pitch. Prefer SMT throughout; the USB connector retains its shield
+anchors and locating holes.
+
+All three buttons use `Button_Switch_SMD:SW_SPST_TL3342`, matching the
+[TS18 land pattern](https://www.sameskydevices.com/product/resource/ts18.pdf):
+four 1.7 x 1.0 mm pads at x = +/-3.15 mm, y = +/-1.9 mm. Each row is internally
+common and maps to one logical switch pin. The reset button shorts NRST to ground,
+using the MCU internal pull-up and the existing 100 nF capacitor.
+
+The HC49/US SMT crystal target is 8 MHz with 18 pF load; its two 27 pF load capacitors
+are provisional and need adjustment for the selected crystal and board stray
+capacitance. This board has not been assembled, routed, or hardware-qualified.
+Production netlist import/placement/update still needs the manual KiCad check.
 
 ## Projects and imports
 
@@ -291,25 +359,31 @@ assembly, export, or ERC behavior in v1.
 #### Initial implemented metadata schema
 
 The definition resolver currently supports the fields below. This is the starting
-schema, not the complete v1 ERC vocabulary. Unknown fields are errors. Aggregate
-loads and pair declarations are not yet implemented and must not be silently ignored.
+schema, not the complete v1 ERC vocabulary. Unknown fields are errors. Pair
+declarations are not yet implemented and must not be silently ignored.
 
 | Scope | Fields |
 |---|---|
-| Physical component definition | `footprint`, `ref_prefix` (strings), `value` (deferred expression), `custom` |
+| Physical component definition | `footprint`, `ref_prefix` (strings), `value` (deferred expression), `current_loads`, `custom` |
 | Block definition | `erc_choices` (named string alternatives), `custom` |
 | Board definition | `erc_choices`, `configurations` (named choice assignments), `custom` |
 | Bundle definition | `custom` |
 | Physical pin definition | `aliases` (name/string list), `role` (qualified role or list), `unused`, nonnegative literal `max_source_current_mA` and `max_load_current_mA`, `custom` |
-| Port or bundle field | `placeholder` (boolean), `role`, `unused`, `waivers`, `custom` |
+| Port or bundle field | `placeholder` (boolean), `role`, `unused`, `waivers`, `aggregate_load`, `custom` |
 | Net | `placeholder` (boolean), `net_class` (string), `waivers`, `custom` |
 | Physical instance | `footprint`, `ref`, `identity` (strings), `value` (deferred expression), `custom` |
 | Block instance | `identity`, `erc_choices` (public choice bindings), `custom` |
 | Instance pin/port annotation | `role` (one permitted role or choice/cases mapping), `external_role` (role, list, or choice/cases mapping), `custom` |
 
+The electrical-check registry additionally supplies pin/instance-pin `bias`,
+`pull_resistance_ohm`, and `capacitance_pF`; net/port resistance limits and
+`max_capacitance_pF`; and net `wiring_capacitance_pF`. See the extensible ERC
+section for activation and contribution semantics. Project modules can register
+additional fields without altering these core schemas or the grammar.
+
 Roles currently include `passive`, `digital_input`, `digital_output`,
 `digital_bidirectional`, `analog_input`, `analog_output`, `analog_bidirectional`,
-`power_input`, `power_output`, `ground`, `open_drain`, `unchecked`, and `do_not_connect`.
+`power_input`, `power_output`, `ground`, `open_drain`, `open_source`, `unchecked`, and `do_not_connect`.
 These require the explicit `role` import and qualification. `unused.always`,
 `unused.explicit`, and `unused.never` require the explicit `unused` import.
 An instance role must belong to the definition's permitted roles when specified;
@@ -533,15 +607,15 @@ Implemented checks use the `erc.` diagnostic prefix:
   conflicts are still reported.
 - `unchecked_net` reports deliberately skipped driver/current checks. Pin
   connection policies still apply.
-- `current_overload` sums known per-pin power-input loads against one annotated
+- `current_overload` sums known per-pin and grouped power-input loads against one annotated
   power-output capacity. `incomplete_budget` warns about missing roles, capacities,
   or loads when any current metadata is present. Known overloads are errors even
   when additional loads are unknown; multiple source capacities are not summed.
 
 External connector roles replace the physical contact's role for driver and load
 accounting. Hierarchical ports never duplicate physical drivers or loads.
-Bias/tristate models and aggregate budgets remain pending. Their missing
-metadata forms are rejected rather than silently ignored.
+Explicit bias and opt-in resistance/capacitance budgets are implemented.
+Tri-state models remain pending; unsupported metadata is rejected.
 
 ### Role/net-type compatibility
 
@@ -779,8 +853,8 @@ behind private block internals; both configurations produce the same netlist.
 
 Electrical quantities use numeric metadata with units in field names, such as
 `max_source_current_mA` and `max_load_current_mA`. Each recognized field defines
-its unit. `capacitance_pF` illustrates the same convention, but automatic
-capacitance checking is deferred.
+its unit. Explicit capacitance budgets are implemented under the extensible ERC
+requirements below; capacitance is not automatically extracted.
 
 - Sources may declare capacity; loads may declare maximum consumption.
 - Sum explicit loads. Known overloads are errors; missing load annotations make
@@ -792,6 +866,179 @@ capacitance checking is deferred.
   remain separate; aggregate and constituent loads are never added together.
 - Do not calculate consumption from part values or propagate a regulator's
   output load to its input automatically.
+
+#### Grouped component loads (implemented)
+
+Component metadata can name a load shared by several physical supply pins:
+
+```nosch
+metadata:
+    current_loads:
+        core:
+            pins: [vdd, "2", "3", "4"]
+            max_load_current_mA: 100
+```
+
+Members are pin aliases or quoted physical pin numbers. Resolve aliases to pads;
+reject empty groups, repeated pads (including alias/number duplicates), unknown
+pins, and membership in multiple groups. Group members must permit
+`role.power_input` and cannot also declare individual `max_load_current_mA`.
+Amounts are finite, nonnegative numeric literals in mA. Metadata inheritance
+merges named groups, so a subclass can override just an amount or the member list.
+
+Every group member must connect to the **same flattened electrical net**. A
+split, omitted, or `no_connect` member produces `erc.current_load_group`, with
+locations for its member pins. Separate supplies require separate groups and
+explicit budgets; no current is apportioned between rails automatically.
+
+A valid group counts once per physical component instance, including each array
+element. It replaces its members' individual demands when checking the source
+capacity. Each selected ERC configuration must give every member the effective
+role `power_input`. An unknown/unselected role leaves the group unverified with
+a warning; a definite incompatible role is an error. Invalid groups do not hide
+missing individual load information. Group diagnostics cannot be waived, and
+are checked even on unchecked nets; unchecked nets still skip overload checks.
+These electrical diagnostics remain nonblocking for compile/export.
+
+#### Block aggregate loads (implemented)
+
+A block can declare an aggregate on a supply port:
+
+```nosch
+ports:
+    power: nettype.power
+        role: role.power_input
+        aggregate_load:
+            max_load_current_mA: 100
+```
+
+The aggregate represents all descendant power-input loads on that same flattened
+net. It counts once in the parent's budget, replacing those individual/grouped
+loads. No behavior propagates through resistors or regulators; loads on other
+nets retain their independent checks. Each scalar port in an array has its own
+annotation, and each block instance has an independent budget.
+
+Check nested boundaries from the inside outward. Known internal loads exceeding
+the declared aggregate produce `aggregate_current_overload`; missing internal
+load annotations or unresolved endpoint roles produce `incomplete_aggregate_load`.
+For example, 120 mA internally against a declared 100 mA is an error, while the
+parent still counts the declared 100 mA. A nested block contributes its declared
+aggregate to its enclosing block, and retains its own internal diagnostics.
+
+An aggregate requires an explicit effective `role.power_input` port. Reject
+multiple aggregate ports belonging to the same block on the same net, an
+aggregate with a modeled external endpoint on that port, or a same-net power
+source inside the boundary (`aggregate_load_boundary`). Board ports cannot
+create parent-budget boundaries. Invalid boundaries leave internal loads visible
+to the parent. Supply groups connected to distinct nets use distinct ports and
+explicit budgets. Block metadata inheritance can override the declared amount.
+
+These checks run separately for every selected ERC configuration and even when
+the outermost net is unchecked. Aggregate diagnostics cannot be waived; source
+capacity checks retain their normal waiver/unchecked behavior. Reports include
+port and internal endpoint locations. Compile/export remain available with
+electrical errors, and budget annotations never change physical connectivity.
+
+### Extensible electrical checks (implemented)
+
+Checks apply where metadata explicitly requests them. Merely enabling a Python
+module does not opt every net into its electrical budgets. The built-in budgets
+use the same registry as project extensions and require no new grammar forms.
+
+#### Bias and pull resistance
+
+Import `bias` from `noscheme`. Physical pin definitions and instance pin
+annotations may declare `bias: bias.pull_up`, `bias.pull_down`, or `bias.none`,
+and positive numeric `pull_resistance_ohm`. Bias is an explicit assertion about
+the signal-side pin. It does not create an active output driver or verify the
+other terminal, supply voltage, or displayed part value. A digital input net may
+have a default level established by one declared bias direction; open-drain
+outputs require pull-up bias for this purpose, and open-source outputs require
+pull-down bias. Bias cannot implement a public output-port contract or power a rail.
+`role.open_source` and `nettype.open_source` mirror the open-drain roles/types.
+
+Opt a scalar net (or port constraint) into resistance checking with any of:
+
+- `min_pull_up_resistance_ohm`, `max_pull_up_resistance_ohm`
+- `min_pull_down_resistance_ohm`, `max_pull_down_resistance_ohm`
+
+Each limit is a positive numeric literal. Combine declared contributors of the
+matching direction using `1/R = sum(1/R_i)`. Count each physical endpoint once,
+regardless of hierarchy, and each arrayed physical instance independently.
+Limits on multiple public boundaries are all enforced. Annotated pulls without
+resistance, or a requested budget with no declared matching pulls, produce an
+incomplete warning. Known pulls below the minimum still establish a violation;
+a maximum-resistance violation cannot be established when additional pulls have
+unknown resistance. Unannotated pins are not inferred to contain internal pulls.
+
+The initial parallel model assumes each direction's declared pulls share the
+intended reference rail; authors must verify that assumption. Mixed-rail models,
+resistance tolerance, parameter-derived metadata, and automatic supply/driver
+limits remain future work. Display strings such as `"4.7k"` are not parsed.
+
+#### Capacitance
+
+A net or port opts in with nonnegative `max_capacitance_pF`. Connected physical
+pins declare nonnegative `capacitance_pF`; instance annotations may override it.
+The outermost net declares `wiring_capacitance_pF` for wiring and any other
+unmodeled external capacitance. Explicit external endpoints also count, while
+ordinary public forwarding ports do not duplicate physical contributions.
+
+Sum contributions once and enforce every declared limit. Missing endpoint or
+outermost wiring data produces an incomplete warning; explicit zero means a
+known zero contribution. Known overloads remain errors even with missing data.
+Nets without a corresponding limit receive no budget or missing-data diagnostics.
+No capacitance is inferred from footprints, routing, or part-value strings.
+
+For I2C, minimum pull-up resistance depends on supply voltage and sink capability;
+maximum resistance additionally depends on capacitance and permitted rise time.
+A future protocol profile can derive limits from those inputs. The initial
+checks use explicit limits rather than one universal I2C constant. See
+[TI's pull-up calculation application note](https://www.ti.com/lit/pdf/slva689).
+
+#### Python check modules
+
+Optionally enable Python files relative to `noscheme.toml`:
+
+```toml
+erc_modules = ["checks.py"]
+```
+
+These are explicitly loaded Python code, running in the compiler process. A
+module defines `register(registry)` and uses:
+
+- `registry.fields(scope, schema)` to register fields in the existing metadata
+  scopes. Schemas accept `positive`, `nonnegative`, `string`, `bool`, `literal`,
+  or nested field dictionaries. Use a project-specific mapping name for your
+  fields, such as `demo: {max_pins: ...}`, to avoid collisions. Unknown fields,
+  duplicate registrations, and attempts to replace core fields are errors.
+- `registry.check(name, callback, net_fields=(...))` to register a stable check
+  identifier and optional activation fields. With activation fields, invoke the
+  callback only on nets with at least one matching declaration field. Without
+  them, the callback decides applicability. Identifiers should include a module
+  prefix, such as `demo_pin_count`.
+- A callback receives `NetContext` with `net`, `origin`, `endpoints` (label/record
+  pairs), and the resolved `circuit`. It returns or yields diagnostics created
+  with `ctx.diagnostic(check_name, message, record=..., severity=..., related=...)`.
+  `noscheme.erc_registry.value(record, field, default)` reads metadata values.
+
+Callbacks receive isolated copies, preserving source spans and hierarchy, so
+mutating a context cannot change another check's inputs or CAD connectivity.
+Each selected configuration gets its own run with effective roles, plus
+`circuit.erc_configuration` and `circuit.erc_effective_choices`. Reports include
+registered check names, source locations, and configuration labels. Registered
+checks use the existing outermost-net waiver mechanism. An outermost unchecked
+net skips these net callbacks.
+
+Loading/registration failures, invalid diagnostic results, and callback exceptions
+are blocking errors: no partial success report or export is published. Electrical
+violations remain nonblocking for compile/export. Plugins must be deterministic
+and side-effect free; isolated context copies are not a Python security sandbox.
+
+The runnable [extension example](examples/erc_extensions/main.nosch) combines
+pull-resistance and capacitance budgets with a project-local
+[pin-count check](examples/erc_extensions/checks.py). Its simplified electrical
+models are not a fabrication-ready board.
 
 ### Passive components and waivers
 
@@ -819,7 +1066,7 @@ can have local waivers, independently for each expanded instance. Waivers on
 bundle/array declarations apply to their expanded scalar nets under the same rule.
 
 Only implemented net checks are waivable. Pin connection requirements,
-`do_not_connect`, and waiver scope errors cannot be waived. Unknown check names,
+`do_not_connect`, grouped/aggregate load constraints, and waiver scope errors cannot be waived. Unknown check names,
 empty reasons, and non-string reasons are source errors. Text and JSON reports
 retain each waiver's reason, location, net, and original waived diagnostics;
 unused waivers remain listed with zero matching diagnostics. Other checks remain
@@ -921,9 +1168,9 @@ These are remaining details, not permission to reverse the decisions above.
 | Expressions | Tagged evaluation, finite binary64 doubles, integer resource limits, precedence, restricted formatting, helper inventory, and parameter binding are implemented above. Integrate values and integer-context warnings into full connectivity elaboration. |
 | Arrays | Set rank and dimension limits, empty-array behavior, and rules for omitted slice bounds, strides, negative indices, and descending ranges. |
 | Metadata | Initial fields, scopes, literal values, role lists, and `ref_prefix` are implemented as documented above. Extend the schema for advanced ERC configurations, budgets, waivers, and explicit differential pairs. |
-| ERC | Role/net-type compatibility, public port contracts, driver checks, and scoped waivers are implemented. Biasing/tristate rules remain. |
+| ERC | Role/net-type compatibility, public port contracts, driver checks, and scoped waivers are implemented. Explicit bias and opt-in pull/capacitance budgets are implemented through the extension registry. Tri-state rules remain. |
 | ERC configurations | Public choices, exhaustive role/choice mappings, board configurations, selected/all checking, and labeled reports are implemented. Choices currently have no defaults. |
-| Current accounting | Define aggregate annotations and represented loads, grouping across supply pins and rails, and treatment of budget boundaries between components. |
+| Current accounting | Component supply-pin groups and hierarchical block aggregates are implemented. Each budget covers one electrical net; no automatic propagation through parts. |
 | Footprints | Define converted footprint records, handling of footprints selected after conversion, mismatch severity, and validation of electrical versus mechanical pads. |
 | KiCad handoff | Version E netlists and UUID-path matching passed the KiCad 10.0.6 import/update experiments, including layout retention and CAD-side reannotation. Implement the production adapter with footprint validation and explicit partial-export reporting; see experiment findings for limitations. |
 | Names and layout export | Define adapter naming/escaping, collision handling, reverse-map storage, and syntax/translation for classes and differential pairs while preserving KiCad-owned settings. |

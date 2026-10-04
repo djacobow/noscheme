@@ -1,0 +1,47 @@
+{
+  "issues": [
+    {
+      "alias": "VCAP",
+      "check": "ambiguous_alias",
+      "message": "alias omitted; physical pin IDs retained",
+      "pins": [
+        "48",
+        "98"
+      ],
+      "symbol": "STM32H523VCTx"
+    },
+    {
+      "alias": "VDD",
+      "check": "ambiguous_alias",
+      "message": "alias omitted; physical pin IDs retained",
+      "pins": [
+        "100",
+        "11",
+        "28",
+        "50",
+        "75"
+      ],
+      "symbol": "STM32H523VCTx"
+    },
+    {
+      "alias": "VSS",
+      "check": "ambiguous_alias",
+      "message": "alias omitted; physical pin IDs retained",
+      "pins": [
+        "10",
+        "27",
+        "49",
+        "74",
+        "99"
+      ],
+      "symbol": "STM32H523VCTx"
+    }
+  ],
+  "module": "MCU_ST_STM32H5",
+  "schema_version": 1,
+  "source": "/usr/share/kicad/symbols/MCU_ST_STM32H5.kicad_sym",
+  "source_sha256": "7ac1fda38515edc55c2cfcf0a0452bf78e24515ec90364d9c8aafe9afc566e5a",
+  "symbols": {
+    "STM32H523VCTx": "STM32H523VCTx"
+  }
+}

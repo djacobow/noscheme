@@ -267,6 +267,10 @@ def test_reference_draft_and_example(tmp_path):
     root = Path(__file__).resolve().parents[1]
     resolve_project(root / "examples/blink")
     source = (root / "examples/stm32h523.nosch").read_text()
+    (tmp_path / "stm32h523_parts.nosch").write_text(
+        (root / "examples/stm32h523_parts.nosch").read_text()
+    )
+
     p = make_project(tmp_path, source)
     config = p / "noscheme.toml"
     config.write_text(config.read_text().replace('main.B"', 'main.STM32H523Reference"'))

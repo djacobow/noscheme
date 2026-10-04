@@ -1,0 +1,1305 @@
+{
+  "footprints": {
+    "Button_Switch_SMD:SW_SPST_TL3342": {
+      "exists": true,
+      "name": "Button_Switch_SMD:SW_SPST_TL3342",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Button_Switch_SMD.pretty/SW_SPST_TL3342.kicad_mod",
+      "sha256": "577769688431da794711a13d96a801907e1d9cb997b32f0d623e0bbd4e2e7884",
+      "unnumbered_pads": 0
+    },
+    "Capacitor_SMD:C_0603_1608Metric": {
+      "exists": true,
+      "name": "Capacitor_SMD:C_0603_1608Metric",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod",
+      "sha256": "fe0dbfefbb181a0466f93a8de52d84ba7b00fcd9acdbb69575f4128a0af4e405",
+      "unnumbered_pads": 0
+    },
+    "Connector_Card:microSD_HC_Hirose_DM3AT-SF-PEJM5": {
+      "exists": true,
+      "name": "Connector_Card:microSD_HC_Hirose_DM3AT-SF-PEJM5",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "7",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "8",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "9",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "10",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "rect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "10",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "SH"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Card.pretty/microSD_HC_Hirose_DM3AT-SF-PEJM5.kicad_mod",
+      "sha256": "cc0efdbdb9b21e7cc31a577ea45e753c8985b1c67cf1f58d39e352018f0cb938",
+      "unnumbered_pads": 0
+    },
+    "Connector_JST:JST_XH_S3B-XH-SM4-TB_1x03-1MP_P2.50mm_Horizontal": {
+      "exists": true,
+      "name": "Connector_JST:JST_XH_S3B-XH-SM4-TB_1x03-1MP_P2.50mm_Horizontal",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "MP",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "MP",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "MP"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_JST.pretty/JST_XH_S3B-XH-SM4-TB_1x03-1MP_P2.50mm_Horizontal.kicad_mod",
+      "sha256": "fc352758742aa354c6b8874bc34e6b7cb25a275af5a6a466db7c52124d0b1e64",
+      "unnumbered_pads": 0
+    },
+    "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD": {
+      "exists": true,
+      "name": "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "7",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "8",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "9",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "10",
+          "shape": "rect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "10",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_PinHeader_1.27mm.pretty/PinHeader_2x05_P1.27mm_Vertical_SMD.kicad_mod",
+      "sha256": "51b103d65611b0c47426ebfa1859469f37e9181514a6509bf284c9c257e640e3",
+      "unnumbered_pads": 0
+    },
+    "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical_SMD_Pin1Left": {
+      "exists": true,
+      "name": "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical_SMD_Pin1Left",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_PinHeader_2.54mm.pretty/PinHeader_1x02_P2.54mm_Vertical_SMD_Pin1Left.kicad_mod",
+      "sha256": "1122bf3984144a20cebb178a41951c92f97f49e8624896bba31a5ab9bcb5b537",
+      "unnumbered_pads": 0
+    },
+    "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical_SMD_Pin1Left": {
+      "exists": true,
+      "name": "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical_SMD_Pin1Left",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "rect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_PinHeader_2.54mm.pretty/PinHeader_1x04_P2.54mm_Vertical_SMD_Pin1Left.kicad_mod",
+      "sha256": "3c62bf0d2fb5d688a2771a6fb8f8c5cec1dab200a2737d04728de25c8580f15e",
+      "unnumbered_pads": 0
+    },
+    "Connector_PinHeader_2.54mm:PinHeader_2x10_P2.54mm_Vertical_SMD": {
+      "exists": true,
+      "name": "Connector_PinHeader_2.54mm:PinHeader_2x10_P2.54mm_Vertical_SMD",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "7",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "8",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "9",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "10",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "11",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "12",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "13",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "14",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "15",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "16",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "17",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "18",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "19",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "20",
+          "shape": "rect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "2",
+        "20",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_PinHeader_2.54mm.pretty/PinHeader_2x10_P2.54mm_Vertical_SMD.kicad_mod",
+      "sha256": "4f5cf58cd73924bfe1d157242cd76d41a50fcb929f0313c78a0d422e403a7df8",
+      "unnumbered_pads": 0
+    },
+    "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12": {
+      "exists": true,
+      "name": "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12",
+      "pad_records": [
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "A1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "A1",
+        "A12",
+        "A4",
+        "A5",
+        "A6",
+        "A7",
+        "A8",
+        "A9",
+        "B1",
+        "B12",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "SH"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_USB.pretty/USB_C_Receptacle_HRO_TYPE-C-31-M-12.kicad_mod",
+      "sha256": "c562a7f9713a8b754c4d2305a2ea15453469a1c8c48a9b17973383e8993fc750",
+      "unnumbered_pads": 2
+    },
+    "Crystal:Crystal_SMD_HC49-SD": {
+      "exists": true,
+      "name": "Crystal:Crystal_SMD_HC49-SD",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Crystal.pretty/Crystal_SMD_HC49-SD.kicad_mod",
+      "sha256": "24d938dc8901f39f5ed83e084f02cc0ccce15e130d88ec99a3f82658ced2fa68",
+      "unnumbered_pads": 0
+    },
+    "LED_SMD:LED_0603_1608Metric": {
+      "exists": true,
+      "name": "LED_SMD:LED_0603_1608Metric",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/LED_SMD.pretty/LED_0603_1608Metric.kicad_mod",
+      "sha256": "7931ed1efba34cb13c8d74a60eb1dca4b0be57d950c38e08c3e7f007db500a1c",
+      "unnumbered_pads": 0
+    },
+    "Package_QFP:LQFP-100_14x14mm_P0.5mm": {
+      "exists": true,
+      "name": "Package_QFP:LQFP-100_14x14mm_P0.5mm",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "10",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "11",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "13",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "14",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "15",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "16",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "17",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "18",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "19",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "20",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "21",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "22",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "23",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "24",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "25",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "26",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "27",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "28",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "29",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "30",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "31",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "32",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "33",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "34",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "35",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "36",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "37",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "38",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "39",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "40",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "41",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "42",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "43",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "44",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "45",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "46",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "47",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "48",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "49",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "50",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "51",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "52",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "53",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "54",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "55",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "56",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "57",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "58",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "59",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "60",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "61",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "62",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "63",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "64",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "65",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "66",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "67",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "68",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "69",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "70",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "71",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "72",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "73",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "74",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "75",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "76",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "77",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "78",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "79",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "80",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "81",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "82",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "83",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "84",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "85",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "86",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "87",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "88",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "89",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "90",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "91",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "92",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "93",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "94",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "95",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "96",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "97",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "98",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "99",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "100",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "10",
+        "100",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "2",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24",
+        "25",
+        "26",
+        "27",
+        "28",
+        "29",
+        "3",
+        "30",
+        "31",
+        "32",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "4",
+        "40",
+        "41",
+        "42",
+        "43",
+        "44",
+        "45",
+        "46",
+        "47",
+        "48",
+        "49",
+        "5",
+        "50",
+        "51",
+        "52",
+        "53",
+        "54",
+        "55",
+        "56",
+        "57",
+        "58",
+        "59",
+        "6",
+        "60",
+        "61",
+        "62",
+        "63",
+        "64",
+        "65",
+        "66",
+        "67",
+        "68",
+        "69",
+        "7",
+        "70",
+        "71",
+        "72",
+        "73",
+        "74",
+        "75",
+        "76",
+        "77",
+        "78",
+        "79",
+        "8",
+        "80",
+        "81",
+        "82",
+        "83",
+        "84",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "9",
+        "90",
+        "91",
+        "92",
+        "93",
+        "94",
+        "95",
+        "96",
+        "97",
+        "98",
+        "99"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_QFP.pretty/LQFP-100_14x14mm_P0.5mm.kicad_mod",
+      "sha256": "73315ab374a9fa62af09d4d5e23fe734dff8f77decfd3d9d7d0e7679dbcfc002",
+      "unnumbered_pads": 0
+    },
+    "Package_TO_SOT_SMD:SOT-223-3_TabPin2": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:SOT-223-3_TabPin2",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/SOT-223-3_TabPin2.kicad_mod",
+      "sha256": "8ae5f03e2c16377abed15e51af6864e23a934e1457b97fb7ea930e17fa99f11d",
+      "unnumbered_pads": 0
+    },
+    "Resistor_SMD:R_0603_1608Metric": {
+      "exists": true,
+      "name": "Resistor_SMD:R_0603_1608Metric",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+      "sha256": "7190ac4a00125b807e54129ef0d87d87f2a658eeb74d025a7028203419b09f23",
+      "unnumbered_pads": 0
+    }
+  },
+  "schema_version": 1
+}
