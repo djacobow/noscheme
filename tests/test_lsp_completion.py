@@ -107,3 +107,61 @@ def test_imported_components_and_aliases_use_unsaved_library(tmp_path):
     result = completion_items(path, tmp_path, buffers, len(source))
     assert {s.label for s in result} == {"new"}
     assert "old" in (tmp_path / "lib.nosch").read_text()
+
+
+FOOTPRINTS = """component Part:
+    pins:
+        1:
+            role: role.passive
+    metadata:
+        footprint: "Test:Z_default"
+        custom:
+            kicad_footprint_candidates: ["Test:A", "Test:Z_default"]
+component Derived extends Part:
+    metadata:
+        custom:
+            note: "inherited"
+"""
+
+
+def test_footprint_strings_in_incomplete_instance(tmp_path):
+    prelude = "from noscheme import role\n" + FOOTPRINTS + "board B:\n"
+    for value in ['"|', '"Test:|"', '"Test:|old"', "|"]:
+        source = (
+            prelude + "    inst p: Derived(\n        metadata:\n            footprint: " + value
+        )
+        choices = complete(tmp_path, source)
+        assert list(choices) == ["Test:Z_default", "Test:A"]
+        item = choices["Test:A"]
+        original = source.replace("|", "")
+        assert original[: item.start] + item.text + original[item.end :] == (
+            prelude + '    inst p: Derived(\n        metadata:\n            footprint: "Test:A"'
+        )
+
+
+def test_footprint_in_specialization_and_custom_exclusion(tmp_path):
+    source = "from noscheme import role\n" + FOOTPRINTS
+    source += 'component Final extends Derived:\n    metadata:\n        footprint: "Test:|"\n'
+    source += "board B:\n    metadata:\n        custom:\n            note: true\n"
+    assert list(complete(tmp_path, source)) == ["Test:Z_default", "Test:A"]
+    assert not complete(
+        tmp_path, source.replace("        footprint:", "        custom:\n            footprint:")
+    )
+    assert not complete(tmp_path, source.replace("        footprint:", "        // footprint:"))
+    assert not complete(tmp_path, source.replace("        footprint:", "        /* footprint:"))
+
+
+def test_footprint_prefix_and_no_hints_still_allow_strings(tmp_path):
+    source = "from noscheme import role\n" + FOOTPRINTS + "board B:\n"
+    source += '    inst p: Part(\n        metadata:\n            footprint: "Test:A|"\n    )'
+    assert list(complete(tmp_path, source)) == ["Test:A"]
+    assert not complete(tmp_path, source.replace("Test:A|", "Other:Custom|"))
+
+
+def test_nested_custom_metadata_does_not_offer_footprints(tmp_path):
+    source = "from noscheme import role\n" + FOOTPRINTS + "board B:\n"
+    source += (
+        "    inst p: Part(\n        metadata:\n            custom:\n"
+        '                metadata:\n                    footprint: "|'
+    )
+    assert not complete(tmp_path, source)

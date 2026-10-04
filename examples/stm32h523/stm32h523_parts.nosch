@@ -598,6 +598,7 @@ component STM32H523VCTx:
         custom:
             kicad_symbol: "MCU_ST_STM32H5:STM32H523VCTx"
             kicad_duplicate_pin_numbers_are_jumpers: "no"
+            kicad_footprint_candidates: ["Package_QFP:LQFP-100_14x14mm_P0.5mm"]
             kicad_properties:
                 "Datasheet": "https://www.st.com/resource/en/datasheet/stm32h523vc.pdf"
                 "Description": "STMicroelectronics Arm Cortex-M33 MCU, 256KB flash, 272KB RAM, 80 GPIO, LQFP100"

@@ -175,7 +175,16 @@ class Builder:
             )
         if kind == "import_stmt":
             return a.Import(
-                span, tuple(self.name(x) for x in c[0].children), tuple(self.name(x) for x in c[1:])
+                span,
+                tuple(self.name(x) for x in c[0].children),
+                tuple(
+                    a.ImportedName(
+                        self.span(x),
+                        self.name(x.children[0]),
+                        self.name(x.children[1]) if len(x.children) > 1 else None,
+                    )
+                    for x in c[1:]
+                ),
             )
         if kind == "definition":
             offset = 2

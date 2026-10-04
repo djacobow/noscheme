@@ -25,8 +25,8 @@ def nodes(value):
 @pytest.mark.parametrize(
     "path",
     [
-        ROOT / "examples/stm32h523.nosch",
-        *sorted((ROOT / "experiments/corpus/positive").glob("*.nosch")),
+        ROOT / "examples/stm32h523/stm32h523.nosch",
+        *sorted((ROOT / "tools/experiments/corpus/positive").glob("*.nosch")),
     ],
 )
 def test_reference_and_corpus_are_typed_and_located(path):
@@ -132,10 +132,10 @@ def test_invalid_structure(source, code):
 
 @pytest.mark.parametrize(
     "name,expected",
-    json.loads((ROOT / "experiments/corpus/negative/expectations.json").read_text()).items(),
+    json.loads((ROOT / "tools/experiments/corpus/negative/expectations.json").read_text()).items(),
 )
 def test_negative_corpus_locations(name, expected):
-    path = ROOT / "experiments/corpus/negative" / name
+    path = ROOT / "tools/experiments/corpus/negative" / name
     with pytest.raises(DiagnosticError) as failure:
         parse(path.read_text(), str(path))
     span = failure.value.diagnostics[0].span

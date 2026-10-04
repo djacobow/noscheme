@@ -8,7 +8,7 @@ from string import Formatter
 from . import ast as a
 from .diagnostics import Diagnostic, DiagnosticError, Related
 from .metadata import Value
-from .project import IDENTIFIER
+from .project import IDENTIFIER, expression_path
 from .resolve import Resolver
 
 
@@ -163,23 +163,24 @@ class Evaluator:
                     if not isinstance(template, str):
                         self.error("expression.type", ".format requires a string", member.base.span)
                     return self.format(template, args, kwargs, expr.span)
-                if not isinstance(member.base, a.Name):
+                if expression_path(member.base) is None:
                     self.error(
                         "expression.call", "arbitrary method calls are not allowed", expr.span
                     )
-                namespace, helper = member.base.text, member.name.text
+                namespace, helper = expression_path(member.base), member.name.text
                 symbol = self.project.modules[module].symbols.get(namespace)
                 if (
-                    namespace in environment
+                    namespace.split(".")[0] in environment
                     or symbol is None
                     or symbol.module != "noscheme"
-                    or symbol.name != namespace
+                    or symbol.name not in {"num", "f"}
                 ):
                     self.error(
                         "expression.call",
                         "helper namespace must be explicitly imported",
                         member.span,
                     )
+                namespace = symbol.name
                 if len(args) != 1 or kwargs:
                     self.error(
                         "expression.arguments",

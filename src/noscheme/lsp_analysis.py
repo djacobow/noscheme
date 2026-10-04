@@ -8,7 +8,7 @@ from .circuit import elaborate_project
 from .diagnostics import Diagnostic, DiagnosticError
 from .erc import apply_erc
 from .parser import parse
-from .project import load_project, read_config, source_text
+from .project import expression_path, load_project, read_config, source_text
 from .resolve import Resolver
 
 
@@ -59,9 +59,16 @@ def reference_index(project, definitions):
     for module in project.modules.values():
         for item in module.ast.items:
             if isinstance(item, a.Import):
-                for name in item.names:
-                    if target := symbol(module.name, name.text):
-                        add(name.span, *target)
+                for imported in item.names:
+                    if target := symbol(module.name, (imported.alias or imported.name).text):
+                        add(imported.name.span, *target)
+                        if imported.alias:
+                            add(imported.alias.span, *target)
+                if not item.names:
+                    name = ".".join(n.text for n in item.module)
+                    if name in project.modules:
+                        for part in item.module:
+                            add(part.span, project.modules[name].ast.span, f"module {name}")
                 continue
             owner = definitions.get((module.name, item.name.text)) if definitions else None
             local = {}
@@ -84,8 +91,8 @@ def reference_index(project, definitions):
                     pin = owner.interface[canonical]
                     local[alias] = (pin.span, f"{owner.kind} {owner.name}: {canonical}")
             add(item.name.span, item.name.span, f"{item.kind} {module.name}.{item.name.text}")
-            for name in item.base or ():
-                if target := symbol(module.name, name.text):
+            if item.base and (target := symbol(module.name, ".".join(n.text for n in item.base))):
+                for name in item.base:
                     add(name.span, *target)
 
             def expression(expr):
@@ -93,6 +100,10 @@ def reference_index(project, definitions):
                     if isinstance(expr.base, a.Name) and expr.base.text == "global":
                         if target := globals_.get(expr.name.text):
                             add(expr.name.span, *target)
+                    elif (expression_path(expr) or "").split(".")[0] not in local and (
+                        target := symbol(module.name, expression_path(expr))
+                    ):
+                        add(expr.span, *target)
                     else:
                         expression(expr.base)
                 elif isinstance(expr, a.Name):
@@ -109,10 +120,11 @@ def reference_index(project, definitions):
 
             for node in item.body:
                 if isinstance(node, a.Instance):
-                    for name in node.component:
-                        if target := symbol(module.name, name.text):
+                    spelling = ".".join(n.text for n in node.component)
+                    if target := symbol(module.name, spelling):
+                        for name in node.component:
                             add(name.span, *target)
-                    sym = module.symbols.get(node.component[0].text)
+                    sym = module.symbols.get(spelling)
                     target_def = (
                         definitions.get((sym.module, sym.name)) if sym and definitions else None
                     )

@@ -207,7 +207,7 @@ def create_server(project=None):
         return None
 
     @server.feature(
-        types.TEXT_DOCUMENT_COMPLETION, types.CompletionOptions(trigger_characters=[".", ":"])
+        types.TEXT_DOCUMENT_COMPLETION, types.CompletionOptions(trigger_characters=[".", ":", '"'])
     )
     def completion(ls: NoSchemeServer, params: types.CompletionParams):
         uri = params.text_document.uri
@@ -228,6 +228,7 @@ def create_server(project=None):
             "enum": types.CompletionItemKind.EnumMember,
             "type": types.CompletionItemKind.Class,
             "pin": types.CompletionItemKind.Field,
+            "footprint": types.CompletionItemKind.File,
         }
         return types.CompletionList(
             is_incomplete=False,
@@ -236,6 +237,7 @@ def create_server(project=None):
                     label=s.label,
                     detail=s.detail,
                     kind=kinds[s.kind],
+                    sort_text=f"{index:06d}",
                     text_edit=types.TextEdit(
                         range=types.Range(
                             start=doc.client_position_at_offset(s.start),
@@ -244,7 +246,7 @@ def create_server(project=None):
                         new_text=s.text,
                     ),
                 )
-                for s in suggestions
+                for index, s in enumerate(suggestions)
             ],
         )
 

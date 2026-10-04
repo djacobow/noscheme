@@ -4,14 +4,15 @@ from pathlib import Path
 import pytest
 from lark import Token
 
-from experiments.parser.parse import SyntaxDiagnostic, located_tree, mask_comments, parse
+from tools.experiments.parser.parse import SyntaxDiagnostic, located_tree, mask_comments, parse
 
-ROOT = Path(__file__).resolve().parents[2]
-CORPUS = ROOT / "experiments/corpus"
+ROOT = Path(__file__).resolve().parents[3]
+CORPUS = ROOT / "tools/experiments/corpus"
 
 
 @pytest.mark.parametrize(
-    "path", sorted((CORPUS / "positive").glob("*.nosch")) + [ROOT / "examples/stm32h523.nosch"]
+    "path",
+    sorted((CORPUS / "positive").glob("*.nosch")) + [ROOT / "examples/stm32h523/stm32h523.nosch"],
 )
 def test_positive(path):
     tree = parse(path.read_text(), str(path))

@@ -11,8 +11,10 @@ from .resolve import Resolver
 from .syntax import comment_lexer
 
 WORD = r"[A-Za-z0-9_#]*"
+TYPE_PATH = rf"{IDENTIFIER}(?:\.{IDENTIFIER})*"
+TYPE_PREFIX = r"[A-Za-z0-9_#.]*"
 DEFINITION = re.compile(rf"^(component|block|board|bundle)\s+({IDENTIFIER})(?=\s|:)[^\n]*:", re.M)
-INSTANCE = re.compile(rf"^(\s*)inst\s+{IDENTIFIER}(?:\[[^\n]*?\])*\s*:\s*({IDENTIFIER})\s*\(")
+INSTANCE = re.compile(rf"^(\s*)inst\s+{IDENTIFIER}(?:\[[^\n]*?\])*\s*:\s*({TYPE_PATH})\s*\(")
 
 
 @dataclass(frozen=True)
@@ -41,8 +43,126 @@ def masked_source(source, offset):
     return "".join(masked)
 
 
+def footprint_completion(path, config, sources, offset):
+    """Complete only a direct metadata.footprint value, including an open quote."""
+    source = sources[path]
+    line_start = source.rfind("\n", 0, offset) + 1
+    line_end = source.find("\n", offset)
+    if line_end < 0:
+        line_end = len(source)
+    line = source[line_start:line_end]
+    match = re.match(r'(\s*)footprint:\s*("([^"\\]|\\.)*"?)?\s*(?://.*)?$', line)
+    if not match:
+        return []
+    value_start = line_start + line.index(":") + 1
+    while value_start < line_end and source[value_start].isspace():
+        value_start += 1
+    if offset < value_start:
+        return []
+    raw = match[2] or ""
+    value_end = value_start + len(raw)
+    if offset > value_end or (raw.endswith('"') and len(raw) > 1 and offset == value_end):
+        return []
+    # Remove the value before masking so incomplete quotes cannot swallow context.
+    safe = source[:value_start] + " " * len(raw) + source[value_end:]
+    masked = masked_source(safe, value_start)
+    if masked is None:
+        return []
+    owners = list(DEFINITION.finditer(masked, 0, line_start))
+    if not owners:
+        return []
+    owner = owners[-1]
+    # Track indentation ancestors to exclude custom fields and pin metadata.
+    ancestors = []
+    for previous in masked[owner.end() : line_start].splitlines():
+        if not previous.strip():
+            continue
+        indent = len(previous) - len(previous.lstrip())
+        while ancestors and ancestors[-1][0] >= indent:
+            ancestors.pop()
+        ancestors.append((indent, previous.strip()))
+    indent = len(match[1])
+    while ancestors and ancestors[-1][0] >= indent:
+        ancestors.pop()
+    if not ancestors or ancestors[-1][1] != "metadata:":
+        return []
+    active = (
+        INSTANCE.match(" " * ancestors[-2][0] + ancestors[-2][1]) if len(ancestors) >= 2 else None
+    )
+    if active is None and (owner[1] != "component" or len(ancestors) != 1):
+        return []
+    if active:
+        next_owner = DEFINITION.search(masked, owner.end())
+        stop = next_owner.start() if next_owner else len(source)
+        recovered = (
+            source[: owner.start()]
+            + f"{owner[1]} {owner[2]}:\n    metadata:\n        custom:\n            completion: true\n"
+            + source[stop:]
+        )
+        target_name = active[2]
+    else:
+        recovered = source[:value_start] + '""' + source[value_end:]
+        target_name = owner[2]
+    try:
+        project = load_project(config, sources={**sources, path: recovered})
+        module = next(m for m in project.modules.values() if m.path == path)
+        symbol = module.symbols.get(target_name)
+        if symbol is None:
+            return []
+        definitions = Resolver(project).resolve_interfaces()
+        target = definitions[(symbol.module, symbol.name)]
+        if target.kind != "component":
+            return []
+        default = target.metadata.get("footprint")
+        if not active:
+            # The edited field masks inheritance; fetch the base's default separately.
+            base = re.search(
+                r"\bextends\s+(" + TYPE_PATH + ")", source[owner.start() : owner.end()]
+            )
+            if base and (base_symbol := module.symbols.get(base[1])):
+                default = definitions[(base_symbol.module, base_symbol.name)].metadata.get(
+                    "footprint"
+                )
+        names = [default.value] if default and default.value else []
+        custom = target.metadata.get("custom")
+        candidates = custom.value.get("kicad_footprint_candidates") if custom else None
+        if candidates and isinstance(candidates.value, tuple):
+            names.extend(sorted(v for v in candidates.value if isinstance(v, str)))
+        prefix = source[value_start:offset]
+        if prefix.startswith('"'):
+            prefix = prefix[1:]
+        # Decode escaped characters without requiring a closing quote in the buffer.
+        try:
+            prefix = json.loads('"' + prefix + '"')
+        except ValueError:
+            return []
+        return [
+            Suggestion(
+                name,
+                json.dumps(name),
+                f"{target.name}: "
+                + (
+                    "default footprint"
+                    if default and name == default.value
+                    else "footprint hint (verify package dimensions)"
+                ),
+                "footprint",
+                value_start,
+                value_end,
+            )
+            for name in dict.fromkeys(names)
+            if name.startswith(prefix)
+        ]
+    except (DiagnosticError, OSError, UnicodeError):
+        return []
+
+
 def completion_items(path, config, sources, offset):
     source = sources[path]
+    if config is not None:
+        footprints = footprint_completion(path, config, sources, offset)
+        if footprints:
+            return footprints
     masked = masked_source(source, offset)
     if masked is None or config is None:
         return []
@@ -51,16 +171,26 @@ def completion_items(path, config, sources, offset):
     tail = re.match(WORD, masked[offset:]).group()
     word = re.search(WORD + r"$", before).group()
     start, end = offset - len(word), offset + len(tail)
-    namespace = re.search(rf"(?<![A-Za-z0-9_#.])(role|nettype)\.({WORD})$", before)
-    instance_type = re.fullmatch(rf"\s*inst\s+{IDENTIFIER}(?:\[[^\n]*?\])*\s*:\s*{WORD}", before)
+    namespace = re.search(rf"(?<![A-Za-z0-9_#.])({TYPE_PATH})\.({WORD})$", before)
+    instance_type = re.fullmatch(
+        rf"\s*inst\s+{IDENTIFIER}(?:\[[^\n]*?\])*\s*:\s*{TYPE_PREFIX}", before
+    )
+    base_type = re.compile(
+        rf"(component|block)[ \t]+({IDENTIFIER})[ \t]+extends[ \t]+{TYPE_PREFIX}$"
+    ).match(masked, line_start, offset)
+    if instance_type or base_type:
+        word = re.search(TYPE_PREFIX + r"$", before).group()
+        tail = re.match(TYPE_PREFIX, masked[offset:]).group()
+        start, end = offset - len(word), offset + len(tail)
+        namespace = None
     pin = re.fullmatch(rf"\s*(?:\[[^\n]*?\]\.)?{WORD}", before)
-    if not (namespace or instance_type or pin):
+    if not (namespace or instance_type or base_type or pin):
         return []
 
     owners = list(DEFINITION.finditer(masked, 0, offset))
-    if not owners:
+    if not owners and not base_type:
         return []
-    owner = owners[-1]
+    owner = base_type or owners[-1]
     # Only the definition under the cursor is replaced in a private analysis
     # snapshot. This lets incomplete lines, sections and parentheses coexist with
     # the real import graph and component definitions, without stale ASTs.
@@ -80,18 +210,26 @@ def completion_items(path, config, sources, offset):
         if namespace:
             name = namespace[1]
             imported = module.symbols.get(name)
-            if imported is None or imported.module != "noscheme":
+            if (
+                imported is None
+                or imported.module != "noscheme"
+                or imported.name not in {"role", "nettype"}
+            ):
                 return []
             choices = [
-                (v, v, f"{name}.{v}", "enum") for v in (ROLES if name == "role" else NETTYPES)
+                (v, v, f"{name}.{v}", "enum")
+                for v in (ROLES if imported.name == "role" else NETTYPES)
             ]
-        elif instance_type:
-            if owner[1] not in {"board", "block"}:
+        elif instance_type or base_type:
+            if instance_type and owner[1] not in {"board", "block"}:
                 return []
+            kinds = {owner[1]} if base_type else {"component", "block"}
             choices = [
                 (name, name, f"{symbol.declaration.kind} {symbol.module}.{symbol.name}", "type")
                 for name, symbol in module.symbols.items()
-                if symbol.declaration and symbol.declaration.kind in {"component", "block"}
+                if symbol.declaration
+                and symbol.declaration.kind in kinds
+                and not (base_type and symbol.module == module.name and symbol.name == owner[2])
             ]
         else:
             # Locate the still-open instance and its current section by indentation.

@@ -1,0 +1,348 @@
+// USB-C power/data, regulator, microSD, and SWD subsystems.
+
+from noscheme import role, nettype, unused, bias
+from stm32h523_interfaces import SPI, USB2, SWD
+from stm32h523_components import Resistor0603, InputBias0603, Capacitor0603
+
+component UsbCConnector:
+    pins:
+        "A1":
+            role: role.passive
+            unused: unused.explicit
+        "A12":
+            role: role.passive
+            unused: unused.explicit
+        "A4":
+            role: role.passive
+            unused: unused.explicit
+        "A5":
+            role: role.passive
+            unused: unused.explicit
+        "A6":
+            role: role.passive
+            unused: unused.explicit
+        "A7":
+            role: role.passive
+            unused: unused.explicit
+        "A8":
+            role: role.passive
+            unused: unused.explicit
+        "A9":
+            role: role.passive
+            unused: unused.explicit
+        "B1":
+            role: role.passive
+            unused: unused.explicit
+        "B12":
+            role: role.passive
+            unused: unused.explicit
+        "B4":
+            role: role.passive
+            unused: unused.explicit
+        "B5":
+            role: role.passive
+            unused: unused.explicit
+        "B6":
+            role: role.passive
+            unused: unused.explicit
+        "B7":
+            role: role.passive
+            unused: unused.explicit
+        "B8":
+            role: role.passive
+            unused: unused.explicit
+        "B9":
+            role: role.passive
+            unused: unused.explicit
+        "SH":
+            role: role.passive
+            unused: unused.explicit
+    metadata:
+        ref_prefix: "J"
+        footprint: "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12"
+
+component TLV1117LV33:
+    pins:
+        "1":
+            role: role.ground
+            unused: unused.explicit
+        "2":
+            role: role.power_output
+            unused: unused.explicit
+        "3":
+            role: role.power_input
+            unused: unused.explicit
+    metadata:
+        value: "TLV1117LV33DCYR"
+        ref_prefix: "U"
+        footprint: "Package_TO_SOT_SMD:SOT-223-3_TabPin2"
+
+component MicroSDConnector:
+    pins:
+        "1":
+            role: role.passive
+            unused: unused.explicit
+        "2":
+            role: role.passive
+            unused: unused.explicit
+        "3":
+            role: role.passive
+            unused: unused.explicit
+        "4":
+            role: role.passive
+            unused: unused.explicit
+        "5":
+            role: role.passive
+            unused: unused.explicit
+        "6":
+            role: role.passive
+            unused: unused.explicit
+        "7":
+            role: role.passive
+            unused: unused.explicit
+        "8":
+            role: role.passive
+            unused: unused.explicit
+        "9":
+            role: role.passive
+            unused: unused.explicit
+        "10":
+            role: role.passive
+            unused: unused.explicit
+        "SH":
+            role: role.passive
+            unused: unused.explicit
+    metadata:
+        ref_prefix: "J"
+        footprint: "Connector_Card:microSD_HC_Hirose_DM3AT-SF-PEJM5"
+
+component CortexHeader:
+    pins:
+        "1":
+            role: role.passive
+            unused: unused.explicit
+        "2":
+            role: role.passive
+            unused: unused.explicit
+        "3":
+            role: role.passive
+            unused: unused.explicit
+        "4":
+            role: role.passive
+            unused: unused.explicit
+        "5":
+            role: role.passive
+            unused: unused.explicit
+        "6":
+            role: role.passive
+            unused: unused.explicit
+        "7":
+            role: role.passive
+            unused: unused.explicit
+        "8":
+            role: role.passive
+            unused: unused.explicit
+        "9":
+            role: role.passive
+            unused: unused.explicit
+        "10":
+            role: role.passive
+            unused: unused.explicit
+    metadata:
+        ref_prefix: "J"
+        footprint: "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD"
+
+block UsbC:
+    metadata:
+        erc_choices:
+            power_mode: ["source", "absent"]
+    ports:
+        vbus: nettype.power
+        ground: nettype.ground
+        data: USB2
+    net cc: nettype.passive[2]
+    inst connector: UsbCConnector(
+        connections:
+            A1: ground
+            A12: ground
+            A4: vbus
+            A5: cc[0]
+            A6: data.dp
+            A7: data.dm
+            A8: no_connect
+            A9: vbus
+            B1: ground
+            B12: ground
+            B4: vbus
+            B5: cc[1]
+            B6: data.dp
+            B7: data.dm
+            B8: no_connect
+            B9: vbus
+            SH: ground
+        metadata:
+            pins:
+                A4:
+                    external_role:
+                        choice: "power_mode"
+                        cases:
+                            source: role.power_output
+                            absent: role.passive
+                A6:
+                    external_role: role.digital_bidirectional
+                A7:
+                    external_role: role.digital_bidirectional
+    )
+    inst cc_pulldowns[2]: Resistor0603(
+        connections:
+            1: cc
+            2: ground
+        params:
+            value: "5.1kOhm"
+    )
+
+block Ldo3v3:
+    ports:
+        input: nettype.power
+        output: nettype.power
+        ground: nettype.ground
+    inst regulator: TLV1117LV33(
+        connections:
+            1: ground
+            2: output
+            3: input
+    )
+    inst input_cap: Capacitor0603(
+        connections:
+            1: input
+            2: ground
+        params:
+            value: "1uF"
+    )
+    inst output_cap: Capacitor0603(
+        connections:
+            1: output
+            2: ground
+        params:
+            value: "4.7uF"
+    )
+    // POC: direct rails, no reverse-feed isolation or automatic power selection.
+
+block MicroSD:
+    ports:
+        supply: nettype.power
+        ground: nettype.ground
+        bus: SPI
+        detect#: nettype.digital
+    net unused_dat: nettype.passive[2]
+    inst socket: MicroSDConnector(
+        connections:
+            1: unused_dat[0]
+            2: bus.cs#
+            3: bus.mosi
+            4: supply
+            5: bus.sck
+            6: ground
+            7: bus.miso
+            8: unused_dat[1]
+            9: ground
+            10: detect#
+            SH: ground
+        metadata:
+            pins:
+                2..3:
+                    external_role: role.digital_input
+                4:
+                    external_role: role.power_input
+                5:
+                    external_role: role.digital_input
+                6:
+                    external_role: role.ground
+                7:
+                    external_role: role.digital_output
+    )
+    inst unused_dat_pullups[2]: InputBias0603(
+        connections:
+            1: supply
+            2: unused_dat
+    )
+    inst cs_pullup: InputBias0603(
+        connections:
+            1: supply
+            2: bus.cs#
+        metadata:
+            pins:
+                2:
+                    bias: bias.pull_up
+                    pull_resistance_ohm: 10000
+    )
+    inst miso_pullup: InputBias0603(
+        connections:
+            1: supply
+            2: bus.miso
+        metadata:
+            pins:
+                2:
+                    bias: bias.pull_up
+                    pull_resistance_ohm: 10000
+    )
+    inst detect_pullup: InputBias0603(
+        connections:
+            1: supply
+            2: detect#
+        metadata:
+            pins:
+                2:
+                    bias: bias.pull_up
+                    pull_resistance_ohm: 10000
+    )
+    inst decouple: Capacitor0603(
+        connections:
+            1: supply
+            2: ground
+        params:
+            value: "100nF"
+        metadata:
+            custom:
+                placement: "Place adjacent to microSD VDD pad."
+    )
+    inst bulk: Capacitor0603(
+        connections:
+            1: supply
+            2: ground
+        params:
+            value: "4.7uF"
+    )
+
+block CortexDebug:
+    ports:
+        reference: nettype.power
+        ground: nettype.ground
+        debug: SWD
+    inst header: CortexHeader(
+        connections:
+            1: reference
+            2: debug.swdio
+            3: ground
+            4: debug.swclk
+            5: ground
+            6: debug.swo
+            7: no_connect
+            8: no_connect
+            9: ground
+            10: debug.reset#
+        metadata:
+            pins:
+                1:
+                    external_role: role.power_input
+                2:
+                    external_role: role.digital_bidirectional
+                3:
+                    external_role: role.ground
+                4:
+                    external_role: role.digital_output
+                6:
+                    external_role: role.digital_input
+                10:
+                    external_role: role.open_drain
+    )

@@ -261,7 +261,7 @@ def write_json(path, data):
 
 def main():
     cli = argparse.ArgumentParser(description=__doc__)
-    cli.add_argument("--output", type=Path, default=Path("experiments/output/kicad"))
+    cli.add_argument("--output", type=Path, default=Path("tools/experiments/output/kicad"))
     cli.add_argument("--library-root", type=Path, default=Path("/usr/share/kicad/footprints"))
     args = cli.parse_args()
     designs = generate(args.output, args.library_root)

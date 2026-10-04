@@ -81,7 +81,7 @@ circuit representation, with source-located diagnostics. The acceptance design
 is the same five-part LED circuit used in the KiCad experiments, expressed through
 reusable blocks and explicit physical component definitions.
 
-Keep the experiments available as evidence. Production code lives under
+Keep the experiments under `tools/experiments/` as evidence. Production code lives under
 `src/noscheme/`, tests under `tests/`, with a root `pyproject.toml` and a pinned
 development environment. Use Lark for parsing; do not depend on KiCad or PCBNew
 to run compiler-core tests.
@@ -155,7 +155,7 @@ or selector overlap resolution still belong to steps 2 and 4 respectively.
 
 ```sh
 uv sync --locked
-uv run --locked noscheme parse examples/stm32h523.nosch --output build/stm32h523.ast.json
+uv run --locked noscheme parse examples/stm32h523/stm32h523.nosch --output build/stm32h523.ast.json
 uv run --locked pytest -q
 ```
 
@@ -621,3 +621,23 @@ Then plan these milestones in detail using the results:
 4. Reference board: verified MCU pinout, support parts, and full layout update test.
 5. Editor tooling: basic highlighting with the first usable compiler, then LSP
    and canonical formatting.
+
+### Footprint selection hints (implemented)
+
+Library conversion saves filter matches with matching physical pin/pad IDs in
+component custom metadata and the footprint snapshot. LSP completion offers
+defaults and inherited candidates inside footprint strings, including unfinished
+buffers, without reading installed KiCad libraries. Tests cover filtering,
+offline completion, inheritance, replacement ranges, and the stdio protocol.
+
+### Qualified imports and aliases (implemented)
+
+Added module imports and per-name aliases without changing definition identity.
+Compiler resolution, builtin aliases, bundle types, LSP navigation/completion,
+and Vim highlighting support the forms documented in the LRM. The reference
+board now uses `import Device` and `Resistor extends Device.R`.
+
+Inheritance completion now recovers unfinished `extends` headers, filters by
+component/block kind, supports aliases and qualified names, and excludes the
+definition being edited. Unit and stdio tests cover missing colons/bodies and
+replacement ranges.

@@ -17,7 +17,7 @@ pairs that helps the CAD tool.
 
 This document consolidates the agreed design. It is not yet a complete grammar
 or implementation specification. [LRM.md](LRM.md) describes the implemented
-language and compiler behavior. The [reference-board draft](../examples/stm32h523.nosch)
+language and compiler behavior. The [reference-board draft](../examples/stm32h523/stm32h523.nosch)
 exercises the design; it compiles structurally but is not electrically verified.
 Examples below illustrate accepted syntax choices, with remaining details listed
 under [Unresolved design and implementation work](#unresolved-design-and-implementation-work).
@@ -125,7 +125,7 @@ are electrically unconnected. See the [JST XH datasheet](https://www.jst-mfg.com
 
 The example is now 58 physical parts and 52 nets with no placeholders or missing
 footprints. Its project file is `examples/stm32h523/noscheme.toml`; the main source
-remains `examples/stm32h523.nosch`. The imported `stm32h523_parts.nosch` is the
+remains `examples/stm32h523/stm32h523.nosch`. The imported `stm32h523_parts.nosch` is the
 explicit conversion of KiCad's `STM32H523VCTx` symbol. `STM32H523Board` specializes
 its pin roles for this board; unused physical GPIOs explicitly bind `no_connect`.
 The conversion report and all 14 footprint snapshots are retained in the project.
@@ -1260,3 +1260,20 @@ The role and metadata tables (H1/H7), complete executable examples (M2/M7),
 backend proof (B6/M11), and implementation/testing recommendations still require
 work. The review's remaining process and scope proposals are not automatically
 adopted. This consolidated document remains the single design document for now.
+
+### Import forms
+
+Modules support both `import Device` (referenced as `Device.R`) and
+`from Device import R as KiCadResistor`. Existing named imports remain valid.
+Qualified references work for bases, instance types, and bundle types. Aliases
+preserve definition identity; module qualification does not expose private
+component or block internals. See [LRM imports](LRM.md#12-modules-and-imports).
+
+### Reference example modules
+
+The board entry point stays in `examples/stm32h523/stm32h523.nosch`. MCU circuitry,
+shared components, interface bundles, and peripheral subsystems live in
+`stm32h523_mcu.nosch`, `stm32h523_components.nosch`,
+`stm32h523_interfaces.nosch`, and `stm32h523_peripherals.nosch`, respectively.
+The board demonstrates module-qualified imports for subsystems and named imports
+for components and bundles. See the [source module map](DEVELOPMENT.md#example-source-modules).

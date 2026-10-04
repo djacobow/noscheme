@@ -1,6 +1,6 @@
 """Parse the draft language, preserving token spelling and source spans.
 
-Run: python -m experiments.parser.parse examples/stm32h523.nosch --output PATH
+Run: python -m tools.experiments.parser.parse examples/stm32h523/stm32h523.nosch --output PATH
 No elaboration, expression execution, or electrical validation occurs here.
 """
 

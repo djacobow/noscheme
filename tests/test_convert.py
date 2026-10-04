@@ -130,3 +130,62 @@ def test_kicad_no_connect_maps_to_forbidden_connection_role(tmp_path):
     text = (tmp_path / "out/Test.nosch").read_text()
     assert "role: role.do_not_connect" in text
     assert 'kicad_pin_types: ["no_connect"]' in text
+
+
+def test_filter_candidates_saved_and_completed_offline(tmp_path):
+    from noscheme.lsp_completion import completion_items
+
+    part = symbol("Part", [pin("1", "a"), pin("2", "b")], "Test:Z")
+    part.append(form("property", "ki_fp_filters", "Test:R?2*"))
+    source = library(tmp_path / "Parts.kicad_sym", part)
+    root = tmp_path / "footprints"
+    folder = root / "Test.pretty"
+    folder.mkdir(parents=True)
+    for name, pads in {
+        "Z": ["1", "2"],
+        "R2": ["1", "2", "2", ""],
+        "R_2": ["1", "2"],
+        "R_2_wrong": ["1", "3"],
+        "R_2_extra": ["1", "2", "MP"],
+        "Unrelated": ["1", "2"],
+    }.items():
+        (folder / (name + ".kicad_mod")).write_text(
+            dump(
+                form(
+                    "footprint",
+                    name,
+                    *(form("pad", p, Symbol("smd"), Symbol("rect")) for p in pads),
+                )
+            )
+        )
+    (folder / "R_2_broken.kicad_mod").write_text("(")
+    out = tmp_path / "converted"
+    report = convert_library(source, out, footprint_roots=[root])
+    records = json.loads((out / "footprints.json").read_text())["footprints"]
+    assert set(records) == {"Test:Z", "Test:R2", "Test:R_2"}
+    assert any(i["check"] == "invalid_footprint_candidate" for i in report["issues"])
+    root.rename(tmp_path / "unavailable")
+    (tmp_path / "noscheme.toml").write_text(
+        'language_version="0.1"\nboard="main.B"\nsource_paths=["."]\nlibrary_paths=["converted"]\noutput_dir="build"\n'
+    )
+    path = tmp_path / "main.nosch"
+    text = 'from Parts import Part\nboard B:\n    inst p: Part(\n        metadata:\n            footprint: "'
+    choices = completion_items(path, tmp_path, {path: text}, len(text))
+    assert [s.label for s in choices] == ["Test:Z", "Test:R2", "Test:R_2"]
+
+
+@pytest.mark.parametrize(
+    ("name", "pattern", "expected"),
+    [
+        ("Test:R_2", "R?2", True),
+        ("Test:R2", "R?2", True),
+        ("Test:R__2", "R?2", False),
+        ("Test:R2", "Other:*", False),
+        ("Test:R2", "test:r*", True),
+        ("Test:R[2]", "R[2]", True),
+    ],
+)
+def test_footprint_filter_globs(name, pattern, expected):
+    from noscheme.kicad.convert import footprint_matches
+
+    assert footprint_matches(name, pattern) is expected

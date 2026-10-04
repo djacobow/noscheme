@@ -32,7 +32,7 @@ noscheme = ["*.lark"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "."]
-testpaths = ["tests", "experiments/tests"]
+testpaths = ["tests", "tools/experiments/tests"]
 
 [tool.ruff]
 line-length = 100

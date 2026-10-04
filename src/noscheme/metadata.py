@@ -5,7 +5,7 @@ import math
 import re
 
 from . import ast as a
-from .project import fail, IDENTIFIER
+from .project import fail, IDENTIFIER, expression_path
 from .erc_rules import WAIVABLE
 
 ROLES = frozenset(
@@ -106,15 +106,14 @@ class Value:
 
 
 def enum(expr, namespace, choices, project, module, local_names=()):
-    symbol = project.modules[module].symbols.get(namespace)
+    spelling = expression_path(expr.base) if isinstance(expr, a.Member) else None
+    symbol = project.modules[module].symbols.get(spelling)
     if (
-        namespace in local_names
+        (spelling or "").split(".")[0] in local_names
         or symbol is None
         or symbol.module != "noscheme"
         or symbol.name != namespace
         or not isinstance(expr, a.Member)
-        or not isinstance(expr.base, a.Name)
-        or expr.base.text != namespace
         or expr.name.text not in choices
     ):
         fail(

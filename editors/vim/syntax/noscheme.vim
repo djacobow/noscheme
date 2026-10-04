@@ -9,7 +9,7 @@ syntax iskeyword 65-90,97-122,48-57,_,35
 syntax keyword noschemeDeclaration component block board bundle nextgroup=noschemeDefinition skipwhite
 syntax match noschemeDefinition /[A-Za-z_#][A-Za-z0-9_#]*/ contained
 syntax keyword noschemeKeyword inst net global extends
-syntax keyword noschemeImport from import
+syntax keyword noschemeImport from import as
 syntax keyword noschemeType number string
 syntax keyword noschemeConstant true false no_connect
 syntax match noschemeField /^\s*\zs[A-Za-z_#][A-Za-z0-9_#]*\ze\s*:/

@@ -7,10 +7,10 @@ from pathlib import Path
 import pytest
 import sexpdata
 
-from experiments.kicad.classes import merge_membership
-from experiments.kicad.fixtures import generate, netlist, variants
-from experiments.kicad.inspect_board import compare, snapshot, validate
-from experiments.kicad.sexpr import children, dump, form, scalar
+from tools.experiments.kicad.classes import merge_membership
+from tools.experiments.kicad.fixtures import generate, netlist, variants
+from tools.experiments.kicad.inspect_board import compare, snapshot, validate
+from tools.experiments.kicad.sexpr import children, dump, form, scalar
 
 
 def manifest(parts):

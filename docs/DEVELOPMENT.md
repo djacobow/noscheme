@@ -39,6 +39,7 @@ uv run --locked noscheme check --project examples/erc_extensions
 See [PROJECT.md](PROJECT.md) for the language and design decisions,
 [PLAN.md](PLAN.md) for implementation status and KiCad export commands, and
 [experiments/README.md](experiments/README.md) for the manual KiCad checks.
+The retained harness and local trial outputs live under `tools/experiments/`.
 
 ## Tri-state example
 
@@ -72,6 +73,56 @@ covers the selected KiCad library footprints. The board includes decoupling,
 crystal/load capacitors, USB-C, microSD, SWD, two UARTs, expansion headers, buttons,
 and LEDs. See [PROJECT.md](PROJECT.md#reference-board) for the pin map and
 remaining hardware assumptions.
+
+### Example source modules
+
+The entry point remains `stm32h523.STM32H523Reference`. The source files live
+under `examples/stm32h523/`:
+
+| File | Contents |
+|---|---|
+| [stm32h523.nosch](../examples/stm32h523/stm32h523.nosch) | Board nets, power configurations, and subsystem/component instances |
+| [stm32h523_mcu.nosch](../examples/stm32h523/stm32h523_mcu.nosch) | MCU specialization and subsystem, including decoupling and crystal |
+| [stm32h523_components.nosch](../examples/stm32h523/stm32h523_components.nosch) | Passives, LEDs, buttons, indicator block, and small connectors |
+| [stm32h523_interfaces.nosch](../examples/stm32h523/stm32h523_interfaces.nosch) | Shared I2C, SPI, USB, and SWD bundles |
+| [stm32h523_peripherals.nosch](../examples/stm32h523/stm32h523_peripherals.nosch) | USB-C, regulator, microSD, and debug subsystems |
+| [stm32h523_parts.nosch](../examples/stm32h523/stm32h523_parts.nosch) | Generated KiCad MCU definition |
+| [kicad_device/Device.nosch](../examples/stm32h523/kicad_device/Device.nosch) | Generated KiCad resistor and capacitor definitions |
+
+The board demonstrates qualified references such as
+`stm32h523_mcu.MCU_H523` and `stm32h523_peripherals.UsbC`. Shared components
+and bundles use named imports. A shared interface module keeps bundle identity
+consistent across the board and subsystems without circular imports.
+All source files use the same project configuration in `examples/stm32h523/`.
+
+### Converted passive library
+
+The shared components module uses `import Device` with the checked-in
+`examples/stm32h523/kicad_device/Device.nosch`, generated from KiCad's `Device:R` and
+`Device:C`. `Resistor extends Device.R` and `Capacitor extends Device.C`
+specialize the unused-pin rules. Their `0603` subclasses select the board's
+default footprints; `Capacitor0603` also supplies the default value `"100nF"`.
+Pin roles, reference prefixes, value parameters, and footprint hints come from
+KiCad. The raw imported value defaults are `"R"` and `"C"`; this board supplies
+actual values through instances and specializations.
+
+To reproduce the extraction, choose a fresh output directory:
+
+```sh
+uv run --locked noscheme convert-library /usr/share/kicad/symbols/Device.kicad_sym --symbol R --symbol C --footprint-root /usr/share/kicad/footprints --output /tmp/noscheme-device
+```
+
+The generated directory contains the module, conversion report, and footprint
+snapshot. The board's `footprints.json` includes those candidate records so
+alternative selections can be exported. KiCad's passive filters are broad,
+including through-hole parts; review the package before choosing.
+
+In Vim, open `examples/stm32h523/stm32h523_components.nosch` and edit the footprint under
+`component Resistor0603 extends Resistor` to
+`footprint: "Resistor_SMD:` and press **Ctrl-X Ctrl-O**. Alternatives such as
+0805 and hand-soldering variants should appear. This also works on instance
+footprint overrides. For capacitors, edit `Capacitor0603` and use the prefix
+`footprint: "Capacitor_SMD:`.
 
 ## CI
 

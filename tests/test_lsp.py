@@ -323,3 +323,87 @@ def test_completion_on_incomplete_buffers(client, project, old, new, label):
     assert item["textEdit"]["newText"] == label
     assert item["textEdit"]["range"]["end"] == {"line": line, "character": character}
     assert path.read_text() == SOURCE
+
+
+def test_footprint_completion_protocol(client, project):
+    path = project / "main.nosch"
+    text = """component Part:
+    metadata:
+        footprint: "Test:Z"
+        custom:
+            kicad_footprint_candidates: ["Test:A"]
+board B:
+    inst p: Part(
+        metadata:
+            footprint: "Test:"
+    )
+"""
+    open_document(client, path, text)
+    result = client.request(
+        "textDocument/completion",
+        {
+            "textDocument": {"uri": path.as_uri()},
+            "position": {"line": 8, "character": 29},
+        },
+    )
+    assert [i["label"] for i in result["items"]] == ["Test:Z", "Test:A"]
+    item = result["items"][0]
+    assert item["textEdit"]["newText"] == '"Test:Z"'
+    assert item["textEdit"]["range"] == {
+        "start": {"line": 8, "character": 23},
+        "end": {"line": 8, "character": 30},
+    }
+    assert item["sortText"] < result["items"][1]["sortText"]
+
+
+def test_qualified_import_protocol_completion_and_definition(client, project):
+    library = project / "Device.nosch"
+    library.write_text('component R:\n    metadata:\n        footprint: "Test:R"\n')
+    path = project / "main.nosch"
+    text = "import Device\nfrom Device import R as Resistor\nboard B:\n    inst r: Device.R()\n"
+    open_document(client, path, text)
+    result = client.request(
+        "textDocument/definition",
+        {
+            "textDocument": {"uri": path.as_uri()},
+            "position": {"line": 3, "character": 19},
+        },
+    )
+    assert result["uri"] == library.as_uri()
+    result = client.request(
+        "textDocument/completion",
+        {
+            "textDocument": {"uri": path.as_uri()},
+            "position": {"line": 3, "character": 19},
+        },
+    )
+    item = next(i for i in result["items"] if i["label"] == "Device.R")
+    assert item["textEdit"]["newText"] == "Device.R"
+    assert item["textEdit"]["range"] == {
+        "start": {"line": 3, "character": 12},
+        "end": {"line": 3, "character": 20},
+    }
+
+
+def test_extends_completion_without_colon_or_body(client, project):
+    (project / "Device.nosch").write_text(
+        'component R:\n    metadata:\n        ref_prefix: "R"\n'
+        "block Circuit:\n    metadata:\n        custom:\n            note: true\n"
+    )
+    path = project / "main.nosch"
+    text = "import Device\ncomponent Resistor extends Device.\nboard B:\n    inst r: Device.R()\n"
+    open_document(client, path, text)
+    result = client.request(
+        "textDocument/completion",
+        {
+            "textDocument": {"uri": path.as_uri()},
+            "position": {"line": 1, "character": len(text.splitlines()[1])},
+        },
+    )
+    assert [item["label"] for item in result["items"]] == ["Device.R"]
+    item = result["items"][0]
+    assert item["textEdit"]["newText"] == "Device.R"
+    assert item["textEdit"]["range"] == {
+        "start": {"line": 1, "character": 27},
+        "end": {"line": 1, "character": 34},
+    }

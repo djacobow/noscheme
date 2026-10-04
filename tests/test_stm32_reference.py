@@ -178,3 +178,28 @@ def test_reference_exports_every_part_and_repeats_without_changes(board, tmp_pat
     report = json.loads((tmp_path / "out" / "export.json").read_text())
     assert report["omitted_without_footprints"] == []
     assert report["changes"] == {"added": [], "removed": [], "changed": []}
+
+
+@pytest.mark.parametrize("kind,letter", [("Resistor", "R"), ("Capacitor", "C")])
+def test_passive_inherits_kicad_pins_and_offline_footprint_hints(kind, letter):
+    from noscheme.lsp_completion import completion_items
+
+    _, definitions = resolve_project(PROJECT)
+    component = definitions[("stm32h523_components", kind + "0603")]
+    assert set(component.interface) == {"1", "2"}
+    assert component.parameters["value"].type == "string"
+    candidates = component.metadata["custom"].value["kicad_footprint_candidates"].value
+    alternate = f"{kind}_SMD:{letter}_0805_2012Metric"
+    assert alternate in candidates
+    records = json.loads((PROJECT / "footprints.json").read_text())["footprints"]
+    assert all(set(records[name]["pads"]) == {"1", "2"} for name in candidates)
+
+    path = ROOT / "examples/stm32h523/stm32h523_components.nosch"
+    source = path.read_text()
+    original = f'footprint: "{kind}_SMD:{letter}_0603_1608Metric"'
+    offset = source.index(original)
+    prefix = f'footprint: "{kind}_SMD:'
+    edited = source[:offset] + prefix + source[offset + len(original) :]
+    choices = completion_items(path, PROJECT, {path: edited}, offset + len(prefix))
+    assert alternate in {item.label for item in choices}
+    assert f"{kind}_SMD:{letter}_0603_1608Metric" in {item.label for item in choices}

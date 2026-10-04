@@ -1,9 +1,9 @@
-experiments/.venv/
+tools/experiments/.venv/
 .venv/
 *.egg-info/
 build/
 dist/
-experiments/output/
+tools/experiments/output/
 __pycache__/
 .pytest_cache/
 *.pyc

@@ -1,5 +1,11 @@
 # NoScheme feasibility experiments
 
+The retained harness lives under `tools/experiments/`. It contains manual
+KiCad reproduction tools and regression fixtures; production code lives under
+`src/noscheme/`. Saved local trial boards and reports move with the harness.
+Use the project virtual environment below; an old private experiment environment
+may contain absolute paths from its original location.
+
 These tools implement the first milestone in [PLAN.md](../PLAN.md). They are
 experiments, not a production compiler or exporter. In particular, successful
 parsing does not imply name resolution, valid shapes, or electrical correctness.
@@ -9,18 +15,17 @@ parsing does not imply name resolution, valid shapes, or electrical correctness.
 From the repository root on the current Linux host:
 
 ```sh
-uv venv experiments/.venv --python /usr/bin/python3
-uv pip install --python experiments/.venv/bin/python -r experiments/requirements.txt
-experiments/.venv/bin/python -m pytest experiments/tests -q
-experiments/.venv/bin/python -m experiments.parser.parse examples/stm32h523.nosch --output experiments/output/stm32h523.syntax.json
-experiments/.venv/bin/python -m experiments.kicad.fixtures
+uv sync --locked
+.venv/bin/python -m pytest tools/experiments/tests -q
+.venv/bin/python -m tools.experiments.parser.parse examples/stm32h523/stm32h523.nosch --output tools/experiments/output/stm32h523.syntax.json
+.venv/bin/python -m tools.experiments.kicad.fixtures
 ```
 
 The fixture command uses `/usr/share/kicad/footprints`; override with
-`--library-root` on other installations. Outputs go to `experiments/output/`,
+`--library-root` on other installations. Outputs go to `tools/experiments/output/`,
 which is ignored by version control. Rerunning generation rewrites its generated
 netlists/manifests, not saved `.kicad_pcb` files. Version information is in
-`experiments/output/kicad/versions.json`.
+`tools/experiments/output/kicad/versions.json`.
 
 The parser has no evaluator or compiler side effects. It writes a JSON syntax
 tree containing original token spelling and filename/line/column/offset spans.
@@ -30,7 +35,7 @@ configuration or waiver syntax that the design has not specified.
 
 ## KiCad inputs
 
-`experiments/output/kicad/` contains `.net` files, corresponding JSON manifests,
+`tools/experiments/output/kicad/` contains `.net` files, corresponding JSON manifests,
 footprint pad snapshots/hashes, explicit class memberships, and a local
 `fp-lib-table`. Each manifest says `editor_validation: pending`; it never changes
 status merely because it was generated. Save actual import reports separately.
@@ -63,10 +68,10 @@ proof that PCBNew will import them correctly.
 ### A. Establish a routed baseline
 
 An empty board with an outline has been created at
-`experiments/output/kicad/import-test.kicad_pcb`. To recreate it on another checkout:
+`tools/experiments/output/kicad/import-test.kicad_pcb`. To recreate it on another checkout:
 
 ```sh
-/usr/bin/python3 experiments/kicad/prepare_board.py experiments/output/kicad/import-test.kicad_pcb
+/usr/bin/python3 tools/experiments/kicad/prepare_board.py tools/experiments/output/kicad/import-test.kicad_pcb
 ```
 
 This uses the system KiCad Python module, not the venv. It refuses to overwrite
@@ -76,8 +81,8 @@ existing files. It creates no components and performs no netlist import.
    Netlist…**. This opens the Import Netlist dialog. Do not use Update PCB
    from Schematic; no schematic is supplied.
 2. Use the browse button beside the netlist filename field to select
-   `baseline.net` from `experiments/output/kicad/`. On this checkout its full
-   path is `/home/david/personal/noscheme/experiments/output/kicad/baseline.net`;
+   `baseline.net` from `tools/experiments/output/kicad/`. On this checkout its full
+   path is `/home/david/personal/noscheme/tools/experiments/output/kicad/baseline.net`;
    you can paste that path into the file chooser. Begin with **Link footprints using reference
    designators** unchecked, **Replace footprints with those specified in netlist**
    checked, and **Delete footprints with no components in netlist** checked.
@@ -94,7 +99,7 @@ existing files. It creates no components and performs no netlist import.
 6. Validate and capture the baseline:
 
 ```sh
-experiments/.venv/bin/python -m experiments.kicad.inspect_board experiments/output/kicad/import-test.kicad_pcb --expected experiments/output/kicad/baseline.json --output experiments/output/kicad/baseline.check.json
+.venv/bin/python -m tools.experiments.kicad.inspect_board tools/experiments/output/kicad/import-test.kicad_pcb --expected tools/experiments/output/kicad/baseline.json --output tools/experiments/output/kicad/baseline.check.json
 ```
 
 Do not treat this baseline as a manufactured-board design. Its job is to exercise
@@ -105,14 +110,14 @@ import behavior and preserve a known route. Keep it unchanged after this point.
 Use a fresh copy for every variant. For example:
 
 ```sh
-experiments/.venv/bin/python -m experiments.kicad.trial experiments/output/kicad/import-test.kicad_pcb experiments/output/kicad/trial-added.kicad_pcb
+.venv/bin/python -m tools.experiments.kicad.trial tools/experiments/output/kicad/import-test.kicad_pcb tools/experiments/output/kicad/trial-added.kicad_pcb
 ```
 
 Open that copy, import `added.net` with the same recorded options, save the
 import report as `added.import.txt`, save the board, and close the editor. Then:
 
 ```sh
-experiments/.venv/bin/python -m experiments.kicad.inspect_board experiments/output/kicad/trial-added.kicad_pcb --before experiments/output/kicad/import-test.kicad_pcb --baseline experiments/output/kicad/baseline.json --expected experiments/output/kicad/added.json --output experiments/output/kicad/added.check.json
+.venv/bin/python -m tools.experiments.kicad.inspect_board tools/experiments/output/kicad/trial-added.kicad_pcb --before tools/experiments/output/kicad/import-test.kicad_pcb --baseline tools/experiments/output/kicad/baseline.json --expected tools/experiments/output/kicad/added.json --output tools/experiments/output/kicad/added.check.json
 ```
 
 Repeat for `baseline`, `reordered`, `removed`, `changed_connection`, `renamed`,
@@ -155,7 +160,7 @@ losing its footprint identity or layout. Save the import report.
 With the editor closed and `Power`/`Signal` defined in the baseline project:
 
 ```sh
-experiments/.venv/bin/python -m experiments.kicad.classes experiments/output/kicad/import-test.kicad_pro experiments/output/kicad/class-membership.json --output experiments/output/kicad/classes-candidate.kicad_pro
+.venv/bin/python -m tools.experiments.kicad.classes tools/experiments/output/kicad/import-test.kicad_pro tools/experiments/output/kicad/class-membership.json --output tools/experiments/output/kicad/classes-candidate.kicad_pro
 ```
 
 Copy the baseline board to `classes-candidate.kicad_pcb` so it has the same stem.
@@ -170,7 +175,7 @@ rewrites the input file. Its JSON merge tests are not proof of GUI consumption.
 Run on an imported board, using a fresh evidence directory:
 
 ```sh
-experiments/.venv/bin/python -m experiments.kicad.drc experiments/output/kicad/import-test.kicad_pcb --output experiments/output/drc-imported
+.venv/bin/python -m tools.experiments.kicad.drc tools/experiments/output/kicad/import-test.kicad_pcb --output tools/experiments/output/drc-imported
 ```
 
 This records JSON reports, stdout/stderr, exact commands, and return codes, with

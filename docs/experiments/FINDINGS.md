@@ -8,7 +8,9 @@ KiCad netlist adapter, subject to the limitations below.
 ## Environment and evidence
 
 - Python 3.14.4; KiCad CLI 10.0.6 and system PCBNew Python bindings installed.
-- Lark 1.3.1, pytest 9.1.1, sexpdata 1.0.2 in `experiments/.venv`.
+- Lark 1.3.1, pytest 9.1.1, sexpdata 1.0.2 in `experiments/.venv` at the time of the trials. The retained harness and
+  saved outputs now live under `tools/experiments/`; current commands use the
+  project virtual environment.
 - Full dependency pins: `requirements.txt`.
 - Automated result: **40 tests passed**, no skips.
 - Test report: `output/tests.xml`.

@@ -15,7 +15,7 @@ from .metadata import (
     validate_selection,
     possible_selections,
 )
-from .project import IDENTIFIER, fail, load_project
+from .project import IDENTIFIER, expression_path, fail, load_project
 
 
 @dataclass(frozen=True)
@@ -56,21 +56,24 @@ class Resolver:
         self.definitions = {}
 
     def symbol(self, module, names, kinds):
-        if len(names) != 1:
+        spelling = ".".join(n.text for n in names)
+        symbol = self.project.modules[module].symbols.get(spelling)
+        if (
+            symbol is None
+            and len(names) > 1
+            and names[0].text in self.project.modules[module].symbols
+        ):
             fail(
                 "resolve.private",
-                "import definitions by name; qualified access to internals is not allowed",
+                "qualified access to definition internals is not allowed",
                 names[-1].span,
             )
-        symbol = self.project.modules[module].symbols.get(names[0].text)
         if symbol is None or symbol.declaration is None:
-            fail(
-                "resolve.missing-definition", f"unknown definition {names[0].text!r}", names[0].span
-            )
+            fail("resolve.missing-definition", f"unknown definition {spelling!r}", names[0].span)
         if symbol.declaration.kind not in kinds:
             fail(
                 "resolve.kind",
-                f"{names[0].text!r} must name {' or '.join(sorted(kinds))}",
+                f"{spelling!r} must name {' or '.join(sorted(kinds))}",
                 names[0].span,
             )
         return (symbol.module, symbol.name)
@@ -314,6 +317,16 @@ class Resolver:
         expr = value.value
         while isinstance(expr, a.Subscript):
             expr = expr.base
+        spelling = expression_path(expr)
+        symbol = self.project.modules[value.module].symbols.get(spelling)
+        if symbol and symbol.declaration:
+            names = []
+            current = expr
+            while isinstance(current, a.Member):
+                names.insert(0, current.name)
+                current = current.base
+            names.insert(0, current)
+            return self.definitions[self.symbol(value.module, tuple(names), {"bundle"})]
         if isinstance(expr, a.Member):
             enum(expr, "nettype", NETTYPES, self.project, value.module)
             return None
@@ -484,20 +497,18 @@ class Resolver:
                 self.check_expression(
                     Value(callee.base, callee.base.span, value.module), parameters, depth + 1
                 )
-            elif isinstance(callee.base, a.Name):
-                namespace = callee.base.text
+            elif (namespace := expression_path(callee.base)) is not None:
                 helpers = {
                     "num": {"int", "ceil", "floor", "round"},
                     "f": {"Ohm", "kOhm", "MOhm", "pF", "nF", "uF", "nH", "uH", "mH"},
                 }
                 symbol = self.project.modules[value.module].symbols.get(namespace)
                 if (
-                    namespace in parameters
-                    or namespace not in helpers
-                    or callee.name.text not in helpers[namespace]
+                    namespace.split(".")[0] in parameters
                     or symbol is None
                     or symbol.module != "noscheme"
-                    or symbol.name != namespace
+                    or symbol.name not in helpers
+                    or callee.name.text not in helpers[symbol.name]
                 ):
                     fail(
                         "resolve.helper",

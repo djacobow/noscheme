@@ -166,9 +166,15 @@ class Definition(Node):
 
 
 @dataclass(frozen=True)
+class ImportedName(Node):
+    name: Name
+    alias: Name | None = None
+
+
+@dataclass(frozen=True)
 class Import(Node):
     module: tuple[Name, ...]
-    names: tuple[Name, ...]
+    names: tuple[ImportedName, ...]
 
 
 @dataclass(frozen=True)

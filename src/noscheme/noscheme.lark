@@ -1,6 +1,8 @@
 // Production front-end syntax. Metadata schemas and name resolution are separate.
 start: _NL* (import_stmt | definition)*
-import_stmt: "from" name_path "import" NAME ("," NAME)* _NL
+import_stmt: "from" name_path "import" imported_name ("," imported_name)* _NL
+           | "import" name_path _NL
+imported_name: NAME ["as" NAME]
 definition: definition_kind NAME extends? ":" _NL _INDENT definition_item+ _DEDENT
 definition_kind: "component" -> component_kind
                | "block" -> block_kind

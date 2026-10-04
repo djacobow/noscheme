@@ -78,10 +78,31 @@ from parts.passives import Resistor, Capacitor
 from noscheme import role, nettype, unused, bias, f, num
 ```
 
-Imports are explicitly named. Wildcard imports, import aliases, and implicit
+Both module-qualified imports and local aliases are supported:
+
+```nosch
+import Device
+from Device import R as KiCadResistor
+
+component Resistor extends Device.R:
+    metadata:
+        footprint: "Resistor_SMD:R_0603_1608Metric"
+```
+
+`import Device` exposes definitions as `Device.R`, not bare `R`.
+`from Device import R as KiCadResistor` binds only `KiCadResistor` locally.
+Each name in a comma-separated `from` import may have its own `as` alias.
+Qualified names work in inheritance, instance types, and bundle types.
+For `import parts.passives`, references use `parts.passives.Resistor`;
+this does not import sibling modules or a package initializer.
+`import Device.R` would load a module at `Device/R.nosch`, not select
+the component `R` from `Device`.
+
+Wildcard imports, module aliases (`import Device as D`), and implicit
 standard-library imports are not supported. Imported names can be re-exported
 by importing them from another module. Their original definition identity is
-preserved. Conflicting local/imported names are errors.
+preserved. Conflicting local/imported names and module namespace prefixes are
+errors; distinct sibling module imports may share a namespace prefix.
 
 `noscheme` is reserved for builtins:
 
@@ -95,8 +116,11 @@ preserved. Conflicting local/imported names are errors.
 | `num` | Numeric conversion and rounding helpers |
 
 Use qualified builtin values: `role.passive`, not bare `passive`. An attribute's
-context does not supply an implicit namespace. Import user definitions by name;
-instances do not use module-qualified access to definitions or their internals.
+context does not supply an implicit namespace. Builtins also support aliases,
+such as `from noscheme import role as electrical` with
+`electrical.passive`, and module imports, such as `import noscheme` with
+`noscheme.role.passive`. Module qualification exposes exported definitions;
+it never grants access to a component or block's private internals.
 
 ## 2. Lexical rules
 
@@ -111,7 +135,7 @@ Statements and mapping entries use newlines, not semicolons.
 parameter defaults and named formatting arguments; it is not a connection
 operator. Lists and helper calls use commas. Instance sections do not.
 
-The structural words are `from`, `import`, `component`, `block`, `board`,
+The structural words are `from`, `import`, `as`, `component`, `block`, `board`,
 `bundle`, `extends`, `inst`, `net`, and `global`. Section names are `pins`,
 `ports`, `params`, `defaults`, `connections`, and `metadata`. These words are
 recognized in their grammatical contexts. Metadata keys and builtin enum members
@@ -935,6 +959,23 @@ complete extension.
 ## 13. CAD identities and export
 
 ### 13.1 Library conversion and footprints
+
+Conversion expands each symbol's `ki_fp_filters` against the explicit
+`--footprint-root` directories. It saves matches with exactly the same unique
+numbered pads as the symbol's physical pins in
+`metadata.custom.kicad_footprint_candidates`, and snapshots those footprints
+alongside defaults and explicit extra footprints. Duplicate pads are allowed;
+unnumbered mechanical pads are ignored. Malformed or ambiguous alternatives are
+omitted and reported; invalid explicitly selected footprints retain the usual
+conversion errors.
+
+Filters follow the [KiCad library conventions](https://klc.kicad.org/symbol/s5/s5.2/):
+`*` matches any number of characters, `?` zero or one, and a colon includes
+the library name in the match. Matching is case-insensitive. Without filters or
+footprint roots, no alternatives are inferred. These custom metadata lists are
+inherited and may be replaced by specializations. They provide editor hints,
+not language restrictions or guarantees of mechanical compatibility.
+
 
 The compiler consumes NoScheme definitions; it does not import KiCad symbols
 implicitly. `convert-library` writes explicit components and footprint snapshots

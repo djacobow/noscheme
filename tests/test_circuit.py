@@ -57,7 +57,7 @@ def test_blink_connectivity_matches_kicad_fixture():
             (("indicators", i, "led"), "2"),
         }
     # Independent fixture data used by the completed CAD experiments.
-    from experiments.kicad.fixtures import variants
+    from tools.experiments.kicad.fixtures import variants
 
     expected = variants()["baseline"]
     actual = {
@@ -69,11 +69,8 @@ def test_blink_connectivity_matches_kicad_fixture():
             assert actual[p["identity"]][pin] == net.lstrip("/").replace("/", ".")
 
 
-def test_two_uart_headers_share_ground_but_not_signals(tmp_path):
-    source = (ROOT / "examples/stm32h523.nosch").read_text()
-    (tmp_path / "stm32h523_parts.nosch").write_text(
-        (ROOT / "examples/stm32h523_parts.nosch").read_text()
-    )
+def test_two_uart_headers_share_ground_but_not_signals(tmp_path, stm32_libraries):
+    source = (ROOT / "examples/stm32h523/stm32h523.nosch").read_text()
 
     p = make(tmp_path, source)
     (p / "main.nosch").write_text(source)

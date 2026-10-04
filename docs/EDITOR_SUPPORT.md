@@ -60,7 +60,7 @@ After `uv sync --locked`, configure your editor's LSP client to run:
 
 The first version provides compiler/ERC diagnostics, go-to-definition, and basic
 symbol hover, plus completion for component/block names, connection pins/ports,
-and imported `role.` / `nettype.` values. It checks unsaved buffers, including
+imported `role.` / `nettype.` values, and footprint strings. It checks unsaved buffers, including
 imported files, after a 200 ms typing delay. It does not write circuit artifacts,
 netlists, or identity state.
 Checks include project-local Python ERC extensions just as the CLI does.
@@ -115,8 +115,35 @@ autocmd FileType noscheme setlocal omnifunc=lsp#complete
 
 Completion supports incomplete instance/connection statements, inherited aliases,
 and numeric pins; accepting a suggestion replaces the current token.
+Qualified instance names such as `Device.R` and imported aliases are supported.
+Completion also works after `extends`, including an unfinished header such as
+`component Resistor extends Device.` with no colon or body yet. Component
+headers suggest components; block headers suggest blocks. The definition being
+edited is excluded. Both local aliases and qualified names are available.
+Definition navigation and hover follow both forms to the original declaration;
+pin and footprint completion use that declaration's inherited interface and hints.
 It does not insert imports or infer private interface members. For explicit project
 selection, append `'--project', '/absolute/path/to/project'` to the command list.
 This follows the [vim-lsp registration interface](https://github.com/prabirshrestha/vim-lsp).
 Other LSP clients, including Neovim's, use the same server command and `noscheme`
 filetype. No editor configuration is modified by installing NoScheme.
+
+### Footprint completion
+
+Inside a component or instance's `metadata.footprint` string, use
+`Ctrl-X Ctrl-O` to select a footprint. This works with an unfinished opening
+quote and replaces the whole string. The component's default is listed first,
+followed by saved candidates matching the typed prefix. Specializations inherit
+these hints; imported files and unsaved buffers are supported.
+
+The converter records hints under `metadata.custom.kicad_footprint_candidates`
+when given `--footprint-root`. The LSP reads this saved list and does not require
+KiCad libraries. Existing converted libraries need reconversion to acquire
+alternatives; a component's default can still be suggested without a list.
+The STM32 example includes the MCU's saved hint. Its hand-written resistor and
+capacitor specializations are in `examples/stm32h523/stm32h523_components.nosch`; edit
+their footprint strings there to try the inherited alternatives.
+
+Hints are advisory. You can enter any footprint string, and export still checks
+the selected footprint's pads. Matching pins does not establish mechanical
+compatibility; check the package dimensions.

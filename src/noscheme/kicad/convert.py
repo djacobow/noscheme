@@ -91,6 +91,13 @@ def footprint_record(name, roots):
     }
 
 
+def footprint_matches(name, pattern):
+    """KiCad library-convention globs; unqualified filters match the item only."""
+    expression = "".join(".*" if c == "*" else ".?" if c == "?" else re.escape(c) for c in pattern)
+    subject = name if ":" in pattern else name.split(":", 1)[1]
+    return re.fullmatch(expression, subject, re.IGNORECASE) is not None
+
+
 def convert_library(source, output, symbols=(), footprint_roots=(), extra_footprints=()):
     source, output = Path(source).resolve(), Path(output).absolute()
     if output.exists():
@@ -162,6 +169,18 @@ def convert_library(source, output, symbols=(), footprint_roots=(), extra_footpr
                 "jumpers": str(scalar(symbol, "duplicate_pin_numbers_are_jumpers", "no")),
             }
     generated, report, used_names, footprints = [], [], {}, set(extra_footprints)
+    catalog, cache = set(), {}
+    for root in footprint_roots:
+        if not Path(root).is_dir():
+            failure(source, "convert.footprint-root", f"footprint root is not a directory: {root}")
+        for path in Path(root).glob("*.pretty/*.kicad_mod"):
+            catalog.add(f"{path.parent.stem}:{path.stem}")
+
+    def get_record(name):
+        if name not in cache:
+            cache[name] = footprint_record(name, footprint_roots)
+        return cache[name]
+
     mapping = {}
     for original in selected:
         data = resolved[original]
@@ -252,6 +271,26 @@ def convert_library(source, output, symbols=(), footprint_roots=(), extra_footpr
                         "message": "raw type retained; no role inferred for this type",
                     }
                 )
+        candidates = []
+        filters = props.get("ki_fp_filters", "").split()
+        for candidate in sorted(catalog):
+            if not any(footprint_matches(candidate, pattern) for pattern in filters):
+                continue
+            try:
+                candidate_record = get_record(candidate)
+            except ValueError as exc:
+                report.append(
+                    {
+                        "symbol": original,
+                        "footprint": candidate,
+                        "check": "invalid_footprint_candidate",
+                        "message": str(exc),
+                    }
+                )
+                continue
+            if candidate_record["exists"] and set(candidate_record["pads"]) == set(pins):
+                candidates.append(candidate)
+                footprints.add(candidate)
         footprint = props.get("Footprint", "")
         lines.extend(
             ["    metadata:", f"        ref_prefix: {json.dumps(props.get('Reference', 'U'))}"]
@@ -266,6 +305,7 @@ def convert_library(source, output, symbols=(), footprint_roots=(), extra_footpr
                 "        custom:",
                 f"            kicad_symbol: {json.dumps(source.stem + ':' + original)}",
                 f"            kicad_duplicate_pin_numbers_are_jumpers: {json.dumps(data['jumpers'])}",
+                f"            kicad_footprint_candidates: {json.dumps(candidates)}",
                 "            kicad_properties:",
             ]
         )
@@ -275,12 +315,9 @@ def convert_library(source, output, symbols=(), footprint_roots=(), extra_footpr
             lines.pop()  # No empty indentation-only section.
         generated.append("\n".join(lines))
     records = {}
-    for root in footprint_roots:
-        if not Path(root).is_dir():
-            failure(source, "convert.footprint-root", f"footprint root is not a directory: {root}")
     for name in sorted(footprints):
         try:
-            records[name] = footprint_record(name, footprint_roots)
+            records[name] = get_record(name)
         except ValueError as exc:
             failure(source, "convert.footprint", str(exc))
         if not records[name]["exists"]:

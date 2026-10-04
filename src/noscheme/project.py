@@ -70,6 +70,16 @@ class Project:
     board: Symbol
 
 
+def expression_path(expr):
+    """Return the dotted spelling of a name/member expression, or None."""
+    if isinstance(expr, a.Name):
+        return expr.text
+    if isinstance(expr, a.Member):
+        base = expression_path(expr.base)
+        return base + "." + expr.name.text if base else None
+    return None
+
+
 def fail(code, message, span, *, config=False, related=()):
     cls = ProjectError if config else DiagnosticError
     raise cls([Diagnostic(code, "error", message, span, tuple(related))])
@@ -221,37 +231,61 @@ def load_project(path: Path | str = ".", *, sources=None) -> Project:
         file, tree = parsed[name]
         symbols = {}
         locations = {}
+        namespaces = set()
         for item in tree.items:
             if isinstance(item, a.Definition):
                 symbols[item.name.text] = Symbol(name, item.name.text, item)
                 locations[item.name.text] = item.name.span
         for imp in dependencies[name]:
             target = ".".join(n.text for n in imp.module)
-            for imported in imp.names:
-                key = imported.text
-                if key in symbols:
+            exports = (
+                {key: Symbol("noscheme", key, None) for key in BUILTINS}
+                if target == "noscheme"
+                else modules[target].symbols
+            )
+
+            def bind(key, symbol, span):
+                if key in symbols or any(
+                    key == ns or ns.startswith(key + ".") for ns in namespaces
+                ):
                     fail(
                         "import.duplicate-name",
                         f"name {key!r} is already declared or imported",
-                        imported.span,
+                        span,
                         related=[Related("previous declaration", locations[key])],
                     )
-                if target == "noscheme":
-                    if key not in BUILTINS:
+                symbols[key] = symbol
+                locations[key] = span
+
+            if not imp.names:
+                prefixes = [
+                    ".".join(target.split(".")[:i]) for i in range(1, len(target.split(".")) + 1)
+                ]
+                for prefix in prefixes:
+                    if prefix in symbols or prefix == target and prefix in namespaces:
                         fail(
-                            "import.missing-name", f"noscheme has no builtin {key!r}", imported.span
+                            "import.duplicate-name",
+                            f"name {prefix!r} is already declared or imported",
+                            imp.span,
+                            related=[Related("previous declaration", locations[prefix])],
                         )
-                    symbol = Symbol("noscheme", key, None)
-                else:
-                    symbol = modules[target].symbols.get(key)
+                for prefix in prefixes:
+                    namespaces.add(prefix)
+                    locations.setdefault(prefix, imp.span)
+                for key, symbol in exports.items():
+                    bind(target + "." + key, symbol, imp.span)
+            else:
+                for imported in imp.names:
+                    original = imported.name.text
+                    key = (imported.alias or imported.name).text
+                    symbol = exports.get(original)
                     if symbol is None:
                         fail(
                             "import.missing-name",
-                            f"module {target!r} does not export {key!r}",
-                            imported.span,
+                            f"module {target!r} does not export {original!r}",
+                            imported.name.span,
                         )
-                symbols[key] = symbol
-                locations[key] = imported.span
+                    bind(key, symbol, (imported.alias or imported.name).span)
         modules[name] = LoadedModule(name, file, tree, symbols)
     board = modules[config.board_module].symbols.get(config.board_name)
     if board is None or board.declaration is None or board.declaration.kind != "board":

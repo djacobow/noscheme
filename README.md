@@ -33,4 +33,4 @@ routing, and hardware validation remain separate steps.
 - [Archived design review](docs/claude_review.md) — earlier review and discussion.
 
 Runnable designs are in [examples/](examples/), including the
-[STM32 board](examples/stm32h523.nosch).
+[STM32 board](examples/stm32h523/stm32h523.nosch).

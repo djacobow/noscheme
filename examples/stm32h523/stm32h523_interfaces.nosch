@@ -1,0 +1,23 @@
+// Shared signal bundles used by the board and reusable subsystems.
+
+from noscheme import nettype
+
+bundle I2C:
+    scl: nettype.open_drain
+    sda: nettype.open_drain
+
+bundle SPI:
+    sck: nettype.digital
+    mosi: nettype.digital
+    miso: nettype.digital
+    cs#: nettype.digital
+
+bundle USB2:
+    dp: nettype.bidirectional
+    dm: nettype.bidirectional
+
+bundle SWD:
+    swclk: nettype.digital
+    swdio: nettype.bidirectional
+    swo: nettype.digital
+    reset#: nettype.open_drain

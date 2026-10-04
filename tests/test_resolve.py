@@ -263,18 +263,15 @@ block Use:
     assert definitions["main", "Bus"].interface["data"].type
 
 
-def test_reference_draft_and_example(tmp_path):
+def test_reference_draft_and_example(tmp_path, stm32_libraries):
     root = Path(__file__).resolve().parents[1]
     resolve_project(root / "examples/blink")
-    source = (root / "examples/stm32h523.nosch").read_text()
-    (tmp_path / "stm32h523_parts.nosch").write_text(
-        (root / "examples/stm32h523_parts.nosch").read_text()
-    )
+    source = (root / "examples/stm32h523/stm32h523.nosch").read_text()
 
     p = make_project(tmp_path, source)
     config = p / "noscheme.toml"
     config.write_text(config.read_text().replace('main.B"', 'main.STM32H523Reference"'))
-    assert ("main", "UartHeaderJST3") in resolve_project(p)[1]
+    assert ("stm32h523_components", "UartHeaderJST3") in resolve_project(p)[1]
 
 
 def test_cli_resolve_is_explicit_about_remaining_stages(tmp_path, capsys):
