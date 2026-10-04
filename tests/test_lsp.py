@@ -407,3 +407,259 @@ def test_extends_completion_without_colon_or_body(client, project):
         "start": {"line": 1, "character": 27},
         "end": {"line": 1, "character": 34},
     }
+
+
+def test_bundle_member_protocol_completion_navigation_and_hover(client, project):
+    library = project / "interfaces.nosch"
+    library.write_text(
+        "from noscheme import nettype\nbundle Bus:\n    sck: nettype.passive\n"
+        "block Port:\n    ports:\n        bus: Bus\n"
+    )
+    path = project / "main.nosch"
+    text = (
+        "import interfaces\nboard B:\n    net wire: interfaces.Bus\n"
+        "    inst p: interfaces.Port(\n        connections:\n"
+        "            bus.sck: wire.sck\n    )\n"
+    )
+    open_document(client, path, text)
+    for column in [16, 26]:
+        result = client.request(
+            "textDocument/definition",
+            {
+                "textDocument": {"uri": path.as_uri()},
+                "position": {"line": 5, "character": column},
+            },
+        )
+        assert result["uri"] == library.as_uri()
+        assert result["range"]["start"]["line"] == 2
+        hover = client.request(
+            "textDocument/hover",
+            {
+                "textDocument": {"uri": path.as_uri()},
+                "position": {"line": 5, "character": column},
+            },
+        )
+        assert "bundle field sck" in hover["contents"]["value"]
+    incomplete = text.replace("wire.sck", "wire.")
+    client.send(
+        "textDocument/didChange",
+        {
+            "textDocument": {"uri": path.as_uri(), "version": 2},
+            "contentChanges": [{"text": incomplete}],
+        },
+    )
+    result = client.request(
+        "textDocument/completion",
+        {
+            "textDocument": {"uri": path.as_uri()},
+            "position": {"line": 5, "character": 26},
+        },
+    )
+    assert [item["label"] for item in result["items"]] == ["sck"]
+    assert result["items"][0]["textEdit"] == {
+        "newText": "sck",
+        "range": {"start": {"line": 5, "character": 26}, "end": {"line": 5, "character": 26}},
+    }
+
+
+def test_find_references_protocol_cross_file_and_unsaved_buffers(client, project):
+    from test_lsp_references import LIBRARY, SOURCE as REFERENCE_SOURCE
+
+    library = project / "library.nosch"
+    library.write_text(LIBRARY)
+    path = project / "main.nosch"
+    open_document(client, path, REFERENCE_SOURCE)
+    offset = REFERENCE_SOURCE.index("library.Unit(") + len("library.")
+    prefix = REFERENCE_SOURCE[:offset]
+    params = {
+        "textDocument": {"uri": path.as_uri()},
+        "position": {"line": prefix.count("\n"), "character": len(prefix.rsplit("\n", 1)[-1])},
+        "context": {"includeDeclaration": False},
+    }
+    uses = client.request("textDocument/references", params)
+    assert len(uses) == 5
+    assert {use["uri"] for use in uses} == {path.as_uri(), library.as_uri()}
+    params["context"]["includeDeclaration"] = True
+    assert len(client.request("textDocument/references", params)) == 6
+    changed = REFERENCE_SOURCE.replace("inst b: Alias(", "inst b: library.Derived(")
+    client.send(
+        "textDocument/didChange",
+        {
+            "textDocument": {"uri": path.as_uri(), "version": 2},
+            "contentChanges": [{"text": changed}],
+        },
+    )
+    params["context"]["includeDeclaration"] = False
+    assert len(client.request("textDocument/references", params)) == 4
+    assert path.read_text() == SOURCE
+
+
+def test_reference_locations_use_negotiated_utf16(client, project):
+    path = project / "main.nosch"
+    text = """component Part:
+    params:
+        n: number = 1
+    metadata:
+        value: "😀{0}".format(n)
+board B:
+    inst p: Part()
+"""
+    open_document(client, path, text)
+    result = client.request(
+        "textDocument/references",
+        {
+            "textDocument": {"uri": path.as_uri()},
+            "position": {"line": 2, "character": 8},
+            "context": {"includeDeclaration": False},
+        },
+    )
+    column = len(text.splitlines()[4].split("(n)")[0].encode("utf-16-le")) // 2 + 1
+    assert result == [
+        {
+            "uri": path.as_uri(),
+            "range": {
+                "start": {"line": 4, "character": column},
+                "end": {"line": 4, "character": column + 1},
+            },
+        }
+    ]
+
+
+def test_rename_protocol_prepare_edits_and_collision(client, project):
+    from test_lsp_references import LIBRARY, SOURCE as REFERENCE_SOURCE
+
+    library = project / "library.nosch"
+    library.write_text(LIBRARY)
+    path = project / "main.nosch"
+    open_document(client, path, REFERENCE_SOURCE)
+    params = {
+        "textDocument": {"uri": path.as_uri()},
+        "position": {"line": 12, "character": 13},  # Alias in the instance type.
+    }
+    # Locate the position from the fixture to keep the protocol check legible.
+    prefix = REFERENCE_SOURCE[: REFERENCE_SOURCE.index("Alias(")]
+    params["position"] = {"line": prefix.count("\n"), "character": len(prefix.rsplit("\n", 1)[-1])}
+    prepared = client.request("textDocument/prepareRename", params)
+    assert prepared["placeholder"] == "Alias"
+    result = client.request("textDocument/rename", {**params, "newName": "Renamed"})
+    assert set(result["changes"]) == {path.as_uri()}
+    assert len(result["changes"][path.as_uri()]) == 2
+    assert all(e["newText"] == "Renamed" for e in result["changes"][path.as_uri()])
+    assert path.read_text() == SOURCE
+    assert library.read_text() == LIBRARY
+    client.identifier += 1
+    client.send("textDocument/rename", {**params, "newName": "library"}, client.identifier)
+    response = client.wait(lambda m: m.get("id") == client.identifier)
+    assert response["error"]["code"] == -32602
+    assert "already declared or imported" in response["error"]["message"]
+
+
+def test_rename_versioned_edits_and_utf16(project):
+    c = Client(project)
+    try:
+        capabilities = c.request(
+            "initialize",
+            {
+                "processId": None,
+                "rootUri": project.as_uri(),
+                "capabilities": {
+                    "workspace": {"workspaceEdit": {"documentChanges": True}},
+                    "textDocument": {"rename": {"prepareSupport": True}},
+                },
+            },
+        )["capabilities"]
+        assert capabilities["renameProvider"]["prepareProvider"]
+        c.send("initialized", {})
+        path = project / "main.nosch"
+        text = """component Part:
+    params:
+        count: number = 1
+    metadata:
+        value: "😀{0}".format(count)
+board B:
+    inst p: Part()
+"""
+        open_document(c, path, text, version=7)
+        result = c.request(
+            "textDocument/rename",
+            {
+                "textDocument": {"uri": path.as_uri()},
+                "position": {"line": 2, "character": 8},
+                "newName": "size",
+            },
+        )
+        document = result["documentChanges"][0]
+        assert document["textDocument"] == {"uri": path.as_uri(), "version": 7}
+        assert len(document["edits"]) == 2
+        use = next(e for e in document["edits"] if e["range"]["start"]["line"] == 4)
+        column = len(text.splitlines()[4].split("(count)")[0].encode("utf-16-le")) // 2 + 1
+        assert use["range"]["start"]["character"] == column
+        assert path.read_text() == SOURCE
+    finally:
+        c.close()
+
+
+def test_rich_hover_protocol_uses_instance_overrides(client, project):
+    from test_lsp_hover import LIBRARY, SOURCE as HOVER_SOURCE
+
+    (project / "parts.nosch").write_text(LIBRARY)
+    path = project / "main.nosch"
+    open_document(client, path, HOVER_SOURCE)
+    offset = HOVER_SOURCE.index("resistors[")
+    prefix = HOVER_SOURCE[:offset]
+    params = {
+        "textDocument": {"uri": path.as_uri()},
+        "position": {"line": prefix.count("\n"), "character": len(prefix.rsplit("\n", 1)[-1])},
+    }
+    result = client.request("textDocument/hover", params)
+    assert result["contents"]["kind"] == "plaintext"
+    assert "Value: 10kOhm" in result["contents"]["value"]
+    assert "Footprint: Test:0805" in result["contents"]["value"]
+    assert result["range"]["start"] == params["position"]
+    changed = HOVER_SOURCE.replace("10kOhm", "22kOhm")
+    client.send(
+        "textDocument/didChange",
+        {
+            "textDocument": {"uri": path.as_uri(), "version": 2},
+            "contentChanges": [{"text": changed}],
+        },
+    )
+    updated = client.request("textDocument/hover", params)["contents"]["value"]
+    assert "Value: 22kOhm" in updated and "Value: 10kOhm" not in updated
+    assert path.read_text() == SOURCE
+
+
+@pytest.mark.parametrize("formats", [["markdown", "plaintext"], ["plaintext", "markdown"]])
+def test_builtin_hover_format_negotiation(project, formats):
+    c = Client(project)
+    try:
+        c.request(
+            "initialize",
+            {
+                "processId": None,
+                "rootUri": project.as_uri(),
+                "capabilities": {"textDocument": {"hover": {"contentFormat": formats}}},
+            },
+        )
+        c.send("initialized", {})
+        path = project / "main.nosch"
+        source = "from noscheme import nettype\nboard B:\n    net bus: nettype.tristate\n"
+        open_document(c, path, source)
+        params = {
+            "textDocument": {"uri": path.as_uri()},
+            "position": {"line": 2, "character": 23},
+        }
+        result = c.request("textDocument/hover", params)
+        assert result["contents"]["kind"] == formats[0]
+        assert "tristate_capable: true" in result["contents"]["value"].replace("\\", "")
+        if formats[0] == "markdown":
+            assert result["contents"]["value"].startswith("**nettype\\.tristate**\n\n- ")
+        else:
+            assert result["contents"]["value"].startswith("nettype.tristate\n\n")
+        assert result["range"] == {
+            "start": {"line": 2, "character": 13},
+            "end": {"line": 2, "character": 29},
+        }
+        assert c.request("textDocument/definition", params) is None
+    finally:
+        c.close()

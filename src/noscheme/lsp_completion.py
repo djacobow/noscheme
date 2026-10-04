@@ -5,6 +5,8 @@ import json
 import re
 
 from .diagnostics import DiagnosticError
+from .parser import parse
+from .lsp_bundles import BundleLookup
 from .metadata import NETTYPES, ROLES
 from .project import IDENTIFIER, load_project
 from .resolve import Resolver
@@ -157,6 +159,102 @@ def footprint_completion(path, config, sources, offset):
         return []
 
 
+def connection_instance(masked, owner, line_start):
+    """Find the enclosing instance when editing its connections section."""
+    active, section = None, None
+    for line in masked[owner.end() : line_start].splitlines():
+        if match := INSTANCE.match(line):
+            active, section = match, None
+        elif active and line.strip():
+            indent = len(line) - len(line.lstrip())
+            if indent <= len(active[1]):
+                active, section = None, None
+            elif re.fullmatch(r"\s*(connections|params|metadata):\s*", line):
+                section = line.strip().rstrip(":")
+    return active if section == "connections" else None
+
+
+def bundle_completion(path, config, sources, offset, masked):
+    source = sources[path]
+    line_start = source.rfind("\n", 0, offset) + 1
+    owners = list(DEFINITION.finditer(masked, 0, line_start))
+    if not owners:
+        return []
+    owner = owners[-1]
+    if owner[1] not in {"board", "block"}:
+        return []
+    active = connection_instance(masked, owner, line_start)
+    if active is None:
+        return []
+    before = masked[line_start:offset].strip()
+    # A slice's colon belongs to its index, not the connection separator.
+    depth, separator = 0, None
+    for i, char in enumerate(before):
+        if char == "[":
+            depth += 1
+        elif char == "]":
+            depth -= 1
+        elif char == ":" and depth == 0:
+            separator = i
+            break
+    ports_only = separator is None
+    reference = before if ports_only else before[separator + 1 :].strip()
+    if ports_only:
+        reference = re.sub(r"^(?:\[[^\]]+\])+\.", "", reference)
+    match = re.fullmatch(rf"(.+)\.({WORD})", reference)
+    if not match:
+        return []
+    try:
+        # Reuse the real expression parser for nested members and array selectors.
+        fragment = parse("board Completion:\n    net value: " + match[1] + "\n")
+        expr = fragment.items[0].body[0].type
+        next_owner = DEFINITION.search(masked, owner.end())
+        stop = next_owner.start() if next_owner else len(source)
+        # Preserve this owner's interfaces/nets, but remove instance bodies, which
+        # may be unfinished. Resolve public types without elaborating connections.
+        kept, instance_indent = [], None
+        raw_lines = source[owner.end() : stop].splitlines(keepends=True)
+        for raw, line in zip(raw_lines, masked[owner.end() : stop].splitlines(keepends=True)):
+            indent = len(line) - len(line.lstrip())
+            if instance_indent is not None and line.strip() and indent <= instance_indent:
+                if line.strip().startswith(")"):
+                    continue
+                instance_indent = None
+            if INSTANCE.match(line):
+                instance_indent = indent
+            if instance_indent is None:
+                kept.append(raw)
+        dummy = "__lsp_completion"
+        while dummy in source:
+            dummy += "_"
+        recovered = (
+            source[: owner.end()]
+            + f"\n    inst {dummy}: {dummy}()\n"
+            + "".join(kept)
+            + source[stop:]
+        )
+        project = load_project(config, sources={**sources, path: recovered})
+        module = next(m for m in project.modules.values() if m.path == path)
+        definitions = Resolver(project).resolve_interfaces()
+        context = definitions[(module.name, owner[2])]
+        if ports_only:
+            symbol = module.symbols.get(active[2])
+            if symbol is None or symbol.declaration is None:
+                return []
+            context = definitions[(symbol.module, symbol.name)]
+        bundles = BundleLookup(project, definitions)
+        value = bundles.reference_type(expr, context, ports_only=ports_only)
+        word = match[2]
+        end = offset + len(re.match(WORD, masked[offset:]).group())
+        return [
+            Suggestion(name, name, f"bundle field {name}", "pin", offset - len(word), end)
+            for name in sorted(bundles.members(value))
+            if name.startswith(word)
+        ]
+    except (DiagnosticError, OSError, UnicodeError):
+        return []
+
+
 def completion_items(path, config, sources, offset):
     source = sources[path]
     if config is not None:
@@ -166,6 +264,9 @@ def completion_items(path, config, sources, offset):
     masked = masked_source(source, offset)
     if masked is None or config is None:
         return []
+    bundles = bundle_completion(path, config, sources, offset, masked)
+    if bundles:
+        return bundles
     line_start = source.rfind("\n", 0, offset) + 1
     before = masked[line_start:offset]
     tail = re.match(WORD, masked[offset:]).group()
@@ -232,18 +333,8 @@ def completion_items(path, config, sources, offset):
                 and not (base_type and symbol.module == module.name and symbol.name == owner[2])
             ]
         else:
-            # Locate the still-open instance and its current section by indentation.
-            active, section = None, None
-            for line in masked[owner.end() : line_start].splitlines():
-                if match := INSTANCE.match(line):
-                    active, section = match, None
-                elif active and line.strip():
-                    indent = len(line) - len(line.lstrip())
-                    if indent <= len(active[1]):
-                        active, section = None, None
-                    elif re.fullmatch(r"\s*(connections|params|metadata):\s*", line):
-                        section = line.strip().rstrip(":")
-            if active is None or section != "connections":
+            active = connection_instance(masked, owner, line_start)
+            if active is None:
                 return []
             symbol = module.symbols.get(active[2])
             if symbol is None or symbol.declaration is None:

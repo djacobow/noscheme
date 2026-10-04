@@ -10,12 +10,15 @@ from urllib.parse import unquote, urlparse
 
 from lsprotocol import types
 from pygls.lsp.server import LanguageServer
+from pygls.exceptions import JsonRpcInvalidParams
 from pygls.workspace import TextDocument
 
 from . import ast as a
-from .diagnostics import Diagnostic
+from .diagnostics import Diagnostic, DiagnosticError
 from .lsp_analysis import Analysis, analyze, find_project
 from .lsp_completion import completion_items
+from .lsp_hover import format_hover
+from .lsp_rename import RenameSession
 from .project import source_text
 
 LOG = logging.getLogger(__name__)
@@ -142,7 +145,7 @@ class NoSchemeServer(LanguageServer):
 
         self.pending = asyncio.create_task(delayed())
 
-    def reference(self, params):
+    def reference(self, params, *, hover=False):
         uri = params.text_document.uri
         path = uri_path(uri)
         if path is None:
@@ -155,7 +158,8 @@ class NoSchemeServer(LanguageServer):
         if result is None:
             return None
         doc = self.workspace.get_text_document(uri)
-        return result.reference_at(path, doc.offset_at_position(params.position))
+        lookup = result.hover_at if hover else result.reference_at
+        return lookup(path, doc.offset_at_position(params.position))
 
 
 def create_server(project=None):
@@ -194,13 +198,92 @@ def create_server(project=None):
             )
         return None
 
+    @server.feature(types.TEXT_DOCUMENT_REFERENCES)
+    def references(ls: NoSchemeServer, params: types.ReferenceParams):
+        # Refresh through the same snapshot path used by definition navigation.
+        if ls.reference(params) is None:
+            return []
+        path = uri_path(params.text_document.uri)
+        doc = ls.workspace.get_text_document(params.text_document.uri)
+        result = ls.analysis[params.text_document.uri]
+        sources = ls.sources()
+        return [
+            types.Location(uri=Path(span.filename).as_uri(), range=ls.span_range(span, sources))
+            for span in result.references_at(
+                path, doc.offset_at_position(params.position), params.context.include_declaration
+            )
+        ]
+
+    def rename_context(ls, params):
+        path = uri_path(params.text_document.uri)
+        if path is None or params.text_document.uri not in ls.open_uris:
+            raise ValueError("Open a NoScheme source file to rename a symbol.")
+        sources = ls.sources()
+        config = find_project(path, ls.roots(), ls.project_path, sources)
+        if config is None:
+            raise ValueError("Rename requires a NoScheme project.")
+        session = RenameSession(config, sources)
+        offset = ls.workspace.get_text_document(params.text_document.uri).offset_at_position(
+            params.position
+        )
+        return session, path, offset, sources
+
+    @server.feature(types.TEXT_DOCUMENT_PREPARE_RENAME)
+    def prepare_rename(ls: NoSchemeServer, params: types.PrepareRenameParams):
+        try:
+            with redirect_stdout(sys.stderr):
+                session, path, offset, sources = rename_context(ls, params)
+                target = session.prepare(path, offset)
+            return types.PrepareRenamePlaceholder(
+                range=ls.span_range(target.span, sources), placeholder=target.name
+            )
+        except (ValueError, DiagnosticError, OSError, UnicodeError) as exc:
+            raise JsonRpcInvalidParams(str(exc)) from exc
+
+    @server.feature(types.TEXT_DOCUMENT_RENAME, types.RenameOptions(prepare_provider=True))
+    def rename(ls: NoSchemeServer, params: types.RenameParams):
+        try:
+            with redirect_stdout(sys.stderr):
+                session, path, offset, sources = rename_context(ls, params)
+                edits = session.rename(path, offset, params.new_name)
+            grouped = {}
+            for span, text in edits:
+                uri = Path(span.filename).as_uri()
+                grouped.setdefault(uri, []).append(
+                    types.TextEdit(range=ls.span_range(span, sources), new_text=text)
+                )
+            workspace = ls.client_capabilities.workspace
+            if workspace and workspace.workspace_edit and workspace.workspace_edit.document_changes:
+                return types.WorkspaceEdit(
+                    document_changes=[
+                        types.TextDocumentEdit(
+                            text_document=types.OptionalVersionedTextDocumentIdentifier(
+                                uri=uri,
+                                version=ls.workspace.get_text_document(uri).version
+                                if uri in ls.open_uris
+                                else None,
+                            ),
+                            edits=items,
+                        )
+                        for uri, items in sorted(grouped.items())
+                    ]
+                )
+            return types.WorkspaceEdit(changes=grouped)
+        except (ValueError, DiagnosticError, OSError, UnicodeError) as exc:
+            raise JsonRpcInvalidParams(str(exc)) from exc
+
     @server.feature(types.TEXT_DOCUMENT_HOVER)
     def hover(ls: NoSchemeServer, params: types.HoverParams):
-        ref = ls.reference(params)
+        ref = ls.reference(params, hover=True)
         if ref:
+            text_document = ls.client_capabilities.text_document
+            capabilities = text_document.hover if text_document else None
+            formats = capabilities.content_format if capabilities else None
+            kind = formats[0] if formats else types.MarkupKind.PlainText
             return types.Hover(
                 contents=types.MarkupContent(
-                    kind=types.MarkupKind.PlainText, value=ref.description
+                    kind=kind,
+                    value=format_hover(ref.description, kind == types.MarkupKind.Markdown),
                 ),
                 range=ls.span_range(ref.span, ls.sources()),
             )

@@ -125,7 +125,7 @@ are electrically unconnected. See the [JST XH datasheet](https://www.jst-mfg.com
 
 The example is now 58 physical parts and 52 nets with no placeholders or missing
 footprints. Its project file is `examples/stm32h523/noscheme.toml`; the main source
-remains `examples/stm32h523/stm32h523.nosch`. The imported `stm32h523_parts.nosch` is the
+remains `examples/stm32h523/stm32h523.nosch`. The imported `parts.nosch` is the
 explicit conversion of KiCad's `STM32H523VCTx` symbol. `STM32H523Board` specializes
 its pin roles for this board; unused physical GPIOs explicitly bind `no_connect`.
 The conversion report and all 14 footprint snapshots are retained in the project.
@@ -1273,7 +1273,7 @@ component or block internals. See [LRM imports](LRM.md#12-modules-and-imports).
 
 The board entry point stays in `examples/stm32h523/stm32h523.nosch`. MCU circuitry,
 shared components, interface bundles, and peripheral subsystems live in
-`stm32h523_mcu.nosch`, `stm32h523_components.nosch`,
-`stm32h523_interfaces.nosch`, and `stm32h523_peripherals.nosch`, respectively.
+`mcu.nosch`, `components.nosch`,
+`interfaces.nosch`, and `peripherals.nosch`, respectively.
 The board demonstrates module-qualified imports for subsystems and named imports
 for components and bundles. See the [source module map](DEVELOPMENT.md#example-source-modules).

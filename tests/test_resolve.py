@@ -271,7 +271,7 @@ def test_reference_draft_and_example(tmp_path, stm32_libraries):
     p = make_project(tmp_path, source)
     config = p / "noscheme.toml"
     config.write_text(config.read_text().replace('main.B"', 'main.STM32H523Reference"'))
-    assert ("stm32h523_components", "UartHeaderJST3") in resolve_project(p)[1]
+    assert ("components", "UartHeaderJST3") in resolve_project(p)[1]
 
 
 def test_cli_resolve_is_explicit_about_remaining_stages(tmp_path, capsys):

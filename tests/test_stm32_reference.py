@@ -185,7 +185,7 @@ def test_passive_inherits_kicad_pins_and_offline_footprint_hints(kind, letter):
     from noscheme.lsp_completion import completion_items
 
     _, definitions = resolve_project(PROJECT)
-    component = definitions[("stm32h523_components", kind + "0603")]
+    component = definitions[("components", kind + "0603")]
     assert set(component.interface) == {"1", "2"}
     assert component.parameters["value"].type == "string"
     candidates = component.metadata["custom"].value["kicad_footprint_candidates"].value
@@ -194,7 +194,7 @@ def test_passive_inherits_kicad_pins_and_offline_footprint_hints(kind, letter):
     records = json.loads((PROJECT / "footprints.json").read_text())["footprints"]
     assert all(set(records[name]["pads"]) == {"1", "2"} for name in candidates)
 
-    path = ROOT / "examples/stm32h523/stm32h523_components.nosch"
+    path = ROOT / "examples/stm32h523/components.nosch"
     source = path.read_text()
     original = f'footprint: "{kind}_SMD:{letter}_0603_1608Metric"'
     offset = source.index(original)

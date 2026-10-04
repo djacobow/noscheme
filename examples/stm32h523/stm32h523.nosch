@@ -14,12 +14,12 @@ resistors/capacitors use 0603. No unverified current capacities are annotated.
 */
 
 from noscheme import role, nettype, bias
-from stm32h523_interfaces import I2C, SPI, USB2, SWD
-from stm32h523_components import I2CPullup, InputBias0603, Capacitor0603
-from stm32h523_components import PushButton, Indicator
-from stm32h523_components import Header1x2, Header1x4, Header2x10, UartHeaderJST3
-import stm32h523_mcu
-import stm32h523_peripherals
+from interfaces import I2C, SPI, USB2, SWD
+from components import I2CPullup, InputBias0603, Capacitor0603
+from components import PushButton, Indicator
+from components import Header1x2, Header1x4, Header2x10, UartHeaderJST3
+import mcu
+import peripherals
 
 board STM32H523Reference:
     metadata:
@@ -48,7 +48,7 @@ board STM32H523Reference:
     net uart_tx: nettype.digital[2]
     net uart_rx: nettype.digital[2]
 
-    inst mcu: stm32h523_mcu.MCU_H523(
+    inst mcu: mcu.MCU_H523(
         connections:
             supply: global.v3v3
             ground: global.gnd
@@ -67,7 +67,7 @@ board STM32H523Reference:
             uart_rx: uart_rx
     )
 
-    inst usb_c: stm32h523_peripherals.UsbC(
+    inst usb_c: peripherals.UsbC(
         connections:
             vbus: global.v5
             ground: global.gnd
@@ -81,14 +81,14 @@ board STM32H523Reference:
                         header5v: "absent"
     )
 
-    inst regulator: stm32h523_peripherals.Ldo3v3(
+    inst regulator: peripherals.Ldo3v3(
         connections:
             input: global.v5
             output: global.v3v3
             ground: global.gnd
     )
 
-    inst micro_sd: stm32h523_peripherals.MicroSD(
+    inst micro_sd: peripherals.MicroSD(
         connections:
             supply: global.v3v3
             ground: global.gnd
@@ -96,7 +96,7 @@ board STM32H523Reference:
             detect#: sd_detect#
     )
 
-    inst swd: stm32h523_peripherals.CortexDebug(
+    inst swd: peripherals.CortexDebug(
         connections:
             reference: global.v3v3
             ground: global.gnd

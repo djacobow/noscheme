@@ -58,8 +58,8 @@ After `uv sync --locked`, configure your editor's LSP client to run:
 /home/david/personal/noscheme/.venv/bin/noscheme-lsp
 ```
 
-The first version provides compiler/ERC diagnostics, go-to-definition, and basic
-symbol hover, plus completion for component/block names, connection pins/ports,
+The language server provides compiler/ERC diagnostics, go-to-definition, and
+resolved hover details, plus completion for component/block names, connection pins/ports,
 imported `role.` / `nettype.` values, and footprint strings. It checks unsaved buffers, including
 imported files, after a 200 ms typing delay. It does not write circuit artifacts,
 netlists, or identity state.
@@ -76,9 +76,9 @@ STM32 example, a reliable command is:
 
 Without a project, files receive syntax diagnostics only. Files outside the
 board's reachable import graph are also only syntax-checked. Navigation covers
-named definitions/imports, lexical nets/parameters, and explicit pin/port aliases
-in connection bindings. Bundle member navigation, rename, references,
-and formatting are not implemented. A syntax error can temporarily prevent
+named definitions/imports, lexical nets/parameters, explicit pin/port aliases,
+and public bundle fields on both sides of connection bindings. Find-references uses the same resolved symbols. Rename supports selected symbols as described below;
+formatting is not implemented. A syntax error can temporarily prevent
 semantic navigation until the code parses again. Analysis currently performs
 serialized full checks; incremental compilation and background cancellation are
 future improvements.
@@ -102,6 +102,7 @@ augroup noscheme_lsp
         \ 'cmd': {info -> ['/home/david/personal/noscheme/.venv/bin/noscheme-lsp']},
         \ 'allowlist': ['noscheme'],
         \ })
+  autocmd FileType noscheme nmap <buffer> K <plug>(lsp-hover)
 augroup END
 ```
 
@@ -112,6 +113,12 @@ run `:setlocal omnifunc=lsp#complete` in the NoScheme buffer, then press
 ```vim
 autocmd FileType noscheme setlocal omnifunc=lsp#complete
 ```
+
+The `FileType` hover mapping above also applies to files opened through
+`:LspDefinition`. A standalone `nmap <buffer> K ...` in your vimrc only maps
+the startup buffer; in other buffers, Vim's default `K` opens a system manual
+page and may report "No manual entry". After updating your vimrc, restart Vim
+or run `:nmap <buffer> K <plug>(lsp-hover)` in an already-open buffer.
 
 Completion supports incomplete instance/connection statements, inherited aliases,
 and numeric pins; accepting a suggestion replaces the current token.
@@ -141,9 +148,119 @@ when given `--footprint-root`. The LSP reads this saved list and does not requir
 KiCad libraries. Existing converted libraries need reconversion to acquire
 alternatives; a component's default can still be suggested without a list.
 The STM32 example includes the MCU's saved hint. Its hand-written resistor and
-capacitor specializations are in `examples/stm32h523/stm32h523_components.nosch`; edit
+capacitor specializations are in `examples/stm32h523/components.nosch`; edit
 their footprint strings there to try the inherited alternatives.
 
 Hints are advisory. You can enter any footprint string, and export still checks
 the selected footprint's pads. Matching pins does not establish mechanical
 compatibility; check the package dimensions.
+
+
+### Bundle fields
+
+In a connection, completion after `debug.` suggests the fields of its declared
+bundle. Nested bundles, array indexing/slices, explicit `global.` nets, and
+inherited public ports are supported. This works on either side of the colon,
+including incomplete lines, using current unsaved source and imported files.
+
+For the STM32 example, open
+`examples/stm32h523/peripherals.nosch` and try completion after
+`debug.` in the `CortexDebug` block. It offers `swclk`, `swdio`, `swo`,
+and `reset#`. `:LspDefinition` on one of those field names jumps to its
+declaration in `interfaces.nosch`; hover identifies the bundle field.
+Private instance internals and scalar-net members are not suggested. Index
+bounds and connection shapes remain compiler checks.
+
+
+### Find references
+
+Place the cursor on a definition or use and run `:LspReferences`. An optional
+Vim mapping is:
+
+```vim
+autocmd FileType noscheme nmap <buffer> gr <plug>(lsp-references)
+```
+
+Results cover the selected board's reachable module graph, including unopened
+dependencies and current unsaved buffers. Supported targets include component,
+block and bundle definitions, local and global nets, parameters, public ports,
+physical pins/aliases, and bundle fields. Imported aliases are grouped with
+their original definition; unrelated symbols with the same spelling stay
+separate. Import sites count as references. The client's `includeDeclaration`
+option controls inclusion of declarations.
+
+A physical pin range groups the pins declared at that location; querying it
+returns the combined references without duplicate locations. Results are
+source references, so an instance array does not repeat the same location for
+each elaborated part. Comments and literal strings are not searched. Syntax or
+resolution errors may limit results; old buffer locations are never reused.
+This operation does not edit source. Rename is available separately below.
+
+
+### Rename
+
+Place the cursor on a declaration or reference and run `:LspRename`. Vim asks
+for the new name and applies the returned edits across buffers. Save the affected
+buffers when satisfied. An optional mapping is:
+
+```vim
+autocmd FileType noscheme nmap <buffer> <leader>rn <plug>(lsp-rename)
+```
+
+Supported targets are nets, parameters, component/block/bundle names, public
+block ports, and bundle fields. Qualified references keep their module prefix.
+Place the cursor on the final name in `Device.R`, not on `Device`.
+
+Explicit import aliases own their spelling. For
+`from Device import R as KiCadResistor`:
+
+- Renaming `R` changes the original definition, import source names, and uses
+  that have no explicit alias. `KiCadResistor` stays unchanged.
+- Renaming `KiCadResistor` changes the alias binding and its uses, including
+  unaliased re-exports, while leaving the original `R` unchanged.
+
+Before offering edits, the server parses and resolves the proposed project in
+memory. Name collisions and broken bindings reject the rename. Rename requires
+a project that already parses and resolves; electrical ERC errors do not block
+it. Open files use their current unsaved contents. Clients supporting versioned
+workspace edits receive buffer versions; the server itself never writes files
+or regenerates circuit artifacts.
+
+Physical pin IDs and aliases, instance names, module/file names, and the board
+entry point are not supported in this first version. These need separate handling
+for pad mappings, persistent identities, or project configuration. Comments and
+literal strings are not rewritten. Only modules reachable from the selected
+board are included; outside consumers of a reusable library require separate
+updates.
+
+
+### Hover details
+
+Use `:LspHover` on a declaration or use. Hover includes:
+
+- Components, blocks, and bundles: base definition, parameter defaults or required
+  values, public interface, and merged metadata. Core metadata shows its source
+  module and line, including inherited footprint selections.
+- Instance names: elaborated identities and, for physical parts, actual values,
+  footprints, and parameters after instance overrides. Arrays and reusable blocks
+  may produce several values; the display lists a bounded set of instances.
+- Pins and ports: types, aliases, roles, unused-pin policy, and electrical
+  metadata. Physical pin connection bindings also show effective roles and nets.
+- Nets and bundle fields: declared types, field metadata, and net endpoint counts.
+- Builtin `role`, `nettype`, and `unused` members: explanations of their electrical
+  meaning and ERC behavior. This also works with import aliases and qualified
+  names such as `noscheme.role.open_drain`.
+
+Hover uses a bold heading and bullet lists when the client prefers Markdown
+(including vim-lsp), with spacing between elaborated instances. Clients that
+prefer plain text receive plain text with a separated heading. Source text is
+escaped so values and names cannot accidentally become Markdown formatting.
+
+Defaults are labeled separately from actual instance values. If elaboration
+fails, instance hover explicitly falls back to definition defaults. Large custom
+metadata and footprint candidate lists are summarized. Current unsaved buffers
+are used throughout; hover does not write files or export artifacts.
+
+For example, hover over `resistor` in the `Indicator` block in
+`examples/stm32h523/components.nosch` to see the three elaborated
+LED resistors, their 1kOhm values, and their selected 0603 footprints.

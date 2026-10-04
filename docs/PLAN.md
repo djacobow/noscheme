@@ -46,7 +46,7 @@ editor checks never publish compiler/export artifacts. Full checks are debounced
 by 200 ms and serialized. Diagnostics include related locations and configuration
 labels, use negotiated position encoding, and clear obsolete results.
 
-Definition and basic hover lookup use AST spans, imported symbols, lexical names,
+Definition and hover lookup use AST spans, imported symbols, lexical names,
 and resolved pin/port aliases. Files outside a loaded board graph receive syntax
 checks only. The server discovers parent/workspace projects or accepts --project;
 ambiguous workspace ownership is reported. [EDITOR_SUPPORT.md](EDITOR_SUPPORT.md) includes Vim client setup.
@@ -60,8 +60,7 @@ unsaved imports; strings/comments are excluded. Stdio tests exercise completion.
 The user confirmed diagnostics, navigation, hover, and completion work through
 their Vim setup.
 
-Next LSP work: bundle-member navigation, references/rename, and
-richer hover metadata. Background analysis/cancellation and incremental compiler
+Richer hover metadata is implemented below. Background analysis/cancellation and incremental compiler
 caches can follow when project size makes serialized checks too slow.
 
 ### Vim/Neovim highlighting
@@ -641,3 +640,55 @@ Inheritance completion now recovers unfinished `extends` headers, filters by
 component/block kind, supports aliases and qualified names, and excludes the
 definition being edited. Unit and stdio tests cover missing colons/bodies and
 replacement ranges.
+
+
+### Bundle-member editor support (implemented)
+
+Completion and definition/hover navigation resolve public bundle members on both
+sides of connections, including nested bundles, indexed/sliced arrays, inherited
+ports, explicit globals, imported aliases/qualified types, and unsaved sources.
+Incomplete connection recovery preserves local nets and public interfaces while
+omitting instance bodies in a private analysis snapshot. Shared lookup uses
+compiler-resolved bundle interfaces and does not expose private instance nets.
+Unit and stdio tests cover replacement ranges, imported declaration locations,
+and incomplete buffers. The STM32 SWD interface was checked directly.
+
+
+### Find references (implemented)
+
+The LSP references endpoint groups source occurrences by resolved identity,
+honors declaration inclusion, deduplicates source locations, and follows imports,
+aliases, inherited interfaces, parameters, globals, and bundle fields across the
+selected project's reachable graph. Results use current unsaved buffers and
+negotiated position encoding. Tests cover scope separation, physical pin ranges,
+metadata expressions, declaration queries, cross-file protocol requests,
+unsaved edits, and UTF-16 locations. Vim exposes this as `:LspReferences`.
+
+
+### Rename (implemented first pass)
+
+Prepare-rename and rename return source edits for definitions, nets, parameters,
+public block ports, and bundle fields. Named import aliases have separate naming
+identities, including re-exports; qualified references retain their prefixes.
+The proposed source snapshot must parse and resolve before edits are returned.
+Tests cover collisions, lexical scope, alias semantics, inherited ports,
+unsaved buffers, UTF-16 ranges, and versioned workspace edits. Physical pin
+IDs/aliases, instance names, board entry points, and module/file names are
+excluded pending handling of their external mappings and persistent identities.
+The server performs no file or artifact writes.
+
+
+### Rich hover details (implemented)
+
+Resolved definition and interface hovers show parameter defaults, required
+values, inherited core metadata with source provenance, roles, pin policies,
+and summarized custom metadata. Instance hovers use existing elaborated circuit
+records for actual values/footprints/parameters, including arrays and reused
+declarations. Binding hovers show effective physical pin roles and connected
+nets; net hovers include endpoint counts. Failed elaboration is explicitly
+distinguished from evaluated instance data. Tests cover inherited and unsaved
+metadata, overrides, role choices, bounded candidate summaries, evaluation
+failures, the STM32 indicator block, and protocol refresh after unsaved edits.
+Hover negotiates Markdown or plain text with the client, formats headings and
+lists, and provides import-aware help for all role, nettype, and unused members.
+Builtin help does not create definition, reference, or rename targets.

@@ -1,6 +1,6 @@
 """Read-only compiler analysis and source references for the language server."""
 
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field, fields, replace
 from pathlib import Path
 
 from . import ast as a
@@ -10,6 +10,8 @@ from .erc import apply_erc
 from .parser import parse
 from .project import expression_path, load_project, read_config, source_text
 from .resolve import Resolver
+from .lsp_bundles import BundleLookup
+from .lsp_hover import HoverDetails
 
 
 @dataclass(frozen=True)
@@ -17,6 +19,8 @@ class Reference:
     span: a.Span
     target: a.Span
     description: str
+    identity: tuple = ()
+    declaration: bool = False
 
 
 @dataclass
@@ -24,6 +28,16 @@ class Analysis:
     diagnostics: list = field(default_factory=list)
     references: list[Reference] = field(default_factory=list)
     files: set[Path] = field(default_factory=set)
+    hovers: list = field(default_factory=list)
+
+    def hover_at(self, path, offset):
+        for entry in self.hovers:
+            if (
+                Path(entry.span.filename) == path
+                and entry.span.start_pos <= offset < entry.span.end_pos
+            ):
+                return entry
+        return self.reference_at(path, offset)
 
     def reference_at(self, path, offset):
         matches = [
@@ -33,26 +47,71 @@ class Analysis:
         ]
         return min(matches, key=lambda r: r.span.end_pos - r.span.start_pos, default=None)
 
+    def references_at(self, path, offset, include_declaration=True):
+        selected = self.reference_at(path, offset)
+        if selected is None:
+            return []
+        # A physical pin range is a single source declaration for several pins.
+        identities = {r.identity for r in self.references if r.span == selected.span}
+        spans = {
+            r.span
+            for r in self.references
+            if r.identity in identities and (include_declaration or not r.declaration)
+        }
+        return sorted(spans, key=lambda s: (s.filename, s.start_pos, s.end_pos))
 
-def reference_index(project, definitions):
+
+def reference_index(project, definitions, hover=None):
     """Index named definitions, lexical names, and explicit interface bindings.
 
     Use resolver-owned interfaces for inherited pins and aliases. Do not guess
     private members or matches from similarly named definitions in other modules.
     """
     result = []
+    bundles = BundleLookup(project, definitions)
 
-    def add(span, target, description):
-        result.append(Reference(span, target, description))
+    def add(span, target, description, identity=(), *, declaration=False):
+        identity = identity or (target.filename, target.start_pos, target.end_pos)
+        result.append(Reference(span, target, description, identity, declaration))
+
+    def path_span(names):
+        return replace(
+            names[0].span,
+            end_pos=names[-1].span.end_pos,
+            end_line=names[-1].span.end_line,
+            end_column=names[-1].span.end_column,
+        )
+
+    def interface_target(definition, canonical):
+        pin = definition.interface[canonical]
+        original = definition
+        while original.source.base:
+            key = bundles.resolver.symbol(original.module, original.source.base, {original.kind})
+            original = definitions[key]
+        return (
+            pin.span,
+            hover.interface(definition, canonical)
+            if hover
+            else f"{definition.kind} {definition.name}: {canonical}",
+            (original.module, original.name, "interface", canonical),
+        )
 
     def symbol(module, name):
         s = project.modules[module].symbols.get(name)
         if s and s.declaration:
             d = s.declaration
-            return d.name.span, f"{d.kind} {s.module}.{s.name}"
+            resolved = definitions.get((s.module, s.name))
+            return d.name.span, (
+                hover.definition(resolved)
+                if hover and resolved
+                else f"{d.kind} {s.module}.{s.name}"
+            )
 
     globals_ = {
-        item.name.text: (item.name.span, f"global net {item.name.text}")
+        item.name.text: (
+            item.name.span,
+            hover.net(item) if hover else f"global net {item.name.text}",
+        )
         for item in project.board.declaration.body
         if isinstance(item, a.Net) and item.global_
     }
@@ -74,10 +133,18 @@ def reference_index(project, definitions):
             local = {}
             for node in item.body:
                 if isinstance(node, (a.Net, a.Instance)):
-                    local[node.name.text] = (
-                        node.name.span,
-                        f"{'net' if isinstance(node, a.Net) else 'inst'} {node.name.text}",
-                    )
+                    description = f"{'net' if isinstance(node, a.Net) else 'inst'} {node.name.text}"
+                    if hover:
+                        if isinstance(node, a.Net):
+                            description = hover.net(node)
+                        else:
+                            binding = module.symbols.get(".".join(n.text for n in node.component))
+                            target = (
+                                definitions.get((binding.module, binding.name)) if binding else None
+                            )
+                            if target:
+                                description = hover.instance(node, target)
+                    local[node.name.text] = (node.name.span, description)
                 elif isinstance(node, a.Section) and node.name in {"pins", "ports", "params"}:
                     for entry in node.entries:
                         local[entry.key.first.text] = (
@@ -86,16 +153,29 @@ def reference_index(project, definitions):
                         )
             if owner:
                 for name, param in owner.parameters.items():
-                    local[name] = (param.span, f"parameter {name}: {param.type}")
+                    local[name] = (
+                        param.span,
+                        hover.parameter(owner, name)
+                        if hover
+                        else f"parameter {name}: {param.type}",
+                    )
                 for alias, canonical in owner.aliases.items():
                     pin = owner.interface[canonical]
-                    local[alias] = (pin.span, f"{owner.kind} {owner.name}: {canonical}")
-            add(item.name.span, item.name.span, f"{item.kind} {module.name}.{item.name.text}")
+                    local[alias] = interface_target(owner, canonical)
+            add(
+                item.name.span,
+                item.name.span,
+                hover.definition(owner)
+                if hover and owner
+                else f"{item.kind} {module.name}.{item.name.text}",
+                declaration=True,
+            )
             if item.base and (target := symbol(module.name, ".".join(n.text for n in item.base))):
-                for name in item.base:
-                    add(name.span, *target)
+                add(path_span(item.base), *target)
 
             def expression(expr):
+                if hover:
+                    hover.builtin(expr, module, local)
                 if isinstance(expr, a.Member):
                     if isinstance(expr.base, a.Name) and expr.base.text == "global":
                         if target := globals_.get(expr.name.text):
@@ -106,6 +186,15 @@ def reference_index(project, definitions):
                         add(expr.span, *target)
                     else:
                         expression(expr.base)
+                        member = bundles.member(
+                            bundles.reference_type(expr.base, owner), expr.name.text
+                        )
+                        if member:
+                            add(
+                                expr.name.span,
+                                member.span,
+                                hover.field(member) if hover else f"bundle field {member.name}",
+                            )
                 elif isinstance(expr, a.Name):
                     if target := local.get(expr.text) or symbol(module.name, expr.text):
                         add(expr.span, *target)
@@ -118,12 +207,35 @@ def reference_index(project, definitions):
                             for child in value:
                                 expression(child)
 
+            def metadata_expressions(entry):
+                if entry.key.first.text in {"custom", "aliases"}:
+                    return
+                expression(entry.value)
+                expression(entry.default)
+                for child in entry.fields:
+                    metadata_expressions(child)
+
+            def interface_declaration(entry):
+                if owner is None:
+                    return
+                for canonical in bundles.resolver.keys(entry.key):
+                    if canonical not in owner.interface:
+                        continue
+                    target = interface_target(owner, canonical)
+                    add(entry.key.span, *target, declaration=not item.base)
+                    for child in entry.fields:
+                        if child.key.first.text == "aliases" and isinstance(
+                            child.value, a.ListExpr
+                        ):
+                            for alias in child.value.items:
+                                add(alias.span, *target, declaration=True)
+
             for node in item.body:
                 if isinstance(node, a.Instance):
+                    add(node.name.span, *local[node.name.text], declaration=True)
                     spelling = ".".join(n.text for n in node.component)
                     if target := symbol(module.name, spelling):
-                        for name in node.component:
-                            add(name.span, *target)
+                        add(path_span(node.component), *target)
                     sym = module.symbols.get(spelling)
                     target_def = (
                         definitions.get((sym.module, sym.name)) if sym and definitions else None
@@ -132,17 +244,41 @@ def reference_index(project, definitions):
                         for entry in section.entries:
                             if isinstance(entry, a.Binding):
                                 expression(entry.target)
+                                for index in (
+                                    *entry.endpoint.instance_indices,
+                                    *entry.endpoint.selectors,
+                                ):
+                                    if isinstance(index, a.Index):
+                                        expression(index)
                                 if target_def:
-                                    canonical = target_def.aliases.get(
-                                        entry.endpoint.head.first.text
-                                    )
-                                    if canonical:
-                                        pin = target_def.interface[canonical]
-                                        add(
-                                            entry.endpoint.head.span,
-                                            pin.span,
-                                            f"{target_def.name}: {canonical}",
-                                        )
+                                    for name in bundles.resolver.keys(entry.endpoint.head):
+                                        canonical = target_def.aliases.get(name)
+                                        if canonical:
+                                            pin = target_def.interface[canonical]
+                                            target_info = interface_target(target_def, canonical)
+                                            if hover:
+                                                target_info = (
+                                                    target_info[0],
+                                                    hover.bound_interface(
+                                                        node, target_def, canonical
+                                                    ),
+                                                    target_info[2],
+                                                )
+                                            add(entry.endpoint.head.span, *target_info)
+                                            value = pin.type
+                                            for selector in entry.endpoint.selectors:
+                                                if isinstance(selector, a.Name):
+                                                    member = bundles.member(value, selector.text)
+                                                    if member is None:
+                                                        break
+                                                    add(
+                                                        selector.span,
+                                                        member.span,
+                                                        hover.field(member)
+                                                        if hover
+                                                        else f"bundle field {member.name}",
+                                                    )
+                                                    value = member.type
                             elif isinstance(entry, a.Argument):
                                 expression(entry.value)
                                 if target_def and entry.name.text in target_def.parameters:
@@ -150,18 +286,62 @@ def reference_index(project, definitions):
                                     add(
                                         entry.name.span,
                                         param.span,
-                                        f"parameter {param.name}: {param.type}",
+                                        hover.parameter(target_def, param.name)
+                                        if hover
+                                        else f"parameter {param.name}: {param.type}",
                                     )
+                            elif isinstance(entry, a.Field):
+                                if target_def and entry.key.first.text == "pins":
+                                    for overlay in entry.fields:
+                                        for name in bundles.resolver.keys(overlay.key):
+                                            canonical = target_def.aliases.get(name)
+                                            if canonical:
+                                                add(
+                                                    overlay.key.span,
+                                                    *interface_target(target_def, canonical),
+                                                )
+                                metadata_expressions(entry)
                     for dim in node.dimensions:
                         expression(dim)
                 elif isinstance(node, a.Net):
-                    add(node.name.span, *local[node.name.text])
+                    add(node.name.span, *local[node.name.text], declaration=True)
                     expression(node.type)
+                    for metadata in node.fields:
+                        metadata_expressions(metadata)
+                elif isinstance(node, a.Field) and item.kind == "bundle":
+                    if owner and node.key.first.text in owner.interface:
+                        member = owner.interface[node.key.first.text]
+                        add(
+                            node.key.span,
+                            member.span,
+                            hover.field(member) if hover else f"bundle field {member.name}",
+                            declaration=True,
+                        )
+                    expression(node.value)
                 elif isinstance(node, a.Section):
                     for entry in node.entries:
                         if isinstance(entry, a.Field):
-                            expression(entry.value)
-                            expression(entry.default)
+                            if node.name in {"pins", "ports"}:
+                                interface_declaration(entry)
+                            elif (
+                                node.name in {"params", "defaults"}
+                                and entry.key.first.text in local
+                            ):
+                                add(
+                                    entry.key.span,
+                                    *local[entry.key.first.text],
+                                    declaration=node.name == "params",
+                                )
+                            if node.name == "params":
+                                expression(entry.default)
+                            elif node.name == "defaults":
+                                expression(entry.value)
+                            elif node.name in {"pins", "ports"}:
+                                expression(entry.value)
+                                for metadata in entry.fields:
+                                    metadata_expressions(metadata)
+                            else:
+                                metadata_expressions(entry)
     return result
 
 
@@ -170,6 +350,7 @@ def analyze(path, config, sources):
     result = Analysis(files={path})
     project = None
     definitions = {}
+    circuit = None
     try:
         # Parse the current file even if it is not reachable from the board.
         parse(source_text(path, sources), str(path))
@@ -188,7 +369,9 @@ def analyze(path, config, sources):
             Diagnostic("lsp.io", "error", str(exc), a.Span(str(path), 0, 0, 1, 1, 1, 1))
         )
     if project:
-        result.references = reference_index(project, definitions)
+        details = HoverDetails(project, definitions, circuit, sources)
+        result.references = reference_index(project, definitions, details)
+        result.hovers = details.builtins
     return result
 
 

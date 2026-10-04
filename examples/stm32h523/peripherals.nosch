@@ -1,8 +1,8 @@
 // USB-C power/data, regulator, microSD, and SWD subsystems.
 
 from noscheme import role, nettype, unused, bias
-from stm32h523_interfaces import SPI, USB2, SWD
-from stm32h523_components import Resistor0603, InputBias0603, Capacitor0603
+from interfaces import SPI, USB2, SWD
+from components import Resistor0603, InputBias0603, Capacitor0603
 
 component UsbCConnector:
     pins:
