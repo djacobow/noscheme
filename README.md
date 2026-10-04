@@ -25,6 +25,14 @@ configured output directory. Electrical errors allow compilation/export;
 `noscheme check` returns a failing status when it finds electrical errors.
 Structural errors block compilation.
 
+Named ERC configurations check alternative role assumptions on one unchanged
+board. All configurations run by default; select a subset when needed:
+
+```sh
+uv run --locked noscheme check --project examples/power_modes
+uv run --locked noscheme check --project examples/power_modes --erc-configuration usb_powered
+```
+
 See [PROJECT.md](PROJECT.md) for the language and design decisions,
 [PLAN.md](PLAN.md) for implementation status and KiCad export commands, and
 [experiments/README.md](experiments/README.md) for the manual KiCad checks.

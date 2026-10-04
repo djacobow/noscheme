@@ -6,7 +6,7 @@ Status: compiler-core steps 1–5 are implemented for the documented initial
 metadata schema. Explicit library conversion and the first persistent KiCad
 exporter are implemented. Initial physical-pin ERC and text/JSON reporting are
 implemented; advanced ERC and production-output GUI validation remain.
-The combined suite has 333 passing tests.
+The combined suite has 358 passing tests.
 The feasibility milestone below is complete;
 results and limitations are in [experiments/FINDINGS.md](experiments/FINDINGS.md).
 PROJECT.md remains the language authority. Proposed policies below resolve open
@@ -387,6 +387,31 @@ caller drivers that cannot satisfy internal promises, array/bundle boundaries,
 external endpoints, and waiver interaction. Compatibility and role diagnostics
 remain nonblocking for export; required connections cannot be waived.
 
+### Named ERC configurations
+
+Boards and blocks expose public choices under `metadata.erc_choices`; pin role
+annotations and child-choice bindings may use exhaustive `choice`/`cases`
+mappings. Boards assign their own choices in `metadata.configurations`. Choice
+references remain lexical, and nested blocks forward them explicitly. No grammar
+extension or private-instance access is needed. Invalid mappings/values are source
+errors; omitted selections retain uncertainty rather than choosing a role.
+
+All named configurations run by default. `--erc-configuration NAME` may be repeated
+on check/compile/export to select a subset. Reports retain per-configuration
+counts, selections, and names on active and waived diagnostics. Electrical errors
+remain nonblocking for export; invalid selections preserve previous artifacts.
+
+`examples/power_modes` compiles three headers and two nets. USB-powered and
+header-powered assumptions use the same parts, connectivity, netlist bytes,
+reference assignments, and identity state. Tests also cover arrayed sources,
+nested forwarding, missing selections, private-path rejection, permitted-role
+constraints, per-configuration waivers, and CLI selection/failure behavior.
+
+```sh
+uv run --locked noscheme check --project examples/power_modes
+uv run --locked noscheme compile --project examples/power_modes --erc-configuration usb_powered
+```
+
 ### ERC: implemented first pass
 
 `check`, `compile`, and `export-kicad` run physical pin policies, known driver
@@ -403,8 +428,8 @@ pending checks; the circuit now records `erc_performed: true` after checking.
 The elaboration-only Python API still returns `erc_performed: false`.
 
 Role/net-type compatibility and public-port contracts are now implemented.
-Selectable ERC configurations, bias/tristate models, and aggregate budgets remain
-pending. Explicit digital-input ports may tie to power/ground rails while retaining
+Named ERC configurations are implemented; bias/tristate models and aggregate
+budgets remain pending. Explicit digital-input ports may tie to power/ground rails while retaining
 their internal input contracts and the rail checks.
 Waivers now require the outermost declaration of the flattened net. Inner-port
 waivers produce a scope error and cannot suppress checks on caller circuitry.

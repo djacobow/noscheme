@@ -68,6 +68,11 @@ def main(argv=None):
             if command == "check"
             else "write circuit.json and ERC reports",
         )
+        compiler.add_argument(
+            "--erc-configuration",
+            action="append",
+            help="check only this named configuration; repeat to select several",
+        )
         compiler.add_argument("--project", type=Path, default=Path("."))
         compiler.add_argument("--diagnostics", choices=["text", "json"], default="text")
     converter = sub.add_parser(
@@ -84,6 +89,11 @@ def main(argv=None):
     exporter = sub.add_parser(
         "export-kicad",
         help="write a netlist using converted footprint records and persistent identities",
+    )
+    exporter.add_argument(
+        "--erc-configuration",
+        action="append",
+        help="check only this named configuration; repeat to select several",
     )
     exporter.add_argument("--project", type=Path, default=Path("."))
     exporter.add_argument(
@@ -109,8 +119,10 @@ def main(argv=None):
         if args.command == "export-kicad":
             project, definitions = resolve_project(args.project)
             circuit, warnings = elaborate_project(project, definitions)
-            electrical = apply_erc(circuit)
-            report = export_project(project, circuit, args.footprints)
+            electrical = apply_erc(circuit, args.erc_configuration)
+            report = export_project(
+                project, circuit, args.footprints, configurations=args.erc_configuration
+            )
             print(json.dumps(report, indent=2))
             if warnings or electrical:
                 renderer = render_json if args.diagnostics == "json" else render_text
@@ -125,7 +137,7 @@ def main(argv=None):
         if args.command in {"check", "compile"}:
             project, definitions = resolve_project(args.project)
             circuit, warnings = elaborate_project(project, definitions)
-            electrical = apply_erc(circuit)
+            electrical = apply_erc(circuit, args.erc_configuration)
             summary = {
                 "stage": "circuit",
                 "parts": len(circuit["parts"]),
@@ -134,6 +146,7 @@ def main(argv=None):
                 "erc_errors": circuit["erc"]["errors"],
                 "erc_warnings": circuit["erc"]["warnings"],
                 "erc_pending": circuit["erc"]["pending"],
+                "erc_configurations": circuit["erc"]["configurations"],
             }
             if args.command == "compile":
                 output = project.config.output_dir / "circuit.json"

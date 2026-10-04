@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from . import ast as a
 from .diagnostics import Diagnostic, Related
 from .evaluate import Evaluator, Limits, encoded
-from .metadata import Value, merge, read_metadata
+from .metadata import Value, merge, read_metadata, possible_selections
 from .resolve import Resolver
 
 
@@ -48,6 +48,7 @@ class Elaborator:
         self.sizes, self.supports = [], []
         self.bound = {}
         self.parts, self.blocks = [], []
+        self.choice_scopes = []
         self.globals = {}
         self.instance_count = 0
         self.identities = {}
@@ -314,7 +315,17 @@ class Elaborator:
                         annotations[definition.aliases[key]] = values
         return metadata, overrides, annotations
 
-    def expand(self, key, path, node, caller_module, caller, ancestry=(), ancestor_identity=None):
+    def expand(
+        self,
+        key,
+        path,
+        node,
+        caller_module,
+        caller,
+        ancestry=(),
+        ancestor_identity=None,
+        caller_scope=(),
+    ):
         definition = self.definitions[key]
         self.evaluator.instance_path = path_text(path) or definition.name
         span = node.span if node else definition.source.span
@@ -331,9 +342,39 @@ class Elaborator:
         metadata, overrides, annotations = self.effective_metadata(
             definition, node, caller_module, caller
         )
+        if definition.kind != "component":
+            self.choice_scopes.append(
+                {
+                    "scope": list(path),
+                    "parent_scope": list(caller_scope),
+                    "choices": a.to_data(
+                        definition.metadata.get("erc_choices", Value({}, span, caller_module)).value
+                    ),
+                    "bindings": a.to_data(
+                        overrides.get("erc_choices", Value({}, span, caller_module)).value
+                    ),
+                }
+            )
         ports = {}
         for name, port in sorted(definition.interface.items()):
             attrs = merge(port.metadata, annotations.get(name, {}))
+            selections = {}
+            for role_key in ("role", "external_role"):
+                value = attrs.get(role_key)
+                if value and isinstance(value.value, dict):
+                    selections[role_key] = Value(
+                        {
+                            **value.value,
+                            "scope": Value(tuple(caller_scope), value.span, value.module),
+                        },
+                        value.span,
+                        value.module,
+                    )
+                    attrs[role_key] = Value(
+                        tuple(sorted(possible_selections(value))), value.span, value.module
+                    )
+            if selections:
+                attrs["_erc_selections"] = Value(selections, span, caller_module)
             if definition.kind == "component":
                 ports[name] = self.new_leaf(path + (name,), path, "pin", None, attrs, port.span)
             else:
@@ -450,6 +491,7 @@ class Elaborator:
                     environment,
                     ancestry + (key,),
                     inherited_identity,
+                    path,
                 ),
                 declaration.span,
             )
@@ -489,6 +531,7 @@ class Elaborator:
         return Node("instance", fields=ports)
 
     def finish(self):
+        board = self.definitions[(self.project.board.module, self.project.board.name)]
         groups = {}
         for i, leaf in enumerate(self.leaves):
             groups.setdefault(self.root(i), []).append(i)
@@ -569,6 +612,13 @@ class Elaborator:
             "stage": "circuit",
             "erc_performed": False,
             "board": f"{self.project.board.module}.{self.project.board.name}",
+            "source": a.to_data(board.source.span),
+            "erc_choice_scopes": self.choice_scopes,
+            "erc_configurations": a.to_data(
+                board.metadata.get(
+                    "configurations", Value({}, board.source.span, board.module)
+                ).value
+            ),
             "parts": parts,
             "nets": sorted(nets, key=lambda n: n["name"]),
             "blocks": blocks,

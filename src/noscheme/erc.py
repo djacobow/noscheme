@@ -1,19 +1,20 @@
 """Electrical checks on flattened physical endpoints, without component traversal.
 
-This first pass deliberately reports its coverage. Configuration selection,
-bias models and aggregate budgets remain separate work.
+Reports explicitly list remaining checks. Bias models and aggregate budgets
+remain separate work.
 """
 
 from fractions import Fraction
+from dataclasses import replace
 import json
 
 from .ast import Span, to_data
 from .circuit import path_text
 from .diagnostics import Diagnostic, Related, render_text
 from .erc_rules import CHECKS, ALLOWED_ROLES, PORT_ALLOWED, PORT_EVIDENCE
+from .erc_config import configuration_views
 
 PENDING = (
-    "erc_configurations",
     "bias_and_tristate",
     "aggregate_current_budgets",
 )
@@ -360,9 +361,28 @@ def check_circuit(circuit, *, waiver_records=None):
     return tuple(diagnostics)
 
 
-def apply_erc(circuit):
-    waivers = []
-    diagnostics = check_circuit(circuit, waiver_records=waivers)
+def apply_erc(circuit, configurations=None):
+    waivers, diagnostics, reports = [], [], []
+    for name, view, selections in configuration_views(circuit, configurations):
+        local_waivers = []
+        local = tuple(
+            replace(d, configuration=name)
+            for d in check_circuit(view, waiver_records=local_waivers)
+        )
+        for waiver in local_waivers:
+            waiver["configuration"] = name
+            for diagnostic in waiver["diagnostics"]:
+                diagnostic["configuration"] = name
+        waivers.extend(local_waivers)
+        diagnostics.extend(local)
+        reports.append(
+            {
+                "name": name,
+                "choices": selections,
+                "errors": sum(d.severity == "error" for d in local),
+                "warnings": sum(d.severity == "warning" for d in local),
+            }
+        )
     circuit["erc_performed"] = True
     circuit["erc"] = {
         "schema_version": 1,
@@ -371,9 +391,10 @@ def apply_erc(circuit):
         "errors": sum(d.severity == "error" for d in diagnostics),
         "warnings": sum(d.severity == "warning" for d in diagnostics),
         "waivers": waivers,
+        "configurations": reports,
         "diagnostics": [to_data(d) for d in diagnostics],
     }
-    return diagnostics
+    return tuple(diagnostics)
 
 
 def report_files(circuit, output_dir):
@@ -386,12 +407,18 @@ def report_files(circuit, output_dir):
             Span(**d["span"]),
             tuple(Related(r["message"], Span(**r["span"])) for r in d["related"]),
             d["instance_path"],
+            d.get("configuration"),
         )
         for d in report["diagnostics"]
     ]
     header = f"ERC: {report['errors']} errors, {report['warnings']} warnings\n"
     header += "Implemented checks: " + ", ".join(report["checks"]) + "\n"
     header += "Pending checks: " + ", ".join(report["pending"]) + "\n"
+    for configuration in report["configurations"]:
+        label = configuration["name"] if configuration["name"] is not None else "unconfigured"
+        header += f"Configuration {label}: {configuration['errors']} errors, {configuration['warnings']} warnings\n"
+        for scope in configuration["choices"]:
+            header += f"  {path_text(scope['scope']) or '(board)'}: {json.dumps(scope['selections'], sort_keys=True)}\n"
     for waiver in report["waivers"]:
         span = waiver["span"]
         status = (
@@ -401,7 +428,7 @@ def report_files(circuit, output_dir):
         )
         header += (
             f"{span['filename']}:{span['line']}:{span['column']}: waiver {waiver['check']} "
-            f"on {waiver['net']}: {waiver['reason']} ({status})\n"
+            f"on {waiver['net']} [{waiver.get('configuration') or 'unconfigured'}]: {waiver['reason']} ({status})\n"
         )
         for diagnostic in waiver["diagnostics"]:
             header += (

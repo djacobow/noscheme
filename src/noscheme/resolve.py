@@ -5,7 +5,16 @@ import re
 
 from . import ast as a
 from .diagnostics import Related
-from .metadata import NETTYPES, Value, enum, merge, read_metadata
+from .metadata import (
+    NETTYPES,
+    Value,
+    enum,
+    merge,
+    read_metadata,
+    declared_choices,
+    validate_selection,
+    possible_selections,
+)
 from .project import IDENTIFIER, fail, load_project
 
 
@@ -204,6 +213,19 @@ class Resolver:
             if parent
             else tuple(n for n in source.body if isinstance(n, (a.Net, a.Instance)))
         )
+        combined = merge(parent.metadata, metadata) if parent else metadata
+        choices = combined.get("erc_choices", Value({}, source.span, module)).value
+        configurations = combined.get("configurations", Value({}, source.span, module)).value
+        for configuration in configurations.values():
+            for name, selection in configuration.value.items():
+                if name not in choices:
+                    fail("erc.unknown_choice", f"unknown board ERC choice {name!r}", selection.span)
+                if selection.value not in choices[name].value:
+                    fail(
+                        "erc.choice_value",
+                        f"selection is outside alternatives for {name!r}",
+                        selection.span,
+                    )
         return Definition(
             module,
             source.name.text,
@@ -212,7 +234,7 @@ class Resolver:
             params,
             interface,
             aliases,
-            merge(parent.metadata, metadata) if parent else metadata,
+            combined,
             body,
             parent.body_module if parent else module,
         )
@@ -492,12 +514,26 @@ class Resolver:
         values = read_metadata(
             ordinary, "instance", self.project, owner.body_module, owner.parameters
         )
-        if target.kind != "component" and set(values) - {"custom", "identity"}:
+        if target.kind != "component" and set(values) - {"custom", "identity", "erc_choices"}:
             fail(
                 "metadata.scope",
                 "physical-part metadata cannot be applied to a reusable block",
                 node.span,
             )
+        choices = declared_choices(owner)
+        bindings = values.get("erc_choices")
+        if bindings:
+            permitted_choices = declared_choices(target)
+            for name, binding in bindings.value.items():
+                if name not in permitted_choices:
+                    fail("erc.unknown_choice", f"unknown public ERC choice {name!r}", binding.span)
+                validate_selection(binding, choices)
+                if not possible_selections(binding) <= set(permitted_choices[name].value):
+                    fail(
+                        "erc.choice_value",
+                        f"selection is outside alternatives for {name!r}",
+                        binding.span,
+                    )
         for value in values.values():
             if isinstance(value.value, a.Node):
                 self.check_expression(value, owner.parameters)
@@ -515,6 +551,9 @@ class Resolver:
                 values = read_metadata(
                     field.fields, "instance_pin", self.project, owner.body_module, owner.parameters
                 )
+                for key in ("role", "external_role"):
+                    if key in values:
+                        validate_selection(values[key], choices)
                 if field.value is not None:
                     fail("metadata.value", "pin annotations require indented metadata", field.span)
                 for name in self.keys(field.key):
@@ -533,7 +572,7 @@ class Resolver:
                     if (
                         "role" in values
                         and permitted
-                        and not set(values["role"].value) <= set(permitted.value)
+                        and not possible_selections(values["role"]) <= set(permitted.value)
                     ):
                         fail(
                             "metadata.constraint",

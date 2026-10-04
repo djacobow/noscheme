@@ -1,0 +1,71 @@
+{
+  "entries": {
+    "expansion.connector": {
+      "active": true,
+      "reference": "J1",
+      "reserved_references": [
+        "J1"
+      ],
+      "uuid": "e65e1518-d4cf-57ac-968a-5e4136e0c1f1"
+    },
+    "load": {
+      "active": true,
+      "reference": "J2",
+      "reserved_references": [
+        "J2"
+      ],
+      "uuid": "a619d902-444d-5845-999f-2b2d19db4931"
+    },
+    "usb.connector": {
+      "active": true,
+      "reference": "J3",
+      "reserved_references": [
+        "J3"
+      ],
+      "uuid": "6237ccb6-92eb-54c5-9ec3-06b0ac2461d8"
+    }
+  },
+  "namespace": "d0d22d65-3b7a-44da-9fd6-5266f2e4213a",
+  "netlist_sha256": "0c03093921fa9a47ef12fe49a996973140f7df6e757ec4efc987a2bfd1080791",
+  "previous_parts": {
+    "expansion.connector": {
+      "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
+      "path": [
+        "expansion",
+        "connector"
+      ],
+      "pins": {
+        "1": "v5",
+        "2": "gnd"
+      },
+      "reference": "J1",
+      "value": null
+    },
+    "load": {
+      "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
+      "path": [
+        "load"
+      ],
+      "pins": {
+        "1": "v5",
+        "2": "gnd"
+      },
+      "reference": "J2",
+      "value": null
+    },
+    "usb.connector": {
+      "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
+      "path": [
+        "usb",
+        "connector"
+      ],
+      "pins": {
+        "1": "v5",
+        "2": "gnd"
+      },
+      "reference": "J3",
+      "value": null
+    }
+  },
+  "schema_version": 1
+}

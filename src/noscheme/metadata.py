@@ -2,9 +2,10 @@
 
 from dataclasses import dataclass
 import math
+import re
 
 from . import ast as a
-from .project import fail
+from .project import fail, IDENTIFIER
 from .erc_rules import WAIVABLE
 
 ROLES = frozenset(
@@ -35,8 +36,12 @@ SCHEMAS = {
         "value": "expression",
         "custom": "custom",
     },
-    "block": {"custom": "custom"},
-    "board": {"custom": "custom"},
+    "block": {"custom": "custom", "erc_choices": "choice_declarations"},
+    "board": {
+        "custom": "custom",
+        "erc_choices": "choice_declarations",
+        "configurations": "configurations",
+    },
     "bundle": {"custom": "custom"},
     "pin": {
         "aliases": "aliases",
@@ -58,6 +63,7 @@ SCHEMAS = {
         "footprint": "string",
         "ref": "string",
         "identity": "string",
+        "erc_choices": "choice_bindings",
         "value": "expression",
         "custom": "custom",
     },
@@ -65,8 +71,6 @@ SCHEMAS = {
 }
 UNIMPLEMENTED = {
     "erc",
-    "erc_choices",
-    "configurations",
     "differential_pair",
     "aggregate_load",
     "permitted_roles",
@@ -140,7 +144,13 @@ def read_metadata(fields, scope, project, module, local_names=()):
                     field.span,
                 )
         expr = field.value
-        if kind == "waivers":
+        if kind in {"choice_declarations", "choice_bindings", "configurations"}:
+            value = read_choices(field, kind, module)
+        elif scope == "instance_pin" and kind in {"roles", "role"} and field.fields:
+            value = read_selection(
+                field, module, lambda expr: enum(expr, "role", ROLES, project, module, local_names)
+            )
+        elif kind == "waivers":
             if expr is not None or not field.fields:
                 fail(
                     "metadata.waiver",
@@ -222,3 +232,99 @@ def merge(parent, child):
             value = Value(merge(previous.value, value.value), value.span, value.module)
         result[key] = value
     return result
+
+
+def mapping(field):
+    if field.value is not None or not field.fields:
+        fail("metadata.erc", "expected a nonempty indented mapping", field.span)
+    result = {}
+    for child in field.fields:
+        name = child.key.first.text
+        if child.key.last or name in result:
+            fail("metadata.erc", "mapping keys must be distinct names", child.span)
+        result[name] = child
+    return result
+
+
+def choice_string(expr):
+    if not isinstance(expr, a.String) or not expr.value.strip():
+        fail("metadata.erc", "expected a nonempty literal string", expr.span)
+    return expr.value
+
+
+def read_selection(field, module, read_case=choice_string):
+    fields = mapping(field)
+    if set(fields) != {"choice", "cases"}:
+        fail("metadata.erc", "a selection requires exactly choice and cases", field.span)
+    choice = fields["choice"]
+    if choice.value is None or choice.fields:
+        fail("metadata.erc", "choice requires a local choice name string", choice.span)
+    name = choice_string(choice.value)
+    if not re.fullmatch(IDENTIFIER, name):
+        fail(
+            "metadata.erc", "choice references must be local names, not instance paths", choice.span
+        )
+    cases = {}
+    for name, case in mapping(fields["cases"]).items():
+        if case.value is None or case.fields:
+            fail("metadata.erc", "each case requires one value", case.span)
+        cases[name] = Value(read_case(case.value), case.span, module)
+    return {
+        "choice": Value(choice_string(choice.value), choice.span, module),
+        "cases": Value(cases, fields["cases"].span, module),
+    }
+
+
+def read_choices(field, kind, module):
+    result = {}
+    for name, entry in mapping(field).items():
+        if not re.fullmatch(IDENTIFIER, name):
+            fail(
+                "metadata.erc", "ERC choice and configuration names must be identifiers", entry.span
+            )
+        if kind == "configurations":
+            value = read_choices(entry, "configuration_values", module)
+        elif kind == "choice_declarations":
+            if not isinstance(entry.value, a.ListExpr) or entry.fields or not entry.value.items:
+                fail(
+                    "metadata.erc",
+                    "a public choice requires a nonempty list of string alternatives",
+                    entry.span,
+                )
+            value = tuple(choice_string(x) for x in entry.value.items)
+            if len(set(value)) != len(value):
+                fail("metadata.erc", "choice alternatives must be distinct", entry.span)
+        elif entry.fields and kind == "choice_bindings":
+            value = read_selection(entry, module)
+        else:
+            if entry.value is None or entry.fields:
+                fail("metadata.erc", "choice selection requires a string", entry.span)
+            value = choice_string(entry.value)
+        result[name] = Value(value, entry.span, module)
+    return result
+
+
+def possible_selections(value):
+    if isinstance(value.value, dict):
+        return {case.value for case in value.value["cases"].value.values()}
+    return {value.value} if isinstance(value.value, str) else set(value.value)
+
+
+def validate_selection(value, choices):
+    if not isinstance(value.value, dict):
+        return
+    selection = value.value
+    choice = selection["choice"]
+    if choice.value not in choices:
+        fail("erc.unknown_choice", f"unknown local ERC choice {choice.value!r}", choice.span)
+    if set(selection["cases"].value) != set(choices[choice.value].value):
+        fail(
+            "erc.choice_cases",
+            "cases must cover every declared choice alternative exactly",
+            selection["cases"].span,
+        )
+
+
+def declared_choices(definition):
+    value = definition.metadata.get("erc_choices")
+    return value.value if value else {}

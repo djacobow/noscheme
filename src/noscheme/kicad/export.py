@@ -288,8 +288,8 @@ def publish(files):
                 path.unlink()
 
 
-def export_project(project, circuit, footprint_records):
-    apply_erc(circuit)
+def export_project(project, circuit, footprint_records, *, configurations=None):
+    apply_erc(circuit, configurations)
     state_path = project.config.path.parent / "noscheme.state.json"
     state = (
         read_json(state_path)
@@ -333,6 +333,7 @@ def export_project(project, circuit, footprint_records):
         "erc_errors": circuit["erc"]["errors"],
         "erc_warnings": circuit["erc"]["warnings"],
         "erc_pending": circuit["erc"]["pending"],
+        "erc_configurations": circuit["erc"]["configurations"],
         "omitted_without_footprints": omitted,
         "changes": changes,
         "footprint_records_sha256": hashlib.sha256(

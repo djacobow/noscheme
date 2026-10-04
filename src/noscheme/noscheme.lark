@@ -9,15 +9,17 @@ definition_kind: "component" -> component_kind
 extends: "extends" name_path
 ?definition_item: instance | net_decl | section | field
 section: section_name ":" _NL _INDENT field+ _DEDENT
-section_name: "params" -> params_name
+// Prefer definition sections where a section and a field could both parse.
+section_name.1: "params" -> params_name
             | "defaults" -> defaults_name
-            | "pins" -> pins_name
+            | PINS -> pins_name
             | "ports" -> ports_name
             | "metadata" -> metadata_name
 // Metadata field schemas are validated during resolution.
 field: field_key ":" [expr ["=" expr]] _NL [_INDENT field+ _DEDENT]
 field_key: pin_key [".." pin_key]
-?pin_key: NAME | INT | STRING
+// pins is also a metadata key, including after nested sibling mappings.
+?pin_key: NAME | INT | STRING | PINS
 net_decl: global_modifier? "net" NAME ":" expr _NL [_INDENT field+ _DEDENT]
 global_modifier: "global"
 instance: "inst" NAME index* ":" name_path _INST_LPAR [_NL [_INDENT inst_section+ _DEDENT]] _INST_RPAR _NL
@@ -54,6 +56,7 @@ index: _LSQB expr [":" expr] _RSQB
 name_path: NAME ("." NAME)*
 
 SHIFT: "<<" | ">>"
+PINS: "pins"
 ADD: "+" | "-"
 MUL: "*" | "/"
 NUMBER.2: /(?:[0-9]+\.[0-9]+(?:[eE][+-]?[0-9]+)?|[0-9]+[eE][+-]?[0-9]+)/

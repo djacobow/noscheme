@@ -20,6 +20,7 @@ class Diagnostic:
     span: Span
     related: tuple[Related, ...] = ()
     instance_path: str | None = None
+    configuration: str | None = None
 
 
 class DiagnosticError(ValueError):
@@ -32,7 +33,10 @@ def render_text(diagnostics):
     lines = []
     for d in diagnostics:
         s = d.span
-        lines.append(f"{s.filename}:{s.line}:{s.column}: {d.severity} {d.code}: {d.message}")
+        configuration = f" [{d.configuration}]" if d.configuration is not None else ""
+        lines.append(
+            f"{s.filename}:{s.line}:{s.column}: {d.severity} {d.code}{configuration}: {d.message}"
+        )
         for r in d.related:
             s = r.span
             lines.append(f"{s.filename}:{s.line}:{s.column}: note: {r.message}")

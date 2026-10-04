@@ -291,20 +291,21 @@ assembly, export, or ERC behavior in v1.
 #### Initial implemented metadata schema
 
 The definition resolver currently supports the fields below. This is the starting
-schema, not the complete v1 ERC vocabulary. Unknown fields are errors; advanced
-ERC configurations, aggregate loads, and pair declarations are not yet
-implemented and must not be silently ignored.
+schema, not the complete v1 ERC vocabulary. Unknown fields are errors. Aggregate
+loads and pair declarations are not yet implemented and must not be silently ignored.
 
 | Scope | Fields |
 |---|---|
 | Physical component definition | `footprint`, `ref_prefix` (strings), `value` (deferred expression), `custom` |
-| Block, board, bundle definition | `custom` |
+| Block definition | `erc_choices` (named string alternatives), `custom` |
+| Board definition | `erc_choices`, `configurations` (named choice assignments), `custom` |
+| Bundle definition | `custom` |
 | Physical pin definition | `aliases` (name/string list), `role` (qualified role or list), `unused`, nonnegative literal `max_source_current_mA` and `max_load_current_mA`, `custom` |
 | Port or bundle field | `placeholder` (boolean), `role`, `unused`, `waivers`, `custom` |
 | Net | `placeholder` (boolean), `net_class` (string), `waivers`, `custom` |
 | Physical instance | `footprint`, `ref`, `identity` (strings), `value` (deferred expression), `custom` |
-| Block instance | `identity`, `custom` |
-| Instance pin/port annotation | `role` (one permitted role), `external_role` (role or list), `custom` |
+| Block instance | `identity`, `erc_choices` (public choice bindings), `custom` |
+| Instance pin/port annotation | `role` (one permitted role or choice/cases mapping), `external_role` (role, list, or choice/cases mapping), `custom` |
 
 Roles currently include `passive`, `digital_input`, `digital_output`,
 `digital_bidirectional`, `analog_input`, `analog_output`, `analog_bidirectional`,
@@ -539,7 +540,7 @@ Implemented checks use the `erc.` diagnostic prefix:
 
 External connector roles replace the physical contact's role for driver and load
 accounting. Hierarchical ports never duplicate physical drivers or loads.
-ERC configurations, bias/tristate models, and aggregate budgets remain pending. Their missing
+Bias/tristate models and aggregate budgets remain pending. Their missing
 metadata forms are rejected rather than silently ignored.
 
 ### Role/net-type compatibility
@@ -687,6 +688,93 @@ interfaces. Board configurations select those choices; the block maps them to
 internal endpoint-role assumptions. This lets a USB block expose `power_mode`
 without allowing access to its private connector or nets.
 
+### Configuration syntax and checking
+
+Named configurations are implemented with metadata; no new grammar keywords or
+executable conditionals are added. Boards and blocks declare public string choices:
+
+```nosch
+metadata:
+    erc_choices:
+        power_mode: ["source", "load", "absent"]
+```
+
+An instance inside that definition can bind its pin role to the local choice:
+
+```nosch
+metadata:
+    pins:
+        1:
+            external_role:
+                choice: "power_mode"
+                cases:
+                    source: role.power_output
+                    load: role.power_input
+                    absent: role.passive
+```
+
+This syntax also works for `role`, provided every possible role is permitted by
+the component/port definition. Every choice alternative must have exactly one
+case; the compiler never picks a fallback. Choice and configuration names must
+be identifiers; alternatives are distinct nonempty literal strings. An absent
+external source can be modeled as a passive contact, but this does not remove a
+part, disconnect its pins, change an unused-pin policy, or model an inactive
+regulator automatically.
+
+A parent selects only its child's declared public choices under instance
+`metadata.erc_choices`. A binding can be a fixed alternative string or a
+`choice`/`cases` mapping from one of the parent's own choices to child alternatives:
+
+```nosch
+metadata:
+    erc_choices:
+        power_mode:
+            choice: "power_source"
+            cases:
+                usb: "source"
+                header: "absent"
+```
+
+Choice references are lexical local names, never instance paths. Nested blocks
+must forward choices explicitly through each public interface. All elements of
+an instance array share that declaration's bindings, but their local choices and
+physical endpoints remain distinct. Choices do not participate in numeric/string
+parameter expressions, dimensions, values, footprints, or connectivity.
+
+Board configurations assign literal alternatives to the board's own choices:
+
+```nosch
+metadata:
+    erc_choices:
+        power_source: ["usb", "header"]
+    configurations:
+        usb_powered:
+            power_source: "usb"
+        header_powered:
+            power_source: "header"
+```
+
+`check`, `compile`, and `export-kicad` check **all declared configurations by
+default**. Repeat `--erc-configuration NAME` to select a subset; an unknown name
+is an error before publication. A board without named configurations gets one
+unconfigured check. Choices have no implicit defaults. Omitted selections remain
+unknown and generate insufficient-information diagnostics where checks depend on
+them; fixed roles or identical mapped roles need no speculative warning.
+
+Each configuration gets an isolated set of effective roles on the same flattened
+circuit. The original circuit retains every declared possibility. The checker
+never changes physical connectivity, values, identities, references, or CAD
+output as a side effect of selecting a configuration. Invalid choice names,
+values, incomplete mappings, and illegal role overrides are blocking source errors.
+Electrical errors in any configuration still permit compile/export; `check`
+returns 1 if any selected configuration has errors.
+
+Text/JSON reports include per-configuration counts, effective selections by
+instance scope, configuration names on diagnostics, and configuration names on
+waived diagnostics. Overall counts sum the selected configurations. The complete
+[power-mode example](examples/power_modes/main.nosch) demonstrates two sources
+behind private block internals; both configurations produce the same netlist.
+
 ### Current budgets
 
 Electrical quantities use numeric metadata with units in field names, such as
@@ -833,8 +921,8 @@ These are remaining details, not permission to reverse the decisions above.
 | Expressions | Tagged evaluation, finite binary64 doubles, integer resource limits, precedence, restricted formatting, helper inventory, and parameter binding are implemented above. Integrate values and integer-context warnings into full connectivity elaboration. |
 | Arrays | Set rank and dimension limits, empty-array behavior, and rules for omitted slice bounds, strides, negative indices, and descending ranges. |
 | Metadata | Initial fields, scopes, literal values, role lists, and `ref_prefix` are implemented as documented above. Extend the schema for advanced ERC configurations, budgets, waivers, and explicit differential pairs. |
-| ERC | Role/net-type compatibility, public port contracts, driver checks, and scoped waivers are implemented. Biasing/tristate rules and configurations remain. |
-| ERC configurations | Define public choices, permitted alternatives, internal role binding, board selection, and insufficient-information severity. |
+| ERC | Role/net-type compatibility, public port contracts, driver checks, and scoped waivers are implemented. Biasing/tristate rules remain. |
+| ERC configurations | Public choices, exhaustive role/choice mappings, board configurations, selected/all checking, and labeled reports are implemented. Choices currently have no defaults. |
 | Current accounting | Define aggregate annotations and represented loads, grouping across supply pins and rails, and treatment of budget boundaries between components. |
 | Footprints | Define converted footprint records, handling of footprints selected after conversion, mismatch severity, and validation of electrical versus mechanical pads. |
 | KiCad handoff | Version E netlists and UUID-path matching passed the KiCad 10.0.6 import/update experiments, including layout retention and CAD-side reannotation. Implement the production adapter with footprint validation and explicit partial-export reporting; see experiment findings for limitations. |
