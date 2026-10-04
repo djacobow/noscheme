@@ -1,4 +1,4 @@
-from noscheme import role, unused
+from noscheme import role
 
 component C:
     params:
@@ -6,12 +6,10 @@ component C:
     pins:
         "1":
             role: role.passive
-            unused: unused.explicit
             custom:
                 kicad_pin_types: ["passive"]
         "2":
             role: role.passive
-            unused: unused.explicit
             custom:
                 kicad_pin_types: ["passive"]
     metadata:
@@ -35,12 +33,10 @@ component R:
     pins:
         "1":
             role: role.passive
-            unused: unused.explicit
             custom:
                 kicad_pin_types: ["passive"]
         "2":
             role: role.passive
-            unused: unused.explicit
             custom:
                 kicad_pin_types: ["passive"]
     metadata:

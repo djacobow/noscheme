@@ -14,7 +14,7 @@ from .project import load_project, project_summary
 from .resolve import resolve_project, resolution_summary
 from .evaluate import evaluate_project
 from .circuit import elaborate_project
-from .erc import apply_erc, report_files
+from .erc import apply_erc, report_files, report_diagnostics
 from .kicad.convert import convert_library
 from .kicad.export import export_project
 from .kicad.export import publish
@@ -119,14 +119,19 @@ def main(argv=None):
         if args.command == "export-kicad":
             project, definitions = resolve_project(args.project)
             circuit, warnings = elaborate_project(project, definitions)
-            electrical = apply_erc(circuit, args.erc_configuration)
+            export_warnings = []
             report = export_project(
-                project, circuit, args.footprints, configurations=args.erc_configuration
+                project,
+                circuit,
+                args.footprints,
+                configurations=args.erc_configuration,
+                warnings=export_warnings,
             )
+            electrical = report_diagnostics(circuit)
             print(json.dumps(report, indent=2))
-            if warnings or electrical:
+            if warnings or electrical or export_warnings:
                 renderer = render_json if args.diagnostics == "json" else render_text
-                print(renderer((*warnings, *electrical)), file=sys.stderr)
+                print(renderer((*warnings, *electrical, *export_warnings)), file=sys.stderr)
             return 0
         if args.command == "convert-library":
             report = convert_library(
@@ -137,7 +142,9 @@ def main(argv=None):
         if args.command in {"check", "compile"}:
             project, definitions = resolve_project(args.project)
             circuit, warnings = elaborate_project(project, definitions)
-            electrical = apply_erc(circuit, args.erc_configuration)
+            electrical = apply_erc(
+                circuit, args.erc_configuration, registry=project.config.erc_registry
+            )
             summary = {
                 "stage": "circuit",
                 "parts": len(circuit["parts"]),

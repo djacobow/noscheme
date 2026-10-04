@@ -1,62 +1,13 @@
 // USB-C power/data, regulator, microSD, and SWD subsystems.
 
-from noscheme import role, nettype, unused, bias
+from noscheme import role, nettype, bias
 from interfaces import SPI, USB2, SWD
 from components import Resistor0603, InputBias0603, Capacitor0603
 
 component UsbCConnector:
     pins:
-        "A1":
+        [A1, A12, A4, A5, A6, A7, A8, A9, B1, B12, B4, B5, B6, B7, B8, B9, SH]:
             role: role.passive
-            unused: unused.explicit
-        "A12":
-            role: role.passive
-            unused: unused.explicit
-        "A4":
-            role: role.passive
-            unused: unused.explicit
-        "A5":
-            role: role.passive
-            unused: unused.explicit
-        "A6":
-            role: role.passive
-            unused: unused.explicit
-        "A7":
-            role: role.passive
-            unused: unused.explicit
-        "A8":
-            role: role.passive
-            unused: unused.explicit
-        "A9":
-            role: role.passive
-            unused: unused.explicit
-        "B1":
-            role: role.passive
-            unused: unused.explicit
-        "B12":
-            role: role.passive
-            unused: unused.explicit
-        "B4":
-            role: role.passive
-            unused: unused.explicit
-        "B5":
-            role: role.passive
-            unused: unused.explicit
-        "B6":
-            role: role.passive
-            unused: unused.explicit
-        "B7":
-            role: role.passive
-            unused: unused.explicit
-        "B8":
-            role: role.passive
-            unused: unused.explicit
-        "B9":
-            role: role.passive
-            unused: unused.explicit
-        "SH":
-            role: role.passive
-            unused: unused.explicit
     metadata:
         ref_prefix: "J"
         footprint: "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12"
@@ -65,13 +16,10 @@ component TLV1117LV33:
     pins:
         "1":
             role: role.ground
-            unused: unused.explicit
         "2":
             role: role.power_output
-            unused: unused.explicit
         "3":
             role: role.power_input
-            unused: unused.explicit
     metadata:
         value: "TLV1117LV33DCYR"
         ref_prefix: "U"
@@ -79,75 +27,16 @@ component TLV1117LV33:
 
 component MicroSDConnector:
     pins:
-        "1":
+        [1..10, SH]:
             role: role.passive
-            unused: unused.explicit
-        "2":
-            role: role.passive
-            unused: unused.explicit
-        "3":
-            role: role.passive
-            unused: unused.explicit
-        "4":
-            role: role.passive
-            unused: unused.explicit
-        "5":
-            role: role.passive
-            unused: unused.explicit
-        "6":
-            role: role.passive
-            unused: unused.explicit
-        "7":
-            role: role.passive
-            unused: unused.explicit
-        "8":
-            role: role.passive
-            unused: unused.explicit
-        "9":
-            role: role.passive
-            unused: unused.explicit
-        "10":
-            role: role.passive
-            unused: unused.explicit
-        "SH":
-            role: role.passive
-            unused: unused.explicit
     metadata:
         ref_prefix: "J"
         footprint: "Connector_Card:microSD_HC_Hirose_DM3AT-SF-PEJM5"
 
 component CortexHeader:
     pins:
-        "1":
+        1..10:
             role: role.passive
-            unused: unused.explicit
-        "2":
-            role: role.passive
-            unused: unused.explicit
-        "3":
-            role: role.passive
-            unused: unused.explicit
-        "4":
-            role: role.passive
-            unused: unused.explicit
-        "5":
-            role: role.passive
-            unused: unused.explicit
-        "6":
-            role: role.passive
-            unused: unused.explicit
-        "7":
-            role: role.passive
-            unused: unused.explicit
-        "8":
-            role: role.passive
-            unused: unused.explicit
-        "9":
-            role: role.passive
-            unused: unused.explicit
-        "10":
-            role: role.passive
-            unused: unused.explicit
     metadata:
         ref_prefix: "J"
         footprint: "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD"
@@ -163,23 +52,13 @@ block UsbC:
     net cc: nettype.passive[2]
     inst connector: UsbCConnector(
         connections:
-            A1: ground
-            A12: ground
-            A4: vbus
+            [A1, A12, B1, B12, SH]: ground
+            [A4, A9, B4, B9]: vbus
             A5: cc[0]
-            A6: data.dp
-            A7: data.dm
-            A8: no_connect
-            A9: vbus
-            B1: ground
-            B12: ground
-            B4: vbus
+            [A6, B6]: data.dp
+            [A7, B7]: data.dm
+            [A8, B8]: no_connect
             B5: cc[1]
-            B6: data.dp
-            B7: data.dm
-            B8: no_connect
-            B9: vbus
-            SH: ground
         metadata:
             pins:
                 A4:
@@ -188,9 +67,7 @@ block UsbC:
                         cases:
                             source: role.power_output
                             absent: role.passive
-                A6:
-                    external_role: role.digital_bidirectional
-                A7:
+                [A6, A7]:
                     external_role: role.digital_bidirectional
     )
     inst cc_pulldowns[2]: Resistor0603(
@@ -242,20 +119,16 @@ block MicroSD:
             3: bus.mosi
             4: supply
             5: bus.sck
-            6: ground
+            [6, 9, SH]: ground
             7: bus.miso
             8: unused_dat[1]
-            9: ground
             10: detect#
-            SH: ground
         metadata:
             pins:
-                2..3:
+                [2..3, 5]:
                     external_role: role.digital_input
                 4:
                     external_role: role.power_input
-                5:
-                    external_role: role.digital_input
                 6:
                     external_role: role.ground
                 7:
@@ -323,13 +196,10 @@ block CortexDebug:
         connections:
             1: reference
             2: debug.swdio
-            3: ground
+            [3, 5, 9]: ground
             4: debug.swclk
-            5: ground
             6: debug.swo
-            7: no_connect
-            8: no_connect
-            9: ground
+            7..8: no_connect
             10: debug.reset#
         metadata:
             pins:

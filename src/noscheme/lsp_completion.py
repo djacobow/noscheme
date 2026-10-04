@@ -285,7 +285,8 @@ def completion_items(path, config, sources, offset):
         start, end = offset - len(word), offset + len(tail)
         namespace = None
     pin = re.fullmatch(rf"\s*(?:\[[^\n]*?\]\.)?{WORD}", before)
-    if not (namespace or instance_type or base_type or pin):
+    pin_list = re.fullmatch(rf"\s*(?:\[[^\n]*?\]\.)?\[[^\]:]*{WORD}", before)
+    if not (namespace or instance_type or base_type or pin or pin_list):
         return []
 
     owners = list(DEFINITION.finditer(masked, 0, offset))

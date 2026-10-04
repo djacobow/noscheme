@@ -83,6 +83,11 @@ semantic navigation until the code parses again. Analysis currently performs
 serialized full checks; incremental compilation and background cancellation are
 future improvements.
 
+The resolver can report several independent mistakes in one update, such as
+misspelled nets in separate bindings and an unknown component in another
+instance. Checks that depend on a failed result stop to avoid cascading errors.
+Parsing, interface construction, and elaboration still stop at their first error.
+
 ### Vim client setup
 
 Keep the existing NoScheme highlighting plugin. With vim-plug, add the LSP client
@@ -122,6 +127,9 @@ or run `:nmap <buffer> K <plug>(lsp-hover)` in an already-open buffer.
 
 Completion supports incomplete instance/connection statements, inherited aliases,
 and numeric pins; accepting a suggestion replaces the current token.
+Pin and alias completion also works inside unfinished connection lists such as
+`[1..3, VD`. Navigation, references, and hover distinguish individual list
+entries; a range represents all of its physical pins, as in an unbracketed range.
 Qualified instance names such as `Device.R` and imported aliases are supported.
 Completion also works after `extends`, including an unfinished header such as
 `component Resistor extends Device.` with no colon or body yet. Component

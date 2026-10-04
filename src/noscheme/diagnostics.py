@@ -1,6 +1,7 @@
 """Stable diagnostic records and equivalent text/JSON presentations."""
 
 from dataclasses import dataclass
+from contextlib import contextmanager
 from typing import Literal
 import json
 from .ast import Span, to_data
@@ -27,6 +28,15 @@ class DiagnosticError(ValueError):
     def __init__(self, diagnostics):
         self.diagnostics = tuple(diagnostics)
         super().__init__(render_text(self.diagnostics))
+
+
+@contextmanager
+def collect_errors(diagnostics):
+    """Collect a failed independent check; unexpected exceptions still propagate."""
+    try:
+        yield
+    except DiagnosticError as exc:
+        diagnostics.extend(exc.diagnostics)
 
 
 def render_text(diagnostics):

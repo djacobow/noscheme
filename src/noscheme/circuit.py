@@ -208,7 +208,7 @@ class Elaborator:
             if node.kind == "array":
                 return Node("array", items=tuple(ports(n) for n in node.items))
             values = tuple(node.fields[target.aliases[name]] for name in names)
-            value = Node("array", items=values) if endpoint.head.last else values[0]
+            value = Node("array", items=values) if endpoint.head.grouped else values[0]
             return self.select(value, endpoint.selectors, module, environment)
 
         return ports(selected)

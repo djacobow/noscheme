@@ -154,6 +154,13 @@ Names are case-sensitive. `reset#`, `#select`, and `_supply` are valid identifie
 nets, definitions, parameters, and instances follow this rule. CAD reference
 validation is a separate backend rule.
 
+`no_connect`, `global`, `true`, `false`, `number`, and `string` are reserved
+declaration names. They cannot name definitions, nets, instances, parameters,
+ports, bundle fields, or import bindings. Other keywords remain contextual:
+for example, `net inst: nettype.passive` is allowed. Exact physical pin IDs may
+use reserved spellings when quoted, such as `"global"`; metadata keys and literal
+strings are not subject to this declaration-name restriction.
+
 ### 2.3 Comments and strings
 
 ```nosch
@@ -546,6 +553,41 @@ Ranges also apply to pin definitions and instance pin metadata. Slices require
 explicit start and stop bounds; negative indices and out-of-range bounds are
 errors. Empty selections are not useful connection endpoints and are rejected.
 
+Bracketed pin lists select noncontiguous physical pins. A list may contain exact
+pin identifiers, aliases, inclusive ranges, or a mixture:
+
+```nosch
+connections:
+    [11, 28, 50, 75, 100]: supply
+    [7..9, 23..24, 35]: no_connect
+    [VDD, 2..3, "07"]: supply
+```
+
+`[m..n]` has the same inclusive numeric bounds as `m..n`; `[1]` and `[1,]` are
+valid singleton lists. Lists can span lines and have a trailing comma. Members
+are literal pin identifiers, not parameter expressions. Ranges cannot use
+alphanumeric or zero-padded bounds. List order, with each range expanded in
+ascending order, determines the selection's array order. Existing connection
+shape rules apply; a scalar net broadcasts to the whole selection.
+
+The same keys work in a component's `pins:` declarations or specialization and
+under an instance's `metadata.pins:`. Base declarations define physical IDs;
+specializations, bindings, and instance annotations may also use existing aliases.
+For example, a specialization may set shared supply metadata with:
+
+```nosch
+pins:
+    [11, 28, 50, 75, 100]:
+        role: role.power_input
+        unused: unused.never
+```
+
+Pin lists do not apply to block ports, bundle declarations, parameters, or
+ordinary metadata keys. Empty lists, duplicate entries, and overlapping ranges
+are errors. Aliases that select the same pin twice are also errors. Overlap with
+another binding or annotation remains an error. To select pins on a specific
+instance-array element, write `[0].[1, 3]`; `[0].1` retains its existing meaning.
+
 ## 7. Specialization
 
 Components and blocks use `extends` for single inheritance. Boards and bundles
@@ -662,7 +704,7 @@ All checked scalar types permit passive attachments. Other permitted roles are:
 | `open_source` | Digital inputs and open-source endpoints |
 | `analog` | Analog input/output/bidirectional |
 | `power` | Power input/output, digital input, analog input |
-| `ground` | Ground, power input, digital input, analog input |
+| `ground` | Ground, digital input, analog input |
 | `unchecked` | No domain restriction from this declaration |
 
 `do_not_connect` always retains its disconnection rule. Every checked declaration
@@ -819,6 +861,38 @@ waivers produce `waiver_scope` and do not suppress diagnostics. Private-net
 waivers apply independently to each block instance. Reports retain reasons,
 locations, and waived diagnostics, including waivers with no matching diagnostic.
 
+To waive a check only for specific physical pins, use a mapping with `reason`
+and `pins` instead of the string shorthand:
+
+```nosch
+net gnd: nettype.ground
+    waivers:
+        incompatible_role:
+            reason: "Ground VDD_AUX to disable the unused power domain."
+            pins: ["chip.12"]
+```
+
+Pin paths are literal strings naming an instance path followed by the exact
+physical pin ID, not an alias. They are relative to the net declaration's block
+instance (or the board), and may include explicit array indices such as
+`"devices[0].12"`. There are no wildcards. This is a diagnostic target, not
+permission to connect to or modify a block's private internals.
+
+Every target must be a physical endpoint on that flattened net. Missing or
+disconnected targets produce the non-waivable `waiver_target` error and disable
+the entire waiver. A targeted waiver suppresses only diagnostics whose
+`instance_path` exactly names one of its pins; net-wide and port-contract
+diagnostics remain visible. Inner declarations still cannot waive outer nets.
+JSON and text reports include the resolved targets, reason, and waived diagnostics.
+
+A `role.power_input` on ground now reports `incompatible_role`. Keep that role
+when deliberately grounding a supply pin and use a targeted waiver as above.
+KiCad `power_in` conversion emits `[role.ground, role.power_input]`, because its
+electrical type does not distinguish supply from return. Select the intended
+role explicitly in a specialization or instance. ERC does not choose a role to
+fit the net; unselected alternatives warn when compatibility is uncertain.
+Digital and analog input pins may still be tied directly to supply or ground.
+
 Core check identifiers are:
 
 ```text
@@ -827,7 +901,7 @@ unconnected_net            missing_driver               multiple_drivers
 power_ground_conflict      incomplete_roles             unchecked_net
 aggregate_load_boundary    aggregate_current_overload   incomplete_aggregate_load
 current_load_group         current_overload             incomplete_budget
-waiver_scope               incompatible_role            tristate_capability
+waiver_scope               waiver_target                incompatible_role            tristate_capability
 port_role                  incomplete_port_role         required_port_connection
 unused_port
 ```
@@ -836,7 +910,7 @@ Built-in registry checks are `pull_resistance_budget` and `capacitance_budget`.
 Diagnostic codes prefix these names with `erc.`; waiver keys omit the prefix.
 
 `do_not_connect`, `required_connection`, `unused_pin`, `required_port_connection`,
-`unused_port`, `waiver_scope`, `current_load_group`, `aggregate_load_boundary`,
+`unused_port`, `waiver_scope`, `waiver_target`, `current_load_group`, `aggregate_load_boundary`,
 `aggregate_current_overload`, and `incomplete_aggregate_load` cannot be waived.
 Other implemented net checks and registered checks support scoped waivers.
 
@@ -1007,6 +1081,13 @@ allocates references using the component prefix (default `"U"`) and persistent r
 KiCad reference names must match `[A-Za-z_#][A-Za-z0-9_#]*`, and case-insensitive
 reference collisions are rejected.
 
+References beginning with `#` are permitted but produce a non-blocking
+`reference.leading-hash` warning, since downstream BOM or placement tools may
+treat them as virtual symbols and omit them. This includes references allocated
+from a leading-`#` prefix and reused references from state. Export warnings appear
+on CLI stderr and in the `warnings` list in `export.json`, separately from ERC
+counts. A `#` elsewhere in a reference does not trigger this warning.
+
 `noscheme.state.json`, beside the configuration, stores identity UUIDs, reference
 assignments, reference reservations, and the previous exported design. Commit
 this file to version control. Export reads and rewrites it; ordinary compilation
@@ -1060,6 +1141,15 @@ all symbols. The conversion output directory must not already exist.
 Diagnostics carry a stable code, severity, message, filename, line/column, and
 related source locations. Expanded instance paths and configuration labels are
 retained where applicable. Text and JSON reports describe the same checks.
+
+Once interfaces resolve successfully, body checking reports independent errors
+across definitions and instances, including separate arguments and connection
+statements. It stops a dependent check when its prerequisite is invalid: an
+unknown component type, for example, prevents checking that instance's pins.
+Namespace/type setup failures stop the affected body. Identical errors in shared
+inherited bodies are reported once. Structural errors still block subsequent
+evaluation, elaboration, and export. Parsing, interface construction, and
+elaboration remain fail-fast; this is not general error recovery.
 
 - `check` returns 1 for electrical errors.
 - `compile` and `export-kicad` may publish with electrical errors and return 0.

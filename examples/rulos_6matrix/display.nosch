@@ -1,0 +1,95 @@
+// Adapted from Jeremy Elson / rulos. See README.md.
+from noscheme import nettype, unused
+from components import Display, SinkDriver, Resistor, Cap0603
+from interfaces import Rows, Segments
+
+// One column: six digits share segment cathodes; each row has its own anode.
+block Column:
+    ports:
+        rows: Rows
+        segments: Segments
+    inst digits[6]: Display(
+        connections:
+            A: segments.a
+            B: segments.b
+            C: segments.c
+            D: segments.d
+            E: segments.e
+            F: segments.f
+            G: segments.g
+            DP: segments.dp
+            [0].[3, 8]: rows.row0
+            [1].[3, 8]: rows.row1
+            [2].[3, 8]: rows.row2
+            [3].[3, 8]: rows.row3
+            [4].[3, 8]: rows.row4
+            [5].[3, 8]: rows.row5
+    )
+
+// Corresponds to the original Eagle module 2COL-7SEG.
+block TwoColumns:
+    ports:
+        rows: Rows
+        supply: nettype.passive
+        ground: nettype.passive
+        sdi: nettype.passive
+        sdo: nettype.passive
+            unused: unused.always
+        clock: nettype.passive
+        latch: nettype.passive
+        blank: nettype.passive
+    net left_segments: Segments
+    net right_segments: Segments
+    net current_set: nettype.passive
+    inst left: Column(
+        connections:
+            rows: rows
+            segments: left_segments
+    )
+    inst right: Column(
+        connections:
+            rows: rows
+            segments: right_segments
+    )
+    inst driver: SinkDriver(
+        connections:
+            VCC: supply
+            GND: ground
+            SDI: sdi
+            SDO: sdo
+            CLK: clock
+            LE: latch
+            OE: blank
+            R_EXT: current_set
+            OUT0: left_segments.a
+            OUT1: left_segments.b
+            OUT2: left_segments.c
+            OUT3: left_segments.d
+            OUT4: left_segments.e
+            OUT5: left_segments.f
+            OUT6: left_segments.g
+            OUT7: left_segments.dp
+            OUT8: right_segments.a
+            OUT9: right_segments.b
+            OUT10: right_segments.c
+            OUT11: right_segments.d
+            OUT12: right_segments.e
+            OUT13: right_segments.f
+            OUT14: right_segments.g
+            OUT15: right_segments.dp
+    )
+    // The original leaves this resistor value blank; do not invent one.
+    inst current_resistor: Resistor(
+        connections:
+            1: ground
+            2: current_set
+        params:
+            value: ""
+    )
+    inst bypass: Cap0603(
+        connections:
+            1: supply
+            2: ground
+        params:
+            value: "1uF"
+    )

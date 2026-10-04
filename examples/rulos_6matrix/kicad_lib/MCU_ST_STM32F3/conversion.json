@@ -1,0 +1,31 @@
+{
+  "issues": [
+    {
+      "alias": "VDD",
+      "check": "ambiguous_alias",
+      "message": "alias omitted; physical pin IDs retained",
+      "pins": [
+        "1",
+        "17"
+      ],
+      "symbol": "STM32F303K8Tx"
+    },
+    {
+      "alias": "VSS",
+      "check": "ambiguous_alias",
+      "message": "alias omitted; physical pin IDs retained",
+      "pins": [
+        "16",
+        "32"
+      ],
+      "symbol": "STM32F303K8Tx"
+    }
+  ],
+  "module": "MCU_ST_STM32F3",
+  "schema_version": 1,
+  "source": "/usr/share/kicad/symbols/MCU_ST_STM32F3.kicad_sym",
+  "source_sha256": "43d596b1d26e195f9734dd46224a2b3529aa401fe93b43815e8120ce455d3a33",
+  "symbols": {
+    "STM32F303K8Tx": "STM32F303K8Tx"
+  }
+}

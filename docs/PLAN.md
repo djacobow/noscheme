@@ -692,3 +692,158 @@ failures, the STM32 indicator block, and protocol refresh after unsaved edits.
 Hover negotiates Markdown or plain text with the client, formats headings and
 lists, and provides import-aware help for all role, nettype, and unused members.
 Builtin help does not create definition, reference, or rename targets.
+
+### Supply/ground distinction and targeted waivers (implemented)
+
+Power-input pins no longer satisfy ground-net or ground-port constraints. KiCad
+`power_in` conversion preserves supply/return ambiguity as a role list; authors
+select the intended role. Net waivers can name exact physical pin paths, resolved
+relative to their declaring scope, with invalid targets reported explicitly.
+Regression tests cover isolated exceptions, unrelated grounded supplies, arrays,
+hierarchy, unselected roles, and text/JSON reporting. The STM32 MCU snapshot uses
+the updated conversion and its board specialization retains explicit roles.
+
+### Review: reserved names, reference warnings, and ERC execution (implemented)
+
+The six magic names `no_connect`, `global`, `true`, `false`, `number`, and `string`
+are rejected in declarations and import bindings, while quoted physical pin IDs
+remain supported. Conversion and LSP rename use the same reserved-name set.
+Leading `#` in assigned KiCad references is a warning, retained in the export
+report and CLI diagnostics without blocking publication.
+
+CLI/LSP analysis and export reuse the project's cached ERC registry. Export runs
+ERC once and reuses that report for stderr and artifacts. Instrumented extension
+tests verify one load, registration, and callback per net per configuration in
+each operation, with fresh registry loading on subsequent operations.
+
+### Independent resolution diagnostics (implemented, limited scope)
+
+After interfaces resolve, body checking collects independent failures across
+definitions, instances, parameter expressions, arguments, and bindings. A failed
+binding stops that binding; an unknown instance type skips that instance's
+dependent checks. Shared inherited bodies do not repeat identical diagnostics.
+Any collected structural errors still block evaluation, expansion, and export.
+Parsing, interface construction, and elaboration remain fail-fast; this pass
+does not introduce parser recovery or partial circuit state.
+
+### Physical pin lists (implemented)
+
+Explicit lists such as `[1, 3, VDD]`, bracketed ranges `[1..3]`, and mixtures
+`[1..3, 7]` work for component declarations/specializations, connections, and
+instance pin metadata. Existing shape and overlap rules apply, including alias
+overlap; named pin groups remain deferred. LSP references retain individual
+selection spans and completion supports unfinished connection lists. The STM32
+example groups its power/ground declarations and shared/unused bindings, with
+the elaborated circuit verified unchanged apart from source locations.
+
+### Example concision and defaults (implemented)
+
+The STM32 example groups identical GPIO roles, connector pin declarations,
+shared connections, and instance pin metadata using physical pin lists/ranges.
+Redundant `unused.explicit` annotations are omitted in handwritten components
+and converter output; the committed Device and MCU modules were regenerated.
+The normalized circuit, including effective pin policies and ERC results, is
+unchanged. Existing parameter defaults, specialization, and pin lists cover
+most repetition here; component-wide `pin_defaults` remain deferred pending
+a stronger use case. Unknown electrical roles remain unspecified.
+
+## TODO: remaining implementation-review follow-up
+
+Recorded from the October 2026 implementation review and subsequent discussion.
+These are pending tasks and design questions, not adopted language changes.
+Suggested next steps are value formatting, then documentation cleanup.
+
+### Values and language usability
+
+- [ ] Fix float noise in `f.*` part-value strings, such as
+  `14.100000000000001kOhm`. Define precision and exponent/engineering notation
+  behavior without changing arithmetic semantics.
+- [ ] Explore deriving display values and ERC quantities from one numeric
+  parameter, so `value` and `pull_resistance_ohm` cannot silently drift apart.
+  Assess this before introducing a quantity type or unit syntax.
+- [ ] Design per-element array parameters and metadata, including an element
+  index and placement notes. Discuss multidimensional behavior and identity
+  implications before changing existing instances into arrays.
+- [ ] Consider compact role annotations beside connections. Instance role
+  selection already exists; preserve explicit selection from permitted roles.
+  Do not infer GPIO capabilities from KiCad's broad `bidirectional` type.
+- [ ] Use unambiguous MCU pin aliases in the STM32 example, retaining physical
+  pad lists where appropriate for shared supplies and ambiguous aliases.
+- [ ] Revisit named pin groups if explicit lists prove insufficient.
+  Component-wide `pin_defaults` remain deferred after the example cleanup.
+- [ ] Assess integer division, modulo, and `num.min`/`num.max` against actual
+  use cases. `//` already starts a comment, so it cannot simply become division.
+- [ ] Review syntax consistency proposals only where they provide a concrete
+  benefit: array-dimension placement, choice references, and `params`/`args`
+  naming. Preserve current syntax until a change is agreed.
+
+### Documentation and diagnostics
+
+- [ ] Fix stale claims about the AST, tri-state ERC, and LSP diagnostics,
+  completion, references, rename, hover, and bundle-member navigation.
+- [ ] Make the LRM authoritative for behavior; reduce duplicated rules in
+  PROJECT.md to goals, rationale, and links. Consider generating role and
+  metadata tables from the implementation.
+- [ ] Document pure-wiring adapter limitations and the intended `unused.always`
+  idiom for intentionally lone endpoints. Clarify the historical review's scope.
+- [ ] Replace internal parser token names with readable syntax diagnostics.
+  Keep broader parser recovery deferred; independent resolution diagnostics
+  are already implemented.
+- [ ] Consider unused-parameter lint and define a language-version compatibility
+  policy before external adoption.
+
+### KiCad conversion, export, and refactoring
+
+- [ ] Review missing converter mappings, especially `open_emitter` to
+  `open_source`. Assess `free` and `unspecified` individually before mapping
+  them to `unchecked` and suppressing checks.
+- [ ] Assess storing footprint candidates in sidecar data to reduce generated
+  source size while retaining completion and useful hover information.
+- [ ] Preserve useful pin names/roles in exported libparts where KiCad supports
+  them; verify the practical benefit for PCB inspection.
+- [ ] Make `changes.txt` describe changed values, footprints, and connections.
+- [ ] Explore probable-rename hints and identity-preserving LSP refactoring to
+  protect PCB placement. Never silently equate parts based on a heuristic.
+
+### Further ERC capabilities and example clarity
+
+- [ ] Design opt-in voltage-domain and absolute-maximum checks using metadata
+  and the extension registry where possible.
+- [ ] Consider checking a pull-up/down's reference terminal, so declared bias
+  can be checked against its actual supply/ground connection.
+- [ ] Design differential-pair support; the metadata remains explicitly
+  unsupported until implemented.
+- [ ] Clarify the one-pin pull-up in the extension example and point readers to
+  the two-terminal pattern. Explain or annotate the microSD DAT pull-ups.
+- [ ] Retain the agreed direct input-to-rail behavior; any proposal for an
+  additional strap marker needs a concrete use case and a separate decision.
+
+### Implementation maintenance
+
+- [ ] Freeze the historical experiment grammar explicitly or retire it while
+  preserving useful production-parser regression cases.
+- [ ] Assess small typed circuit views and splitting ERC by check family.
+- [ ] Measure circuit-copying and LSP analysis costs before introducing
+  read-only plugin views or incremental compilation.
+- [ ] Evaluate broader Ruff rules, gradual type checking, and CI coverage
+  reporting as maintenance improvements.
+
+### Rulos six-line matrix example (implemented)
+
+`examples/rulos_6matrix/` transcribes Jeremy Elson's Rev B schematic and Eagle
+board with attribution and pinned source evidence. Four two-column block
+instances contain arrays of six digits; bundles share row buses and sliced
+connections form the driver chain. All 93 parts and 107 nets are compared
+against independently extracted Eagle connectivity, including the exported
+KiCad netlist. Eighteen original packages are imported into a local footprint
+library. Missing source values and the deliberately limited passive-net ERC
+model are documented in the example README. Manual PCB Editor validation and
+stronger electrical modeling remain future work.
+
+The matrix example now derives compatible parts from selected KiCad snapshots
+and changes 35 instances to standard footprints. Resistors use 0603; capacitors
+through 1 µF use 0603 and above 1 µF through 10 µF use 0805. Larger/unspecified
+capacitors retain their source packages. SWD uses the STM32 example's SMT Cortex
+header footprint. The original source evidence and an explicit substitution map
+verify unchanged connectivity, values, and identities. Unresolved package
+choices are documented in the example's `KICAD_MATCHES.md`.

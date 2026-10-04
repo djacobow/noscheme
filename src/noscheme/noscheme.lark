@@ -19,7 +19,14 @@ section_name.1: "params" -> params_name
             | "metadata" -> metadata_name
 // Metadata field schemas are validated during resolution.
 field: field_key ":" [expr ["=" expr]] _NL [_INDENT field+ _DEDENT]
-field_key: pin_key [".." pin_key]
+?field_key: plain_field_key | index -> single_pin_list
+plain_field_key: pin_key [".." pin_key] -> field_key
+               | _LSQB pin_group _RSQB -> field_key
+// Singleton lists share the index syntax to keep leading instance selectors
+// such as [0].pin unambiguous. Multi-key/range lists diverge at ',' or '..'.
+pin_group: pin_key ".." pin_key ("," pin_selection)* [","] -> range_group
+         | pin_key "," [pin_selection ("," pin_selection)* [","]] -> list_group
+pin_selection: pin_key [".." pin_key]
 // pins is also a metadata key, including after nested sibling mappings.
 ?pin_key: NAME | INT | STRING | PINS
 net_decl: global_modifier? "net" NAME ":" expr _NL [_INDENT field+ _DEDENT]
@@ -28,7 +35,8 @@ instance: "inst" NAME index* ":" name_path _INST_LPAR [_NL [_INDENT inst_section
 ?inst_section: connections | arguments | instance_metadata
 connections: "connections" ":" _NL _INDENT binding+ _DEDENT
 binding: endpoint ":" target _NL
-?endpoint: field_key endpoint_suffix* | index+ "." field_key endpoint_suffix*
+?endpoint: plain_field_key endpoint_suffix* | index+ "." field_key endpoint_suffix*
+         | index -> singleton_endpoint
 ?endpoint_suffix: "." NAME | index
 ?target: reference
 arguments: "params" ":" _NL _INDENT argument+ _DEDENT
@@ -46,6 +54,7 @@ instance_metadata: "metadata" ":" _NL _INDENT field+ _DEDENT
      | INT -> integer
      | STRING -> string
      | NAME -> name
+     | PINS -> name
      | _LPAR expr _RPAR -> grouped
      | _LSQB [expr ("," expr)* [","]] _RSQB -> list_value
 ?postfix_suffix: "." NAME -> member

@@ -149,7 +149,7 @@ def read_metadata(fields, scope, project, module, local_names=()):
     result = {}
     for field in fields:
         key = field.key.first.text
-        if field.key.last:
+        if field.key.grouped:
             fail("metadata.key", "metadata field names cannot be ranges", field.key.span)
         if scope == "custom":
             kind = "custom" if field.fields else "literal"
@@ -215,7 +215,7 @@ def read_metadata(fields, scope, project, module, local_names=()):
                     field.span,
                 )
             value = {}
-            for waiver in field.fields:
+            for waiver in mapping(field).values():
                 check = waiver.key.first.text
                 if (
                     waiver.key.last
@@ -226,17 +226,58 @@ def read_metadata(fields, scope, project, module, local_names=()):
                         f"{check!r} is not a waivable implemented net check",
                         waiver.span,
                     )
-                if (
-                    waiver.fields
-                    or not isinstance(waiver.value, a.String)
-                    or not waiver.value.value.strip()
-                ):
+                reason = waiver.value
+                targets = None
+                if waiver.fields:
+                    entries = mapping(waiver)
+                    if reason is not None or set(entries) != {"reason", "pins"}:
+                        fail(
+                            "metadata.waiver",
+                            "targeted waivers require reason and pins fields",
+                            waiver.span,
+                        )
+                    reason = entries["reason"].value
+                    pins = entries["pins"]
+                    if (
+                        entries["reason"].fields
+                        or pins.fields
+                        or not isinstance(pins.value, a.ListExpr)
+                    ):
+                        fail(
+                            "metadata.waiver",
+                            "pins requires a nonempty list of literal pin paths",
+                            waiver.span,
+                        )
+                    targets = [
+                        p.value
+                        for p in pins.value.items
+                        if isinstance(p, a.String) and p.value.strip()
+                    ]
+                    if (
+                        not targets
+                        or len(targets) != len(pins.value.items)
+                        or len(set(targets)) != len(targets)
+                    ):
+                        fail(
+                            "metadata.waiver",
+                            "pins requires distinct nonempty literal pin paths",
+                            pins.span,
+                        )
+                if not isinstance(reason, a.String) or not reason.value.strip():
                     fail(
                         "metadata.waiver",
                         "each waiver requires a nonempty literal string reason",
                         waiver.span,
                     )
-                value[check] = Value(waiver.value.value, waiver.span, module)
+                data = (
+                    reason.value
+                    if targets is None
+                    else {
+                        "reason": Value(reason.value, reason.span, module),
+                        "pins": Value(targets, pins.span, module),
+                    }
+                )
+                value[check] = Value(data, waiver.span, module)
         elif kind == "custom":
             if expr is not None:
                 fail("metadata.value", "custom mappings use indented fields", field.span)
@@ -300,7 +341,7 @@ def mapping(field):
     result = {}
     for child in field.fields:
         name = child.key.first.text
-        if child.key.last or name in result:
+        if child.key.grouped or name in result:
             fail("metadata.erc", "mapping keys must be distinct names", child.span)
         result[name] = child
     return result

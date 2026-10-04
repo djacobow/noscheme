@@ -57,6 +57,58 @@ def test_export_and_repeatability(setup):
     assert state(project)["entries"] == entries
 
 
+@pytest.mark.parametrize("key,value", [("ref", "#R42"), ("ref_prefix", "#R")])
+def test_leading_hash_reference_warns_but_exports_and_repeats(setup, key, value):
+    project, circuit, records = setup
+    part = circuit["parts"][0]
+    part["metadata"][key] = {"value": value, "span": part["source"]["declaration"]}
+    warnings = []
+    report = export_project(*setup, warnings=warnings)
+    assert len(warnings) == 1 and warnings[0].code == "reference.leading-hash"
+    assert warnings[0].severity == "warning"
+    assert warnings[0].instance_path == part["identity"]
+    assert report["warnings"][0]["span"] == part["source"]["declaration"]
+    assert (
+        json.loads((project.config.output_dir / "export.json").read_text())["warnings"]
+        == report["warnings"]
+    )
+    assert state(project)["entries"][part["identity"]]["reference"].startswith("#R")
+    assert export_project(*setup)["warnings"] == report["warnings"]
+
+
+def test_internal_hash_in_reference_has_no_warning(setup):
+    project, circuit, records = setup
+    circuit["parts"][0]["metadata"]["ref"] = {"value": "R#1"}
+    assert export_project(*setup)["warnings"] == []
+
+
+def test_leading_hash_warning_on_cli_stderr_and_json_report(setup, capsys):
+    from noscheme.cli import main
+
+    project, _, records = setup
+    source = project.config.path.parent / "lib/parts.nosch"
+    source.write_text(source.read_text().replace('ref_prefix: "R"', 'ref_prefix: "#R"'))
+    assert (
+        main(
+            [
+                "export-kicad",
+                "--project",
+                str(project.config.path.parent),
+                "--footprints",
+                str(records),
+                "--diagnostics",
+                "json",
+            ]
+        )
+        == 0
+    )
+    output = capsys.readouterr()
+    report = json.loads(output.out)
+    assert len(report["warnings"]) == 2
+    diagnostics = json.loads(output.err)["diagnostics"]
+    assert [d for d in diagnostics if d["code"] == "reference.leading-hash"] == report["warnings"]
+
+
 def test_stable_identity_and_reference_override(setup):
     project, circuit, records = setup
     export_project(*setup)

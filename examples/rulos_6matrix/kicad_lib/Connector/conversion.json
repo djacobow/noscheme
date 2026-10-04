@@ -1,0 +1,15 @@
+{
+  "issues": [
+    {
+      "check": "unspecified_footprint",
+      "symbol": "Conn_01x08_Pin"
+    }
+  ],
+  "module": "Connector",
+  "schema_version": 1,
+  "source": "/usr/share/kicad/symbols/Connector.kicad_sym",
+  "source_sha256": "50b42bf755009d3d459c310182dca1c37e1ff1a01fa6ae23846b416fafffc914",
+  "symbols": {
+    "Conn_01x08_Pin": "Conn_01x08_Pin"
+  }
+}

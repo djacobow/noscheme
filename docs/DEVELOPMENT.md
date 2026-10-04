@@ -127,6 +127,13 @@ In Vim, open `examples/stm32h523/components.nosch` and edit the footprint under
 footprint overrides. For capacitors, edit `Capacitor0603` and use the prefix
 `footprint: "Capacitor_SMD:`.
 
+## ERC extension lifecycle
+
+ERC extension modules are loaded once per loaded project configuration, shared
+by metadata validation and electrical checking. CLI export runs ERC once and
+uses the same diagnostics for its reports and stderr. Each fresh CLI operation
+or LSP analysis reloads extensions; there is no process-wide registry cache.
+
 ## CI
 
 GitHub Actions runs on pushes, pull requests, and manual dispatch:

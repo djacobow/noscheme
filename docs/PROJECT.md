@@ -686,7 +686,7 @@ allows these roles (all rows also permit `role.passive`):
 | `open_drain` | `digital_input`, `open_drain` |
 | `analog` | `analog_input`, `analog_output`, `analog_bidirectional` |
 | `power` | `power_input`, `power_output`, `digital_input`, `analog_input` |
-| `ground` | `ground`, `power_input`, `digital_input`, `analog_input` |
+| `ground` | `ground`, `digital_input`, `analog_input` |
 | `unchecked` | No domain restriction from this declaration |
 
 `do_not_connect` retains its separate mandatory disconnection rule. Missing or

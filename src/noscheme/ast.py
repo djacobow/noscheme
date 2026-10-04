@@ -106,6 +106,11 @@ class PinKey(Node):
 class FieldKey(Node):
     first: PinKey
     last: PinKey | None = None
+    items: tuple[FieldKey, ...] = ()
+
+    @property
+    def grouped(self):
+        return self.last is not None or bool(self.items)
 
 
 @dataclass(frozen=True)

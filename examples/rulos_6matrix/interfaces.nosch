@@ -1,0 +1,21 @@
+// Adapted from Jeremy Elson / rulos. See README.md.
+from noscheme import nettype
+
+// Bundles make shared row and segment buses scalar connection objects.
+bundle Rows:
+    row0: nettype.passive
+    row1: nettype.passive
+    row2: nettype.passive
+    row3: nettype.passive
+    row4: nettype.passive
+    row5: nettype.passive
+
+bundle Segments:
+    a: nettype.passive
+    b: nettype.passive
+    c: nettype.passive
+    d: nettype.passive
+    e: nettype.passive
+    f: nettype.passive
+    g: nettype.passive
+    dp: nettype.passive

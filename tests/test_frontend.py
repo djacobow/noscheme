@@ -11,6 +11,53 @@ from noscheme.diagnostics import DiagnosticError, render_json, render_text
 ROOT = Path(__file__).resolve().parents[1]
 
 
+@pytest.mark.parametrize("name", ["no_connect", "global", "true", "false", "number", "string"])
+@pytest.mark.parametrize(
+    "source",
+    [
+        'component NAME:\n    metadata:\n        ref_prefix: "U"\n',
+        "board B:\n    net NAME: nettype.passive\n",
+        "board B:\n    inst NAME: Part()\n",
+        "component P:\n    params:\n        NAME: number = 1\n",
+        "block B:\n    ports:\n        NAME: nettype.passive\n",
+        "bundle B:\n    NAME: nettype.passive\n",
+        "component P:\n    pins:\n        NAME:\n            role: role.passive\n",
+        "from library import R as NAME\n",
+        "from library import NAME\n",
+        "import NAME\n",
+    ],
+)
+def test_reserved_declaration_names_are_located(source, name):
+    source = source.replace("NAME", name)
+    with pytest.raises(DiagnosticError) as error:
+        parse(source, "reserved.nosch")
+    diagnostic = error.value.diagnostics[0]
+    if source.startswith("bundle B:\n    global:"):
+        # At declaration level the lexer already treats global as a modifier.
+        assert diagnostic.code == "syntax.invalid"
+    else:
+        assert diagnostic.code == "syntax.reserved-name"
+        assert source[diagnostic.span.start_pos : diagnostic.span.end_pos] == name
+
+
+def test_quoted_physical_pins_and_metadata_keys_are_not_reserved():
+    parse("""component P:
+    pins:
+        "global":
+            aliases: ["no_connect"]
+            role: role.passive
+    metadata:
+        custom:
+            true: false
+board B:
+    net inst: nettype.passive
+    inst net: P(
+        connections:
+            "global": inst
+    )
+""")
+
+
 def nodes(value):
     if isinstance(value, a.Node):
         yield value

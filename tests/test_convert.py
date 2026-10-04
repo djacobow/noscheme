@@ -81,6 +81,24 @@ def test_unknown_pin_types_are_preserved_without_guessing(tmp_path):
     assert "role: role." not in text
 
 
+def test_power_input_conversion_preserves_supply_or_ground_ambiguity(tmp_path):
+    source = library(
+        tmp_path / "Test.kicad_sym",
+        symbol("C", [pin("1", "VCC", "power_in"), pin("2", "GND", "power_in")]),
+    )
+    convert_library(source, tmp_path / "out")
+    text = (tmp_path / "out/Test.nosch").read_text()
+    assert text.count("role: [role.ground, role.power_input]") == 2
+
+
+def test_converter_renames_reserved_symbols_and_module(tmp_path):
+    source = library(tmp_path / "global.kicad_sym", symbol("true", [pin("1", "P", "passive")]))
+    report = convert_library(source, tmp_path / "out")
+    assert report["symbols"] == {"true": "C_true"}
+    assert report["module"] == "C_global"
+    assert "component C_true:" in (tmp_path / "out/C_global.nosch").read_text()
+
+
 @pytest.mark.parametrize("types,capable", [(["tri_state"], True), (["tri_state", "output"], False)])
 def test_tristate_conversion_preserves_explicit_capability(tmp_path, types, capable):
     source = library(tmp_path / "Test.kicad_sym", symbol("C", [pin("1", "T", t) for t in types]))

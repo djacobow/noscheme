@@ -1,0 +1,177 @@
+from noscheme import role
+
+component STM32F303K8Tx:
+    params:
+        value: string = "STM32F303K8Tx"
+    pins:
+        "1":
+            role: [role.ground, role.power_input]
+            custom:
+                kicad_pin_types: ["power_in"]
+        "10":
+            aliases: ["PA4"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "11":
+            aliases: ["PA5"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "12":
+            aliases: ["PA6"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "13":
+            aliases: ["PA7"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "14":
+            aliases: ["PB0"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "15":
+            aliases: ["PB1"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "16":
+            role: [role.ground, role.power_input]
+            custom:
+                kicad_pin_types: ["power_in"]
+        "17":
+            role: [role.ground, role.power_input]
+            custom:
+                kicad_pin_types: ["power_in"]
+        "18":
+            aliases: ["PA8"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "19":
+            aliases: ["PA9"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "2":
+            aliases: ["PF0"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "20":
+            aliases: ["PA10"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "21":
+            aliases: ["PA11"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "22":
+            aliases: ["PA12"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "23":
+            aliases: ["PA13"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "24":
+            aliases: ["PA14"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "25":
+            aliases: ["PA15"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "26":
+            aliases: ["PB3"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "27":
+            aliases: ["PB4"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "28":
+            aliases: ["PB5"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "29":
+            aliases: ["PB6"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "3":
+            aliases: ["PF1"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "30":
+            aliases: ["PB7"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "31":
+            aliases: ["BOOT0"]
+            role: role.digital_input
+            custom:
+                kicad_pin_types: ["input"]
+        "32":
+            role: role.passive
+            custom:
+                kicad_pin_types: ["passive"]
+        "4":
+            aliases: ["NRST"]
+            role: role.digital_input
+            custom:
+                kicad_pin_types: ["input"]
+        "5":
+            aliases: ["VDDA"]
+            role: [role.ground, role.power_input]
+            custom:
+                kicad_pin_types: ["power_in"]
+        "6":
+            aliases: ["PA0"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "7":
+            aliases: ["PA1"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "8":
+            aliases: ["PA2"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+        "9":
+            aliases: ["PA3"]
+            role: role.digital_bidirectional
+            custom:
+                kicad_pin_types: ["bidirectional"]
+    metadata:
+        ref_prefix: "U"
+        footprint: "Package_QFP:LQFP-32_7x7mm_P0.8mm"
+        custom:
+            kicad_symbol: "MCU_ST_STM32F3:STM32F303K8Tx"
+            kicad_duplicate_pin_numbers_are_jumpers: "no"
+            kicad_footprint_candidates: ["Package_QFP:LQFP-32_7x7mm_P0.8mm"]
+            kicad_properties:
+                "Datasheet": "https://www.st.com/resource/en/datasheet/stm32f303k8.pdf"
+                "Description": "STMicroelectronics Arm Cortex-M4 MCU, 64KB flash, 16KB RAM, 72 MHz, 2.0-3.6V, 25 GPIO, LQFP32"
+                "Footprint": "Package_QFP:LQFP-32_7x7mm_P0.8mm"
+                "Reference": "U"
+                "Value": "STM32F303K8Tx"
+                "ki_fp_filters": "LQFP*7x7mm*P0.8mm*"
+                "ki_keywords": "Arm Cortex-M4 STM32F3 STM32F303"

@@ -1,0 +1,10 @@
+{
+  "issues": [],
+  "module": "Interface",
+  "schema_version": 1,
+  "source": "/usr/share/kicad/symbols/Interface.kicad_sym",
+  "source_sha256": "349357dab461d981ea0c8d43c9a6604e4d61dbc20b8d2c9bea733e6bbf94a8c4",
+  "symbols": {
+    "PCA9600D": "PCA9600D"
+  }
+}

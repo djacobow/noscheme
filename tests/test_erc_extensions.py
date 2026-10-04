@@ -170,6 +170,40 @@ def test_extension_schema_and_check_without_grammar_changes(tmp_path):
     assert "erc.demo_pin_count" in (tmp_path / "build" / "erc.json").read_text()
 
 
+@pytest.mark.parametrize("command", ["check", "compile", "export-kicad", "lsp"])
+def test_extension_loaded_once_and_checked_once_per_operation(tmp_path, command, capsys):
+    plugin = """from pathlib import Path
+def event(name):
+    with Path(__file__).with_name("events.txt").open("a") as stream:
+        stream.write(name + "\\n")
+event("load")
+""" + PLUGIN.replace(
+        "def register(registry):", 'def register(registry):\n    event("register")'
+    ).replace("def check(ctx):", 'def check(ctx):\n    event("check")')
+    source = SOURCE.replace(
+        "    net bus: nettype.open_drain",
+        "    net bus: nettype.open_drain\n        demo:\n            max_pins: 2",
+    )
+    project(tmp_path, plugin=plugin, source=source)
+    log = tmp_path / "events.txt"
+    log.write_text("")
+    records = tmp_path / "footprints.json"
+    records.write_text('{"schema_version": 1, "footprints": {}}')
+    for _ in range(2):
+        if command == "lsp":
+            from noscheme.lsp_analysis import analyze
+
+            result = analyze(tmp_path / "main.nosch", tmp_path, {})
+            assert any(d.code == "erc.demo_pin_count" for d in result.diagnostics)
+        else:
+            args = [command, "--project", str(tmp_path)]
+            if command == "export-kicad":
+                args += ["--footprints", str(records)]
+            assert main(args) == (1 if command == "check" else 0)
+            assert "erc.demo_pin_count" in capsys.readouterr().err
+    assert log.read_text().splitlines() == ["load", "register", "check"] * 2
+
+
 def test_plugin_unknown_nested_fields_rejected(tmp_path):
     with pytest.raises(DiagnosticError):
         project(

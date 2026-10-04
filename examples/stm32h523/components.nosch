@@ -7,9 +7,7 @@ import Device
 // Require connected pins; each instance or specialization supplies its value.
 component Resistor extends Device.R:
     pins:
-        1:
-            unused: unused.never
-        2:
+        1..2:
             unused: unused.never
 
 component Resistor0603 extends Resistor:
@@ -106,7 +104,6 @@ block Indicator:
 component Header1x4:
     pins:
         1..4:
-            unused: unused.explicit
     metadata:
         ref_prefix: "J"
         footprint: "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical_SMD_Pin1Left"
@@ -114,7 +111,6 @@ component Header1x4:
 component Header2x10:
     pins:
         1..20:
-            unused: unused.explicit
     metadata:
         ref_prefix: "J"
         footprint: "Connector_PinHeader_2.54mm:PinHeader_2x10_P2.54mm_Vertical_SMD"
@@ -126,13 +122,10 @@ component UartHeaderJST3:
             unused: unused.always
         1:
             aliases: [gnd]
-            unused: unused.explicit
         2:
             aliases: [tx]
-            unused: unused.explicit
         3:
             aliases: [rx]
-            unused: unused.explicit
     metadata:
         ref_prefix: "J"
         custom:

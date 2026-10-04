@@ -8,6 +8,7 @@ from . import ast as a
 from .diagnostics import DiagnosticError
 from .lsp_analysis import Analysis, reference_index
 from .project import IDENTIFIER, load_project, source_text
+from .parser import RESERVED_NAMES
 from .resolve import Resolver
 
 
@@ -130,12 +131,7 @@ class RenameSession:
 
     def rename(self, path, offset, new_name):
         target = self.prepare(path, offset)
-        if not re.fullmatch(IDENTIFIER, new_name) or new_name in {
-            "global",
-            "no_connect",
-            "true",
-            "false",
-        }:
+        if not re.fullmatch(IDENTIFIER, new_name) or new_name in RESERVED_NAMES:
             raise ValueError("The new name must be a NoScheme identifier, not a reserved value.")
         if new_name == target.name:
             return []

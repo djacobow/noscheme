@@ -1,0 +1,15 @@
+{
+  "issues": [
+    {
+      "check": "unspecified_footprint",
+      "symbol": "Q_PMOS_GSD"
+    }
+  ],
+  "module": "Transistor_FET",
+  "schema_version": 1,
+  "source": "/usr/share/kicad/symbols/Transistor_FET.kicad_sym",
+  "source_sha256": "4fffc88e10091df229ea6ff032afa8ca8f1c2f3d72c8dabf25c6d31704ac6b50",
+  "symbols": {
+    "Q_PMOS_GSD": "Q_PMOS_GSD"
+  }
+}

@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "Rulos_RevB")(type "KiCad")(uri "${KIPRJMOD}/footprints/Rulos_RevB.pretty")(options "")(descr "Imported from Jeremy Elson rulos 6-Line Matrix Rev B"))
+)

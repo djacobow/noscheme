@@ -26,7 +26,7 @@ from test_erc import component, pair, codes
         ("power", "analog_input", True),
         ("power", "digital_output", False),
         ("ground", "ground", True),
-        ("ground", "power_input", True),
+        ("ground", "power_input", False),
         ("ground", "digital_input", True),
         ("ground", "power_output", False),
         ("passive", "analog_output", True),

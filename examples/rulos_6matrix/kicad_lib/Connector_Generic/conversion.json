@@ -1,0 +1,25 @@
+{
+  "issues": [
+    {
+      "check": "unspecified_footprint",
+      "symbol": "Conn_01x02"
+    },
+    {
+      "check": "unspecified_footprint",
+      "symbol": "Conn_01x03"
+    },
+    {
+      "check": "unspecified_footprint",
+      "symbol": "Conn_02x05_Odd_Even"
+    }
+  ],
+  "module": "Connector_Generic",
+  "schema_version": 1,
+  "source": "/usr/share/kicad/symbols/Connector_Generic.kicad_sym",
+  "source_sha256": "b40057d620867e58e8c3d1be9ab822bba6955e76ccfc566fd0945eedcf527fd3",
+  "symbols": {
+    "Conn_01x02": "Conn_01x02",
+    "Conn_01x03": "Conn_01x03",
+    "Conn_02x05_Odd_Even": "Conn_02x05_Odd_Even"
+  }
+}

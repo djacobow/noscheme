@@ -10,6 +10,8 @@ from . import ast as a
 from .diagnostics import Diagnostic, DiagnosticError, Related
 from .syntax import SyntaxDiagnostic, parse as syntax_parse
 
+RESERVED_NAMES = frozenset({"no_connect", "global", "true", "false", "number", "string"})
+
 
 class Builder:
     def __init__(self, source, filename):
@@ -61,6 +63,47 @@ class Builder:
 
     def key(self, node):
         if isinstance(node, Tree):
+            if node.data in {"single_pin_list", "singleton_endpoint"}:
+                index = self.index(node.children[0])
+                expr = index.start
+                if index.stop or not (
+                    isinstance(expr, (a.Name, a.String))
+                    or isinstance(expr, a.Number)
+                    and expr.tag == "integer"
+                ):
+                    raise DiagnosticError(
+                        [
+                            Diagnostic(
+                                "syntax.pin-list",
+                                "error",
+                                "pin lists contain exact pin names, numbers, or inclusive ranges",
+                                index.span,
+                            )
+                        ]
+                    )
+                text = (
+                    expr.text
+                    if isinstance(expr, a.Name)
+                    else expr.value
+                    if isinstance(expr, a.String)
+                    else expr.spelling
+                )
+                spelling = self.source[expr.span.start_pos : expr.span.end_pos]
+                item = a.FieldKey(expr.span, a.PinKey(expr.span, text, spelling))
+                return a.FieldKey(self.span(node), item.first, items=(item,))
+            if (
+                len(node.children) == 1
+                and isinstance(node.children[0], Tree)
+                and node.children[0].data in {"range_group", "list_group"}
+            ):
+                group = node.children[0]
+                count = 2 if group.data == "range_group" else 1
+                first = self.key(group.children[0])
+                if count == 2:
+                    last = self.key(group.children[1])
+                    first = a.FieldKey(self.combine(first, last), first.first, last.first)
+                items = (first, *(self.key(c) for c in group.children[count:]))
+                return a.FieldKey(self.span(node), first.first, items=items)
             keys = [self.key(c).first for c in node.children]
             return a.FieldKey(self.span(node), keys[0], keys[1] if len(keys) > 1 else None)
         text = self.string(node) if node.type == "STRING" else str(node)
@@ -145,7 +188,11 @@ class Builder:
         return a.Index(self.span(node), self.expr(c[0]), self.expr(c[1]) if len(c) > 1 else None)
 
     def endpoint(self, node):
-        if isinstance(node, Token) or node.data == "field_key":
+        if isinstance(node, Token) or node.data in {
+            "field_key",
+            "singleton_endpoint",
+            "single_pin_list",
+        }:
             return a.Endpoint(self.span(node), (), self.key(node), ())
         c = list(node.children)
         leading = []
@@ -258,13 +305,33 @@ def validate_structure(module):
             else:
                 seen[name] = node
 
+    def declaration_name(name, *, physical=False):
+        if physical and name.spelling.startswith('"'):
+            return
+        if name.text in RESERVED_NAMES:
+            error(
+                "syntax.reserved-name",
+                f"{name.text!r} is reserved and cannot be declared as a name",
+                name,
+            )
+
     def field_key(f):
         k = f.key
+        if k.items:
+            return tuple(
+                (item.first.text, item.last.text if item.last else None) for item in k.items
+            )
         return (k.first.text, k.last.text if k.last else None)
 
-    def fields(entries, defaults=False):
+    def fields(entries, defaults=False, *, pin_keys=False, instance_metadata=False):
         unique(entries, field_key)
         for f in entries:
+            if f.key.items and not pin_keys:
+                error(
+                    "syntax.pin-list-context",
+                    "pin lists are only allowed for physical pins and connection bindings",
+                    f.key,
+                )
             if f.default is not None and not defaults:
                 error(
                     "syntax.default-context",
@@ -277,9 +344,17 @@ def validate_structure(module):
                     "parameter declarations require a type and cannot have nested fields or ranges",
                     f,
                 )
-            fields(f.fields)
+            fields(f.fields, pin_keys=instance_metadata and f.key.first.text == "pins")
 
     definitions = [n for n in module.items if isinstance(n, a.Definition)]
+    for item in module.items:
+        if isinstance(item, a.Import):
+            if item.names:
+                for imported in item.names:
+                    declaration_name(imported.alias or imported.name)
+            else:
+                for name in item.module:
+                    declaration_name(name)
     unique(definitions, lambda n: n.name.text)
     allowed = {
         "component": {"params", "pins", "metadata"},
@@ -288,6 +363,7 @@ def validate_structure(module):
         "bundle": {"metadata"},
     }
     for d in definitions:
+        declaration_name(d.name)
         if d.base and d.kind not in {"component", "block"}:
             error(
                 "syntax.inheritance-context",
@@ -299,6 +375,12 @@ def validate_structure(module):
         unique([n for n in d.body if isinstance(n, (a.Net, a.Instance))], lambda n: n.name.text)
         for n in d.body:
             if isinstance(n, a.Section):
+                if n.name in {"params", "ports", "pins"}:
+                    for entry in n.entries:
+                        for key in entry.key.items or (entry.key,):
+                            declaration_name(key.first, physical=n.name == "pins")
+                            if key.last:
+                                declaration_name(key.last, physical=n.name == "pins")
                 permitted = (
                     (allowed[d.kind] - {"params"}) | {"defaults"} if d.base else allowed[d.kind]
                 )
@@ -308,8 +390,9 @@ def validate_structure(module):
                         f"{n.name} section is not allowed in this {d.kind} definition",
                         n,
                     )
-                fields(n.entries, n.name == "params")
+                fields(n.entries, n.name == "params", pin_keys=n.name == "pins")
             elif isinstance(n, a.Field):
+                declaration_name(n.key.first)
                 if d.kind != "bundle" or d.base:
                     error(
                         "syntax.declaration-context",
@@ -317,6 +400,7 @@ def validate_structure(module):
                         n,
                     )
             elif isinstance(n, (a.Net, a.Instance)):
+                declaration_name(n.name)
                 if d.kind not in {"block", "board"} or d.base:
                     error(
                         "syntax.declaration-context",
@@ -333,7 +417,7 @@ def validate_structure(module):
                         if s.name == "params":
                             unique(s.entries, lambda e: e.name.text)
                         elif s.name == "metadata":
-                            fields(s.entries)
+                            fields(s.entries, instance_metadata=True)
         fields([n for n in d.body if isinstance(n, a.Field)])
     return tuple(errors)
 

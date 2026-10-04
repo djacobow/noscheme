@@ -1,0 +1,2927 @@
+{
+  "entries": {
+    "banks[0].bypass": {
+      "active": true,
+      "reference": "C1",
+      "reserved_references": [
+        "C1"
+      ],
+      "uuid": "8f92f22e-5231-5471-983c-614b1e0a8ad9"
+    },
+    "banks[0].current_resistor": {
+      "active": true,
+      "reference": "R1",
+      "reserved_references": [
+        "R1"
+      ],
+      "uuid": "84eca60e-099e-56ac-85a4-1c5ee720a12c"
+    },
+    "banks[0].driver": {
+      "active": true,
+      "reference": "U1",
+      "reserved_references": [
+        "U1"
+      ],
+      "uuid": "4e930d4f-b6c7-5353-9019-2229e883fa27"
+    },
+    "banks[0].left.digits[0]": {
+      "active": true,
+      "reference": "D1",
+      "reserved_references": [
+        "D1"
+      ],
+      "uuid": "e4385aee-a579-575e-b6e3-053952dbc75d"
+    },
+    "banks[0].left.digits[1]": {
+      "active": true,
+      "reference": "D2",
+      "reserved_references": [
+        "D2"
+      ],
+      "uuid": "862b3f30-9390-5c52-9f0e-e73f9b520f60"
+    },
+    "banks[0].left.digits[2]": {
+      "active": true,
+      "reference": "D3",
+      "reserved_references": [
+        "D3"
+      ],
+      "uuid": "90f5f279-f363-5a06-b9b5-f02cd71ae88e"
+    },
+    "banks[0].left.digits[3]": {
+      "active": true,
+      "reference": "D4",
+      "reserved_references": [
+        "D4"
+      ],
+      "uuid": "1aec885e-ac21-5cae-bdd9-ace90491da84"
+    },
+    "banks[0].left.digits[4]": {
+      "active": true,
+      "reference": "D5",
+      "reserved_references": [
+        "D5"
+      ],
+      "uuid": "c10cafdf-bb85-58f3-912e-473c35330172"
+    },
+    "banks[0].left.digits[5]": {
+      "active": true,
+      "reference": "D6",
+      "reserved_references": [
+        "D6"
+      ],
+      "uuid": "6ae20fe9-d035-5164-b511-3cfaa2464045"
+    },
+    "banks[0].right.digits[0]": {
+      "active": true,
+      "reference": "D7",
+      "reserved_references": [
+        "D7"
+      ],
+      "uuid": "580cecbd-82e2-5cc9-9752-4f3a76fbd3dc"
+    },
+    "banks[0].right.digits[1]": {
+      "active": true,
+      "reference": "D8",
+      "reserved_references": [
+        "D8"
+      ],
+      "uuid": "72f798f1-8195-56a5-8391-cc856507c701"
+    },
+    "banks[0].right.digits[2]": {
+      "active": true,
+      "reference": "D9",
+      "reserved_references": [
+        "D9"
+      ],
+      "uuid": "37d53903-3f0b-5f1a-978c-b2f214089af3"
+    },
+    "banks[0].right.digits[3]": {
+      "active": true,
+      "reference": "D10",
+      "reserved_references": [
+        "D10"
+      ],
+      "uuid": "c52e492c-b5af-5eaf-beb3-e24c37d7f675"
+    },
+    "banks[0].right.digits[4]": {
+      "active": true,
+      "reference": "D11",
+      "reserved_references": [
+        "D11"
+      ],
+      "uuid": "ba330e78-7e74-5f3b-948d-88123e15c61b"
+    },
+    "banks[0].right.digits[5]": {
+      "active": true,
+      "reference": "D12",
+      "reserved_references": [
+        "D12"
+      ],
+      "uuid": "be41f26b-8c27-588f-a1e6-236906c64fdc"
+    },
+    "banks[1].bypass": {
+      "active": true,
+      "reference": "C2",
+      "reserved_references": [
+        "C2"
+      ],
+      "uuid": "bdbfacad-a121-53b3-ad87-4b9c6b2de247"
+    },
+    "banks[1].current_resistor": {
+      "active": true,
+      "reference": "R2",
+      "reserved_references": [
+        "R2"
+      ],
+      "uuid": "e0cc6cc8-a3fe-51e4-a6d7-f329e6c35f19"
+    },
+    "banks[1].driver": {
+      "active": true,
+      "reference": "U2",
+      "reserved_references": [
+        "U2"
+      ],
+      "uuid": "589cf995-0d44-5f7d-a849-6645e6dd3d65"
+    },
+    "banks[1].left.digits[0]": {
+      "active": true,
+      "reference": "D13",
+      "reserved_references": [
+        "D13"
+      ],
+      "uuid": "cd690948-0309-54e5-9bcd-d9850bc42d8d"
+    },
+    "banks[1].left.digits[1]": {
+      "active": true,
+      "reference": "D14",
+      "reserved_references": [
+        "D14"
+      ],
+      "uuid": "08390e74-319b-5150-87f4-d36fa6b5b284"
+    },
+    "banks[1].left.digits[2]": {
+      "active": true,
+      "reference": "D15",
+      "reserved_references": [
+        "D15"
+      ],
+      "uuid": "e3363a44-f4fa-5686-9626-689dc8e7ce30"
+    },
+    "banks[1].left.digits[3]": {
+      "active": true,
+      "reference": "D16",
+      "reserved_references": [
+        "D16"
+      ],
+      "uuid": "8d244dc5-68c5-54cb-97ad-93980d47b530"
+    },
+    "banks[1].left.digits[4]": {
+      "active": true,
+      "reference": "D17",
+      "reserved_references": [
+        "D17"
+      ],
+      "uuid": "25cf0f70-3cc6-5f0e-8bf9-9c32dac78c42"
+    },
+    "banks[1].left.digits[5]": {
+      "active": true,
+      "reference": "D18",
+      "reserved_references": [
+        "D18"
+      ],
+      "uuid": "3c99b818-200b-5e69-b35e-e5e7c15ff4a5"
+    },
+    "banks[1].right.digits[0]": {
+      "active": true,
+      "reference": "D19",
+      "reserved_references": [
+        "D19"
+      ],
+      "uuid": "2132da12-6ddf-59a6-adbd-fdbdd1b84e1e"
+    },
+    "banks[1].right.digits[1]": {
+      "active": true,
+      "reference": "D20",
+      "reserved_references": [
+        "D20"
+      ],
+      "uuid": "d1eebb5f-e242-5079-bbb9-48d0224b72ad"
+    },
+    "banks[1].right.digits[2]": {
+      "active": true,
+      "reference": "D21",
+      "reserved_references": [
+        "D21"
+      ],
+      "uuid": "eeeef6ad-994b-56fe-9f4d-d49c29269c89"
+    },
+    "banks[1].right.digits[3]": {
+      "active": true,
+      "reference": "D22",
+      "reserved_references": [
+        "D22"
+      ],
+      "uuid": "2386ea2e-30f8-5ff3-9632-7955be8525ed"
+    },
+    "banks[1].right.digits[4]": {
+      "active": true,
+      "reference": "D23",
+      "reserved_references": [
+        "D23"
+      ],
+      "uuid": "d94ce896-d214-565a-97cb-79a58982dcd2"
+    },
+    "banks[1].right.digits[5]": {
+      "active": true,
+      "reference": "D24",
+      "reserved_references": [
+        "D24"
+      ],
+      "uuid": "96895504-0e9d-5aa3-8c7d-0dfff6c20310"
+    },
+    "banks[2].bypass": {
+      "active": true,
+      "reference": "C3",
+      "reserved_references": [
+        "C3"
+      ],
+      "uuid": "08b001fe-804c-5f65-a37a-9d0e4fea1c51"
+    },
+    "banks[2].current_resistor": {
+      "active": true,
+      "reference": "R3",
+      "reserved_references": [
+        "R3"
+      ],
+      "uuid": "857d7975-0237-5e06-a95f-6c55485b289d"
+    },
+    "banks[2].driver": {
+      "active": true,
+      "reference": "U3",
+      "reserved_references": [
+        "U3"
+      ],
+      "uuid": "cdc0734c-b85a-5f7a-9297-258c3a6f7972"
+    },
+    "banks[2].left.digits[0]": {
+      "active": true,
+      "reference": "D25",
+      "reserved_references": [
+        "D25"
+      ],
+      "uuid": "4641c1ed-4dda-5b31-ae23-e79b65302a8e"
+    },
+    "banks[2].left.digits[1]": {
+      "active": true,
+      "reference": "D26",
+      "reserved_references": [
+        "D26"
+      ],
+      "uuid": "4e3107c0-f220-535e-9b65-2d9fc64ed0b0"
+    },
+    "banks[2].left.digits[2]": {
+      "active": true,
+      "reference": "D27",
+      "reserved_references": [
+        "D27"
+      ],
+      "uuid": "e3a5d4da-4364-5271-8262-0ea7dbc5f1a2"
+    },
+    "banks[2].left.digits[3]": {
+      "active": true,
+      "reference": "D28",
+      "reserved_references": [
+        "D28"
+      ],
+      "uuid": "2d0033e9-7a41-56a6-aef0-5684c0ae0d6e"
+    },
+    "banks[2].left.digits[4]": {
+      "active": true,
+      "reference": "D29",
+      "reserved_references": [
+        "D29"
+      ],
+      "uuid": "4c40675c-0d7d-57c4-a051-e0eef95b2b9f"
+    },
+    "banks[2].left.digits[5]": {
+      "active": true,
+      "reference": "D30",
+      "reserved_references": [
+        "D30"
+      ],
+      "uuid": "2fcbaefb-262c-531c-ba49-9ec10ff15cc6"
+    },
+    "banks[2].right.digits[0]": {
+      "active": true,
+      "reference": "D31",
+      "reserved_references": [
+        "D31"
+      ],
+      "uuid": "0fcaef05-2da3-577c-a737-fb5aa443098f"
+    },
+    "banks[2].right.digits[1]": {
+      "active": true,
+      "reference": "D32",
+      "reserved_references": [
+        "D32"
+      ],
+      "uuid": "a578de42-1184-5f78-a7c5-db7feb097dcf"
+    },
+    "banks[2].right.digits[2]": {
+      "active": true,
+      "reference": "D33",
+      "reserved_references": [
+        "D33"
+      ],
+      "uuid": "e9db00b5-d72d-51a3-8cb7-5c68b645b5ec"
+    },
+    "banks[2].right.digits[3]": {
+      "active": true,
+      "reference": "D34",
+      "reserved_references": [
+        "D34"
+      ],
+      "uuid": "37dac880-5ad3-51b3-84f9-954dd2aa62c4"
+    },
+    "banks[2].right.digits[4]": {
+      "active": true,
+      "reference": "D35",
+      "reserved_references": [
+        "D35"
+      ],
+      "uuid": "f62d4842-8f22-5bc8-8f72-26c10279ce18"
+    },
+    "banks[2].right.digits[5]": {
+      "active": true,
+      "reference": "D36",
+      "reserved_references": [
+        "D36"
+      ],
+      "uuid": "cc66ae29-5364-5e32-afb7-5a5cfbb9812c"
+    },
+    "banks[3].bypass": {
+      "active": true,
+      "reference": "C4",
+      "reserved_references": [
+        "C4"
+      ],
+      "uuid": "0cc41e6f-e631-5f44-87d3-9397f00eabb6"
+    },
+    "banks[3].current_resistor": {
+      "active": true,
+      "reference": "R4",
+      "reserved_references": [
+        "R4"
+      ],
+      "uuid": "5a660d58-076d-5ac8-89a9-70fa1d8f45b7"
+    },
+    "banks[3].driver": {
+      "active": true,
+      "reference": "U4",
+      "reserved_references": [
+        "U4"
+      ],
+      "uuid": "656115cd-5694-50ed-9d1b-2386501c223c"
+    },
+    "banks[3].left.digits[0]": {
+      "active": true,
+      "reference": "D37",
+      "reserved_references": [
+        "D37"
+      ],
+      "uuid": "98d90a37-a9d5-532f-b807-331512692c32"
+    },
+    "banks[3].left.digits[1]": {
+      "active": true,
+      "reference": "D38",
+      "reserved_references": [
+        "D38"
+      ],
+      "uuid": "cc733617-92bf-5172-98dc-67971b112966"
+    },
+    "banks[3].left.digits[2]": {
+      "active": true,
+      "reference": "D39",
+      "reserved_references": [
+        "D39"
+      ],
+      "uuid": "98ed239b-c42d-5b56-b46f-4343ec87f63a"
+    },
+    "banks[3].left.digits[3]": {
+      "active": true,
+      "reference": "D40",
+      "reserved_references": [
+        "D40"
+      ],
+      "uuid": "3df01635-2662-5198-87b8-9093f662feb6"
+    },
+    "banks[3].left.digits[4]": {
+      "active": true,
+      "reference": "D41",
+      "reserved_references": [
+        "D41"
+      ],
+      "uuid": "5f2ea248-7ba1-52b1-9b3c-1a4b9dd1f5f2"
+    },
+    "banks[3].left.digits[5]": {
+      "active": true,
+      "reference": "D42",
+      "reserved_references": [
+        "D42"
+      ],
+      "uuid": "811de655-4c5b-52b1-8e65-01abe81eaf1a"
+    },
+    "banks[3].right.digits[0]": {
+      "active": true,
+      "reference": "D43",
+      "reserved_references": [
+        "D43"
+      ],
+      "uuid": "bc485fa4-02c4-513f-bf38-b69df901b567"
+    },
+    "banks[3].right.digits[1]": {
+      "active": true,
+      "reference": "D44",
+      "reserved_references": [
+        "D44"
+      ],
+      "uuid": "83416250-89a7-5c4b-abe0-324baf6fa060"
+    },
+    "banks[3].right.digits[2]": {
+      "active": true,
+      "reference": "D45",
+      "reserved_references": [
+        "D45"
+      ],
+      "uuid": "f2f6f931-10b3-505b-9856-ff65ad984b6b"
+    },
+    "banks[3].right.digits[3]": {
+      "active": true,
+      "reference": "D46",
+      "reserved_references": [
+        "D46"
+      ],
+      "uuid": "d1bb5144-c28f-5c11-8c66-9619fb15ce7c"
+    },
+    "banks[3].right.digits[4]": {
+      "active": true,
+      "reference": "D47",
+      "reserved_references": [
+        "D47"
+      ],
+      "uuid": "33c00052-6e82-5b18-88d5-6fd1219aba4e"
+    },
+    "banks[3].right.digits[5]": {
+      "active": true,
+      "reference": "D48",
+      "reserved_references": [
+        "D48"
+      ],
+      "uuid": "6a8d84cf-307b-5e8b-bc4a-d4234f93299e"
+    },
+    "buck": {
+      "active": true,
+      "reference": "U5",
+      "reserved_references": [
+        "U5"
+      ],
+      "uuid": "09ca7b30-6f24-532a-8aec-4b8a41d8a2b6"
+    },
+    "buck_input_caps[0]": {
+      "active": true,
+      "reference": "C5",
+      "reserved_references": [
+        "C5"
+      ],
+      "uuid": "22d6964d-5abd-5eaf-bda2-152d90c81196"
+    },
+    "buck_input_caps[1]": {
+      "active": true,
+      "reference": "C6",
+      "reserved_references": [
+        "C6"
+      ],
+      "uuid": "205448fd-6ee6-51e9-be8a-dfc4bb32d640"
+    },
+    "bus_buffer": {
+      "active": true,
+      "reference": "U6",
+      "reserved_references": [
+        "U6"
+      ],
+      "uuid": "84eff1bf-2e59-58d5-841a-12e7adfacd54"
+    },
+    "bus_ports[0]": {
+      "active": true,
+      "reference": "J1",
+      "reserved_references": [
+        "J1"
+      ],
+      "uuid": "d53bfacd-1986-5106-90ff-6cef1108a6da"
+    },
+    "bus_ports[1]": {
+      "active": true,
+      "reference": "J2",
+      "reserved_references": [
+        "J2"
+      ],
+      "uuid": "8815002c-3860-53b8-9b2b-ffcf6fc007bf"
+    },
+    "bus_ports[2]": {
+      "active": true,
+      "reference": "J3",
+      "reserved_references": [
+        "J3"
+      ],
+      "uuid": "068e9a77-7a41-5b31-bc9d-0fd5769e7d63"
+    },
+    "bus_regulator": {
+      "active": true,
+      "reference": "U7",
+      "reserved_references": [
+        "U7"
+      ],
+      "uuid": "e4a536bd-103f-578b-b860-2e39613d7c7c"
+    },
+    "cap_1": {
+      "active": true,
+      "reference": "C7",
+      "reserved_references": [
+        "C7"
+      ],
+      "uuid": "5bdeac59-83c9-5520-824b-b3681eeaa2cf"
+    },
+    "cap_10": {
+      "active": true,
+      "reference": "C8",
+      "reserved_references": [
+        "C8"
+      ],
+      "uuid": "14881196-ad2e-584e-9f46-7a35daeb09de"
+    },
+    "cap_2": {
+      "active": true,
+      "reference": "C9",
+      "reserved_references": [
+        "C9"
+      ],
+      "uuid": "5b577a30-d0ea-54f5-b079-27396f33faae"
+    },
+    "cap_3": {
+      "active": true,
+      "reference": "C10",
+      "reserved_references": [
+        "C10"
+      ],
+      "uuid": "2d471268-0eb0-5d1a-b936-e58b534101ef"
+    },
+    "cap_4": {
+      "active": true,
+      "reference": "C11",
+      "reserved_references": [
+        "C11"
+      ],
+      "uuid": "d3967af8-d393-517f-9e78-64804e5d98ae"
+    },
+    "cap_5": {
+      "active": true,
+      "reference": "C12",
+      "reserved_references": [
+        "C12"
+      ],
+      "uuid": "09625b7f-0833-5a46-af13-fac818126e5b"
+    },
+    "cap_8": {
+      "active": true,
+      "reference": "C13",
+      "reserved_references": [
+        "C13"
+      ],
+      "uuid": "2bb5eec8-214c-5049-ac05-a32cd5706d78"
+    },
+    "cap_9": {
+      "active": true,
+      "reference": "C14",
+      "reserved_references": [
+        "C14"
+      ],
+      "uuid": "496ab1de-e1ab-5e85-b254-971a8602fdf2"
+    },
+    "debug": {
+      "active": true,
+      "reference": "J4",
+      "reserved_references": [
+        "J4"
+      ],
+      "uuid": "258a6850-377f-5c90-87c0-1e5c0e617d7e"
+    },
+    "feedback_bottom": {
+      "active": true,
+      "reference": "R5",
+      "reserved_references": [
+        "R5"
+      ],
+      "uuid": "bae482bb-88be-5718-b6da-6c2f3ec97c85"
+    },
+    "feedback_top": {
+      "active": true,
+      "reference": "R6",
+      "reserved_references": [
+        "R6"
+      ],
+      "uuid": "9422ba0c-fc81-5b90-8d2d-d90c28eee725"
+    },
+    "i2c_pullups[0]": {
+      "active": true,
+      "reference": "R7",
+      "reserved_references": [
+        "R7"
+      ],
+      "uuid": "6f81e7d7-8c12-51f0-b740-46ca990d3057"
+    },
+    "i2c_pullups[1]": {
+      "active": true,
+      "reference": "R8",
+      "reserved_references": [
+        "R8"
+      ],
+      "uuid": "06dd0a10-5ffb-5c4a-931b-8bd5f73a8309"
+    },
+    "inductor": {
+      "active": true,
+      "reference": "L1",
+      "reserved_references": [
+        "L1"
+      ],
+      "uuid": "528d1d95-85b5-58e5-a6ea-eccc16a3a9de"
+    },
+    "logic_regulator": {
+      "active": true,
+      "reference": "U8",
+      "reserved_references": [
+        "U8"
+      ],
+      "uuid": "fb077e30-ef12-5c15-b432-a761764cf905"
+    },
+    "mcu": {
+      "active": true,
+      "reference": "U9",
+      "reserved_references": [
+        "U9"
+      ],
+      "uuid": "c5c895c7-8bb2-5e0d-a967-e99bf5db0309"
+    },
+    "power_header": {
+      "active": true,
+      "reference": "J5",
+      "reserved_references": [
+        "J5"
+      ],
+      "uuid": "a0352e46-7cfc-57c2-8095-c5f853770207"
+    },
+    "power_jack": {
+      "active": true,
+      "reference": "J6",
+      "reserved_references": [
+        "J6"
+      ],
+      "uuid": "5c2c6143-e62b-5d71-a367-9247bea523eb"
+    },
+    "row_switch[0]": {
+      "active": true,
+      "reference": "Q1",
+      "reserved_references": [
+        "Q1"
+      ],
+      "uuid": "60ad1922-132a-5ee2-9faf-4e38f208be4a"
+    },
+    "row_switch[1]": {
+      "active": true,
+      "reference": "Q2",
+      "reserved_references": [
+        "Q2"
+      ],
+      "uuid": "56874e95-86e0-51cb-b00e-1e788ebeb43a"
+    },
+    "row_switch[2]": {
+      "active": true,
+      "reference": "Q3",
+      "reserved_references": [
+        "Q3"
+      ],
+      "uuid": "239504a9-abac-51a2-8762-872746598293"
+    },
+    "row_switch[3]": {
+      "active": true,
+      "reference": "Q4",
+      "reserved_references": [
+        "Q4"
+      ],
+      "uuid": "5540fc62-630e-5bb1-9a6e-64004d57bcc8"
+    },
+    "row_switch[4]": {
+      "active": true,
+      "reference": "Q5",
+      "reserved_references": [
+        "Q5"
+      ],
+      "uuid": "ed1ab4fb-4555-5bfd-b338-c8db3f31a171"
+    },
+    "row_switch[5]": {
+      "active": true,
+      "reference": "Q6",
+      "reserved_references": [
+        "Q6"
+      ],
+      "uuid": "b33121df-e0f8-523f-aa68-85f994c10da0"
+    },
+    "uart": {
+      "active": true,
+      "reference": "J7",
+      "reserved_references": [
+        "J7"
+      ],
+      "uuid": "468ce148-afb0-5076-b877-6e5462326ff5"
+    }
+  },
+  "namespace": "30180cb3-aacf-44cd-b1c3-457c449cdfdf",
+  "netlist_sha256": "e200ac3ad76731d75078837efca430b98d057291dd6932ae3a69906bebf6045a",
+  "previous_parts": {
+    "banks[0].bypass": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "banks",
+        0,
+        "bypass"
+      ],
+      "pins": {
+        "1": "vcc",
+        "2": "gnd"
+      },
+      "reference": "C1",
+      "value": {
+        "type": "string",
+        "value": "1uF"
+      }
+    },
+    "banks[0].current_resistor": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "banks",
+        0,
+        "current_resistor"
+      ],
+      "pins": {
+        "1": "gnd",
+        "2": "banks[0].current_set"
+      },
+      "reference": "R1",
+      "value": {
+        "type": "string",
+        "value": ""
+      }
+    },
+    "banks[0].driver": {
+      "footprint": "Rulos_RevB:SOP65P640X120-24",
+      "path": [
+        "banks",
+        0,
+        "driver"
+      ],
+      "pins": {
+        "1": "gnd",
+        "10": "banks[0].left_segments.f",
+        "11": "banks[0].left_segments.g",
+        "12": "banks[0].left_segments.dp",
+        "13": "banks[0].right_segments.a",
+        "14": "banks[0].right_segments.b",
+        "15": "banks[0].right_segments.c",
+        "16": "banks[0].right_segments.d",
+        "17": "banks[0].right_segments.e",
+        "18": "banks[0].right_segments.f",
+        "19": "banks[0].right_segments.g",
+        "2": "serial_data[0]",
+        "20": "banks[0].right_segments.dp",
+        "21": "blank#",
+        "22": "serial_data[1]",
+        "23": "banks[0].current_set",
+        "24": "vcc",
+        "3": "clock",
+        "4": "latch",
+        "5": "banks[0].left_segments.a",
+        "6": "banks[0].left_segments.b",
+        "7": "banks[0].left_segments.c",
+        "8": "banks[0].left_segments.d",
+        "9": "banks[0].left_segments.e"
+      },
+      "reference": "U1",
+      "value": {
+        "type": "string",
+        "value": "STP16CPC26XTR"
+      }
+    },
+    "banks[0].left.digits[0]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        0,
+        "left",
+        "digits",
+        0
+      ],
+      "pins": {
+        "1": "banks[0].left_segments.e",
+        "10": "banks[0].left_segments.g",
+        "2": "banks[0].left_segments.d",
+        "3": "rows.row0",
+        "4": "banks[0].left_segments.c",
+        "5": "banks[0].left_segments.dp",
+        "6": "banks[0].left_segments.b",
+        "7": "banks[0].left_segments.a",
+        "8": "rows.row0",
+        "9": "banks[0].left_segments.f"
+      },
+      "reference": "D1",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[0].left.digits[1]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        0,
+        "left",
+        "digits",
+        1
+      ],
+      "pins": {
+        "1": "banks[0].left_segments.e",
+        "10": "banks[0].left_segments.g",
+        "2": "banks[0].left_segments.d",
+        "3": "rows.row1",
+        "4": "banks[0].left_segments.c",
+        "5": "banks[0].left_segments.dp",
+        "6": "banks[0].left_segments.b",
+        "7": "banks[0].left_segments.a",
+        "8": "rows.row1",
+        "9": "banks[0].left_segments.f"
+      },
+      "reference": "D2",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[0].left.digits[2]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        0,
+        "left",
+        "digits",
+        2
+      ],
+      "pins": {
+        "1": "banks[0].left_segments.e",
+        "10": "banks[0].left_segments.g",
+        "2": "banks[0].left_segments.d",
+        "3": "rows.row2",
+        "4": "banks[0].left_segments.c",
+        "5": "banks[0].left_segments.dp",
+        "6": "banks[0].left_segments.b",
+        "7": "banks[0].left_segments.a",
+        "8": "rows.row2",
+        "9": "banks[0].left_segments.f"
+      },
+      "reference": "D3",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[0].left.digits[3]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        0,
+        "left",
+        "digits",
+        3
+      ],
+      "pins": {
+        "1": "banks[0].left_segments.e",
+        "10": "banks[0].left_segments.g",
+        "2": "banks[0].left_segments.d",
+        "3": "rows.row3",
+        "4": "banks[0].left_segments.c",
+        "5": "banks[0].left_segments.dp",
+        "6": "banks[0].left_segments.b",
+        "7": "banks[0].left_segments.a",
+        "8": "rows.row3",
+        "9": "banks[0].left_segments.f"
+      },
+      "reference": "D4",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[0].left.digits[4]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        0,
+        "left",
+        "digits",
+        4
+      ],
+      "pins": {
+        "1": "banks[0].left_segments.e",
+        "10": "banks[0].left_segments.g",
+        "2": "banks[0].left_segments.d",
+        "3": "rows.row4",
+        "4": "banks[0].left_segments.c",
+        "5": "banks[0].left_segments.dp",
+        "6": "banks[0].left_segments.b",
+        "7": "banks[0].left_segments.a",
+        "8": "rows.row4",
+        "9": "banks[0].left_segments.f"
+      },
+      "reference": "D5",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[0].left.digits[5]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        0,
+        "left",
+        "digits",
+        5
+      ],
+      "pins": {
+        "1": "banks[0].left_segments.e",
+        "10": "banks[0].left_segments.g",
+        "2": "banks[0].left_segments.d",
+        "3": "rows.row5",
+        "4": "banks[0].left_segments.c",
+        "5": "banks[0].left_segments.dp",
+        "6": "banks[0].left_segments.b",
+        "7": "banks[0].left_segments.a",
+        "8": "rows.row5",
+        "9": "banks[0].left_segments.f"
+      },
+      "reference": "D6",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[0].right.digits[0]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        0,
+        "right",
+        "digits",
+        0
+      ],
+      "pins": {
+        "1": "banks[0].right_segments.e",
+        "10": "banks[0].right_segments.g",
+        "2": "banks[0].right_segments.d",
+        "3": "rows.row0",
+        "4": "banks[0].right_segments.c",
+        "5": "banks[0].right_segments.dp",
+        "6": "banks[0].right_segments.b",
+        "7": "banks[0].right_segments.a",
+        "8": "rows.row0",
+        "9": "banks[0].right_segments.f"
+      },
+      "reference": "D7",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[0].right.digits[1]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        0,
+        "right",
+        "digits",
+        1
+      ],
+      "pins": {
+        "1": "banks[0].right_segments.e",
+        "10": "banks[0].right_segments.g",
+        "2": "banks[0].right_segments.d",
+        "3": "rows.row1",
+        "4": "banks[0].right_segments.c",
+        "5": "banks[0].right_segments.dp",
+        "6": "banks[0].right_segments.b",
+        "7": "banks[0].right_segments.a",
+        "8": "rows.row1",
+        "9": "banks[0].right_segments.f"
+      },
+      "reference": "D8",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[0].right.digits[2]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        0,
+        "right",
+        "digits",
+        2
+      ],
+      "pins": {
+        "1": "banks[0].right_segments.e",
+        "10": "banks[0].right_segments.g",
+        "2": "banks[0].right_segments.d",
+        "3": "rows.row2",
+        "4": "banks[0].right_segments.c",
+        "5": "banks[0].right_segments.dp",
+        "6": "banks[0].right_segments.b",
+        "7": "banks[0].right_segments.a",
+        "8": "rows.row2",
+        "9": "banks[0].right_segments.f"
+      },
+      "reference": "D9",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[0].right.digits[3]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        0,
+        "right",
+        "digits",
+        3
+      ],
+      "pins": {
+        "1": "banks[0].right_segments.e",
+        "10": "banks[0].right_segments.g",
+        "2": "banks[0].right_segments.d",
+        "3": "rows.row3",
+        "4": "banks[0].right_segments.c",
+        "5": "banks[0].right_segments.dp",
+        "6": "banks[0].right_segments.b",
+        "7": "banks[0].right_segments.a",
+        "8": "rows.row3",
+        "9": "banks[0].right_segments.f"
+      },
+      "reference": "D10",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[0].right.digits[4]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        0,
+        "right",
+        "digits",
+        4
+      ],
+      "pins": {
+        "1": "banks[0].right_segments.e",
+        "10": "banks[0].right_segments.g",
+        "2": "banks[0].right_segments.d",
+        "3": "rows.row4",
+        "4": "banks[0].right_segments.c",
+        "5": "banks[0].right_segments.dp",
+        "6": "banks[0].right_segments.b",
+        "7": "banks[0].right_segments.a",
+        "8": "rows.row4",
+        "9": "banks[0].right_segments.f"
+      },
+      "reference": "D11",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[0].right.digits[5]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        0,
+        "right",
+        "digits",
+        5
+      ],
+      "pins": {
+        "1": "banks[0].right_segments.e",
+        "10": "banks[0].right_segments.g",
+        "2": "banks[0].right_segments.d",
+        "3": "rows.row5",
+        "4": "banks[0].right_segments.c",
+        "5": "banks[0].right_segments.dp",
+        "6": "banks[0].right_segments.b",
+        "7": "banks[0].right_segments.a",
+        "8": "rows.row5",
+        "9": "banks[0].right_segments.f"
+      },
+      "reference": "D12",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[1].bypass": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "banks",
+        1,
+        "bypass"
+      ],
+      "pins": {
+        "1": "vcc",
+        "2": "gnd"
+      },
+      "reference": "C2",
+      "value": {
+        "type": "string",
+        "value": "1uF"
+      }
+    },
+    "banks[1].current_resistor": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "banks",
+        1,
+        "current_resistor"
+      ],
+      "pins": {
+        "1": "gnd",
+        "2": "banks[1].current_set"
+      },
+      "reference": "R2",
+      "value": {
+        "type": "string",
+        "value": ""
+      }
+    },
+    "banks[1].driver": {
+      "footprint": "Rulos_RevB:SOP65P640X120-24",
+      "path": [
+        "banks",
+        1,
+        "driver"
+      ],
+      "pins": {
+        "1": "gnd",
+        "10": "banks[1].left_segments.f",
+        "11": "banks[1].left_segments.g",
+        "12": "banks[1].left_segments.dp",
+        "13": "banks[1].right_segments.a",
+        "14": "banks[1].right_segments.b",
+        "15": "banks[1].right_segments.c",
+        "16": "banks[1].right_segments.d",
+        "17": "banks[1].right_segments.e",
+        "18": "banks[1].right_segments.f",
+        "19": "banks[1].right_segments.g",
+        "2": "serial_data[1]",
+        "20": "banks[1].right_segments.dp",
+        "21": "blank#",
+        "22": "serial_data[2]",
+        "23": "banks[1].current_set",
+        "24": "vcc",
+        "3": "clock",
+        "4": "latch",
+        "5": "banks[1].left_segments.a",
+        "6": "banks[1].left_segments.b",
+        "7": "banks[1].left_segments.c",
+        "8": "banks[1].left_segments.d",
+        "9": "banks[1].left_segments.e"
+      },
+      "reference": "U2",
+      "value": {
+        "type": "string",
+        "value": "STP16CPC26XTR"
+      }
+    },
+    "banks[1].left.digits[0]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        1,
+        "left",
+        "digits",
+        0
+      ],
+      "pins": {
+        "1": "banks[1].left_segments.e",
+        "10": "banks[1].left_segments.g",
+        "2": "banks[1].left_segments.d",
+        "3": "rows.row0",
+        "4": "banks[1].left_segments.c",
+        "5": "banks[1].left_segments.dp",
+        "6": "banks[1].left_segments.b",
+        "7": "banks[1].left_segments.a",
+        "8": "rows.row0",
+        "9": "banks[1].left_segments.f"
+      },
+      "reference": "D13",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[1].left.digits[1]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        1,
+        "left",
+        "digits",
+        1
+      ],
+      "pins": {
+        "1": "banks[1].left_segments.e",
+        "10": "banks[1].left_segments.g",
+        "2": "banks[1].left_segments.d",
+        "3": "rows.row1",
+        "4": "banks[1].left_segments.c",
+        "5": "banks[1].left_segments.dp",
+        "6": "banks[1].left_segments.b",
+        "7": "banks[1].left_segments.a",
+        "8": "rows.row1",
+        "9": "banks[1].left_segments.f"
+      },
+      "reference": "D14",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[1].left.digits[2]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        1,
+        "left",
+        "digits",
+        2
+      ],
+      "pins": {
+        "1": "banks[1].left_segments.e",
+        "10": "banks[1].left_segments.g",
+        "2": "banks[1].left_segments.d",
+        "3": "rows.row2",
+        "4": "banks[1].left_segments.c",
+        "5": "banks[1].left_segments.dp",
+        "6": "banks[1].left_segments.b",
+        "7": "banks[1].left_segments.a",
+        "8": "rows.row2",
+        "9": "banks[1].left_segments.f"
+      },
+      "reference": "D15",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[1].left.digits[3]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        1,
+        "left",
+        "digits",
+        3
+      ],
+      "pins": {
+        "1": "banks[1].left_segments.e",
+        "10": "banks[1].left_segments.g",
+        "2": "banks[1].left_segments.d",
+        "3": "rows.row3",
+        "4": "banks[1].left_segments.c",
+        "5": "banks[1].left_segments.dp",
+        "6": "banks[1].left_segments.b",
+        "7": "banks[1].left_segments.a",
+        "8": "rows.row3",
+        "9": "banks[1].left_segments.f"
+      },
+      "reference": "D16",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[1].left.digits[4]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        1,
+        "left",
+        "digits",
+        4
+      ],
+      "pins": {
+        "1": "banks[1].left_segments.e",
+        "10": "banks[1].left_segments.g",
+        "2": "banks[1].left_segments.d",
+        "3": "rows.row4",
+        "4": "banks[1].left_segments.c",
+        "5": "banks[1].left_segments.dp",
+        "6": "banks[1].left_segments.b",
+        "7": "banks[1].left_segments.a",
+        "8": "rows.row4",
+        "9": "banks[1].left_segments.f"
+      },
+      "reference": "D17",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[1].left.digits[5]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        1,
+        "left",
+        "digits",
+        5
+      ],
+      "pins": {
+        "1": "banks[1].left_segments.e",
+        "10": "banks[1].left_segments.g",
+        "2": "banks[1].left_segments.d",
+        "3": "rows.row5",
+        "4": "banks[1].left_segments.c",
+        "5": "banks[1].left_segments.dp",
+        "6": "banks[1].left_segments.b",
+        "7": "banks[1].left_segments.a",
+        "8": "rows.row5",
+        "9": "banks[1].left_segments.f"
+      },
+      "reference": "D18",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[1].right.digits[0]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        1,
+        "right",
+        "digits",
+        0
+      ],
+      "pins": {
+        "1": "banks[1].right_segments.e",
+        "10": "banks[1].right_segments.g",
+        "2": "banks[1].right_segments.d",
+        "3": "rows.row0",
+        "4": "banks[1].right_segments.c",
+        "5": "banks[1].right_segments.dp",
+        "6": "banks[1].right_segments.b",
+        "7": "banks[1].right_segments.a",
+        "8": "rows.row0",
+        "9": "banks[1].right_segments.f"
+      },
+      "reference": "D19",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[1].right.digits[1]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        1,
+        "right",
+        "digits",
+        1
+      ],
+      "pins": {
+        "1": "banks[1].right_segments.e",
+        "10": "banks[1].right_segments.g",
+        "2": "banks[1].right_segments.d",
+        "3": "rows.row1",
+        "4": "banks[1].right_segments.c",
+        "5": "banks[1].right_segments.dp",
+        "6": "banks[1].right_segments.b",
+        "7": "banks[1].right_segments.a",
+        "8": "rows.row1",
+        "9": "banks[1].right_segments.f"
+      },
+      "reference": "D20",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[1].right.digits[2]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        1,
+        "right",
+        "digits",
+        2
+      ],
+      "pins": {
+        "1": "banks[1].right_segments.e",
+        "10": "banks[1].right_segments.g",
+        "2": "banks[1].right_segments.d",
+        "3": "rows.row2",
+        "4": "banks[1].right_segments.c",
+        "5": "banks[1].right_segments.dp",
+        "6": "banks[1].right_segments.b",
+        "7": "banks[1].right_segments.a",
+        "8": "rows.row2",
+        "9": "banks[1].right_segments.f"
+      },
+      "reference": "D21",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[1].right.digits[3]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        1,
+        "right",
+        "digits",
+        3
+      ],
+      "pins": {
+        "1": "banks[1].right_segments.e",
+        "10": "banks[1].right_segments.g",
+        "2": "banks[1].right_segments.d",
+        "3": "rows.row3",
+        "4": "banks[1].right_segments.c",
+        "5": "banks[1].right_segments.dp",
+        "6": "banks[1].right_segments.b",
+        "7": "banks[1].right_segments.a",
+        "8": "rows.row3",
+        "9": "banks[1].right_segments.f"
+      },
+      "reference": "D22",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[1].right.digits[4]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        1,
+        "right",
+        "digits",
+        4
+      ],
+      "pins": {
+        "1": "banks[1].right_segments.e",
+        "10": "banks[1].right_segments.g",
+        "2": "banks[1].right_segments.d",
+        "3": "rows.row4",
+        "4": "banks[1].right_segments.c",
+        "5": "banks[1].right_segments.dp",
+        "6": "banks[1].right_segments.b",
+        "7": "banks[1].right_segments.a",
+        "8": "rows.row4",
+        "9": "banks[1].right_segments.f"
+      },
+      "reference": "D23",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[1].right.digits[5]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        1,
+        "right",
+        "digits",
+        5
+      ],
+      "pins": {
+        "1": "banks[1].right_segments.e",
+        "10": "banks[1].right_segments.g",
+        "2": "banks[1].right_segments.d",
+        "3": "rows.row5",
+        "4": "banks[1].right_segments.c",
+        "5": "banks[1].right_segments.dp",
+        "6": "banks[1].right_segments.b",
+        "7": "banks[1].right_segments.a",
+        "8": "rows.row5",
+        "9": "banks[1].right_segments.f"
+      },
+      "reference": "D24",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[2].bypass": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "banks",
+        2,
+        "bypass"
+      ],
+      "pins": {
+        "1": "vcc",
+        "2": "gnd"
+      },
+      "reference": "C3",
+      "value": {
+        "type": "string",
+        "value": "1uF"
+      }
+    },
+    "banks[2].current_resistor": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "banks",
+        2,
+        "current_resistor"
+      ],
+      "pins": {
+        "1": "gnd",
+        "2": "banks[2].current_set"
+      },
+      "reference": "R3",
+      "value": {
+        "type": "string",
+        "value": ""
+      }
+    },
+    "banks[2].driver": {
+      "footprint": "Rulos_RevB:SOP65P640X120-24",
+      "path": [
+        "banks",
+        2,
+        "driver"
+      ],
+      "pins": {
+        "1": "gnd",
+        "10": "banks[2].left_segments.f",
+        "11": "banks[2].left_segments.g",
+        "12": "banks[2].left_segments.dp",
+        "13": "banks[2].right_segments.a",
+        "14": "banks[2].right_segments.b",
+        "15": "banks[2].right_segments.c",
+        "16": "banks[2].right_segments.d",
+        "17": "banks[2].right_segments.e",
+        "18": "banks[2].right_segments.f",
+        "19": "banks[2].right_segments.g",
+        "2": "serial_data[2]",
+        "20": "banks[2].right_segments.dp",
+        "21": "blank#",
+        "22": "serial_data[3]",
+        "23": "banks[2].current_set",
+        "24": "vcc",
+        "3": "clock",
+        "4": "latch",
+        "5": "banks[2].left_segments.a",
+        "6": "banks[2].left_segments.b",
+        "7": "banks[2].left_segments.c",
+        "8": "banks[2].left_segments.d",
+        "9": "banks[2].left_segments.e"
+      },
+      "reference": "U3",
+      "value": {
+        "type": "string",
+        "value": "STP16CPC26XTR"
+      }
+    },
+    "banks[2].left.digits[0]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        2,
+        "left",
+        "digits",
+        0
+      ],
+      "pins": {
+        "1": "banks[2].left_segments.e",
+        "10": "banks[2].left_segments.g",
+        "2": "banks[2].left_segments.d",
+        "3": "rows.row0",
+        "4": "banks[2].left_segments.c",
+        "5": "banks[2].left_segments.dp",
+        "6": "banks[2].left_segments.b",
+        "7": "banks[2].left_segments.a",
+        "8": "rows.row0",
+        "9": "banks[2].left_segments.f"
+      },
+      "reference": "D25",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[2].left.digits[1]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        2,
+        "left",
+        "digits",
+        1
+      ],
+      "pins": {
+        "1": "banks[2].left_segments.e",
+        "10": "banks[2].left_segments.g",
+        "2": "banks[2].left_segments.d",
+        "3": "rows.row1",
+        "4": "banks[2].left_segments.c",
+        "5": "banks[2].left_segments.dp",
+        "6": "banks[2].left_segments.b",
+        "7": "banks[2].left_segments.a",
+        "8": "rows.row1",
+        "9": "banks[2].left_segments.f"
+      },
+      "reference": "D26",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[2].left.digits[2]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        2,
+        "left",
+        "digits",
+        2
+      ],
+      "pins": {
+        "1": "banks[2].left_segments.e",
+        "10": "banks[2].left_segments.g",
+        "2": "banks[2].left_segments.d",
+        "3": "rows.row2",
+        "4": "banks[2].left_segments.c",
+        "5": "banks[2].left_segments.dp",
+        "6": "banks[2].left_segments.b",
+        "7": "banks[2].left_segments.a",
+        "8": "rows.row2",
+        "9": "banks[2].left_segments.f"
+      },
+      "reference": "D27",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[2].left.digits[3]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        2,
+        "left",
+        "digits",
+        3
+      ],
+      "pins": {
+        "1": "banks[2].left_segments.e",
+        "10": "banks[2].left_segments.g",
+        "2": "banks[2].left_segments.d",
+        "3": "rows.row3",
+        "4": "banks[2].left_segments.c",
+        "5": "banks[2].left_segments.dp",
+        "6": "banks[2].left_segments.b",
+        "7": "banks[2].left_segments.a",
+        "8": "rows.row3",
+        "9": "banks[2].left_segments.f"
+      },
+      "reference": "D28",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[2].left.digits[4]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        2,
+        "left",
+        "digits",
+        4
+      ],
+      "pins": {
+        "1": "banks[2].left_segments.e",
+        "10": "banks[2].left_segments.g",
+        "2": "banks[2].left_segments.d",
+        "3": "rows.row4",
+        "4": "banks[2].left_segments.c",
+        "5": "banks[2].left_segments.dp",
+        "6": "banks[2].left_segments.b",
+        "7": "banks[2].left_segments.a",
+        "8": "rows.row4",
+        "9": "banks[2].left_segments.f"
+      },
+      "reference": "D29",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[2].left.digits[5]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        2,
+        "left",
+        "digits",
+        5
+      ],
+      "pins": {
+        "1": "banks[2].left_segments.e",
+        "10": "banks[2].left_segments.g",
+        "2": "banks[2].left_segments.d",
+        "3": "rows.row5",
+        "4": "banks[2].left_segments.c",
+        "5": "banks[2].left_segments.dp",
+        "6": "banks[2].left_segments.b",
+        "7": "banks[2].left_segments.a",
+        "8": "rows.row5",
+        "9": "banks[2].left_segments.f"
+      },
+      "reference": "D30",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[2].right.digits[0]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        2,
+        "right",
+        "digits",
+        0
+      ],
+      "pins": {
+        "1": "banks[2].right_segments.e",
+        "10": "banks[2].right_segments.g",
+        "2": "banks[2].right_segments.d",
+        "3": "rows.row0",
+        "4": "banks[2].right_segments.c",
+        "5": "banks[2].right_segments.dp",
+        "6": "banks[2].right_segments.b",
+        "7": "banks[2].right_segments.a",
+        "8": "rows.row0",
+        "9": "banks[2].right_segments.f"
+      },
+      "reference": "D31",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[2].right.digits[1]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        2,
+        "right",
+        "digits",
+        1
+      ],
+      "pins": {
+        "1": "banks[2].right_segments.e",
+        "10": "banks[2].right_segments.g",
+        "2": "banks[2].right_segments.d",
+        "3": "rows.row1",
+        "4": "banks[2].right_segments.c",
+        "5": "banks[2].right_segments.dp",
+        "6": "banks[2].right_segments.b",
+        "7": "banks[2].right_segments.a",
+        "8": "rows.row1",
+        "9": "banks[2].right_segments.f"
+      },
+      "reference": "D32",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[2].right.digits[2]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        2,
+        "right",
+        "digits",
+        2
+      ],
+      "pins": {
+        "1": "banks[2].right_segments.e",
+        "10": "banks[2].right_segments.g",
+        "2": "banks[2].right_segments.d",
+        "3": "rows.row2",
+        "4": "banks[2].right_segments.c",
+        "5": "banks[2].right_segments.dp",
+        "6": "banks[2].right_segments.b",
+        "7": "banks[2].right_segments.a",
+        "8": "rows.row2",
+        "9": "banks[2].right_segments.f"
+      },
+      "reference": "D33",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[2].right.digits[3]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        2,
+        "right",
+        "digits",
+        3
+      ],
+      "pins": {
+        "1": "banks[2].right_segments.e",
+        "10": "banks[2].right_segments.g",
+        "2": "banks[2].right_segments.d",
+        "3": "rows.row3",
+        "4": "banks[2].right_segments.c",
+        "5": "banks[2].right_segments.dp",
+        "6": "banks[2].right_segments.b",
+        "7": "banks[2].right_segments.a",
+        "8": "rows.row3",
+        "9": "banks[2].right_segments.f"
+      },
+      "reference": "D34",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[2].right.digits[4]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        2,
+        "right",
+        "digits",
+        4
+      ],
+      "pins": {
+        "1": "banks[2].right_segments.e",
+        "10": "banks[2].right_segments.g",
+        "2": "banks[2].right_segments.d",
+        "3": "rows.row4",
+        "4": "banks[2].right_segments.c",
+        "5": "banks[2].right_segments.dp",
+        "6": "banks[2].right_segments.b",
+        "7": "banks[2].right_segments.a",
+        "8": "rows.row4",
+        "9": "banks[2].right_segments.f"
+      },
+      "reference": "D35",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[2].right.digits[5]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        2,
+        "right",
+        "digits",
+        5
+      ],
+      "pins": {
+        "1": "banks[2].right_segments.e",
+        "10": "banks[2].right_segments.g",
+        "2": "banks[2].right_segments.d",
+        "3": "rows.row5",
+        "4": "banks[2].right_segments.c",
+        "5": "banks[2].right_segments.dp",
+        "6": "banks[2].right_segments.b",
+        "7": "banks[2].right_segments.a",
+        "8": "rows.row5",
+        "9": "banks[2].right_segments.f"
+      },
+      "reference": "D36",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[3].bypass": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "banks",
+        3,
+        "bypass"
+      ],
+      "pins": {
+        "1": "vcc",
+        "2": "gnd"
+      },
+      "reference": "C4",
+      "value": {
+        "type": "string",
+        "value": "1uF"
+      }
+    },
+    "banks[3].current_resistor": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "banks",
+        3,
+        "current_resistor"
+      ],
+      "pins": {
+        "1": "gnd",
+        "2": "banks[3].current_set"
+      },
+      "reference": "R4",
+      "value": {
+        "type": "string",
+        "value": ""
+      }
+    },
+    "banks[3].driver": {
+      "footprint": "Rulos_RevB:SOP65P640X120-24",
+      "path": [
+        "banks",
+        3,
+        "driver"
+      ],
+      "pins": {
+        "1": "gnd",
+        "10": "banks[3].left_segments.f",
+        "11": "banks[3].left_segments.g",
+        "12": "banks[3].left_segments.dp",
+        "13": "banks[3].right_segments.a",
+        "14": "banks[3].right_segments.b",
+        "15": "banks[3].right_segments.c",
+        "16": "banks[3].right_segments.d",
+        "17": "banks[3].right_segments.e",
+        "18": "banks[3].right_segments.f",
+        "19": "banks[3].right_segments.g",
+        "2": "serial_data[3]",
+        "20": "banks[3].right_segments.dp",
+        "21": "blank#",
+        "22": "serial_data[4]",
+        "23": "banks[3].current_set",
+        "24": "vcc",
+        "3": "clock",
+        "4": "latch",
+        "5": "banks[3].left_segments.a",
+        "6": "banks[3].left_segments.b",
+        "7": "banks[3].left_segments.c",
+        "8": "banks[3].left_segments.d",
+        "9": "banks[3].left_segments.e"
+      },
+      "reference": "U4",
+      "value": {
+        "type": "string",
+        "value": "STP16CPC26XTR"
+      }
+    },
+    "banks[3].left.digits[0]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        3,
+        "left",
+        "digits",
+        0
+      ],
+      "pins": {
+        "1": "banks[3].left_segments.e",
+        "10": "banks[3].left_segments.g",
+        "2": "banks[3].left_segments.d",
+        "3": "rows.row0",
+        "4": "banks[3].left_segments.c",
+        "5": "banks[3].left_segments.dp",
+        "6": "banks[3].left_segments.b",
+        "7": "banks[3].left_segments.a",
+        "8": "rows.row0",
+        "9": "banks[3].left_segments.f"
+      },
+      "reference": "D37",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[3].left.digits[1]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        3,
+        "left",
+        "digits",
+        1
+      ],
+      "pins": {
+        "1": "banks[3].left_segments.e",
+        "10": "banks[3].left_segments.g",
+        "2": "banks[3].left_segments.d",
+        "3": "rows.row1",
+        "4": "banks[3].left_segments.c",
+        "5": "banks[3].left_segments.dp",
+        "6": "banks[3].left_segments.b",
+        "7": "banks[3].left_segments.a",
+        "8": "rows.row1",
+        "9": "banks[3].left_segments.f"
+      },
+      "reference": "D38",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[3].left.digits[2]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        3,
+        "left",
+        "digits",
+        2
+      ],
+      "pins": {
+        "1": "banks[3].left_segments.e",
+        "10": "banks[3].left_segments.g",
+        "2": "banks[3].left_segments.d",
+        "3": "rows.row2",
+        "4": "banks[3].left_segments.c",
+        "5": "banks[3].left_segments.dp",
+        "6": "banks[3].left_segments.b",
+        "7": "banks[3].left_segments.a",
+        "8": "rows.row2",
+        "9": "banks[3].left_segments.f"
+      },
+      "reference": "D39",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[3].left.digits[3]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        3,
+        "left",
+        "digits",
+        3
+      ],
+      "pins": {
+        "1": "banks[3].left_segments.e",
+        "10": "banks[3].left_segments.g",
+        "2": "banks[3].left_segments.d",
+        "3": "rows.row3",
+        "4": "banks[3].left_segments.c",
+        "5": "banks[3].left_segments.dp",
+        "6": "banks[3].left_segments.b",
+        "7": "banks[3].left_segments.a",
+        "8": "rows.row3",
+        "9": "banks[3].left_segments.f"
+      },
+      "reference": "D40",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[3].left.digits[4]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        3,
+        "left",
+        "digits",
+        4
+      ],
+      "pins": {
+        "1": "banks[3].left_segments.e",
+        "10": "banks[3].left_segments.g",
+        "2": "banks[3].left_segments.d",
+        "3": "rows.row4",
+        "4": "banks[3].left_segments.c",
+        "5": "banks[3].left_segments.dp",
+        "6": "banks[3].left_segments.b",
+        "7": "banks[3].left_segments.a",
+        "8": "rows.row4",
+        "9": "banks[3].left_segments.f"
+      },
+      "reference": "D41",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[3].left.digits[5]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        3,
+        "left",
+        "digits",
+        5
+      ],
+      "pins": {
+        "1": "banks[3].left_segments.e",
+        "10": "banks[3].left_segments.g",
+        "2": "banks[3].left_segments.d",
+        "3": "rows.row5",
+        "4": "banks[3].left_segments.c",
+        "5": "banks[3].left_segments.dp",
+        "6": "banks[3].left_segments.b",
+        "7": "banks[3].left_segments.a",
+        "8": "rows.row5",
+        "9": "banks[3].left_segments.f"
+      },
+      "reference": "D42",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[3].right.digits[0]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        3,
+        "right",
+        "digits",
+        0
+      ],
+      "pins": {
+        "1": "banks[3].right_segments.e",
+        "10": "banks[3].right_segments.g",
+        "2": "banks[3].right_segments.d",
+        "3": "rows.row0",
+        "4": "banks[3].right_segments.c",
+        "5": "banks[3].right_segments.dp",
+        "6": "banks[3].right_segments.b",
+        "7": "banks[3].right_segments.a",
+        "8": "rows.row0",
+        "9": "banks[3].right_segments.f"
+      },
+      "reference": "D43",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[3].right.digits[1]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        3,
+        "right",
+        "digits",
+        1
+      ],
+      "pins": {
+        "1": "banks[3].right_segments.e",
+        "10": "banks[3].right_segments.g",
+        "2": "banks[3].right_segments.d",
+        "3": "rows.row1",
+        "4": "banks[3].right_segments.c",
+        "5": "banks[3].right_segments.dp",
+        "6": "banks[3].right_segments.b",
+        "7": "banks[3].right_segments.a",
+        "8": "rows.row1",
+        "9": "banks[3].right_segments.f"
+      },
+      "reference": "D44",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[3].right.digits[2]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        3,
+        "right",
+        "digits",
+        2
+      ],
+      "pins": {
+        "1": "banks[3].right_segments.e",
+        "10": "banks[3].right_segments.g",
+        "2": "banks[3].right_segments.d",
+        "3": "rows.row2",
+        "4": "banks[3].right_segments.c",
+        "5": "banks[3].right_segments.dp",
+        "6": "banks[3].right_segments.b",
+        "7": "banks[3].right_segments.a",
+        "8": "rows.row2",
+        "9": "banks[3].right_segments.f"
+      },
+      "reference": "D45",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[3].right.digits[3]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        3,
+        "right",
+        "digits",
+        3
+      ],
+      "pins": {
+        "1": "banks[3].right_segments.e",
+        "10": "banks[3].right_segments.g",
+        "2": "banks[3].right_segments.d",
+        "3": "rows.row3",
+        "4": "banks[3].right_segments.c",
+        "5": "banks[3].right_segments.dp",
+        "6": "banks[3].right_segments.b",
+        "7": "banks[3].right_segments.a",
+        "8": "rows.row3",
+        "9": "banks[3].right_segments.f"
+      },
+      "reference": "D46",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[3].right.digits[4]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        3,
+        "right",
+        "digits",
+        4
+      ],
+      "pins": {
+        "1": "banks[3].right_segments.e",
+        "10": "banks[3].right_segments.g",
+        "2": "banks[3].right_segments.d",
+        "3": "rows.row4",
+        "4": "banks[3].right_segments.c",
+        "5": "banks[3].right_segments.dp",
+        "6": "banks[3].right_segments.b",
+        "7": "banks[3].right_segments.a",
+        "8": "rows.row4",
+        "9": "banks[3].right_segments.f"
+      },
+      "reference": "D47",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "banks[3].right.digits[5]": {
+      "footprint": "Rulos_RevB:SA56-11",
+      "path": [
+        "banks",
+        3,
+        "right",
+        "digits",
+        5
+      ],
+      "pins": {
+        "1": "banks[3].right_segments.e",
+        "10": "banks[3].right_segments.g",
+        "2": "banks[3].right_segments.d",
+        "3": "rows.row5",
+        "4": "banks[3].right_segments.c",
+        "5": "banks[3].right_segments.dp",
+        "6": "banks[3].right_segments.b",
+        "7": "banks[3].right_segments.a",
+        "8": "rows.row5",
+        "9": "banks[3].right_segments.f"
+      },
+      "reference": "D48",
+      "value": {
+        "type": "string",
+        "value": "7-SEG_SA56-11"
+      }
+    },
+    "buck": {
+      "footprint": "Package_TO_SOT_SMD:SOT-23-6",
+      "path": [
+        "buck"
+      ],
+      "pins": {
+        "1": "gnd",
+        "2": "switch_node",
+        "3": "v5",
+        "4": "feedback",
+        "5": "v5",
+        "6": "bootstrap"
+      },
+      "reference": "U5",
+      "value": {
+        "type": "string",
+        "value": "TPS563200"
+      }
+    },
+    "buck_input_caps[0]": {
+      "footprint": "Capacitor_SMD:C_0805_2012Metric",
+      "path": [
+        "buck_input_caps",
+        0
+      ],
+      "pins": {
+        "1": "v5",
+        "2": "gnd"
+      },
+      "reference": "C5",
+      "value": {
+        "type": "string",
+        "value": "10uF"
+      }
+    },
+    "buck_input_caps[1]": {
+      "footprint": "Capacitor_SMD:C_0805_2012Metric",
+      "path": [
+        "buck_input_caps",
+        1
+      ],
+      "pins": {
+        "1": "v5",
+        "2": "gnd"
+      },
+      "reference": "C6",
+      "value": {
+        "type": "string",
+        "value": "10uF"
+      }
+    },
+    "bus_buffer": {
+      "footprint": "Package_SO:SO-8_3.9x4.9mm_P1.27mm",
+      "path": [
+        "bus_buffer"
+      ],
+      "pins": {
+        "1": "sda",
+        "2": "sda_hv",
+        "3": "sda_hv",
+        "4": "gnd",
+        "5": "scl_hv",
+        "6": "scl_hv",
+        "7": "scl",
+        "8": "v10"
+      },
+      "reference": "U6",
+      "value": {
+        "type": "string",
+        "value": "PCA9600SO8"
+      }
+    },
+    "bus_ports[0]": {
+      "footprint": "Connector_RJ:RJ45_Amphenol_54602-x08_Horizontal",
+      "path": [
+        "bus_ports",
+        0
+      ],
+      "pins": {
+        "1": "sda_hv",
+        "2": "gnd",
+        "3": "scl_hv",
+        "4": "v12",
+        "5": "gnd",
+        "6": "gnd",
+        "7": "v12",
+        "8": "gnd"
+      },
+      "reference": "J1",
+      "value": {
+        "type": "string",
+        "value": "54602-908LF"
+      }
+    },
+    "bus_ports[1]": {
+      "footprint": "Connector_RJ:RJ45_Amphenol_54602-x08_Horizontal",
+      "path": [
+        "bus_ports",
+        1
+      ],
+      "pins": {
+        "1": "sda_hv",
+        "2": "gnd",
+        "3": "scl_hv",
+        "4": "v12",
+        "5": "gnd",
+        "6": "gnd",
+        "7": "v12",
+        "8": "gnd"
+      },
+      "reference": "J2",
+      "value": {
+        "type": "string",
+        "value": "54602-908LF"
+      }
+    },
+    "bus_ports[2]": {
+      "footprint": "Connector_RJ:RJ45_Amphenol_54602-x08_Horizontal",
+      "path": [
+        "bus_ports",
+        2
+      ],
+      "pins": {
+        "1": "sda_hv",
+        "2": "gnd",
+        "3": "scl_hv",
+        "4": "v12",
+        "5": "gnd",
+        "6": "gnd",
+        "7": "v12",
+        "8": "gnd"
+      },
+      "reference": "J3",
+      "value": {
+        "type": "string",
+        "value": "54602-908LF"
+      }
+    },
+    "bus_regulator": {
+      "footprint": "Rulos_RevB:TO92",
+      "path": [
+        "bus_regulator"
+      ],
+      "pins": {
+        "1": "v10",
+        "2": "gnd",
+        "3": "v12"
+      },
+      "reference": "U7",
+      "value": {
+        "type": "string",
+        "value": "7810"
+      }
+    },
+    "cap_1": {
+      "footprint": "Capacitor_SMD:C_0805_2012Metric",
+      "path": [
+        "cap_1"
+      ],
+      "pins": {
+        "1": "v5",
+        "2": "gnd"
+      },
+      "reference": "C7",
+      "value": {
+        "type": "string",
+        "value": "10uF"
+      }
+    },
+    "cap_10": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "cap_10"
+      ],
+      "pins": {
+        "1": "switch_node",
+        "2": "bootstrap"
+      },
+      "reference": "C8",
+      "value": {
+        "type": "string",
+        "value": "0.1uF"
+      }
+    },
+    "cap_2": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "cap_2"
+      ],
+      "pins": {
+        "1": "vcc",
+        "2": "gnd"
+      },
+      "reference": "C9",
+      "value": {
+        "type": "string",
+        "value": "1uF"
+      }
+    },
+    "cap_3": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "cap_3"
+      ],
+      "pins": {
+        "1": "v12",
+        "2": "gnd"
+      },
+      "reference": "C10",
+      "value": {
+        "type": "string",
+        "value": "1uF"
+      }
+    },
+    "cap_4": {
+      "footprint": "Capacitor_SMD:C_0805_2012Metric",
+      "path": [
+        "cap_4"
+      ],
+      "pins": {
+        "1": "v10",
+        "2": "gnd"
+      },
+      "reference": "C11",
+      "value": {
+        "type": "string",
+        "value": "10uF"
+      }
+    },
+    "cap_5": {
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "path": [
+        "cap_5"
+      ],
+      "pins": {
+        "1": "vcc",
+        "2": "gnd"
+      },
+      "reference": "C12",
+      "value": {
+        "type": "string",
+        "value": "1uF"
+      }
+    },
+    "cap_8": {
+      "footprint": "Rulos_RevB:C1210",
+      "path": [
+        "cap_8"
+      ],
+      "pins": {
+        "1": "led_power",
+        "2": "gnd"
+      },
+      "reference": "C13",
+      "value": {
+        "type": "string",
+        "value": "47uF"
+      }
+    },
+    "cap_9": {
+      "footprint": "Rulos_RevB:C0603",
+      "path": [
+        "cap_9"
+      ],
+      "pins": {
+        "1": "led_power",
+        "2": "gnd"
+      },
+      "reference": "C14",
+      "value": {
+        "type": "string",
+        "value": ""
+      }
+    },
+    "debug": {
+      "footprint": "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD",
+      "path": [
+        "debug"
+      ],
+      "pins": {
+        "1": "vcc",
+        "10": "reset#",
+        "2": "swdio",
+        "3": "gnd",
+        "4": "swclk",
+        "5": "gnd",
+        "6": "swo",
+        "7": null,
+        "8": null,
+        "9": "gnd"
+      },
+      "reference": "J4",
+      "value": {
+        "type": "string",
+        "value": "CORTEX_HEADERJ"
+      }
+    },
+    "feedback_bottom": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "feedback_bottom"
+      ],
+      "pins": {
+        "1": "gnd",
+        "2": "feedback"
+      },
+      "reference": "R5",
+      "value": {
+        "type": "string",
+        "value": "10k"
+      }
+    },
+    "feedback_top": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "feedback_top"
+      ],
+      "pins": {
+        "1": "feedback",
+        "2": "led_power"
+      },
+      "reference": "R6",
+      "value": {
+        "type": "string",
+        "value": "22.6k"
+      }
+    },
+    "i2c_pullups[0]": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "i2c_pullups",
+        0
+      ],
+      "pins": {
+        "1": "sda",
+        "2": "vcc"
+      },
+      "reference": "R7",
+      "value": {
+        "type": "string",
+        "value": "2k"
+      }
+    },
+    "i2c_pullups[1]": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "i2c_pullups",
+        1
+      ],
+      "pins": {
+        "1": "scl",
+        "2": "vcc"
+      },
+      "reference": "R8",
+      "value": {
+        "type": "string",
+        "value": "2k"
+      }
+    },
+    "inductor": {
+      "footprint": "Rulos_RevB:DEM804XC",
+      "path": [
+        "inductor"
+      ],
+      "pins": {
+        "P$1": "switch_node",
+        "P$2": "led_power"
+      },
+      "reference": "L1",
+      "value": {
+        "type": "string",
+        "value": "2.2uH"
+      }
+    },
+    "logic_regulator": {
+      "footprint": "Rulos_RevB:TO92",
+      "path": [
+        "logic_regulator"
+      ],
+      "pins": {
+        "1": "vcc",
+        "2": "gnd",
+        "3": "v5"
+      },
+      "reference": "U8",
+      "value": {
+        "type": "string",
+        "value": "7803"
+      }
+    },
+    "mcu": {
+      "footprint": "Package_QFP:LQFP-32_7x7mm_P0.8mm",
+      "path": [
+        "mcu"
+      ],
+      "pins": {
+        "1": "vcc",
+        "10": "row_enable[4]",
+        "11": "row_enable[5]",
+        "12": "blank#",
+        "13": "latch",
+        "14": null,
+        "15": null,
+        "16": "gnd",
+        "17": "vcc",
+        "18": null,
+        "19": "tx",
+        "2": null,
+        "20": "rx",
+        "21": null,
+        "22": null,
+        "23": "swdio",
+        "24": "swclk",
+        "25": null,
+        "26": "clock",
+        "27": null,
+        "28": "serial_data[0]",
+        "29": "scl",
+        "3": null,
+        "30": "sda",
+        "31": "gnd",
+        "32": "gnd",
+        "4": "reset#",
+        "5": "vcc",
+        "6": "row_enable[0]",
+        "7": "row_enable[1]",
+        "8": "row_enable[2]",
+        "9": "row_enable[3]"
+      },
+      "reference": "U9",
+      "value": {
+        "type": "string",
+        "value": "STM32F303K8T6"
+      }
+    },
+    "power_header": {
+      "footprint": "Connector_Molex:Molex_KK-254_AE-6410-02A_1x02_P2.54mm_Vertical",
+      "path": [
+        "power_header"
+      ],
+      "pins": {
+        "1": "v5",
+        "2": "gnd"
+      },
+      "reference": "J5",
+      "value": {
+        "type": "string",
+        "value": "22-23-2021"
+      }
+    },
+    "power_jack": {
+      "footprint": "Rulos_RevB:CUI-PJ-051",
+      "path": [
+        "power_jack"
+      ],
+      "pins": {
+        "P$1": "v5",
+        "P$2": "gnd",
+        "P$3": null,
+        "P$G1": null,
+        "P$G2": null
+      },
+      "reference": "J6",
+      "value": {
+        "type": "string",
+        "value": "CUI-PJ-051"
+      }
+    },
+    "row_switch[0]": {
+      "footprint": "Package_TO_SOT_SMD:SOT-23",
+      "path": [
+        "row_switch",
+        0
+      ],
+      "pins": {
+        "1": "row_enable[0]",
+        "2": "led_power",
+        "3": "rows.row0"
+      },
+      "reference": "Q1",
+      "value": {
+        "type": "string",
+        "value": "MOSFET-PCHANNEL"
+      }
+    },
+    "row_switch[1]": {
+      "footprint": "Package_TO_SOT_SMD:SOT-23",
+      "path": [
+        "row_switch",
+        1
+      ],
+      "pins": {
+        "1": "row_enable[1]",
+        "2": "led_power",
+        "3": "rows.row1"
+      },
+      "reference": "Q2",
+      "value": {
+        "type": "string",
+        "value": "MOSFET-PCHANNEL"
+      }
+    },
+    "row_switch[2]": {
+      "footprint": "Package_TO_SOT_SMD:SOT-23",
+      "path": [
+        "row_switch",
+        2
+      ],
+      "pins": {
+        "1": "row_enable[2]",
+        "2": "led_power",
+        "3": "rows.row2"
+      },
+      "reference": "Q3",
+      "value": {
+        "type": "string",
+        "value": "MOSFET-PCHANNEL"
+      }
+    },
+    "row_switch[3]": {
+      "footprint": "Package_TO_SOT_SMD:SOT-23",
+      "path": [
+        "row_switch",
+        3
+      ],
+      "pins": {
+        "1": "row_enable[3]",
+        "2": "led_power",
+        "3": "rows.row3"
+      },
+      "reference": "Q4",
+      "value": {
+        "type": "string",
+        "value": "MOSFET-PCHANNEL"
+      }
+    },
+    "row_switch[4]": {
+      "footprint": "Package_TO_SOT_SMD:SOT-23",
+      "path": [
+        "row_switch",
+        4
+      ],
+      "pins": {
+        "1": "row_enable[4]",
+        "2": "led_power",
+        "3": "rows.row4"
+      },
+      "reference": "Q5",
+      "value": {
+        "type": "string",
+        "value": "MOSFET-PCHANNEL"
+      }
+    },
+    "row_switch[5]": {
+      "footprint": "Package_TO_SOT_SMD:SOT-23",
+      "path": [
+        "row_switch",
+        5
+      ],
+      "pins": {
+        "1": "row_enable[5]",
+        "2": "led_power",
+        "3": "rows.row5"
+      },
+      "reference": "Q6",
+      "value": {
+        "type": "string",
+        "value": "MOSFET-PCHANNEL"
+      }
+    },
+    "uart": {
+      "footprint": "Connector_Molex:Molex_KK-254_AE-6410-03A_1x03_P2.54mm_Vertical",
+      "path": [
+        "uart"
+      ],
+      "pins": {
+        "1": "tx",
+        "2": "rx",
+        "3": "gnd"
+      },
+      "reference": "J7",
+      "value": {
+        "type": "string",
+        "value": "22-23-2031"
+      }
+    }
+  },
+  "schema_version": 1
+}

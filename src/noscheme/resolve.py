@@ -4,7 +4,7 @@ from dataclasses import dataclass, replace
 import re
 
 from . import ast as a
-from .diagnostics import Related
+from .diagnostics import Related, DiagnosticError, collect_errors
 from .metadata import (
     NETTYPES,
     Value,
@@ -79,6 +79,24 @@ class Resolver:
         return (symbol.module, symbol.name)
 
     def keys(self, key):
+        if key.items:
+            names = []
+            seen = set()
+            for item in key.items:
+                for name in self.keys(item):
+                    if name in seen:
+                        fail(
+                            "resolve.duplicate-pin",
+                            f"pin {name!r} appears more than once in selection",
+                            item.span,
+                        )
+                    seen.add(name)
+                    names.append(name)
+                    if len(names) > self.max_pins:
+                        fail(
+                            "resolve.limit", "pin selection exceeds configured pin limit", key.span
+                        )
+            return tuple(names)
         if key.last is None:
             return (key.first.text,)
         first, last = key.first.text, key.last.text
@@ -103,6 +121,10 @@ class Resolver:
                 "resolve.pin-range", "descending or excessively large physical pin range", key.span
             )
         return tuple(str(x) for x in range(lo, hi + 1))
+
+    def key_spans(self, key):
+        """Preserve each list member's location for navigation and hover."""
+        return tuple((name, item.span) for item in key.items or (key,) for name in self.keys(item))
 
     def build(self, module, source, parent):
         sections = {s.name: s for s in source.body if isinstance(s, a.Section)}
@@ -136,7 +158,9 @@ class Resolver:
         declared = {}
         for field in declarations:
             names = self.keys(field.key)
-            if source.kind != "component" and field.key.last:
+            if parent and source.kind == "component":
+                names = tuple(parent.aliases.get(name, name) for name in names)
+            if source.kind != "component" and field.key.grouped:
                 fail("resolve.interface", "only physical pins support ranges", field.span)
             for name in names:
                 if source.kind != "component" and not re.fullmatch(IDENTIFIER, name):
@@ -280,8 +304,13 @@ class Resolver:
 
     def resolve_all(self):
         self.resolve_interfaces()
+        errors = []
         for definition in self.definitions.values():
-            self.check_body(definition)
+            with collect_errors(errors):
+                self.check_body(definition)
+        if errors:
+            # Specializations can share the same body and diagnostic locations.
+            raise DiagnosticError(tuple(dict.fromkeys(errors)))
         self.check_bundle_cycles()
         return dict(sorted(self.definitions.items()))
 
@@ -376,21 +405,32 @@ class Resolver:
                     node.fields, "net", self.project, definition.body_module, definition.parameters
                 )
                 nets[node.name.text] = value
+        errors = []
         for parameter in definition.parameters.values():
             if parameter.default:
-                self.check_expression(parameter.default, definition.parameters)
+                with collect_errors(errors):
+                    self.check_expression(parameter.default, definition.parameters)
         for value in definition.metadata.values():
             if isinstance(value.value, a.Node):
-                self.check_expression(value, definition.parameters)
+                with collect_errors(errors):
+                    self.check_expression(value, definition.parameters)
         for value in nets.values():
-            self.check_dimensions(value, definition.parameters)
+            with collect_errors(errors):
+                self.check_dimensions(value, definition.parameters)
         for node in definition.body:
-            if not isinstance(node, a.Instance):
-                continue
-            target = self.definitions[
-                self.symbol(definition.body_module, node.component, {"component", "block"})
-            ]
-            for selection in node.dimensions:
+            if isinstance(node, a.Instance):
+                with collect_errors(errors):
+                    self.check_instance(node, definition, nets)
+        if errors:
+            raise DiagnosticError(errors)
+
+    def check_instance(self, node, definition, nets):
+        target = self.definitions[
+            self.symbol(definition.body_module, node.component, {"component", "block"})
+        ]
+        errors = []
+        for selection in node.dimensions:
+            with collect_errors(errors):
                 if selection.stop:
                     fail(
                         "resolve.dimension", "instance dimensions cannot be slices", selection.span
@@ -399,64 +439,74 @@ class Resolver:
                     Value(selection.start, selection.span, definition.body_module),
                     definition.parameters,
                 )
-            sections = {s.name: s for s in node.sections}
-            for arg in sections.get("params", a.Section(node.span, "", ())).entries:
+        sections = {s.name: s for s in node.sections}
+        for arg in sections.get("params", a.Section(node.span, "", ())).entries:
+            with collect_errors(errors):
                 if arg.name.text not in target.parameters:
                     fail("resolve.argument", f"unknown parameter {arg.name.text!r}", arg.name.span)
                 self.check_expression(
                     Value(arg.value, arg.span, definition.body_module), definition.parameters
                 )
-            for binding in sections.get("connections", a.Section(node.span, "", ())).entries:
-                for selection in (*binding.endpoint.instance_indices, *binding.endpoint.selectors):
-                    if isinstance(selection, a.Index):
-                        self.check_selection(
-                            selection, definition.body_module, definition.parameters
-                        )
-                for name in self.keys(binding.endpoint.head):
-                    pin = target.aliases.get(name)
-                    if pin is None:
-                        fail(
-                            "resolve.private",
-                            f"{name!r} is not a public pin or port of {target.name}",
-                            binding.endpoint.head.span,
-                        )
-                    port = target.interface[pin]
-                    if binding.endpoint.selectors:
-                        if port.type is None:
-                            fail(
-                                "resolve.private",
-                                "physical pins have no fields or elements",
-                                binding.endpoint.span,
-                            )
-                        self.select(port.type, binding.endpoint.selectors)
-                expr, selectors = binding.target, []
-                while isinstance(expr, (a.Member, a.Subscript)):
-                    selectors.append(expr.name if isinstance(expr, a.Member) else expr.selection)
-                    expr = expr.base
-                selectors.reverse()
-                for selector in selectors:
-                    if isinstance(selector, a.Index):
-                        self.check_selection(
-                            selector, definition.body_module, definition.parameters
-                        )
-                if expr.text == "global":
-                    if not selectors or not isinstance(selectors[0], a.Name):
-                        fail(
-                            "resolve.global",
-                            "global references require an explicit net name",
-                            expr.span,
-                        )
-                    continue  # Existence depends on the board during expansion.
-                if expr.text == "no_connect" and not selectors:
-                    continue
-                if expr.text not in nets:
-                    fail(
-                        "resolve.net",
-                        f"{expr.text!r} is not a declared caller net or port",
-                        expr.span,
-                    )
-                self.select(nets[expr.text], selectors)
+        for binding in sections.get("connections", a.Section(node.span, "", ())).entries:
+            with collect_errors(errors):
+                self.check_binding(binding, target, definition, nets)
+        with collect_errors(errors):
             self.instance_metadata(node, target, definition)
+        if errors:
+            raise DiagnosticError(errors)
+
+    def check_binding(self, binding, target, definition, nets):
+        if binding.endpoint.head.items and target.kind != "component":
+            fail(
+                "resolve.pin-list",
+                "pin lists select physical component pins, not block ports",
+                binding.endpoint.head.span,
+            )
+        for selection in (*binding.endpoint.instance_indices, *binding.endpoint.selectors):
+            if isinstance(selection, a.Index):
+                self.check_selection(selection, definition.body_module, definition.parameters)
+        for name in self.keys(binding.endpoint.head):
+            pin = target.aliases.get(name)
+            if pin is None:
+                fail(
+                    "resolve.private",
+                    f"{name!r} is not a public pin or port of {target.name}",
+                    binding.endpoint.head.span,
+                )
+            port = target.interface[pin]
+            if binding.endpoint.selectors:
+                if port.type is None:
+                    fail(
+                        "resolve.private",
+                        "physical pins have no fields or elements",
+                        binding.endpoint.span,
+                    )
+                self.select(port.type, binding.endpoint.selectors)
+        expr, selectors = binding.target, []
+        while isinstance(expr, (a.Member, a.Subscript)):
+            selectors.append(expr.name if isinstance(expr, a.Member) else expr.selection)
+            expr = expr.base
+        selectors.reverse()
+        for selector in selectors:
+            if isinstance(selector, a.Index):
+                self.check_selection(selector, definition.body_module, definition.parameters)
+        if expr.text == "global":
+            if not selectors or not isinstance(selectors[0], a.Name):
+                fail(
+                    "resolve.global",
+                    "global references require an explicit net name",
+                    expr.span,
+                )
+            return  # Existence depends on the board during expansion.
+        if expr.text == "no_connect" and not selectors:
+            return
+        if expr.text not in nets:
+            fail(
+                "resolve.net",
+                f"{expr.text!r} is not a declared caller net or port",
+                expr.span,
+            )
+        self.select(nets[expr.text], selectors)
 
     def check_selection(self, selection, module, parameters):
         self.check_expression(Value(selection.start, selection.span, module), parameters)
@@ -566,6 +616,12 @@ class Resolver:
                 )
             seen = {}
             for field in group.fields:
+                if field.key.items and target.kind != "component":
+                    fail(
+                        "resolve.pin-list",
+                        "pin lists select physical component pins, not block ports",
+                        field.key.span,
+                    )
                 values = read_metadata(
                     field.fields, "instance_pin", self.project, owner.body_module, owner.parameters
                 )

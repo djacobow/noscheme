@@ -13,7 +13,7 @@ import sexpdata
 
 from .. import ast as a
 from ..diagnostics import Diagnostic, DiagnosticError
-from ..parser import parse
+from ..parser import parse, RESERVED_NAMES
 from .sexpr import load, tag, children, scalar
 
 ROLE_MAP = {
@@ -35,7 +35,7 @@ def failure(path, code, message):
 
 def identifier(name):
     result = re.sub(r"[^A-Za-z0-9_#]", "_", name)
-    if not result or result[0].isdigit():
+    if not result or result[0].isdigit() or result in RESERVED_NAMES:
         result = "C_" + result
     return result
 
@@ -249,7 +249,15 @@ def convert_library(source, output, symbols=(), footprint_roots=(), extra_footpr
                 lines.append(f"            aliases: {json.dumps(names)}")
             types = sorted({str(pin[1]) for pin in entries})
             roles = (
-                sorted({ROLE_MAP[t] for t in types}) if all(t in ROLE_MAP for t in types) else []
+                sorted(
+                    {
+                        r
+                        for t in types
+                        for r in (("power_input", "ground") if t == "power_in" else (ROLE_MAP[t],))
+                    }
+                )
+                if all(t in ROLE_MAP for t in types)
+                else []
             )
             if len(roles) == 1:
                 lines.append(f"            role: role.{roles[0]}")
@@ -257,7 +265,6 @@ def convert_library(source, output, symbols=(), footprint_roots=(), extra_footpr
                 lines.append("            role: [" + ", ".join("role." + r for r in roles) + "]")
             if "tri_state" in types and set(types) <= {"tri_state", "input", "passive"}:
                 lines.append("            tristate_capable: true")
-            lines.append("            unused: unused.explicit")
             lines.extend(
                 ["            custom:", f"                kicad_pin_types: {json.dumps(types)}"]
             )
@@ -342,7 +349,7 @@ def convert_library(source, output, symbols=(), footprint_roots=(), extra_footpr
                             "identifiers": sorted(identifiers),
                         }
                     )
-    text = "from noscheme import role, unused\n\n" + "\n\n".join(generated) + "\n"
+    text = "from noscheme import role\n\n" + "\n\n".join(generated) + "\n"
     module = identifier(source.stem)
     parse(text, str(output / (module + ".nosch")))
     manifest = {

@@ -1,0 +1,20 @@
+{
+  "issues": [
+    {
+      "check": "unspecified_footprint",
+      "symbol": "C"
+    },
+    {
+      "check": "unspecified_footprint",
+      "symbol": "R"
+    }
+  ],
+  "module": "Device",
+  "schema_version": 1,
+  "source": "/usr/share/kicad/symbols/Device.kicad_sym",
+  "source_sha256": "f65c9dd13ef986c482165e5c8237ccf4f691bc7321868cf05e01dafbc1326b24",
+  "symbols": {
+    "C": "C",
+    "R": "R"
+  }
+}

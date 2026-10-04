@@ -1,0 +1,285 @@
+// Adapted from Jeremy Elson / rulos, 6-Line Matrix Rev B. See README.md.
+// Preserve source connectivity, including unused nets and unspecified values.
+from noscheme import nettype
+from interfaces import Rows
+from display import TwoColumns
+from components import Buck, Cap0603, Cap0805, Cap1210, CapUnspecified, CortexHeader, Header2, Header3, I2CBuffer, Inductor, MCU, PChannel, PowerJack, RJ45, Regulator, Resistor
+
+board SixLineMatrix:
+    net blank#: nettype.passive
+    net bootstrap: nettype.passive
+    net clock: nettype.passive
+    net feedback: nettype.passive
+    net gnd: nettype.passive
+    net latch: nettype.passive
+    net led_power: nettype.passive
+    net reset#: nettype.passive
+    net rx: nettype.passive
+    net scl: nettype.passive
+    net scl_hv: nettype.passive
+    net sda: nettype.passive
+    net sda_hv: nettype.passive
+    net swclk: nettype.passive
+    net swdio: nettype.passive
+    net switch_node: nettype.passive
+    net swo: nettype.passive
+    net tx: nettype.passive
+    net v10: nettype.passive
+    net v12: nettype.passive
+    net v5: nettype.passive
+    net vcc: nettype.passive
+    net rows: Rows
+    net row_enable: nettype.passive[6]
+    net serial_data: nettype.passive[5]
+
+    // Four modules share controls and row buses. Slices form the serial chain.
+    inst banks[4]: TwoColumns(
+        connections:
+            rows: rows
+            supply: vcc
+            ground: gnd
+            clock: clock
+            latch: latch
+            blank: blank#
+            sdi: serial_data[0:4]
+            sdo: serial_data[1:5]
+    )
+
+    inst mcu: MCU(
+        connections:
+            ["1", "17", "5"]: vcc
+            "10": row_enable[4]
+            "11": row_enable[5]
+            "12": blank#
+            "13": latch
+            ["14", "15", "18", "2", "21", "22", "25", "27", "3"]: no_connect
+            ["16", "31", "32"]: gnd
+            "19": tx
+            "20": rx
+            "23": swdio
+            "24": swclk
+            "26": clock
+            "28": serial_data[0]
+            "29": scl
+            "30": sda
+            "4": reset#
+            "6": row_enable[0]
+            "7": row_enable[1]
+            "8": row_enable[2]
+            "9": row_enable[3]
+        params:
+            value: "STM32F303K8T6"
+    )
+
+    inst power_header: Header2(
+        connections:
+            "1": v5
+            "2": gnd
+        params:
+            value: "22-23-2021"
+    )
+
+    inst logic_regulator: Regulator(
+        connections:
+            "1": vcc
+            "2": gnd
+            "3": v5
+        params:
+            value: "7803"
+    )
+
+    inst bus_regulator: Regulator(
+        connections:
+            "1": v10
+            "2": gnd
+            "3": v12
+        params:
+            value: "7810"
+    )
+
+    inst debug: CortexHeader(
+        connections:
+            "1": vcc
+            "10": reset#
+            "2": swdio
+            ["3", "5", "9"]: gnd
+            "4": swclk
+            "6": swo
+            ["7", "8"]: no_connect
+        params:
+            value: "CORTEX_HEADERJ"
+    )
+
+    inst bus_buffer: I2CBuffer(
+        connections:
+            "1": sda
+            ["2", "3"]: sda_hv
+            "4": gnd
+            ["5", "6"]: scl_hv
+            "7": scl
+            "8": v10
+        params:
+            value: "PCA9600SO8"
+    )
+
+    inst uart: Header3(
+        connections:
+            "1": tx
+            "2": rx
+            "3": gnd
+        params:
+            value: "22-23-2031"
+    )
+
+    inst inductor: Inductor(
+        connections:
+            "P$1": switch_node
+            "P$2": led_power
+        params:
+            value: "2.2uH"
+    )
+
+    inst feedback_top: Resistor(
+        connections:
+            "1": feedback
+            "2": led_power
+        params:
+            value: "22.6k"
+    )
+
+    inst feedback_bottom: Resistor(
+        connections:
+            "1": gnd
+            "2": feedback
+        params:
+            value: "10k"
+    )
+
+    inst buck: Buck(
+        connections:
+            "1": gnd
+            "2": switch_node
+            ["3", "5"]: v5
+            "4": feedback
+            "6": bootstrap
+        params:
+            value: "TPS563200"
+    )
+
+    inst power_jack: PowerJack(
+        connections:
+            "P$1": v5
+            "P$2": gnd
+            ["P$3", "P$G1", "P$G2"]: no_connect
+        params:
+            value: "CUI-PJ-051"
+    )
+
+    inst cap_1: Cap0805(
+        connections:
+            "1": v5
+            "2": gnd
+        params:
+            value: "10uF"
+    )
+
+    inst cap_2: Cap0603(
+        connections:
+            "1": vcc
+            "2": gnd
+        params:
+            value: "1uF"
+    )
+
+    inst cap_3: Cap0603(
+        connections:
+            "1": v12
+            "2": gnd
+        params:
+            value: "1uF"
+    )
+
+    inst cap_4: Cap0805(
+        connections:
+            "1": v10
+            "2": gnd
+        params:
+            value: "10uF"
+    )
+
+    inst cap_5: Cap0603(
+        connections:
+            "1": vcc
+            "2": gnd
+        params:
+            value: "1uF"
+    )
+
+    inst cap_8: Cap1210(
+        connections:
+            "1": led_power
+            "2": gnd
+        params:
+            value: "47uF"
+    )
+
+    inst cap_9: CapUnspecified(
+        connections:
+            "1": led_power
+            "2": gnd
+        params:
+            value: ""
+    )
+
+    inst cap_10: Cap0603(
+        connections:
+            "1": switch_node
+            "2": bootstrap
+        params:
+            value: "0.1uF"
+    )
+
+    inst row_switch[6]: PChannel(
+        connections:
+            G: row_enable
+            "2": led_power
+            [0]."3": rows.row0
+            [1]."3": rows.row1
+            [2]."3": rows.row2
+            [3]."3": rows.row3
+            [4]."3": rows.row4
+            [5]."3": rows.row5
+        params:
+            value: "MOSFET-PCHANNEL"
+    )
+
+    inst bus_ports[3]: RJ45(
+        connections:
+            "1": sda_hv
+            "2": gnd
+            "3": scl_hv
+            "4": v12
+            "5": gnd
+            "6": gnd
+            "7": v12
+            "8": gnd
+        params:
+            value: "54602-908LF"
+    )
+
+    inst i2c_pullups[2]: Resistor(
+        connections:
+            [0]."1": sda
+            [1]."1": scl
+            "2": vcc
+        params:
+            value: "2k"
+    )
+
+    inst buck_input_caps[2]: Cap0805(
+        connections:
+            "1": v5
+            "2": gnd
+        params:
+            value: "10uF"
+    )

@@ -1,0 +1,123 @@
+{
+  "footprints": {
+    "Package_SO:SO-8_3.9x4.9mm_P1.27mm": {
+      "exists": true,
+      "name": "Package_SO:SO-8_3.9x4.9mm_P1.27mm",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "8",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_SO.pretty/SO-8_3.9x4.9mm_P1.27mm.kicad_mod",
+      "sha256": "d504740fc3f9662291c1bec5dbc072e7cc9cab47cece953401bb686ef08df399",
+      "unnumbered_pads": 0
+    },
+    "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm": {
+      "exists": true,
+      "name": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "8",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_SO.pretty/SOIC-8_3.9x4.9mm_P1.27mm.kicad_mod",
+      "sha256": "074ecb2092b24fa4b4b9cdd7c926fc587b0d7d6d21e7341e57935fd42d36894f",
+      "unnumbered_pads": 0
+    }
+  },
+  "schema_version": 1
+}

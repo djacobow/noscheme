@@ -218,11 +218,12 @@ def reference_index(project, definitions, hover=None):
             def interface_declaration(entry):
                 if owner is None:
                     return
-                for canonical in bundles.resolver.keys(entry.key):
+                for canonical, key_span in bundles.resolver.key_spans(entry.key):
+                    canonical = owner.aliases.get(canonical, canonical)
                     if canonical not in owner.interface:
                         continue
                     target = interface_target(owner, canonical)
-                    add(entry.key.span, *target, declaration=not item.base)
+                    add(key_span, *target, declaration=not item.base)
                     for child in entry.fields:
                         if child.key.first.text == "aliases" and isinstance(
                             child.value, a.ListExpr
@@ -251,7 +252,9 @@ def reference_index(project, definitions, hover=None):
                                     if isinstance(index, a.Index):
                                         expression(index)
                                 if target_def:
-                                    for name in bundles.resolver.keys(entry.endpoint.head):
+                                    for name, key_span in bundles.resolver.key_spans(
+                                        entry.endpoint.head
+                                    ):
                                         canonical = target_def.aliases.get(name)
                                         if canonical:
                                             pin = target_def.interface[canonical]
@@ -264,7 +267,7 @@ def reference_index(project, definitions, hover=None):
                                                     ),
                                                     target_info[2],
                                                 )
-                                            add(entry.endpoint.head.span, *target_info)
+                                            add(key_span, *target_info)
                                             value = pin.type
                                             for selector in entry.endpoint.selectors:
                                                 if isinstance(selector, a.Name):
@@ -293,11 +296,13 @@ def reference_index(project, definitions, hover=None):
                             elif isinstance(entry, a.Field):
                                 if target_def and entry.key.first.text == "pins":
                                     for overlay in entry.fields:
-                                        for name in bundles.resolver.keys(overlay.key):
+                                        for name, key_span in bundles.resolver.key_spans(
+                                            overlay.key
+                                        ):
                                             canonical = target_def.aliases.get(name)
                                             if canonical:
                                                 add(
-                                                    overlay.key.span,
+                                                    key_span,
                                                     *interface_target(target_def, canonical),
                                                 )
                                 metadata_expressions(entry)
@@ -361,7 +366,7 @@ def analyze(path, config, sources):
         definitions = Resolver(project).resolve_all()
         circuit, warnings = elaborate_project(project, definitions)
         result.diagnostics.extend(warnings)
-        result.diagnostics.extend(apply_erc(circuit))
+        result.diagnostics.extend(apply_erc(circuit, registry=project.config.erc_registry))
     except DiagnosticError as exc:
         result.diagnostics.extend(exc.diagnostics)
     except (OSError, UnicodeError) as exc:

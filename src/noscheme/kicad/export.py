@@ -288,8 +288,8 @@ def publish(files):
                 path.unlink()
 
 
-def export_project(project, circuit, footprint_records, *, configurations=None):
-    apply_erc(circuit, configurations)
+def export_project(project, circuit, footprint_records, *, configurations=None, warnings=None):
+    apply_erc(circuit, configurations, registry=project.config.erc_registry)
     state_path = project.config.path.parent / "noscheme.state.json"
     state = (
         read_json(state_path)
@@ -300,6 +300,22 @@ def export_project(project, circuit, footprint_records, *, configurations=None):
     snapshot = read_json(footprint_records)
     omitted = verify_footprints(circuit, snapshot, footprint_records)
     updated = assign(circuit, state, state_path)
+    export_warnings = []
+    for part in circuit["parts"]:
+        reference = updated["entries"][part["identity"]]["reference"]
+        if reference.startswith("#"):
+            source = part["metadata"].get("ref", part["metadata"].get("ref_prefix", {}))
+            export_warnings.append(
+                Diagnostic(
+                    "reference.leading-hash",
+                    "warning",
+                    f"KiCad reference {reference!r} starts with '#'; downstream BOM or placement tools may treat it as a virtual symbol and omit it",
+                    a.Span(**source.get("span", part["source"]["declaration"])),
+                    instance_path=part["identity"],
+                )
+            )
+    if warnings is not None:
+        warnings.extend(export_warnings)
     try:
         netlist, names, classes = render(circuit, updated)
     except ValueError as exc:
@@ -329,6 +345,7 @@ def export_project(project, circuit, footprint_records, *, configurations=None):
     report = {
         "schema_version": 1,
         "backend": "kicad",
+        "warnings": [a.to_data(w) for w in export_warnings],
         "erc_performed": circuit["erc_performed"],
         "erc_errors": circuit["erc"]["errors"],
         "erc_warnings": circuit["erc"]["warnings"],

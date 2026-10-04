@@ -9,29 +9,14 @@ component STM32H523Board extends STM32H523VCTx:
     defaults:
         value: "STM32H523VCT6"
     pins:
-        1:
+        [1..5, 38..41, 46, 70..72]:
             role: role.digital_bidirectional
             unused: unused.never
-        2:
-            role: role.digital_bidirectional
-            unused: unused.never
-        3:
-            role: role.digital_bidirectional
-            unused: unused.never
-        4:
-            role: role.digital_bidirectional
-            unused: unused.never
-        5:
-            role: role.digital_bidirectional
-            unused: unused.never
-        6:
+        [6, 11, 21..22, 28, 50, 73, 75, 100]:
             role: role.power_input
             unused: unused.never
-        10:
+        [10, 19..20, 27, 49, 74, 99]:
             role: role.ground
-            unused: unused.never
-        11:
-            role: role.power_input
             unused: unused.never
         12:
             role: role.analog_input
@@ -39,153 +24,19 @@ component STM32H523Board extends STM32H523VCTx:
         13:
             role: role.analog_output
             unused: unused.never
-        14:
+        [14, 66..67, 92..93]:
             role: role.open_drain
             unused: unused.never
-        15:
+        [15..17, 25, 29..30, 32, 42..43, 45, 55, 89]:
             role: role.digital_output
             unused: unused.never
-        16:
-            role: role.digital_output
-            unused: unused.never
-        17:
-            role: role.digital_output
-            unused: unused.never
-        18:
+        [18, 26, 31, 33..34, 44, 56, 76, 94]:
             role: role.digital_input
             unused: unused.never
-        19:
-            role: role.ground
-            unused: unused.never
-        20:
-            role: role.ground
-            unused: unused.never
-        21:
-            role: role.power_input
-            unused: unused.never
-        22:
-            role: role.power_input
-            unused: unused.never
-        25:
-            role: role.digital_output
-            unused: unused.never
-        26:
-            role: role.digital_input
-            unused: unused.never
-        27:
-            role: role.ground
-            unused: unused.never
-        28:
-            role: role.power_input
-            unused: unused.never
-        29:
-            role: role.digital_output
-            unused: unused.never
-        30:
-            role: role.digital_output
-            unused: unused.never
-        31:
-            role: role.digital_input
-            unused: unused.never
-        32:
-            role: role.digital_output
-            unused: unused.never
-        33:
-            role: role.digital_input
-            unused: unused.never
-        34:
-            role: role.digital_input
-            unused: unused.never
-        38:
-            role: role.digital_bidirectional
-            unused: unused.never
-        39:
-            role: role.digital_bidirectional
-            unused: unused.never
-        40:
-            role: role.digital_bidirectional
-            unused: unused.never
-        41:
-            role: role.digital_bidirectional
-            unused: unused.never
-        42:
-            role: role.digital_output
-            unused: unused.never
-        43:
-            role: role.digital_output
-            unused: unused.never
-        44:
-            role: role.digital_input
-            unused: unused.never
-        45:
-            role: role.digital_output
-            unused: unused.never
-        46:
-            role: role.digital_bidirectional
-            unused: unused.never
-        48:
+        [48, 98]:
             role: role.power_output
             unused: unused.never
-        49:
-            role: role.ground
-            unused: unused.never
-        50:
-            role: role.power_input
-            unused: unused.never
-        55:
-            role: role.digital_output
-            unused: unused.never
-        56:
-            role: role.digital_input
-            unused: unused.never
-        66:
-            role: role.open_drain
-            unused: unused.never
-        67:
-            role: role.open_drain
-            unused: unused.never
-        70:
-            role: role.digital_bidirectional
-            unused: unused.never
-        71:
-            role: role.digital_bidirectional
-            unused: unused.never
-        72:
-            role: role.digital_bidirectional
-            unused: unused.never
-        73:
-            role: role.power_input
-            unused: unused.never
-        74:
-            role: role.ground
-            unused: unused.never
-        75:
-            role: role.power_input
-            unused: unused.never
-        76:
-            role: role.digital_input
-            unused: unused.never
-        89:
-            role: role.digital_output
-            unused: unused.never
-        92:
-            role: role.open_drain
-            unused: unused.never
-        93:
-            role: role.open_drain
-            unused: unused.never
-        94:
-            role: role.digital_input
-            unused: unused.never
-        98:
-            role: role.power_output
-            unused: unused.never
-        99:
-            role: role.ground
-            unused: unused.never
-        100:
-            role: role.power_input
-            unused: unused.never
+
 // Concrete reference-board implementations.
 // Sources and pin allocation are recorded in docs/PROJECT.md.
 // These blocks expose logical interfaces over explicit physical pins.
@@ -224,12 +75,9 @@ block MCU_H523:
             3: expansion_gpio[2]
             4: expansion_gpio[3]
             5: expansion_gpio[4]
-            6: supply
-            7: no_connect
-            8: no_connect
-            9: no_connect
-            10: ground
-            11: supply
+            [6, 11, 21..22, 28, 50, 73, 75, 100]: supply
+            [7..9, 23..24, 35..37, 47, 51..54, 57..65, 68..69, 77..88, 90..91, 95..97]: no_connect
+            [10, 19..20, 27, 49, 74, 99]: ground
             12: osc_in
             13: osc_out
             14: debug.reset#
@@ -237,25 +85,14 @@ block MCU_H523:
             16: led_drive[1]
             17: led_drive[2]
             18: sd_detect#
-            19: ground
-            20: ground
-            21: supply
-            22: supply
-            23: no_connect
-            24: no_connect
             25: uart_tx[0]
             26: uart_rx[0]
-            27: ground
-            28: supply
             29: sd.cs#
             30: sd.sck
             31: sd.miso
             32: sd.mosi
             33: buttons#[0]
             34: buttons#[1]
-            35: no_connect
-            36: no_connect
-            37: no_connect
             38: expansion_gpio[5]
             39: expansion_gpio[6]
             40: expansion_gpio[7]
@@ -265,60 +102,19 @@ block MCU_H523:
             44: expansion_spi.miso
             45: expansion_spi.mosi
             46: expansion_gpio[9]
-            47: no_connect
-            48: vcap
-            49: ground
-            50: supply
-            51: no_connect
-            52: no_connect
-            53: no_connect
-            54: no_connect
+            [48, 98]: vcap
             55: uart_tx[1]
             56: uart_rx[1]
-            57: no_connect
-            58: no_connect
-            59: no_connect
-            60: no_connect
-            61: no_connect
-            62: no_connect
-            63: no_connect
-            64: no_connect
-            65: no_connect
             66: expansion_i2c.sda
             67: expansion_i2c.scl
-            68: no_connect
-            69: no_connect
             70: usb.dm
             71: usb.dp
             72: debug.swdio
-            73: supply
-            74: ground
-            75: supply
             76: debug.swclk
-            77: no_connect
-            78: no_connect
-            79: no_connect
-            80: no_connect
-            81: no_connect
-            82: no_connect
-            83: no_connect
-            84: no_connect
-            85: no_connect
-            86: no_connect
-            87: no_connect
-            88: no_connect
             89: debug.swo
-            90: no_connect
-            91: no_connect
             92: oled.scl
             93: oled.sda
             94: boot0
-            95: no_connect
-            96: no_connect
-            97: no_connect
-            98: vcap
-            99: ground
-            100: supply
     )
     inst decouple_pin_6: Capacitor0603(
         connections:

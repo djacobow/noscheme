@@ -1,0 +1,280 @@
+// Adapted from Jeremy Elson / rulos, 6-Line Matrix Rev B. See README.md.
+// KiCad specializations preserve the source pin numbers. See KICAD_MATCHES.md.
+from noscheme import role, unused
+import Device
+import MCU_ST_STM32F3
+import Interface
+import Regulator_Switching
+import Transistor_FET
+import Connector_Generic
+import Connector
+
+component Display:
+    params:
+        value: string = "7-SEG_SA56-11"
+    pins:
+        "1":
+            aliases: [E]
+            role: role.passive
+        "10":
+            aliases: [G]
+            role: role.passive
+        "2":
+            aliases: [D]
+            role: role.passive
+        "3":
+            aliases: [COM_1]
+            role: role.passive
+        "4":
+            aliases: [C]
+            role: role.passive
+        "5":
+            aliases: [DP]
+            role: role.passive
+        "6":
+            aliases: [B]
+            role: role.passive
+        "7":
+            aliases: [A]
+            role: role.passive
+        "8":
+            aliases: [COM_2]
+            role: role.passive
+        "9":
+            aliases: [F]
+            role: role.passive
+    metadata:
+        ref_prefix: "D"
+        footprint: "Rulos_RevB:SA56-11"
+        custom:
+            eagle_deviceset: "7-SEG_"
+            eagle_package: "SA56-11"
+
+component SinkDriver:
+    params:
+        value: string = "STP16CPC26XTR"
+    pins:
+        "1":
+            aliases: [GND]
+            role: role.ground
+        "10":
+            aliases: [OUT5]
+            role: role.analog_output
+        "11":
+            aliases: [OUT6]
+            role: role.analog_output
+        "12":
+            aliases: [OUT7]
+            role: role.analog_output
+        "13":
+            aliases: [OUT8]
+            role: role.analog_output
+        "14":
+            aliases: [OUT9]
+            role: role.analog_output
+        "15":
+            aliases: [OUT10]
+            role: role.analog_output
+        "16":
+            aliases: [OUT11]
+            role: role.analog_output
+        "17":
+            aliases: [OUT12]
+            role: role.analog_output
+        "18":
+            aliases: [OUT13]
+            role: role.analog_output
+        "19":
+            aliases: [OUT14]
+            role: role.analog_output
+        "2":
+            aliases: [SDI]
+            role: role.digital_input
+        "20":
+            aliases: [OUT15]
+            role: role.analog_output
+        "21":
+            aliases: [OE]
+            role: role.digital_input
+        "22":
+            aliases: [SDO]
+            role: role.digital_output
+            unused: unused.always
+        "23":
+            aliases: [R_EXT]
+            role: role.analog_input
+        "24":
+            aliases: [VCC]
+            role: role.power_input
+        "3":
+            aliases: [CLK]
+            role: role.digital_input
+        "4":
+            aliases: [LE]
+            role: role.digital_input
+        "5":
+            aliases: [OUT0]
+            role: role.analog_output
+        "6":
+            aliases: [OUT1]
+            role: role.analog_output
+        "7":
+            aliases: [OUT2]
+            role: role.analog_output
+        "8":
+            aliases: [OUT3]
+            role: role.analog_output
+        "9":
+            aliases: [OUT4]
+            role: role.analog_output
+    metadata:
+        ref_prefix: "U"
+        footprint: "Rulos_RevB:SOP65P640X120-24"
+        custom:
+            eagle_deviceset: "ALLEGRO-A6282"
+            eagle_package: "SOP65P640X120-24"
+
+component Resistor extends Device.R:
+    metadata:
+        footprint: "Resistor_SMD:R_0603_1608Metric"
+
+// User policy: known capacitor values up to and including 1uF use 0603.
+component Cap0603 extends Device.C:
+    metadata:
+        footprint: "Capacitor_SMD:C_0603_1608Metric"
+
+// Known capacitor values above 1uF through 10uF use 0805.
+component Cap0805 extends Device.C:
+    metadata:
+        footprint: "Capacitor_SMD:C_0805_2012Metric"
+
+// Preserve the original 47uF footprint (values above 10uF are unchanged).
+component Cap1210 extends Device.C:
+    metadata:
+        footprint: "Rulos_RevB:C1210"
+
+// C9 has no value in the source; keep its original package explicitly.
+component CapUnspecified extends Device.C:
+    metadata:
+        footprint: "Rulos_RevB:C0603"
+
+component MCU extends MCU_ST_STM32F3.STM32F303K8Tx:
+    pins:
+        [1, 5, 17]:
+            role: role.power_input
+        [16, 32]:
+            role: role.ground
+        [6..13, 19, 26, 28]:
+            role: role.digital_output
+        [20, 24, 31]:
+            role: role.digital_input
+        [4, 29..30]:
+            role: role.open_drain
+
+component Regulator:
+    params:
+        value: string = "7803"
+    pins:
+        "1":
+            aliases: [VO]
+            role: role.power_output
+        "2":
+            aliases: [GND]
+            role: role.ground
+        "3":
+            aliases: [VI]
+            role: role.power_input
+    metadata:
+        ref_prefix: "U"
+        footprint: "Rulos_RevB:TO92"
+        custom:
+            eagle_deviceset: "78*"
+            eagle_package: "TO92"
+
+component I2CBuffer extends Interface.PCA9600D:
+    pins:
+        [1, 3, 5, 7]:
+            role: role.open_drain
+        4:
+            role: role.ground
+        8:
+            role: role.power_input
+
+component PChannel extends Transistor_FET.Q_PMOS_GSD:
+    pins:
+        1:
+            role: role.passive
+    metadata:
+        footprint: "Package_TO_SOT_SMD:SOT-23"
+
+component Inductor:
+    params:
+        value: string = "2.2uH"
+    pins:
+        "P$1":
+            aliases: [pin1]
+            role: role.passive
+        "P$2":
+            aliases: [pin2]
+            role: role.passive
+    metadata:
+        ref_prefix: "L"
+        footprint: "Rulos_RevB:DEM804XC"
+        custom:
+            eagle_deviceset: "DEM804XC"
+            eagle_package: "DEM804XC"
+
+component Buck extends Regulator_Switching.TPS563200:
+    pins:
+        1:
+            role: role.ground
+        2:
+            role: role.analog_output
+        3:
+            role: role.power_input
+        4:
+            role: role.analog_input
+
+component PowerJack:
+    params:
+        value: string = "CUI-PJ-051"
+    pins:
+        "P$1":
+            aliases: [PWR]
+            role: role.passive
+        "P$2":
+            aliases: [GND]
+            role: role.passive
+        "P$3":
+            aliases: [GNDBREAK]
+            role: role.passive
+        "P$G1":
+            role: role.passive
+        "P$G2":
+            role: role.passive
+    metadata:
+        ref_prefix: "J"
+        footprint: "Rulos_RevB:CUI-PJ-051"
+        custom:
+            eagle_deviceset: "CUI-PJ-051"
+            eagle_package: "CUI-PJ-051"
+
+component Header2 extends Connector_Generic.Conn_01x02:
+    metadata:
+        footprint: "Connector_Molex:Molex_KK-254_AE-6410-02A_1x02_P2.54mm_Vertical"
+
+component Header3 extends Connector_Generic.Conn_01x03:
+    metadata:
+        footprint: "Connector_Molex:Molex_KK-254_AE-6410-03A_1x03_P2.54mm_Vertical"
+
+// Same 10-pin 1.27mm SMT Cortex header footprint as the STM32 example.
+component CortexHeader extends Connector_Generic.Conn_02x05_Odd_Even:
+    pins:
+        6:
+            unused: unused.always
+    metadata:
+        footprint: "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD"
+
+component RJ45 extends Connector.Conn_01x08_Pin:
+    metadata:
+        footprint: "Connector_RJ:RJ45_Amphenol_54602-x08_Horizontal"

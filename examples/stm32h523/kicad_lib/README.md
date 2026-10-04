@@ -29,6 +29,12 @@ into the combined snapshot. This directory reorganization did not regenerate
 the snapshots. Source hashes in the JSON reports identify the original inputs;
 the reports do not record a KiCad package version. Current CI tests KiCad 10.0.
 
+The MCU module was subsequently regenerated to preserve KiCad `power_in`
+ambiguity as `[role.ground, role.power_input]`. The handwritten MCU specialization
+selects the supply and return roles for this board explicitly. Both modules have
+also been regenerated to omit redundant `unused.explicit` annotations; omitted
+unused policies retain that default.
+
 ## Regenerate and review
 
 Run from the repository root with KiCad symbol and footprint libraries installed.

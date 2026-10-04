@@ -17,6 +17,7 @@ CHECKS = (
     "current_overload",
     "incomplete_budget",
     "waiver_scope",
+    "waiver_target",
     "incompatible_role",
     "tristate_capability",
     "port_role",
@@ -33,6 +34,7 @@ WAIVABLE = frozenset(CHECKS) - {
     "required_connection",
     "unused_pin",
     "waiver_scope",
+    "waiver_target",
     "required_port_connection",
     "unused_port",
 }
@@ -52,7 +54,7 @@ ALLOWED_ROLES = {
     "open_source": PASSIVE | {"digital_input", "open_source"},
     "analog": PASSIVE | ANALOG,
     "power": PASSIVE | INPUTS | {"power_output"},
-    "ground": PASSIVE | INPUTS | {"ground"},
+    "ground": PASSIVE | {"digital_input", "analog_input", "ground"},
 }
 
 # A contract describes aggregate behavior viewed from outside the block. Local
@@ -67,7 +69,7 @@ PORT_ALLOWED = {
     "analog_bidirectional": PASSIVE | ANALOG,
     "power_input": PASSIVE | {"power_input"},
     "power_output": PASSIVE | {"power_input", "power_output"},
-    "ground": PASSIVE | INPUTS | {"ground"},
+    "ground": ALLOWED_ROLES["ground"],
     "open_drain": PASSIVE | {"digital_input", "open_drain"},
     "open_source": PASSIVE | {"digital_input", "open_source"},
     "unchecked": ALLOWED_ROLES["passive"],

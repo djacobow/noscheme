@@ -238,15 +238,20 @@ def check_circuit(circuit, *, waiver_records=None, registry=None):
     active_waivers = {}
     by_net = {n["name"]: [] for n in circuit["nets"]}
 
+    def record_diagnostic(diagnostic):
+        check = diagnostic.code.removeprefix("erc.")
+        waiver = active_waivers.get(check)
+        if waiver and ("pins" not in waiver or diagnostic.instance_path in waiver["pins"]):
+            waiver["diagnostics"].append(to_data(diagnostic))
+        else:
+            diagnostics.append(diagnostic)
+
     def emit(code, message, record, path=None, severity="error", related=()):
         span = record.get("binding_span") or record.get("span")
         diagnostic = Diagnostic(
             "erc." + code, severity, message, Span(**span), tuple(related), path
         )
-        if code in active_waivers:
-            active_waivers[code]["diagnostics"].append(to_data(diagnostic))
-        else:
-            diagnostics.append(diagnostic)
+        record_diagnostic(diagnostic)
 
     grouped_demands, grouped_pins, grouped_nets = grouped_current_loads(circuit, emit)
 
@@ -304,18 +309,33 @@ def check_circuit(circuit, *, waiver_records=None, registry=None):
         for declaration in declarations:
             for check, waiver in attribute(declaration, "waivers", {}).items():
                 valid = declaration is origin
+                value = waiver["value"]
                 record = {
                     "net": name,
                     "check": check,
-                    "reason": waiver["value"],
+                    "reason": value["reason"]["value"] if isinstance(value, dict) else value,
                     "span": waiver["span"],
                     "valid_scope": valid,
                     "diagnostics": [],
                 }
+                if isinstance(value, dict):
+                    prefix = path_text(declaration["scope"])
+                    record["pins"] = [
+                        f"{prefix}.{p}" if prefix else p for p in value["pins"]["value"]
+                    ]
+                    physical = {label for label, pin in endpoints if pin.get("kind") != "port"}
+                    missing = sorted(set(record["pins"]) - physical)
+                    record["valid_targets"] = not missing
+                    if missing:
+                        emit(
+                            "waiver_target",
+                            f"waiver pins are not physical endpoints on {name!r}: {', '.join(missing)}",
+                            waiver,
+                        )
                 waiver_records.append(record)
-                if valid:
+                if valid and record.get("valid_targets", True):
                     active_waivers[check] = record
-                else:
+                elif not valid:
                     emit(
                         "waiver_scope",
                         f"waiver for {check} on {name!r} must be on its outermost net declaration",
@@ -324,11 +344,7 @@ def check_circuit(circuit, *, waiver_records=None, registry=None):
                     )
         if origin["type"] != "unchecked":
             for diagnostic in registry.run(NetContext(circuit, net, endpoints, origin)):
-                check = diagnostic.code.removeprefix("erc.")
-                if check in active_waivers:
-                    active_waivers[check]["diagnostics"].append(to_data(diagnostic))
-                else:
-                    diagnostics.append(diagnostic)
+                record_diagnostic(diagnostic)
         # Ports do not add endpoints. An external role replaces the connector's
         # passive contact for driver/load accounting, not an additional source.
         for label, pin in endpoints:
@@ -523,8 +539,9 @@ def check_circuit(circuit, *, waiver_records=None, registry=None):
     return tuple(diagnostics)
 
 
-def apply_erc(circuit, configurations=None):
-    registry = load_registry(circuit.get("erc_modules", ()), Span(**circuit["source"]))
+def apply_erc(circuit, configurations=None, *, registry=None):
+    if registry is None:
+        registry = load_registry(circuit.get("erc_modules", ()), Span(**circuit["source"]))
     waivers, diagnostics, reports = [], [], []
     for name, view, selections in configuration_views(circuit, configurations):
         view["erc_configuration"] = name
@@ -562,9 +579,9 @@ def apply_erc(circuit, configurations=None):
     return tuple(diagnostics)
 
 
-def report_files(circuit, output_dir):
-    report = circuit["erc"]
-    diagnostics = [
+def report_diagnostics(circuit):
+    """Restore diagnostics from an existing report without rerunning checks."""
+    return tuple(
         Diagnostic(
             d["code"],
             d["severity"],
@@ -574,8 +591,13 @@ def report_files(circuit, output_dir):
             d["instance_path"],
             d.get("configuration"),
         )
-        for d in report["diagnostics"]
-    ]
+        for d in circuit["erc"]["diagnostics"]
+    )
+
+
+def report_files(circuit, output_dir):
+    report = circuit["erc"]
+    diagnostics = report_diagnostics(circuit)
     header = f"ERC: {report['errors']} errors, {report['warnings']} warnings\n"
     header += "Implemented checks: " + ", ".join(report["checks"]) + "\n"
     header += "Pending checks: " + ", ".join(report["pending"]) + "\n"
@@ -589,11 +611,14 @@ def report_files(circuit, output_dir):
         status = (
             "invalid scope"
             if not waiver["valid_scope"]
+            else "invalid pin targets"
+            if not waiver.get("valid_targets", True)
             else f"{len(waiver['diagnostics'])} diagnostics waived"
         )
+        targets = f" pins {', '.join(waiver['pins'])}" if "pins" in waiver else ""
         header += (
             f"{span['filename']}:{span['line']}:{span['column']}: waiver {waiver['check']} "
-            f"on {waiver['net']} [{waiver.get('configuration') or 'unconfigured'}]: {waiver['reason']} ({status})\n"
+            f"on {waiver['net']}{targets} [{waiver.get('configuration') or 'unconfigured'}]: {waiver['reason']} ({status})\n"
         )
         for diagnostic in waiver["diagnostics"]:
             header += (

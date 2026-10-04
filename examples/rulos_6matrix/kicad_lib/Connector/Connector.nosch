@@ -1,0 +1,61 @@
+from noscheme import role
+
+component Conn_01x08_Pin:
+    params:
+        value: string = "Conn_01x08_Pin"
+    pins:
+        "1":
+            aliases: ["Pin_1"]
+            role: role.passive
+            custom:
+                kicad_pin_types: ["passive"]
+        "2":
+            aliases: ["Pin_2"]
+            role: role.passive
+            custom:
+                kicad_pin_types: ["passive"]
+        "3":
+            aliases: ["Pin_3"]
+            role: role.passive
+            custom:
+                kicad_pin_types: ["passive"]
+        "4":
+            aliases: ["Pin_4"]
+            role: role.passive
+            custom:
+                kicad_pin_types: ["passive"]
+        "5":
+            aliases: ["Pin_5"]
+            role: role.passive
+            custom:
+                kicad_pin_types: ["passive"]
+        "6":
+            aliases: ["Pin_6"]
+            role: role.passive
+            custom:
+                kicad_pin_types: ["passive"]
+        "7":
+            aliases: ["Pin_7"]
+            role: role.passive
+            custom:
+                kicad_pin_types: ["passive"]
+        "8":
+            aliases: ["Pin_8"]
+            role: role.passive
+            custom:
+                kicad_pin_types: ["passive"]
+    metadata:
+        ref_prefix: "J"
+        custom:
+            kicad_symbol: "Connector:Conn_01x08_Pin"
+            kicad_duplicate_pin_numbers_are_jumpers: "no"
+            kicad_footprint_candidates: ["Connector_Harwin:Harwin_M20-89008xx_1x08_P2.54mm_Horizontal", "Connector_Hirose:Hirose_DF13-08P-1.25DSA_1x08_P1.25mm_Vertical", "Connector_Hirose:Hirose_DF13-08P-1.25DS_1x08_P1.25mm_Horizontal", "Connector_JST:JST_EH_B8B-EH-A_1x08_P2.50mm_Vertical", "Connector_JST:JST_EH_S8B-EH_1x08_P2.50mm_Horizontal", "Connector_JST:JST_PH_B8B-PH-K_1x08_P2.00mm_Vertical", "Connector_JST:JST_PH_S8B-PH-K_1x08_P2.00mm_Horizontal", "Connector_JST:JST_VH_B8P-VH-B_1x08_P3.96mm_Vertical", "Connector_JST:JST_VH_B8P-VH-FB-B_1x08_P3.96mm_Vertical", "Connector_JST:JST_VH_B8P-VH_1x08_P3.96mm_Vertical", "Connector_JST:JST_VH_B8PS-VH_1x08_P3.96mm_Horizontal", "Connector_JST:JST_XA_B08B-XASK-1-A_1x08_P2.50mm_Vertical", "Connector_JST:JST_XA_B08B-XASK-1_1x08_P2.50mm_Vertical", "Connector_JST:JST_XA_S08B-XASK-1N-BN_1x08_P2.50mm_Horizontal", "Connector_JST:JST_XA_S08B-XASK-1_1x08_P2.50mm_Horizontal", "Connector_JST:JST_XH_B8B-XH-AM_1x08_P2.50mm_Vertical", "Connector_JST:JST_XH_B8B-XH-A_1x08_P2.50mm_Vertical", "Connector_JST:JST_XH_S8B-XH-A-1_1x08_P2.50mm_Horizontal", "Connector_JST:JST_XH_S8B-XH-A_1x08_P2.50mm_Horizontal", "Connector_JST:JST_ZE_B08B-ZESK-1D_1x08_P1.50mm_Vertical", "Connector_JST:JST_ZE_B08B-ZESK-D_1x08_P1.50mm_Vertical", "Connector_JST:JST_ZE_S08B-ZESK-2D_1x08_P1.50mm_Horizontal", "Connector_JST:JST_ZH_B8B-ZR_1x08_P1.50mm_Vertical", "Connector_Molex:Molex_KK-254_AE-6410-08A_1x08_P2.54mm_Vertical", "Connector_Molex:Molex_KK-396_5273-08A_1x08_P3.96mm_Vertical", "Connector_Molex:Molex_KK-396_A-41791-0008_1x08_P3.96mm_Vertical", "Connector_Molex:Molex_KK-396_A-41792-0008_1x08_P3.96mm_Horizontal", "Connector_Molex:Molex_Micro-Fit_3.0_43650-0800_1x08_P3.00mm_Horizontal", "Connector_Molex:Molex_Micro-Fit_3.0_43650-0815_1x08_P3.00mm_Vertical", "Connector_Molex:Molex_Micro-Fit_3.0_43650-0821_1x08_P3.00mm_Vertical", "Connector_Molex:Molex_Micro-Latch_53253-0870_1x08_P2.00mm_Vertical", "Connector_Molex:Molex_Micro-Latch_53254-0870_1x08_P2.00mm_Horizontal", "Connector_Molex:Molex_MicroClasp_55932-0810_1x08_P2.00mm_Vertical", "Connector_Molex:Molex_MicroClasp_55932-0830_1x08_P2.00mm_Vertical", "Connector_Molex:Molex_MicroClasp_55935-0810_1x08_P2.00mm_Horizontal", "Connector_Molex:Molex_MicroClasp_55935-0830_1x08_P2.00mm_Horizontal", "Connector_Molex:Molex_Nano-Fit_105309-xx08_1x08_P2.50mm_Vertical", "Connector_Molex:Molex_Nano-Fit_105313-xx08_1x08_P2.50mm_Horizontal", "Connector_Molex:Molex_PicoBlade_53047-0810_1x08_P1.25mm_Vertical", "Connector_Molex:Molex_PicoBlade_53048-0810_1x08_P1.25mm_Horizontal", "Connector_Molex:Molex_SL_171971-0008_1x08_P2.54mm_Vertical", "Connector_Molex:Molex_SPOX_5267-08A_1x08_P2.50mm_Vertical", "Connector_Molex:Molex_SPOX_5268-08A_1x08_P2.50mm_Horizontal", "Connector_Phoenix_GMSTB:PhoenixContact_GMSTBA_2,5_8-G-7,62_1x08_P7.62mm_Horizontal", "Connector_Phoenix_GMSTB:PhoenixContact_GMSTBA_2,5_8-G_1x08_P7.50mm_Horizontal", "Connector_Phoenix_GMSTB:PhoenixContact_GMSTBVA_2,5_8-G-7,62_1x08_P7.62mm_Vertical", "Connector_Phoenix_GMSTB:PhoenixContact_GMSTBVA_2,5_8-G_1x08_P7.50mm_Vertical", "Connector_Phoenix_GMSTB:PhoenixContact_GMSTBV_2,5_8-GF-7,62_1x08_P7.62mm_Vertical_ThreadedFlange", "Connector_Phoenix_GMSTB:PhoenixContact_GMSTBV_2,5_8-GF-7,62_1x08_P7.62mm_Vertical_ThreadedFlange_MountHole", "Connector_Phoenix_GMSTB:PhoenixContact_GMSTB_2,5_8-GF-7,62_1x08_P7.62mm_Horizontal_ThreadedFlange", "Connector_Phoenix_GMSTB:PhoenixContact_GMSTB_2,5_8-GF-7,62_1x08_P7.62mm_Horizontal_ThreadedFlange_MountHole", "Connector_Phoenix_MC:PhoenixContact_MCV_1,5_8-G-3.5_1x08_P3.50mm_Vertical", "Connector_Phoenix_MC:PhoenixContact_MCV_1,5_8-G-3.81_1x08_P3.81mm_Vertical", "Connector_Phoenix_MC:PhoenixContact_MCV_1,5_8-GF-3.5_1x08_P3.50mm_Vertical_ThreadedFlange", "Connector_Phoenix_MC:PhoenixContact_MCV_1,5_8-GF-3.5_1x08_P3.50mm_Vertical_ThreadedFlange_MountHole", "Connector_Phoenix_MC:PhoenixContact_MCV_1,5_8-GF-3.81_1x08_P3.81mm_Vertical_ThreadedFlange", "Connector_Phoenix_MC:PhoenixContact_MCV_1,5_8-GF-3.81_1x08_P3.81mm_Vertical_ThreadedFlange_MountHole", "Connector_Phoenix_MC:PhoenixContact_MC_1,5_8-G-3.5_1x08_P3.50mm_Horizontal", "Connector_Phoenix_MC:PhoenixContact_MC_1,5_8-G-3.81_1x08_P3.81mm_Horizontal", "Connector_Phoenix_MC:PhoenixContact_MC_1,5_8-GF-3.5_1x08_P3.50mm_Horizontal_ThreadedFlange", "Connector_Phoenix_MC:PhoenixContact_MC_1,5_8-GF-3.5_1x08_P3.50mm_Horizontal_ThreadedFlange_MountHole", "Connector_Phoenix_MC:PhoenixContact_MC_1,5_8-GF-3.81_1x08_P3.81mm_Horizontal_ThreadedFlange", "Connector_Phoenix_MC:PhoenixContact_MC_1,5_8-GF-3.81_1x08_P3.81mm_Horizontal_ThreadedFlange_MountHole", "Connector_Phoenix_MC_HighVoltage:PhoenixContact_MCV_1,5_8-G-5.08_1x08_P5.08mm_Vertical", "Connector_Phoenix_MC_HighVoltage:PhoenixContact_MCV_1,5_8-GF-5.08_1x08_P5.08mm_Vertical_ThreadedFlange", "Connector_Phoenix_MC_HighVoltage:PhoenixContact_MCV_1,5_8-GF-5.08_1x08_P5.08mm_Vertical_ThreadedFlange_MountHole", "Connector_Phoenix_MC_HighVoltage:PhoenixContact_MC_1,5_8-G-5.08_1x08_P5.08mm_Horizontal", "Connector_Phoenix_MC_HighVoltage:PhoenixContact_MC_1,5_8-GF-5.08_1x08_P5.08mm_Horizontal_ThreadedFlange", "Connector_Phoenix_MC_HighVoltage:PhoenixContact_MC_1,5_8-GF-5.08_1x08_P5.08mm_Horizontal_ThreadedFlange_MountHole", "Connector_Phoenix_MSTB:PhoenixContact_MSTBA_2,5_8-G-5,08_1x08_P5.08mm_Horizontal", "Connector_Phoenix_MSTB:PhoenixContact_MSTBA_2,5_8-G_1x08_P5.00mm_Horizontal", "Connector_Phoenix_MSTB:PhoenixContact_MSTBVA_2,5_8-G-5,08_1x08_P5.08mm_Vertical", "Connector_Phoenix_MSTB:PhoenixContact_MSTBVA_2,5_8-G_1x08_P5.00mm_Vertical", "Connector_Phoenix_MSTB:PhoenixContact_MSTBV_2,5_8-GF-5,08_1x08_P5.08mm_Vertical_ThreadedFlange", "Connector_Phoenix_MSTB:PhoenixContact_MSTBV_2,5_8-GF-5,08_1x08_P5.08mm_Vertical_ThreadedFlange_MountHole", "Connector_Phoenix_MSTB:PhoenixContact_MSTBV_2,5_8-GF_1x08_P5.00mm_Vertical_ThreadedFlange", "Connector_Phoenix_MSTB:PhoenixContact_MSTBV_2,5_8-GF_1x08_P5.00mm_Vertical_ThreadedFlange_MountHole", "Connector_Phoenix_MSTB:PhoenixContact_MSTB_2,5_8-GF-5,08_1x08_P5.08mm_Horizontal_ThreadedFlange", "Connector_Phoenix_MSTB:PhoenixContact_MSTB_2,5_8-GF-5,08_1x08_P5.08mm_Horizontal_ThreadedFlange_MountHole", "Connector_Phoenix_MSTB:PhoenixContact_MSTB_2,5_8-GF_1x08_P5.00mm_Horizontal_ThreadedFlange", "Connector_Phoenix_MSTB:PhoenixContact_MSTB_2,5_8-GF_1x08_P5.00mm_Horizontal_ThreadedFlange_MountHole", "Connector_Phoenix_SPT:PhoenixContact_SPT_1.5_8-H-3.5_1x08_P3.5mm_Horizontal", "Connector_Phoenix_SPT:PhoenixContact_SPT_2.5_8-H-5.0-EX_1x08_P5.0mm_Horizontal", "Connector_Phoenix_SPT:PhoenixContact_SPT_2.5_8-H-5.0_1x08_P5.0mm_Horizontal", "Connector_Phoenix_SPT:PhoenixContact_SPT_2.5_8-V-5.0-EX_1x08_P5.0mm_Vertical", "Connector_Phoenix_SPT:PhoenixContact_SPT_5_8-H-7.5-ZB_1x08_P7.5mm_Horizontal", "Connector_Phoenix_SPT:PhoenixContact_SPT_5_8-V-7.5-ZB_1x08_P7.5mm_Vertical", "Connector_PinHeader_1.00mm:PinHeader_1x08_P1.00mm_Horizontal", "Connector_PinHeader_1.00mm:PinHeader_1x08_P1.00mm_Vertical", "Connector_PinHeader_1.00mm:PinHeader_1x08_P1.00mm_Vertical_SMD_Pin1Left", "Connector_PinHeader_1.00mm:PinHeader_1x08_P1.00mm_Vertical_SMD_Pin1Right", "Connector_PinHeader_1.27mm:PinHeader_1x08_P1.27mm_Horizontal", "Connector_PinHeader_1.27mm:PinHeader_1x08_P1.27mm_Vertical", "Connector_PinHeader_1.27mm:PinHeader_1x08_P1.27mm_Vertical_SMD_Pin1Left", "Connector_PinHeader_1.27mm:PinHeader_1x08_P1.27mm_Vertical_SMD_Pin1Right", "Connector_PinHeader_2.00mm:PinHeader_1x08_P2.00mm_Horizontal", "Connector_PinHeader_2.00mm:PinHeader_1x08_P2.00mm_Vertical", "Connector_PinHeader_2.00mm:PinHeader_1x08_P2.00mm_Vertical_SMD_Pin1Left", "Connector_PinHeader_2.00mm:PinHeader_1x08_P2.00mm_Vertical_SMD_Pin1Right", "Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Horizontal", "Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical", "Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical_SMD_Pin1Left", "Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical_SMD_Pin1Right", "Connector_PinSocket_1.00mm:PinSocket_1x08_P1.00mm_Vertical", "Connector_PinSocket_1.00mm:PinSocket_1x08_P1.00mm_Vertical_SMD_Pin1Left", "Connector_PinSocket_1.00mm:PinSocket_1x08_P1.00mm_Vertical_SMD_Pin1Right", "Connector_PinSocket_1.27mm:PinSocket_1x08_P1.27mm_Vertical", "Connector_PinSocket_1.27mm:PinSocket_1x08_P1.27mm_Vertical_SMD_Pin1Left", "Connector_PinSocket_1.27mm:PinSocket_1x08_P1.27mm_Vertical_SMD_Pin1Right", "Connector_PinSocket_2.00mm:PinSocket_1x08_P2.00mm_Horizontal", "Connector_PinSocket_2.00mm:PinSocket_1x08_P2.00mm_Vertical", "Connector_PinSocket_2.00mm:PinSocket_1x08_P2.00mm_Vertical_SMD_Pin1Left", "Connector_PinSocket_2.00mm:PinSocket_1x08_P2.00mm_Vertical_SMD_Pin1Right", "Connector_PinSocket_2.54mm:PinSocket_1x08_P2.54mm_Horizontal", "Connector_PinSocket_2.54mm:PinSocket_1x08_P2.54mm_Vertical", "Connector_PinSocket_2.54mm:PinSocket_1x08_P2.54mm_Vertical_SMD_Pin1Left", "Connector_PinSocket_2.54mm:PinSocket_1x08_P2.54mm_Vertical_SMD_Pin1Right", "Connector_Samtec_HPM_THT:Samtec_HPM-08-01-x-S_Straight_1x08_Pitch5.08mm", "Connector_Samtec_HPM_THT:Samtec_HPM-08-05-x-S_Straight_1x08_Pitch5.08mm", "Connector_Samtec_MicroPower:Samtec_UMPS-08-XX.X-X-V-S_1x08_P2.0mm_Socket", "Connector_Samtec_MicroPower:Samtec_UMPT-08-XX.X-X-V-S_1x08_P2.0mm_Terminal", "Connector_Stocko:Stocko_MKS_1658-6-0-808_1x8_P2.50mm_Vertical", "Connector_TE-Connectivity:TE_826576-8_1x08_P3.96mm_Vertical", "Connector_Wago:Wago_734-138_1x08_P3.50mm_Vertical", "Connector_Wago:Wago_734-168_1x08_P3.50mm_Horizontal", "Connector_Wuerth:Wuerth_WR-WTB_64800811622_1x08_P1.50mm_Vertical"]
+            kicad_properties:
+                "Datasheet": ""
+                "Description": "Generic connector, single row, 01x08, script generated"
+                "Footprint": ""
+                "Reference": "J"
+                "Value": "Conn_01x08_Pin"
+                "ki_fp_filters": "Connector*:*_1x??_*"
+                "ki_keywords": "connector"
+                "ki_locked": ""
