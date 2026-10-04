@@ -42,3 +42,22 @@ CI does not replace PCBNew's manual import/update checks. The KiCad data job use
 Ubuntu's packaged libraries; it is not a KiCad 10 GUI validation job.
 Action revisions are pinned to commits, and workflow permissions are read-only.
 The uv setup follows its [official GitHub Actions guide](https://docs.astral.sh/uv/guides/integration/github/).
+
+## Local search with st
+
+The optional `.st_config.py` configures [st](https://github.com/djacobow/st) for
+this repository. Its search-path key is the Git remote repository name,
+`noscheme`; `nosch` is a file-type selector. Default searches cover source,
+tests, examples, and documentation while excluding generated output and caches.
+Use explicit scopes to narrow searches or include generated files:
+
+```sh
+st f erc -py -src
+st g STM32H523Reference -nosch -f
+st p examples
+st f erc -py -build
+```
+
+The config requires a Git repository with an `origin` remote. Exclusion regexes
+are attached to each search scope; a standalone `EXCLUDE` variable is not read
+by st.
