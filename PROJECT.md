@@ -186,7 +186,9 @@ using the MCU internal pull-up and the existing 100 nF capacitor.
 The HC49/US SMT crystal target is 8 MHz with 18 pF load; its two 27 pF load capacitors
 are provisional and need adjustment for the selected crystal and board stray
 capacitance. This board has not been assembled, routed, or hardware-qualified.
-Production netlist import/placement/update still needs the manual KiCad check.
+The user confirmed that the production netlist populated the KiCad board correctly.
+Placement and routing are deferred; layout-preserving updates on this reference
+board still need a manual check.
 
 ## Projects and imports
 
@@ -368,12 +370,12 @@ declarations are not yet implemented and must not be silently ignored.
 | Block definition | `erc_choices` (named string alternatives), `custom` |
 | Board definition | `erc_choices`, `configurations` (named choice assignments), `custom` |
 | Bundle definition | `custom` |
-| Physical pin definition | `aliases` (name/string list), `role` (qualified role or list), `unused`, nonnegative literal `max_source_current_mA` and `max_load_current_mA`, `custom` |
+| Physical pin definition | `aliases` (name/string list), `role` (qualified role or list), `unused`, `tristate_capable` (boolean), nonnegative literal `max_source_current_mA` and `max_load_current_mA`, `custom` |
 | Port or bundle field | `placeholder` (boolean), `role`, `unused`, `waivers`, `aggregate_load`, `custom` |
 | Net | `placeholder` (boolean), `net_class` (string), `waivers`, `custom` |
 | Physical instance | `footprint`, `ref`, `identity` (strings), `value` (deferred expression), `custom` |
 | Block instance | `identity`, `erc_choices` (public choice bindings), `custom` |
-| Instance pin/port annotation | `role` (one permitted role or choice/cases mapping), `external_role` (role, list, or choice/cases mapping), `custom` |
+| Instance pin/port annotation | `role` (one permitted role or choice/cases mapping), `external_role` (role, list, or choice/cases mapping), `tristate_capable` (boolean), `custom` |
 
 The electrical-check registry additionally supplies pin/instance-pin `bias`,
 `pull_resistance_ohm`, and `capacitance_pF`; net/port resistance limits and
@@ -615,7 +617,43 @@ Implemented checks use the `erc.` diagnostic prefix:
 External connector roles replace the physical contact's role for driver and load
 accounting. Hierarchical ports never duplicate physical drivers or loads.
 Explicit bias and opt-in resistance/capacitance budgets are implemented.
-Tri-state models remain pending; unsupported metadata is rejected.
+### Tri-state capability checks
+
+`nettype.tristate` accepts passive attachments and digital inputs without further
+metadata. Every output-capable endpoint (`digital_output`,
+`digital_bidirectional`, `open_drain`, or `open_source`) must explicitly declare
+`tristate_capable: true`. Missing or false capability produces
+`erc.tristate_capability`; unknown or unselected roles produce the usual
+`incomplete_roles` warning. Analog, power, and ground roles remain incompatible,
+even with the flag. Multiple capable drivers are allowed.
+
+The boolean belongs to pin definitions or instance-pin metadata, including
+connector pins with `external_role`. Metadata specialization and instance
+annotations can override it. Public `nettype.tristate` ports constrain the actual
+connected endpoints; a port does not invent a driver or confer capability on its
+internals. All applicable net constraints remain in force: an ordinary `digital`
+declaration on the same flattened net retains its single-driver requirements.
+An outermost `unchecked` net still does not disable inner type/capability checks.
+
+This is a capability check. There is no enable-signal model, mutual-exclusion
+proof, or requirement for a currently active driver. An all-input tri-state net
+therefore passes this check. Existing connection policies still apply. The
+`tristate_capability` diagnostic supports the normal outermost-net waiver with
+an explicit reason. Named configurations use the selected endpoint roles.
+
+```nosch
+component BusDriver:
+    pins:
+        data:
+            role: role.digital_output
+            tristate_capable: true
+```
+
+See `examples/tristate` for a shared-bus example. It models electrical behavior
+without assigning footprints. KiCad `tri_state` pins convert to
+`role.digital_output` with `tristate_capable: true`; repeated representations
+that also specify a non-tristating output do not acquire the capability.
+Generic KiCad bidirectional pins do not imply this flag.
 
 ### Role/net-type compatibility
 
@@ -628,7 +666,8 @@ allows these roles (all rows also permit `role.passive`):
 |---|---|
 | `passive` | Any ordinary digital, analog, power, or ground role |
 | `digital` | `digital_input`, `digital_output`, `digital_bidirectional`, `open_drain` |
-| `bidirectional` | `digital_input`, `digital_output`, `digital_bidirectional`, `open_drain` |
+| `bidirectional` | `digital_input`, `digital_output`, `digital_bidirectional`, `open_drain`, `open_source` |
+| `tristate` | `digital_input`; digital output-capable roles with `tristate_capable: true` |
 | `open_drain` | `digital_input`, `open_drain` |
 | `analog` | `analog_input`, `analog_output`, `analog_bidirectional` |
 | `power` | `power_input`, `power_output`, `digital_input`, `analog_input` |

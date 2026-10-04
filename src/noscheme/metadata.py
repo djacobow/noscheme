@@ -28,6 +28,7 @@ ROLES = frozenset(
 )
 NETTYPES = frozenset(
     {
+        "tristate",
         "passive",
         "digital",
         "analog",
@@ -57,6 +58,7 @@ SCHEMAS = {
     },
     "bundle": {"custom": "custom"},
     "pin": {
+        "tristate_capable": "bool",
         "aliases": "aliases",
         "role": "roles",
         "unused": "unused",
@@ -82,7 +84,12 @@ SCHEMAS = {
         "value": "expression",
         "custom": "custom",
     },
-    "instance_pin": {"role": "role", "external_role": "roles", "custom": "custom"},
+    "instance_pin": {
+        "role": "role",
+        "external_role": "roles",
+        "tristate_capable": "bool",
+        "custom": "custom",
+    },
 }
 UNIMPLEMENTED = {
     "erc",

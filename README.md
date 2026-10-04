@@ -140,3 +140,16 @@ st f erc -py -build
 The config requires a Git repository with an `origin` remote. Exclusion regexes
 are attached to each search scope; a standalone `EXCLUDE` variable is not read
 by st.
+
+### Tri-state buses
+
+Use `nettype.tristate` for a shared bus. Digital inputs and passive attachments
+are allowed; each output-capable pin needs `tristate_capable: true` in its
+pin definition or instance-pin metadata. ERC checks capability, while the designer
+remains responsible for bus arbitration. Run the electrical-only example with:
+
+```sh
+uv run --locked noscheme check --project examples/tristate
+```
+
+The example intentionally has no footprints; those warnings are expected.

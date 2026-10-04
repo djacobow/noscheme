@@ -19,6 +19,7 @@ from .sexpr import load, tag, children, scalar
 ROLE_MAP = {
     "input": "digital_input",
     "output": "digital_output",
+    "tri_state": "digital_output",
     "bidirectional": "digital_bidirectional",
     "passive": "passive",
     "power_in": "power_input",
@@ -235,6 +236,8 @@ def convert_library(source, output, symbols=(), footprint_roots=(), extra_footpr
                 lines.append(f"            role: role.{roles[0]}")
             elif roles:
                 lines.append("            role: [" + ", ".join("role." + r for r in roles) + "]")
+            if "tri_state" in types and set(types) <= {"tri_state", "input", "passive"}:
+                lines.append("            tristate_capable: true")
             lines.append("            unused: unused.explicit")
             lines.extend(
                 ["            custom:", f"                kicad_pin_types: {json.dumps(types)}"]

@@ -18,6 +18,7 @@ CHECKS = (
     "incomplete_budget",
     "waiver_scope",
     "incompatible_role",
+    "tristate_capability",
     "port_role",
     "incomplete_port_role",
     "required_port_connection",
@@ -43,6 +44,7 @@ DIGITAL = {"digital_input", "digital_output", "digital_bidirectional", "open_dra
 ANALOG = {"analog_input", "analog_output", "analog_bidirectional"}
 INPUTS = {"digital_input", "analog_input", "power_input"}
 ALLOWED_ROLES = {
+    "tristate": PASSIVE | DIGITAL,
     "passive": PASSIVE | DIGITAL | ANALOG | {"power_input", "power_output", "ground"},
     "digital": PASSIVE | DIGITAL,
     "bidirectional": PASSIVE | DIGITAL,

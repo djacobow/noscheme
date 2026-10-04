@@ -1,6 +1,6 @@
 """Electrical checks on flattened physical endpoints, without component traversal.
 
-Reports explicitly list remaining checks. Tri-state models remain separate work.
+Tri-state buses check declared capabilities, without modeling output enables.
 """
 
 from fractions import Fraction
@@ -14,7 +14,7 @@ from .erc_rules import CHECKS, ALLOWED_ROLES, PORT_ALLOWED, PORT_EVIDENCE
 from .erc_config import configuration_views
 from .erc_registry import NetContext, load_registry
 
-PENDING = ("tristate",)
+PENDING = ()
 
 
 def attribute(record, name, default=None):
@@ -363,6 +363,13 @@ def check_circuit(circuit, *, waiver_records=None, registry=None):
         constraints = [
             d for d in declarations if d["type"] != "unchecked" and not fixed_input_port(d)
         ]
+
+        def allowed(declaration, pin):
+            roles = ALLOWED_ROLES[declaration["type"]]
+            if declaration["type"] == "tristate" and not attribute(pin, "tristate_capable", False):
+                return {"passive", "digital_input"}
+            return roles
+
         compatibility_uncertain = False
         for label, pin in endpoints:
             roles = set(attribute(pin, "external_role", attribute(pin, "role", [])))
@@ -373,14 +380,22 @@ def check_circuit(circuit, *, waiver_records=None, registry=None):
                 continue  # The mandatory connection policy reports this separately.
             permitted = roles.copy()
             for declaration in constraints:
-                permitted &= ALLOWED_ROLES[declaration["type"]]
-            incompatible = [d for d in constraints if not roles & ALLOWED_ROLES[d["type"]]]
+                permitted &= allowed(declaration, pin)
+            incompatible = [d for d in constraints if not roles & allowed(d, pin)]
             if not permitted and not incompatible:
                 incompatible = constraints
             if incompatible:
+                capability = any(
+                    d["type"] == "tristate" and roles <= ALLOWED_ROLES["tristate"]
+                    for d in incompatible
+                )
                 emit(
-                    "incompatible_role",
-                    f"{label} roles {', '.join(sorted(roles))} are incompatible with net {name!r}",
+                    "tristate_capability" if capability else "incompatible_role",
+                    (
+                        f"{label} on tri-state net {name!r} requires tristate_capable: true"
+                        if capability
+                        else f"{label} roles {', '.join(sorted(roles))} are incompatible with net {name!r}"
+                    ),
                     pin,
                     label,
                     related=[
@@ -388,7 +403,7 @@ def check_circuit(circuit, *, waiver_records=None, registry=None):
                         for d in incompatible
                     ],
                 )
-            elif any(not roles <= ALLOWED_ROLES[d["type"]] for d in constraints):
+            elif any(not roles <= allowed(d, pin) for d in constraints):
                 compatibility_uncertain = True
         types = {d["type"] for d in constraints}
         demands = [
@@ -417,6 +432,16 @@ def check_circuit(circuit, *, waiver_records=None, registry=None):
                 known.append((roles[0], label, pin))
         drivers = [e for e in known if e[0] in {"digital_output", "analog_output", "power_output"}]
         open_drivers = [e for e in known if e[0] in {"open_drain", "open_source"}]
+        # A digital declaration still imposes its ordinary single-driver policy.
+        if "tristate" in types and "digital" not in types:
+            drivers = [
+                e
+                for e in drivers
+                if e[0] != "digital_output" or not attribute(e[2], "tristate_capable", False)
+            ]
+            open_drivers = [
+                e for e in open_drivers if not attribute(e[2], "tristate_capable", False)
+            ]
         if len(drivers) > 1 or (drivers and open_drivers) or len({e[0] for e in open_drivers}) > 1:
             conflicting = drivers + open_drivers
             emit(

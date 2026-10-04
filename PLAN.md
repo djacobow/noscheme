@@ -16,14 +16,27 @@ supply decoupling, local SD/display decoupling, concrete connectors, and a
 ceramic-stable TLV1117LV33 supply. Direct header/LDO power connections are retained
 for this operator-controlled POC. No additional protection circuitry is planned.
 
-Next: import `examples/stm32h523/build/board.net` into a new KiCad board, confirm
-58 footprints and connectivity, place a few parts, and verify reimport preserves
-the layout. Automated coverage checks MCU pins/supplies, VCAP isolation, buses,
+The user confirmed that the generated STM32 netlist populated the KiCad board
+correctly. This completes the initial manual import check. Placement and routing
+are deferred at the user's request; layout-preserving updates on this reference
+board remain unverified. Automated coverage checks MCU pins/supplies, VCAP isolation, buses,
 USB contacts, local capacitors, all footprint pads, and repeat export stability.
 Crystal capacitor tuning, firmware clock/boot settings, and physical layout
-validation remain hardware tasks; tri-state ERC remains separate compiler work.
+validation remain hardware tasks.
 The completed feasibility experiment findings remain in
 [experiments/FINDINGS.md](experiments/FINDINGS.md).
+
+### Tri-state capability checking: implemented
+
+`nettype.tristate` allows inputs and passive attachments; output-capable digital
+endpoints require explicit boolean `tristate_capable` pin metadata. Multiple
+capable drivers are allowed without enable-state or arbitration modeling. The
+check uses effective roles, preserves hierarchical constraints, supports normal
+waivers, and leaves ordinary digital-net checks intact. KiCad conversion now
+preserves explicit tri-state output capability. `examples/tristate` demonstrates
+the rule; tests cover arrays, ports, inheritance, overrides, configurations,
+invalid domains, diagnostics, and conversion. The ERC pending-check list is empty;
+this does not imply hardware validation.
 
 ### Vim/Neovim highlighting
 
@@ -475,8 +488,7 @@ and preservation of previous artifacts on failure.
 uv run --locked noscheme check --project examples/erc_extensions
 ```
 
-Tri-state models, tolerance/range handling, and parameter-derived electrical
-metadata remain future work. The example uses simplified physical pin models.
+Tolerance/range handling and parameter-derived electrical metadata remain future work. The example uses simplified physical pin models.
 
 ### ERC: implemented first pass
 
@@ -495,7 +507,7 @@ The elaboration-only Python API still returns `erc_performed: false`.
 
 Role/net-type compatibility and public-port contracts are now implemented.
 Named ERC configurations and hierarchical aggregate budgets are implemented;
-tri-state models remain pending. Explicit digital-input ports may tie to power/ground rails while retaining
+tri-state capability checking is implemented. Explicit digital-input ports may tie to power/ground rails while retaining
 their internal input contracts and the rail checks.
 Waivers now require the outermost declaration of the flattened net. Inner-port
 waivers produce a scope error and cannot suppress checks on caller circuitry.

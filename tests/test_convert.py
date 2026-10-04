@@ -73,12 +73,22 @@ def test_snapshots_include_duplicate_and_unnumbered_pads(tmp_path):
 
 
 def test_unknown_pin_types_are_preserved_without_guessing(tmp_path):
-    source = library(tmp_path / "Test.kicad_sym", symbol("C", [pin("1", "T", "tri_state")]))
+    source = library(tmp_path / "Test.kicad_sym", symbol("C", [pin("1", "T", "unspecified")]))
     report = convert_library(source, tmp_path / "out")
     assert any(i["check"] == "unmapped_pin_type" for i in report["issues"])
     text = (tmp_path / "out/Test.nosch").read_text()
-    assert 'kicad_pin_types: ["tri_state"]' in text
+    assert 'kicad_pin_types: ["unspecified"]' in text
     assert "role: role." not in text
+
+
+@pytest.mark.parametrize("types,capable", [(["tri_state"], True), (["tri_state", "output"], False)])
+def test_tristate_conversion_preserves_explicit_capability(tmp_path, types, capable):
+    source = library(tmp_path / "Test.kicad_sym", symbol("C", [pin("1", "T", t) for t in types]))
+    report = convert_library(source, tmp_path / "out")
+    assert not any(i["check"] == "unmapped_pin_type" for i in report["issues"])
+    text = (tmp_path / "out/Test.nosch").read_text()
+    assert "role: role.digital_output" in text
+    assert ("tristate_capable: true" in text) == capable
 
 
 @pytest.mark.parametrize("kind", ["collision", "cycle", "missing", "malformed"])
