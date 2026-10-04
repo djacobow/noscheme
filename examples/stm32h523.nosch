@@ -1,0 +1,473 @@
+/*
+NoScheme reference board — syntax draft for discussion.
+
+This is the STM32H523VCT6 board from PROJECT.md, used as a structural compiler
+fixture rather than a verified electrical design. The compiler resolves and expands this draft,
+including its arrayed UART headers; electrical checking and hardware validation
+remain pending. Placeholder blocks still need real implementations.
+Definitions are kept together here for review; library definitions will later
+move into modules accessed through explicit named imports.
+
+Accepted choices include parenthesized inst declarations, params/defaults,
+aliases lists, numeric pin labels, ranges/slices, and explicit built-in imports.
+The complete grammar is not yet defined. Definition forms, placeholder metadata
+placement, standard-library module path, and the full role vocabulary still need
+formalization. PROJECT.md records the current decisions and remaining work.
+
+HARDWARE TODO:
+  Replace placeholder blocks with explicit physical parts after checking the
+  MCU datasheet, package pinout, alternate functions, and support requirements.
+  Choose connector and LDO parts; verify pad maps and footprints.
+  Add MCU decoupling, reset/boot and clock circuitry, USB-C configuration and
+  protection, and regulator capacitors appropriate to the selected devices.
+  Verify USB capability and clock requirements for the selected MCU.
+  Confirm separate expansion SPI/I2C peripherals and all sixteen GPIOs fit.
+  Assign two independent UART peripherals and choose the JST series/pitch and
+  footprint for their three-pin headers (1 GND, 2 MCU TX, 3 MCU RX).
+  Assign two button GPIOs; select normally-open switches and verify their pads.
+  Verify BOOT0 package mapping, option-byte behavior, and pull-down value.
+  Finalize connector roles and ERC power configurations; declare real current
+  budgets. No invented current capacities are used in this draft.
+
+Placeholder ports have no physical pin mapping and do not imply drivers or
+loads. They create no footprints. Known incomplete ERC information remains
+visible; the presence of a placeholder itself does not produce a warning.
+*/
+
+// Proposed standard-library module name; imports are explicit.
+from noscheme import role, nettype, unused, f
+
+bundle I2C:
+    scl: nettype.open_drain
+    sda: nettype.open_drain
+
+bundle SPI:
+    sck: nettype.digital
+    mosi: nettype.digital
+    miso: nettype.digital
+    cs#: nettype.digital
+
+bundle USB2:
+    dp: nettype.bidirectional
+    dm: nettype.bidirectional
+
+bundle SWD:
+    swclk: nettype.digital
+    swdio: nettype.bidirectional
+    swo: nettype.digital
+    reset#: nettype.open_drain
+
+// Minimal physical definitions to illustrate the language, not library imports.
+component Resistor:
+    params:
+        value: string
+    pins:
+        1:
+            role: role.passive
+            unused: unused.never
+        2:
+            role: role.passive
+            unused: unused.never
+    metadata:
+        ref_prefix: "R"
+
+component Resistor0603 extends Resistor:
+    metadata:
+        footprint: "Resistor_SMD:R_0603_1608Metric"
+
+// Values are starting points for discussion, not selected from a power budget.
+component LedResistor extends Resistor0603:
+    defaults:
+        value: f.kOhm(1)
+
+component I2CPullup extends Resistor0603:
+    defaults:
+        value: f.kOhm(4.7)
+
+// Provisional values; verify input leakage and timing when selecting the MCU pins.
+component InputBias0603 extends Resistor0603:
+    defaults:
+        value: f.kOhm(10)
+
+component PushButton:
+    pins:
+        1:
+            aliases: [signal]
+            role: role.passive
+            unused: unused.never
+        2:
+            aliases: [ground]
+            role: role.passive
+            unused: unused.never
+    metadata:
+        ref_prefix: "SW"
+        // Normally open. Exact switch, physical pad mapping, and footprint pending.
+
+component Header1x2:
+    pins:
+        1..2:
+            role: role.passive
+            unused: unused.never
+    metadata:
+        ref_prefix: "J"
+        footprint: "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical"
+
+component Led:
+    params:
+        value: string
+    pins:
+        1:
+            aliases: [cathode, K]
+            role: role.passive
+            unused: unused.never
+        2:
+            aliases: [anode, A]
+            role: role.passive
+            unused: unused.never
+    metadata:
+        ref_prefix: "D"
+
+component GreenLed0603 extends Led:
+    defaults:
+        value: "Green"
+    metadata:
+        footprint: "LED_SMD:LED_0603_1608Metric"
+        // Draft convention: 1 cathode, 2 anode; verify against selected part.
+
+block Indicator:
+    params:
+        resistance: string = f.kOhm(1)
+    ports:
+        drive: nettype.digital
+    net anode: nettype.passive
+
+    inst resistor: LedResistor(
+        connections:
+            1: drive
+            2: anode
+        params:
+            value: resistance
+    )
+    inst led: GreenLed0603(
+        connections:
+            cathode: global.gnd
+            anode: anode
+    )
+    // Global ground must be declared by the containing board.
+    // No signal propagation or current calculation through the resistor.
+
+component Header1x4:
+    pins:
+        1..4:
+            unused: unused.explicit
+    metadata:
+        ref_prefix: "J"
+        // 0.1 inch pitch; exact part and footprint remain to be selected.
+
+component Header2x10:
+    pins:
+        1..20:
+            unused: unused.explicit
+    metadata:
+        ref_prefix: "J"
+        // 0.1 inch pitch; exact part and footprint remain to be selected.
+
+component UartHeaderJST3:
+    pins:
+        1:
+            aliases: [gnd]
+            unused: unused.explicit
+        2:
+            aliases: [tx]
+            unused: unused.explicit
+        3:
+            aliases: [rx]
+            unused: unused.explicit
+    metadata:
+        ref_prefix: "J"
+        custom:
+            connector_family: "JST"
+        // Series, pitch, mating connector, and footprint remain to be selected.
+
+// These blocks declare the intended interfaces, not aliases for real MCU pins.
+// Their eventual implementations will explicitly instantiate all support parts.
+block MCU_H523_Pending:
+    ports:
+        supply: nettype.power
+            placeholder: true
+        ground: nettype.ground
+            placeholder: true
+        usb: USB2
+            placeholder: true
+        debug: SWD
+            placeholder: true
+        sd: SPI
+            placeholder: true
+        sd_detect#: nettype.digital
+            placeholder: true
+        oled: I2C
+            placeholder: true
+        expansion_i2c: I2C
+            placeholder: true
+        expansion_spi: SPI
+            placeholder: true
+        expansion_gpio: nettype.bidirectional[10]
+            placeholder: true
+        led_drive: nettype.digital[3]
+            placeholder: true
+        buttons#: nettype.digital[2]
+            placeholder: true
+        boot0: nettype.digital
+            placeholder: true
+        uart_tx: nettype.digital[2]
+            placeholder: true
+        uart_rx: nettype.digital[2]
+            placeholder: true
+    metadata:
+        custom:
+            intended_mcu: "STM32H523VCT6"
+            intended_package: "LQFP-100"
+
+block UsbC_Pending:
+    ports:
+        vbus: nettype.power
+            placeholder: true
+        ground: nettype.ground
+            placeholder: true
+        data: USB2
+            placeholder: true
+    // Explicit USB-C connector pins, CC circuitry, shield treatment, and
+    // protection will go here after part selection. VBUS is the shared 5 V net.
+
+block Ldo_Pending:
+    ports:
+        input: nettype.power
+            placeholder: true
+        output: nettype.power
+            placeholder: true
+        ground: nettype.ground
+            placeholder: true
+    // Select an 1117-style 3.3 V regulator and its supporting passives.
+    // Verify external powering of its output; an ERC configuration cannot remove the LDO.
+
+block MicroSD_Pending:
+    ports:
+        supply: nettype.power
+            placeholder: true
+        ground: nettype.ground
+            placeholder: true
+        bus: SPI
+            placeholder: true
+        detect#: nettype.digital
+            placeholder: true
+    // Replace with the chosen socket, explicit unused contacts, and support parts.
+
+block CortexDebug_Pending:
+    ports:
+        reference: nettype.power
+            placeholder: true
+        ground: nettype.ground
+            placeholder: true
+        debug: SWD
+            placeholder: true
+    // Standard 10-pin Cortex arrangement; physical pin map awaits verification.
+
+board STM32H523Reference:
+    global net gnd: nettype.ground
+    global net v5: nettype.power
+    global net v3v3: nettype.power
+
+    net usb: USB2
+    net debug: SWD
+    net sd: SPI
+    net sd_detect#: nettype.digital
+    net oled: I2C
+    net expansion_i2c: I2C
+    net expansion_spi: SPI
+    net expansion_gpio: nettype.bidirectional[10]
+    net led_drive: nettype.digital[3]
+    net buttons#: nettype.digital[2]
+    net boot0: nettype.digital
+    net uart_tx: nettype.digital[2]
+    net uart_rx: nettype.digital[2]
+
+    inst mcu: MCU_H523_Pending(
+        connections:
+            supply: global.v3v3
+            ground: global.gnd
+            usb: usb
+            debug: debug
+            sd: sd
+            sd_detect#: sd_detect#
+            oled: oled
+            expansion_i2c: expansion_i2c
+            expansion_spi: expansion_spi
+            expansion_gpio: expansion_gpio
+            led_drive: led_drive
+            buttons#: buttons#
+            boot0: boot0
+            uart_tx: uart_tx
+            uart_rx: uart_rx
+    )
+
+    inst usb_c: UsbC_Pending(
+        connections:
+            vbus: global.v5
+            ground: global.gnd
+            data: usb
+    )
+
+    inst regulator: Ldo_Pending(
+        connections:
+            input: global.v5
+            output: global.v3v3
+            ground: global.gnd
+    )
+
+    inst micro_sd: MicroSD_Pending(
+        connections:
+            supply: global.v3v3
+            ground: global.gnd
+            bus: sd
+            detect#: sd_detect#
+    )
+
+    inst swd: CortexDebug_Pending(
+        connections:
+            reference: global.v3v3
+            ground: global.gnd
+            debug: debug
+    )
+
+    // Proposed order; check the intended OLED module's pin order and voltage.
+    inst oled_header: Header1x4(
+        connections:
+            1: global.v3v3
+            2: global.gnd
+            3: oled.scl
+            4: oled.sda
+        metadata:
+            pins:
+                1:
+                    external_role: role.power_input
+                2:
+                    external_role: role.ground
+                3:
+                    external_role: role.open_drain
+                4:
+                    external_role: role.open_drain
+    )
+
+    inst oled_scl_pullup: I2CPullup(
+        connections:
+            1: global.v3v3
+            2: oled.scl
+    )
+    inst oled_sda_pullup: I2CPullup(
+        connections:
+            1: global.v3v3
+            2: oled.sda
+    )
+    // TODO: bias annotations; generic passive pins do not establish pullup
+    // behavior. Check whether the chosen OLED module already has pullups.
+
+    // Illustrative header order: 4 power/ground + 2 I2C + 4 SPI + 10 other GPIO.
+    // Bus pins are also GPIO-capable MCU pins, giving 16 GPIO connections total.
+    inst expansion: Header2x10(
+        connections:
+            1: global.gnd
+            2: global.gnd
+            3: global.v5
+            4: global.v3v3
+            5: expansion_i2c.scl
+            6: expansion_i2c.sda
+            7: expansion_spi.sck
+            8: expansion_spi.mosi
+            9: expansion_spi.miso
+            10: expansion_spi.cs#
+            11..20: expansion_gpio[0:10]
+        metadata:
+            pins:
+                1:
+                    external_role: role.ground
+                2:
+                    external_role: role.ground
+                // 3 and 4: source/load roles await ERC configuration syntax.
+                5:
+                    external_role: role.open_drain
+                6:
+                    external_role: role.open_drain
+                7:
+                    external_role: role.digital_input
+                8:
+                    external_role: role.digital_input
+                9:
+                    external_role: role.digital_output
+                10:
+                    external_role: role.digital_input
+                11..20:
+                    external_role: role.digital_bidirectional
+    )
+    // Connector roles above describe the external equipment's endpoints.
+    // Example SPI roles assume the board is controller; other uses need ERC configurations.
+    // Expansion I2C pullup placement remains to be decided with external loads.
+
+    // TX/RX are named from the MCU's perspective. Each header gets its own UART.
+    inst uart_headers[2]: UartHeaderJST3(
+        connections:
+            gnd: global.gnd
+            tx: uart_tx
+            rx: uart_rx
+        metadata:
+            pins:
+                1:
+                    external_role: role.ground
+                2:
+                    external_role: role.digital_input
+                3:
+                    external_role: role.digital_output
+    )
+
+    // Two active-low buttons with independent pull-ups and common ground.
+    inst buttons[2]: PushButton(
+        connections:
+            signal: buttons#
+            ground: global.gnd
+    )
+    inst button_pullups[2]: InputBias0603(
+        connections:
+            1: global.v3v3
+            2: buttons#
+    )
+    // Shunt installed: BOOT0 high. Shunt absent: resistor pulls BOOT0 low.
+    inst boot_header: Header1x2(
+        connections:
+            1: global.v3v3
+            2: boot0
+    )
+    inst boot_pulldown: InputBias0603(
+        connections:
+            1: boot0
+            2: global.gnd
+    )
+    // Passive parts do not imply signal propagation or bias to ERC.
+
+    inst indicators[3]: Indicator(
+        connections:
+            [0].drive: led_drive[0]
+            [1].drive: led_drive[1]
+            [2].drive: led_drive[2]
+    )
+    // Equivalent whole-array binding: drive: led_drive.
+    // Use one form or the other; overlapping bindings are errors.
+
+    /*
+    ERC configurations to express after choosing their syntax:
+      USB-powered: USB supplies v5; expansion power pins are loads or unused.
+      Header-5V-powered: expansion pin 3 supplies v5; USB supply absent.
+      Header-3V3-powered: expansion pin 4 supplies v3v3; verify the real LDO's
+        behavior with its output externally powered and input supply absent.
+    These are checking assumptions, not different netlists. Physical regulator
+    connections remain present in every configuration. Supply capacities and
+    consumption will be explicit annotations after part selection.
+    */

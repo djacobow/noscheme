@@ -1,0 +1,4 @@
+board Board:
+    inst a: Part(
+        params:
+            value: 1

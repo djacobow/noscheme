@@ -1,0 +1,573 @@
+"""Resolve definitions and public interfaces without executing or expanding them."""
+
+from dataclasses import dataclass, replace
+import re
+
+from . import ast as a
+from .diagnostics import Related
+from .metadata import NETTYPES, Value, enum, merge, read_metadata
+from .project import IDENTIFIER, fail, load_project
+
+
+@dataclass(frozen=True)
+class Parameter:
+    name: str
+    type: str
+    default: Value | None
+    span: a.Span
+
+
+@dataclass(frozen=True)
+class Interface:
+    name: str
+    type: Value | None
+    metadata: dict[str, Value]
+    span: a.Span
+
+
+@dataclass(frozen=True)
+class Definition:
+    module: str
+    name: str
+    kind: str
+    source: a.Definition
+    parameters: dict[str, Parameter]
+    interface: dict[str, Interface]
+    aliases: dict[str, str]
+    metadata: dict[str, Value]
+    body: tuple[a.Net | a.Instance, ...]
+    body_module: str
+
+
+class Resolver:
+    def __init__(self, project, max_pins=100_000, max_expression_depth=128):
+        self.project = project
+        self.max_pins = max_pins
+        self.max_expression_depth = max_expression_depth
+        self.definitions = {}
+
+    def symbol(self, module, names, kinds):
+        if len(names) != 1:
+            fail(
+                "resolve.private",
+                "import definitions by name; qualified access to internals is not allowed",
+                names[-1].span,
+            )
+        symbol = self.project.modules[module].symbols.get(names[0].text)
+        if symbol is None or symbol.declaration is None:
+            fail(
+                "resolve.missing-definition", f"unknown definition {names[0].text!r}", names[0].span
+            )
+        if symbol.declaration.kind not in kinds:
+            fail(
+                "resolve.kind",
+                f"{names[0].text!r} must name {' or '.join(sorted(kinds))}",
+                names[0].span,
+            )
+        return (symbol.module, symbol.name)
+
+    def keys(self, key):
+        if key.last is None:
+            return (key.first.text,)
+        first, last = key.first.text, key.last.text
+        if len(first) > 20 or len(last) > 20:
+            fail("resolve.pin-range", "physical range bounds exceed the supported size", key.span)
+        if not (
+            first.isascii()
+            and first.isdecimal()
+            and last.isascii()
+            and last.isdecimal()
+            and str(int(first)) == first
+            and str(int(last)) == last
+        ):
+            fail(
+                "resolve.pin-range",
+                "physical ranges require ordinary non-padded integer labels",
+                key.span,
+            )
+        lo, hi = int(first), int(last)
+        if hi < lo or hi - lo + 1 > self.max_pins:
+            fail(
+                "resolve.pin-range", "descending or excessively large physical pin range", key.span
+            )
+        return tuple(str(x) for x in range(lo, hi + 1))
+
+    def build(self, module, source, parent):
+        sections = {s.name: s for s in source.body if isinstance(s, a.Section)}
+        params = dict(parent.parameters) if parent else {}
+        for f in sections.get("params", a.Section(source.span, "", ())).entries:
+            if not isinstance(f.value, a.Name) or f.value.text not in {"number", "string"}:
+                fail("resolve.parameter-type", "parameters have type number or string", f.span)
+            name = f.key.first.text
+            if not re.fullmatch(IDENTIFIER, name):
+                fail("resolve.parameter-name", "parameter name must be an identifier", f.key.span)
+            params[name] = Parameter(
+                name,
+                f.value.text,
+                Value(f.default, f.default.span, module) if f.default else None,
+                f.span,
+            )
+        for f in sections.get("defaults", a.Section(source.span, "", ())).entries:
+            name = f.key.first.text
+            if name not in params or f.key.last or f.value is None or f.fields:
+                fail(
+                    "resolve.default",
+                    "defaults must bind existing parameters to expressions",
+                    f.span,
+                )
+            params[name] = replace(params[name], default=Value(f.value, f.value.span, module))
+        interface = dict(parent.interface) if parent else {}
+        interface_section = "pins" if source.kind == "component" else "ports"
+        declarations = sections.get(interface_section, a.Section(source.span, "", ())).entries
+        if source.kind == "bundle":
+            declarations = tuple(n for n in source.body if isinstance(n, a.Field))
+        declared = {}
+        for field in declarations:
+            names = self.keys(field.key)
+            if source.kind != "component" and field.key.last:
+                fail("resolve.interface", "only physical pins support ranges", field.span)
+            for name in names:
+                if source.kind != "component" and not re.fullmatch(IDENTIFIER, name):
+                    fail(
+                        "resolve.interface",
+                        "port and bundle field names must be identifiers",
+                        field.key.span,
+                    )
+                if name in declared:
+                    fail(
+                        "resolve.duplicate-pin",
+                        f"overlapping declaration for {name!r}",
+                        field.span,
+                        related=[Related("previous declaration", declared[name])],
+                    )
+                declared[name] = field.span
+                previous = interface.get(name)
+                if parent and previous is None:
+                    fail(
+                        "resolve.specialization",
+                        f"specialization cannot add interface {name!r}",
+                        field.span,
+                    )
+                if source.kind == "component" and field.value is not None:
+                    fail(
+                        "resolve.interface",
+                        "physical pins contain metadata, not a type expression",
+                        field.span,
+                    )
+                if parent and field.value is not None:
+                    fail(
+                        "resolve.specialization",
+                        "specialization cannot change interface types",
+                        field.span,
+                    )
+                if not parent and source.kind != "component" and field.value is None:
+                    fail(
+                        "resolve.interface", "port or bundle field requires a net type", field.span
+                    )
+                metadata = read_metadata(
+                    field.fields,
+                    "pin" if source.kind == "component" else "port",
+                    self.project,
+                    module,
+                    params,
+                )
+                interface[name] = Interface(
+                    name,
+                    previous.type
+                    if parent
+                    else Value(field.value, field.value.span, module)
+                    if field.value
+                    else None,
+                    merge(previous.metadata, metadata) if previous else metadata,
+                    field.span,
+                )
+            if len(interface) > self.max_pins:
+                fail("resolve.limit", "interface exceeds configured pin limit", field.span)
+        aliases = {name: name for name in interface}
+        locations = {name: port.span for name, port in interface.items()}
+        for name, port in interface.items():
+            value = port.metadata.get("aliases")
+            if value:
+                for alias in value.value:
+                    if alias in aliases and aliases[alias] != name:
+                        fail(
+                            "resolve.alias",
+                            f"alias {alias!r} identifies multiple pins",
+                            value.span,
+                            related=[Related("other pin or alias", locations[alias])],
+                        )
+                    aliases[alias], locations[alias] = name, value.span
+        metadata_fields = sections.get("metadata", a.Section(source.span, "", ())).entries
+        metadata = read_metadata(metadata_fields, source.kind, self.project, module, params)
+        body = (
+            parent.body
+            if parent
+            else tuple(n for n in source.body if isinstance(n, (a.Net, a.Instance)))
+        )
+        return Definition(
+            module,
+            source.name.text,
+            source.kind,
+            source,
+            params,
+            interface,
+            aliases,
+            merge(parent.metadata, metadata) if parent else metadata,
+            body,
+            parent.body_module if parent else module,
+        )
+
+    def resolve_all(self):
+        sources = {
+            (m.name, n.name.text): n
+            for m in self.project.modules.values()
+            for n in m.ast.items
+            if isinstance(n, a.Definition)
+        }
+        for start in sorted(sources):
+            chain, active = [], set()
+            current = start
+            while current not in self.definitions:
+                if current in active:
+                    fail(
+                        "resolve.inheritance-cycle",
+                        "inheritance cycle: " + " -> ".join(".".join(k) for k in chain + [current]),
+                        sources[current].span,
+                    )
+                active.add(current)
+                chain.append(current)
+                source = sources[current]
+                if not source.base:
+                    break
+                current = self.symbol(current[0], source.base, {source.kind})
+            for key in reversed(chain):
+                source = sources[key]
+                parent = (
+                    self.definitions[self.symbol(key[0], source.base, {source.kind})]
+                    if source.base
+                    else None
+                )
+                self.definitions[key] = self.build(key[0], source, parent)
+        for definition in self.definitions.values():
+            self.check_body(definition)
+        self.check_bundle_cycles()
+        return dict(sorted(self.definitions.items()))
+
+    def check_bundle_cycles(self):
+        complete = set()
+        for key, definition in self.definitions.items():
+            if definition.kind != "bundle" or key in complete:
+                continue
+            active = set()
+            stack = [(key, False)]
+            while stack:
+                current, finish = stack.pop()
+                if finish:
+                    active.remove(current)
+                    complete.add(current)
+                    continue
+                if current in active:
+                    fail(
+                        "resolve.bundle-cycle",
+                        "recursive bundle fields cannot form a finite net type",
+                        self.definitions[current].source.span,
+                    )
+                if current in complete:
+                    continue
+                active.add(current)
+                stack.append((current, True))
+                for port in self.definitions[current].interface.values():
+                    target = self.type_definition(port.type)
+                    if target:
+                        stack.append(((target.module, target.name), False))
+
+    def type_definition(self, value):
+        expr = value.value
+        while isinstance(expr, a.Subscript):
+            expr = expr.base
+        if isinstance(expr, a.Member):
+            enum(expr, "nettype", NETTYPES, self.project, value.module)
+            return None
+        if not isinstance(expr, a.Name):
+            fail("resolve.net-type", "expected a nettype value or named bundle type", expr.span)
+        return self.definitions[self.symbol(value.module, (expr,), {"bundle"})]
+
+    def select(self, value, selectors):
+        for selector in selectors:
+            if isinstance(selector, a.Index):
+                continue  # Shape and index evaluation belongs to elaboration.
+            definition = self.type_definition(value)
+            if definition is None or selector.text not in definition.interface:
+                fail(
+                    "resolve.private",
+                    f"{selector.text!r} is not a public bundle field",
+                    selector.span,
+                )
+            value = definition.interface[selector.text].type
+        return value
+
+    def check_body(self, definition):
+        locals_ = dict(definition.parameters)
+        for name, port in definition.interface.items():
+            if name in locals_:
+                fail(
+                    "resolve.duplicate-name",
+                    f"interface {name!r} collides with a parameter",
+                    port.span,
+                )
+            locals_[name] = port
+            if port.type:
+                self.type_definition(port.type)
+        nets = {name: port.type for name, port in definition.interface.items() if port.type}
+        for node in definition.body:
+            if node.name.text in locals_:
+                fail(
+                    "resolve.duplicate-name",
+                    f"duplicate local name {node.name.text!r}",
+                    node.name.span,
+                )
+            locals_[node.name.text] = node
+            if isinstance(node, a.Net):
+                value = Value(node.type, node.type.span, definition.body_module)
+                self.type_definition(value)
+                read_metadata(
+                    node.fields, "net", self.project, definition.body_module, definition.parameters
+                )
+                nets[node.name.text] = value
+        for parameter in definition.parameters.values():
+            if parameter.default:
+                self.check_expression(parameter.default, definition.parameters)
+        for value in definition.metadata.values():
+            if isinstance(value.value, a.Node):
+                self.check_expression(value, definition.parameters)
+        for value in nets.values():
+            self.check_dimensions(value, definition.parameters)
+        for node in definition.body:
+            if not isinstance(node, a.Instance):
+                continue
+            target = self.definitions[
+                self.symbol(definition.body_module, node.component, {"component", "block"})
+            ]
+            for selection in node.dimensions:
+                if selection.stop:
+                    fail(
+                        "resolve.dimension", "instance dimensions cannot be slices", selection.span
+                    )
+                self.check_expression(
+                    Value(selection.start, selection.span, definition.body_module),
+                    definition.parameters,
+                )
+            sections = {s.name: s for s in node.sections}
+            for arg in sections.get("params", a.Section(node.span, "", ())).entries:
+                if arg.name.text not in target.parameters:
+                    fail("resolve.argument", f"unknown parameter {arg.name.text!r}", arg.name.span)
+                self.check_expression(
+                    Value(arg.value, arg.span, definition.body_module), definition.parameters
+                )
+            for binding in sections.get("connections", a.Section(node.span, "", ())).entries:
+                for selection in (*binding.endpoint.instance_indices, *binding.endpoint.selectors):
+                    if isinstance(selection, a.Index):
+                        self.check_selection(
+                            selection, definition.body_module, definition.parameters
+                        )
+                for name in self.keys(binding.endpoint.head):
+                    pin = target.aliases.get(name)
+                    if pin is None:
+                        fail(
+                            "resolve.private",
+                            f"{name!r} is not a public pin or port of {target.name}",
+                            binding.endpoint.head.span,
+                        )
+                    port = target.interface[pin]
+                    if binding.endpoint.selectors:
+                        if port.type is None:
+                            fail(
+                                "resolve.private",
+                                "physical pins have no fields or elements",
+                                binding.endpoint.span,
+                            )
+                        self.select(port.type, binding.endpoint.selectors)
+                expr, selectors = binding.target, []
+                while isinstance(expr, (a.Member, a.Subscript)):
+                    selectors.append(expr.name if isinstance(expr, a.Member) else expr.selection)
+                    expr = expr.base
+                selectors.reverse()
+                for selector in selectors:
+                    if isinstance(selector, a.Index):
+                        self.check_selection(
+                            selector, definition.body_module, definition.parameters
+                        )
+                if expr.text == "global":
+                    if not selectors or not isinstance(selectors[0], a.Name):
+                        fail(
+                            "resolve.global",
+                            "global references require an explicit net name",
+                            expr.span,
+                        )
+                    continue  # Existence depends on the board during expansion.
+                if expr.text == "no_connect" and not selectors:
+                    continue
+                if expr.text not in nets:
+                    fail(
+                        "resolve.net",
+                        f"{expr.text!r} is not a declared caller net or port",
+                        expr.span,
+                    )
+                self.select(nets[expr.text], selectors)
+            self.instance_metadata(node, target, definition)
+
+    def check_selection(self, selection, module, parameters):
+        self.check_expression(Value(selection.start, selection.span, module), parameters)
+        if selection.stop:
+            self.check_expression(Value(selection.stop, selection.span, module), parameters)
+
+    def check_dimensions(self, value, parameters):
+        expr = value.value
+        while isinstance(expr, a.Subscript):
+            if expr.selection.stop:
+                fail("resolve.dimension", "type dimensions cannot be slices", expr.selection.span)
+            self.check_selection(expr.selection, value.module, parameters)
+            expr = expr.base
+
+    def check_expression(self, value, parameters, depth=0):
+        if depth > self.max_expression_depth:
+            fail(
+                "resolve.expression-limit", "expression exceeds configured depth limit", value.span
+            )
+        expr = value.value
+        if isinstance(expr, (a.Number, a.String)):
+            return
+        if isinstance(expr, a.Name):
+            if expr.text not in parameters:
+                fail("resolve.expression-name", f"unknown parameter {expr.text!r}", expr.span)
+            return
+        if isinstance(expr, (a.Unary, a.Group)):
+            child = expr.operand if isinstance(expr, a.Unary) else expr.expression
+            self.check_expression(Value(child, child.span, value.module), parameters, depth + 1)
+            return
+        if isinstance(expr, a.Binary):
+            for child in (expr.left, expr.right):
+                self.check_expression(Value(child, child.span, value.module), parameters, depth + 1)
+            return
+        if isinstance(expr, a.Call) and isinstance(expr.callee, a.Member):
+            callee = expr.callee
+            if callee.name.text == "format":
+                self.check_expression(
+                    Value(callee.base, callee.base.span, value.module), parameters, depth + 1
+                )
+            elif isinstance(callee.base, a.Name):
+                namespace = callee.base.text
+                helpers = {
+                    "num": {"int", "ceil", "floor", "round"},
+                    "f": {"Ohm", "kOhm", "MOhm", "pF", "nF", "uF", "nH", "uH", "mH"},
+                }
+                symbol = self.project.modules[value.module].symbols.get(namespace)
+                if (
+                    namespace in parameters
+                    or namespace not in helpers
+                    or callee.name.text not in helpers[namespace]
+                    or symbol is None
+                    or symbol.module != "noscheme"
+                    or symbol.name != namespace
+                ):
+                    fail(
+                        "resolve.helper",
+                        "unknown or unimported formatting/numeric helper",
+                        callee.span,
+                    )
+            else:
+                fail("resolve.helper", "arbitrary method calls are not supported", callee.span)
+            for child in expr.arguments:
+                self.check_expression(Value(child, child.span, value.module), parameters, depth + 1)
+            for argument in expr.keywords:
+                self.check_expression(
+                    Value(argument.value, argument.span, value.module), parameters, depth + 1
+                )
+            return
+        fail("resolve.expression", "unsupported expression in parameter/value context", expr.span)
+
+    def instance_metadata(self, node, target, owner):
+        fields = next((s.entries for s in node.sections if s.name == "metadata"), ())
+        ordinary = tuple(f for f in fields if f.key.first.text != "pins")
+        values = read_metadata(
+            ordinary, "instance", self.project, owner.body_module, owner.parameters
+        )
+        if target.kind != "component" and set(values) - {"custom", "identity"}:
+            fail(
+                "metadata.scope",
+                "physical-part metadata cannot be applied to a reusable block",
+                node.span,
+            )
+        for value in values.values():
+            if isinstance(value.value, a.Node):
+                self.check_expression(value, owner.parameters)
+        for group in fields:
+            if group.key.first.text != "pins":
+                continue
+            if group.value is not None or group.key.last:
+                fail(
+                    "metadata.value",
+                    "instance pins metadata requires an indented mapping",
+                    group.span,
+                )
+            seen = {}
+            for field in group.fields:
+                values = read_metadata(
+                    field.fields, "instance_pin", self.project, owner.body_module, owner.parameters
+                )
+                if field.value is not None:
+                    fail("metadata.value", "pin annotations require indented metadata", field.span)
+                for name in self.keys(field.key):
+                    pin = target.aliases.get(name)
+                    if pin is None:
+                        fail("resolve.pin", f"unknown pin or port {name!r}", field.span)
+                    if pin in seen:
+                        fail(
+                            "resolve.duplicate-pin",
+                            f"duplicate annotation for {pin!r}",
+                            field.span,
+                            related=[Related("previous annotation", seen[pin])],
+                        )
+                    seen[pin] = field.span
+                    permitted = target.interface[pin].metadata.get("role")
+                    if (
+                        "role" in values
+                        and permitted
+                        and not set(values["role"].value) <= set(permitted.value)
+                    ):
+                        fail(
+                            "metadata.constraint",
+                            "instance role is outside the definition permitted roles",
+                            values["role"].span,
+                        )
+
+
+def resolve_project(path="."):
+    project = load_project(path)
+    definitions = Resolver(project).resolve_all()
+    return project, definitions
+
+
+def resolution_summary(project, definitions):
+    return {
+        "schema_version": 1,
+        "stage": "definition-resolution",
+        "board": f"{project.board.module}.{project.board.name}",
+        "definitions": [
+            {
+                "module": d.module,
+                "name": d.name,
+                "kind": d.kind,
+                "parameters": {
+                    k: {"type": p.type, "default": a.to_data(p.default)}
+                    for k, p in sorted(d.parameters.items())
+                },
+                "interface": a.to_data(d.interface),
+                "metadata": a.to_data(d.metadata),
+                "body_module": d.body_module,
+                "aliases": dict(sorted(d.aliases.items())),
+            }
+            for d in definitions.values()
+        ],
+        "remaining_stages": ["expression-evaluation", "elaboration", "ERC", "export"],
+    }

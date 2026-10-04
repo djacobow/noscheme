@@ -1,0 +1,63 @@
+// Experimental concrete syntax. Name resolution and schemas are separate.
+start: _NL* (import_stmt | definition)*
+import_stmt: "from" name_path "import" NAME ("," NAME)* _NL
+definition: definition_kind NAME extends? ":" _NL _INDENT definition_item+ _DEDENT
+definition_kind: "component" | "block" | "board" | "bundle"
+extends: "extends" name_path
+?definition_item: instance | net_decl | section | field
+section: section_name ":" _NL _INDENT field+ _DEDENT
+section_name: "params" | "defaults" | "pins" | "ports" | "metadata"
+// Fields are deliberately schema-neutral in this parsing-only experiment.
+field: field_key ":" [expr ["=" expr]] _NL [_INDENT field+ _DEDENT]
+field_key: pin_key [".." pin_key]
+?pin_key: NAME | INT | STRING
+net_decl: global_modifier? "net" NAME ":" expr _NL [_INDENT field+ _DEDENT]
+global_modifier: "global"
+instance: "inst" NAME index* ":" name_path _INST_LPAR [_NL [_INDENT inst_section+ _DEDENT]] _INST_RPAR _NL
+?inst_section: connections | arguments | instance_metadata
+connections: "connections" ":" _NL _INDENT binding+ _DEDENT
+binding: endpoint ":" target _NL
+?endpoint: field_key endpoint_suffix* | index+ "." NAME endpoint_suffix*
+?endpoint_suffix: "." NAME | index
+?target: reference
+arguments: "params" ":" _NL _INDENT argument+ _DEDENT
+argument: NAME ":" expr _NL
+instance_metadata: "metadata" ":" _NL _INDENT field+ _DEDENT
+
+?expr: shift
+?shift: sum (SHIFT sum)*
+?sum: product (ADD product)*
+?product: unary (MUL unary)*
+?unary: ADD unary -> unary
+      | postfix
+?postfix: atom postfix_suffix*
+?atom: NUMBER -> number
+     | INT -> integer
+     | STRING -> string
+     | NAME -> name
+     | _LPAR expr _RPAR -> grouped
+     | _LSQB [expr ("," expr)* [","]] _RSQB -> list_value
+?postfix_suffix: "." NAME -> member
+               | index
+               | _LPAR [expr ("," expr)* [","]] _RPAR -> call
+reference: NAME ("." NAME | index)*
+index: _LSQB expr [":" expr] _RSQB
+name_path: NAME ("." NAME)*
+
+SHIFT: "<<" | ">>"
+ADD: "+" | "-"
+MUL: "*" | "/"
+NUMBER.2: /(?:[0-9]+\.[0-9]+(?:[eE][+-]?[0-9]+)?|[0-9]+[eE][+-]?[0-9]+)/
+INT: /[0-9]+/
+NAME: /[A-Za-z_#][A-Za-z0-9_#]*/
+STRING: /"(?:[^"\\\r\n]|\\[^\r\n])*"/
+_INST_LPAR: "("
+_INST_RPAR: ")"
+_LPAR: "("
+_RPAR: ")"
+_LSQB: "["
+_RSQB: "]"
+_NL: /(\r?\n[\t ]*)+/
+%import common.WS_INLINE
+%ignore WS_INLINE
+%declare _INDENT _DEDENT

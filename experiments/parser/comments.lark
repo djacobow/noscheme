@@ -1,0 +1,7 @@
+// Recognize strings before comments so comment delimiters in strings are inert.
+start: (STRING | BLOCK_COMMENT | LINE_COMMENT | UNCLOSED_BLOCK | OTHER)*
+STRING.4: /"(?:[^"\\\r\n]|\\[^\r\n])*"/
+BLOCK_COMMENT.3: /\/\*(?s:.*?)\*\//
+LINE_COMMENT.3: /\/\/[^\r\n]*/
+UNCLOSED_BLOCK.2: /\/\*(?s:.*)/
+OTHER: /[\s\S]/

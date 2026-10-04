@@ -1,0 +1,5 @@
+board Board:
+    inst a: Part(
+        connections:
+            1 = net
+    )

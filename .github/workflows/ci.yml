@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Python ${{ matrix.python }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.14']
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          version: '0.9.28'
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run --locked ruff format --check .
+      - run: uv run --locked ruff check .
+      - run: uv run --locked pytest -q -rs
+      - name: Build distributions and exercise installed wheel
+        run: |
+          uv build
+          uv venv build/wheel-env
+          uv pip install --python build/wheel-env/bin/python dist/*.whl
+          build/wheel-env/bin/noscheme parse examples/stm32h523.nosch --output build/wheel-smoke.json
+          build/wheel-env/bin/noscheme compile --project examples/blink
+
+  kicad-libraries:
+    name: KiCad library integration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          version: '0.9.28'
+          python-version: '3.12'
+          enable-cache: true
+      - name: Install KiCad library data
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y kicad-symbols kicad-footprints kicad-demos
+          test -f /usr/share/kicad/symbols/Device.kicad_sym
+          test -d /usr/share/kicad/footprints
+          test -f /usr/share/kicad/demos/ecc83/ecc83-pp.kicad_pcb
+      - run: uv sync --locked
+      - run: uv run --locked pytest -q -rs

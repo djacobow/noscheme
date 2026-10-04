@@ -1,0 +1,44 @@
+# NoScheme
+
+A text-based PCB design language and compiler targeting KiCad. Designs explicitly
+instantiate parts and connect named nets, with reusable blocks, arrays, metadata,
+and electrical checks.
+
+This is an early implementation. The small LED example compiles and exports;
+the STM32 reference board still contains placeholders. ERC reports list checks
+that remain unimplemented. Production-generated netlists still need GUI validation.
+
+## Development
+
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then run:
+
+```sh
+uv sync --locked
+uv run --locked pytest -q
+uv run --locked ruff format --check .
+uv run --locked ruff check .
+uv run --locked noscheme compile --project examples/blink
+```
+
+Compilation writes `circuit.json`, `erc.txt`, and `erc.json` under the project's
+configured output directory. Electrical errors allow compilation/export;
+`noscheme check` returns a failing status when it finds electrical errors.
+Structural errors block compilation.
+
+See [PROJECT.md](PROJECT.md) for the language and design decisions,
+[PLAN.md](PLAN.md) for implementation status and KiCad export commands, and
+[experiments/README.md](experiments/README.md) for the manual KiCad checks.
+
+## CI
+
+GitHub Actions runs on pushes, pull requests, and manual dispatch:
+
+- Python 3.11 and 3.14: locked dependencies, Ruff formatting/lint, all tests,
+  distribution builds, and installed-wheel parser/compiler smoke checks.
+- Python 3.12 with Ubuntu's KiCad library data: all tests, including conversion
+  and saved-board fixtures that otherwise skip when KiCad data is unavailable.
+
+CI does not replace PCBNew's manual import/update checks. The KiCad data job uses
+Ubuntu's packaged libraries; it is not a KiCad 10 GUI validation job.
+Action revisions are pinned to commits, and workflow permissions are read-only.
+The uv setup follows its [official GitHub Actions guide](https://docs.astral.sh/uv/guides/integration/github/).

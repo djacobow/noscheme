@@ -1,0 +1,36 @@
+from noscheme import role, unused
+
+component Resistor:
+    params:
+        value: string
+    pins:
+        1..2:
+            role: role.passive
+            unused: unused.never
+    metadata:
+        ref_prefix: "R"
+        footprint: "Resistor_SMD:R_0603_1608Metric"
+
+component Led:
+    params:
+        value: string = "Green"
+    pins:
+        1:
+            aliases: [cathode]
+            role: role.passive
+            unused: unused.never
+        2:
+            aliases: [anode]
+            role: role.passive
+            unused: unused.never
+    metadata:
+        ref_prefix: "D"
+        footprint: "LED_SMD:LED_0603_1608Metric"
+
+component Header:
+    pins:
+        1..2:
+            unused: unused.explicit
+    metadata:
+        ref_prefix: "J"
+        footprint: "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical"

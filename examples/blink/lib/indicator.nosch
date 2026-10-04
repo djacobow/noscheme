@@ -1,0 +1,21 @@
+from noscheme import nettype, f
+from parts import Resistor, Led
+
+block Indicator:
+    params:
+        resistance: string = f.kOhm(1)
+    ports:
+        supply: nettype.power
+    net anode: nettype.passive
+    inst resistor: Resistor(
+        connections:
+            1: supply
+            2: anode
+        params:
+            value: resistance
+    )
+    inst led: Led(
+        connections:
+            anode: anode
+            cathode: global.gnd
+    )

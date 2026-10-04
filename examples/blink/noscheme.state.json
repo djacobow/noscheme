@@ -1,0 +1,129 @@
+{
+  "entries": {
+    "indicators[0].led": {
+      "active": true,
+      "reference": "D1",
+      "reserved_references": [
+        "D1"
+      ],
+      "uuid": "72ebcf42-b0bd-574d-94cf-e139ccc16628"
+    },
+    "indicators[0].resistor": {
+      "active": true,
+      "reference": "R1",
+      "reserved_references": [
+        "R1"
+      ],
+      "uuid": "7e217828-5903-5286-8304-7c4fe6e0dc76"
+    },
+    "indicators[1].led": {
+      "active": true,
+      "reference": "D2",
+      "reserved_references": [
+        "D2"
+      ],
+      "uuid": "6d3c6ac7-58bf-5e21-91d2-35ae7f489e4a"
+    },
+    "indicators[1].resistor": {
+      "active": true,
+      "reference": "R2",
+      "reserved_references": [
+        "R2"
+      ],
+      "uuid": "8c362ead-a04a-5489-a622-11b333a10a9a"
+    },
+    "input": {
+      "active": true,
+      "reference": "J1",
+      "reserved_references": [
+        "J1"
+      ],
+      "uuid": "ea746dd5-259d-57ba-81ee-f7fb1b14d25b"
+    }
+  },
+  "namespace": "65f22f09-4989-4cf0-88f6-bd5cf205b742",
+  "netlist_sha256": "ab9dfa806881759623a9dd6bda7e52f32ca0916bafd5c2986dbc868be2413d05",
+  "previous_parts": {
+    "indicators[0].led": {
+      "footprint": "LED_SMD:LED_0603_1608Metric",
+      "path": [
+        "indicators",
+        0,
+        "led"
+      ],
+      "pins": {
+        "1": "gnd",
+        "2": "indicators[0].anode"
+      },
+      "reference": "D1",
+      "value": {
+        "type": "string",
+        "value": "Green"
+      }
+    },
+    "indicators[0].resistor": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "indicators",
+        0,
+        "resistor"
+      ],
+      "pins": {
+        "1": "v5",
+        "2": "indicators[0].anode"
+      },
+      "reference": "R1",
+      "value": {
+        "type": "string",
+        "value": "1kOhm"
+      }
+    },
+    "indicators[1].led": {
+      "footprint": "LED_SMD:LED_0603_1608Metric",
+      "path": [
+        "indicators",
+        1,
+        "led"
+      ],
+      "pins": {
+        "1": "gnd",
+        "2": "indicators[1].anode"
+      },
+      "reference": "D2",
+      "value": {
+        "type": "string",
+        "value": "Green"
+      }
+    },
+    "indicators[1].resistor": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "indicators",
+        1,
+        "resistor"
+      ],
+      "pins": {
+        "1": "v5",
+        "2": "indicators[1].anode"
+      },
+      "reference": "R2",
+      "value": {
+        "type": "string",
+        "value": "1kOhm"
+      }
+    },
+    "input": {
+      "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
+      "path": [
+        "input"
+      ],
+      "pins": {
+        "1": "v5",
+        "2": "gnd"
+      },
+      "reference": "J1",
+      "value": null
+    }
+  },
+  "schema_version": 1
+}

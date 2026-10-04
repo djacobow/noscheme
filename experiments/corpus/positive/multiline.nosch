@@ -1,0 +1,32 @@
+/* Non-nesting: /* this opener is inert. */
+from noscheme import f, num
+
+component Part:
+    params:
+        value: string
+        size: number = (
+            1 +
+            2
+        )
+
+board Board:
+    // Whole-line comments should not introduce indentation.
+    inst item: Part(
+        /* another comment */
+        params:
+            value: f.kOhm(
+                (0.1 + 0.2) *
+                10
+            ) // after expression
+            size: num.ceil(
+                1.5
+            )
+
+        // Between sections, at a different indentation from bindings.
+        metadata:
+            custom:
+                names: [
+                    "a", // inside a list
+                    "b"
+                ]
+    )
