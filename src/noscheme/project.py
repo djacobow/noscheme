@@ -75,12 +75,20 @@ def fail(code, message, span, *, config=False, related=()):
     raise cls([Diagnostic(code, "error", message, span, tuple(related))])
 
 
-def read_config(path: Path | str = ".") -> ProjectConfig:
+def source_text(path, sources=None):
+    """Read a source snapshot, preferring an editor-owned buffer when present."""
+    path = Path(path).resolve()
+    if sources is not None and path in sources:
+        return sources[path]
+    return path.read_text(encoding="utf-8")
+
+
+def read_config(path: Path | str = ".", *, sources=None) -> ProjectConfig:
     path = Path(path)
     if path.is_dir():
         path /= "noscheme.toml"
     path = path.resolve()
-    source = path.read_text(encoding="utf-8")
+    source = source_text(path, sources)
     builder = Builder(source, str(path))
     file_span = builder.position_span(0, len(source))
 
@@ -151,7 +159,7 @@ def read_config(path: Path | str = ".") -> ProjectConfig:
     )
 
 
-def module_path(config, name, span):
+def module_path(config, name, span, sources=None):
     if not QUALIFIED.fullmatch(name) or name.split(".")[0] == "noscheme":
         fail("import.module", f"invalid or reserved module name {name!r}", span)
     relative = Path(*name.split(".")).with_suffix(".nosch")
@@ -161,7 +169,7 @@ def module_path(config, name, span):
         resolved = candidate.resolve()
         if not resolved.is_relative_to(root):
             fail("import.escape", f"module {name!r} escapes search root {root}", span)
-        if candidate.is_file():
+        if candidate.is_file() or sources is not None and resolved in sources:
             matches.append(resolved)
     if not matches:
         fail("import.missing-module", f"module {name!r} not found in configured search paths", span)
@@ -174,8 +182,8 @@ def module_path(config, name, span):
     return matches[0]
 
 
-def load_project(path: Path | str = ".") -> Project:
-    config = read_config(path)
+def load_project(path: Path | str = ".", *, sources=None) -> Project:
+    config = read_config(path, sources=sources)
     parsed = {}
     dependencies = {}
     order = []
@@ -193,9 +201,9 @@ def load_project(path: Path | str = ".") -> Project:
             fail("import.cycle", "import cycle: " + " -> ".join(cycle), origin)
         if name in parsed:
             continue
-        file = module_path(config, name, origin)
+        file = module_path(config, name, origin, sources)
         try:
-            tree = parse(file.read_text(encoding="utf-8"), str(file))
+            tree = parse(source_text(file, sources), str(file))
         except (OSError, UnicodeError) as exc:
             fail("project.io", f"cannot read module {name!r}: {exc}", origin, config=True)
         parsed[name] = (file, tree)

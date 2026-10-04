@@ -397,6 +397,19 @@ booleans, lists, and nested mappings. Its values have no implicit electrical
 meaning. Specialization merges mappings recursively and replaces scalar/list
 values, retaining the source and lexical module of each inherited expression.
 
+### Language server implementation
+
+The first `noscheme-lsp` server is available over LSP stdio. It reuses the compiler
+with open-document source overlays for diagnostics, definition navigation, and
+basic symbol hover, and completion for visible component/block names, public
+connection pins/ports, and imported role/nettype values. Completion recovers
+incomplete statements in a private snapshot, including inherited pin aliases.
+The server never writes build artifacts or export state. README
+contains project discovery rules, Vim setup, and the currently supported
+navigation cases. Unsaved dependency edits recheck open boards. Syntax errors
+may limit semantic navigation until corrected. Rename, bundle-member
+navigation, formatting, and incremental compilation remain future work.
+
 ## Numbers and formatting
 
 The public type is `number`; each value carries an integer or double tag.

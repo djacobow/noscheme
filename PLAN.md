@@ -38,6 +38,32 @@ the rule; tests cover arrays, ports, inheritance, overrides, configurations,
 invalid domains, diagnostics, and conversion. The ERC pending-check list is empty;
 this does not imply hardware validation.
 
+### Language server: first version implemented
+
+`noscheme-lsp` uses pygls over stdio and reuses compiler loading, parsing,
+resolution, elaboration, and ERC. The loader accepts in-memory source overlays;
+editor checks never publish compiler/export artifacts. Full checks are debounced
+by 200 ms and serialized. Diagnostics include related locations and configuration
+labels, use negotiated position encoding, and clear obsolete results.
+
+Definition and basic hover lookup use AST spans, imported symbols, lexical names,
+and resolved pin/port aliases. Files outside a loaded board graph receive syntax
+checks only. The server discovers parent/workspace projects or accepts --project;
+ambiguous workspace ownership is reported. README includes Vim client setup.
+Stdio integration tests cover initialization/shutdown, unsaved changes, syntax
+recovery, imports, dependency close/revert, and Unicode incremental edits.
+
+Completion now covers visible component/block names, public connection pins and
+ports (including inherited aliases), and explicitly imported role/nettype values.
+It recovers incomplete statements in a private source snapshot and uses current
+unsaved imports; strings/comments are excluded. Stdio tests exercise completion.
+The user confirmed diagnostics, navigation, hover, and completion work through
+their Vim setup.
+
+Next LSP work: bundle-member navigation, references/rename, and
+richer hover metadata. Background analysis/cancellation and incremental compiler
+caches can follow when project size makes serialized checks too slow.
+
 ### Vim/Neovim highlighting
 
 The shared runtime in `editors/vim` detects `.nosch`, colors language constructs,

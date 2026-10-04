@@ -241,7 +241,8 @@ class Resolver:
             parent.body_module if parent else module,
         )
 
-    def resolve_all(self):
+    def resolve_interfaces(self):
+        """Resolve inherited public interfaces without checking instance bodies."""
         sources = {
             (m.name, n.name.text): n
             for m in self.project.modules.values()
@@ -272,6 +273,10 @@ class Resolver:
                     else None
                 )
                 self.definitions[key] = self.build(key[0], source, parent)
+        return dict(sorted(self.definitions.items()))
+
+    def resolve_all(self):
+        self.resolve_interfaces()
         for definition in self.definitions.values():
             self.check_body(definition)
         self.check_bundle_cycles()

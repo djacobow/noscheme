@@ -1,0 +1,109 @@
+"""Completion must work on unfinished editor buffers without changing source."""
+
+from noscheme.lsp_completion import completion_items
+from test_circuit import make
+
+PRELUDE = """from noscheme import role, nettype
+component Receiver:
+    pins:
+        01:
+            aliases: [signal, rx#]
+            role: role.digital_input
+        "odd-pin":
+            role: role.passive
+component Specialized extends Receiver:
+    metadata:
+        custom:
+            note: "Inherited interface"
+board B:
+"""
+
+
+def complete(tmp_path, source):
+    offset = source.index("|")
+    source = source.replace("|", "")
+    make(tmp_path, "")
+    path = tmp_path / "main.nosch"
+    result = completion_items(path, tmp_path, {path: source}, offset)
+    return {s.label: s for s in result}
+
+
+def test_partial_component_type(tmp_path):
+    suggestions = complete(tmp_path, PRELUDE + "    inst r: Rec|\n")
+    assert set(suggestions) == {"Receiver"}
+    assert suggestions["Receiver"].text == "Receiver"
+
+
+def test_incomplete_connection_section_inherited_aliases(tmp_path):
+    suggestions = complete(
+        tmp_path, PRELUDE + "    inst r: Specialized(\n        connections:\n            |"
+    )
+    assert set(suggestions) == {"01", "signal", "rx#", "odd-pin"}
+    assert suggestions["odd-pin"].text == '"odd-pin"'
+    assert suggestions["01"].text == "01"
+
+
+def test_pin_replaces_whole_token_and_preserves_colon(tmp_path):
+    suggestions = complete(
+        tmp_path,
+        PRELUDE + "    inst r: Receiver(\n        connections:\n            si|gnal: net\n    )\n",
+    )
+    item = suggestions["signal"]
+    assert item.end - item.start == len("signal")
+
+
+def test_array_element_pin_prefix(tmp_path):
+    suggestions = complete(
+        tmp_path, PRELUDE + "    inst r[2]: Receiver(\n        connections:\n            [0].rx|"
+    )
+    assert set(suggestions) == {"rx#"}
+
+
+def test_no_pin_completion_in_params_or_after_closed_instance(tmp_path):
+    assert not complete(
+        tmp_path, PRELUDE + "    inst r: Receiver(\n        params:\n            si|"
+    )
+    assert not complete(tmp_path, PRELUDE + "    inst r: Receiver()\n    si|")
+    assert not complete(
+        tmp_path, PRELUDE + "    inst r: Receiver(\n        connections:\n            signal: si|"
+    )
+
+
+def test_builtin_namespace_uses_registry_and_explicit_import(tmp_path):
+    suggestions = complete(tmp_path, PRELUDE + "    net data: nettype.tri|")
+    assert set(suggestions) == {"tristate"}
+    source = "from noscheme import role\ncomponent C:\n    pins:\n        1:\n            role: role.digital_|"
+    source += "\nboard B:\n    net n: nettype.passive\n"
+    assert set(complete(tmp_path, source)) == {
+        "digital_input",
+        "digital_output",
+        "digital_bidirectional",
+    }
+    assert not complete(tmp_path, source.replace("from noscheme import role\n", ""))
+
+
+def test_comments_and_strings_do_not_offer_completion(tmp_path):
+    for line in [
+        "    // role.|",
+        "    /* role.|",
+        "    // inst r: Rec|",
+        '    net n: "role.|"',
+        '    net n: "role.|',
+    ]:
+        assert not complete(tmp_path, PRELUDE + line)
+
+
+def test_imported_components_and_aliases_use_unsaved_library(tmp_path):
+    (tmp_path / "lib.nosch").write_text(
+        "component Other:\n    pins:\n        old:\n            unused: unused.always\n"
+    )
+    make(tmp_path, "")
+    path = tmp_path / "main.nosch"
+    source = (
+        "from lib import Other\nboard B:\n    inst r: Other(\n        connections:\n            "
+    )
+    library = "from noscheme import role\ncomponent Other:\n    pins:\n        new:\n            role: role.passive\n"
+    buffers = {path: source, tmp_path / "lib.nosch": library}
+    result = completion_items(path, tmp_path, buffers, len(source))
+    assert {s.label for s in result} == {"new"}
+    assert "old" in (tmp_path / "lib.nosch").read_text()
