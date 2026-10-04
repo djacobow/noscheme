@@ -125,10 +125,11 @@ are electrically unconnected. See the [JST XH datasheet](https://www.jst-mfg.com
 
 The example is now 58 physical parts and 52 nets with no placeholders or missing
 footprints. Its project file is `examples/stm32h523/noscheme.toml`; the main source
-remains `examples/stm32h523/stm32h523.nosch`. The imported `parts.nosch` is the
+remains `examples/stm32h523/stm32h523.nosch`. The imported `kicad_lib/mcu/MCU_ST_STM32H5.nosch` is the
 explicit conversion of KiCad's `STM32H523VCTx` symbol. `STM32H523Board` specializes
 its pin roles for this board; unused physical GPIOs explicitly bind `no_connect`.
-The conversion report and all 14 footprint snapshots are retained in the project.
+Conversion reports and footprint snapshots are retained under `kicad_lib/`;
+see its README for provenance and regeneration instructions.
 Repeated exports retain reference assignments and UUIDs through the project state.
 
 The MCU's USB FS support and package pinout were checked against

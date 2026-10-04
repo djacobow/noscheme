@@ -58,7 +58,7 @@ The example intentionally has no footprints; those warnings are expected.
 
 ```sh
 uv run --locked noscheme check --project examples/stm32h523
-uv run --locked noscheme export-kicad --project examples/stm32h523 --footprints examples/stm32h523/footprints.json
+uv run --locked noscheme export-kicad --project examples/stm32h523 --footprints examples/stm32h523/kicad_lib/footprints.json
 ```
 
 Open a new PCB in KiCad PCB Editor and use **File → Import → Netlist…** to load
@@ -86,8 +86,8 @@ under `examples/stm32h523/`:
 | [components.nosch](../examples/stm32h523/components.nosch) | Passives, LEDs, buttons, indicator block, and small connectors |
 | [interfaces.nosch](../examples/stm32h523/interfaces.nosch) | Shared I2C, SPI, USB, and SWD bundles |
 | [peripherals.nosch](../examples/stm32h523/peripherals.nosch) | USB-C, regulator, microSD, and debug subsystems |
-| [parts.nosch](../examples/stm32h523/parts.nosch) | Generated KiCad MCU definition |
-| [kicad_device/Device.nosch](../examples/stm32h523/kicad_device/Device.nosch) | Generated KiCad resistor and capacitor definitions |
+| [kicad_lib/mcu/MCU_ST_STM32H5.nosch](../examples/stm32h523/kicad_lib/mcu/MCU_ST_STM32H5.nosch) | Generated KiCad MCU definition |
+| [kicad_lib/device/Device.nosch](../examples/stm32h523/kicad_lib/device/Device.nosch) | Generated KiCad resistor and capacitor definitions |
 
 The board demonstrates qualified references such as
 `mcu.MCU_H523` and `peripherals.UsbC`. Shared components
@@ -95,10 +95,13 @@ and bundles use named imports. A shared interface module keeps bundle identity
 consistent across the board and subsystems without circular imports.
 All source files use the same project configuration in `examples/stm32h523/`.
 
+Generated library files and their regeneration instructions are documented in
+[kicad_lib/README.md](../examples/stm32h523/kicad_lib/README.md).
+
 ### Converted passive library
 
 The shared components module uses `import Device` with the checked-in
-`examples/stm32h523/kicad_device/Device.nosch`, generated from KiCad's `Device:R` and
+`examples/stm32h523/kicad_lib/device/Device.nosch`, generated from KiCad's `Device:R` and
 `Device:C`. `Resistor extends Device.R` and `Capacitor extends Device.C`
 specialize the unused-pin rules. Their `0603` subclasses select the board's
 default footprints; `Capacitor0603` also supplies the default value `"100nF"`.
@@ -113,7 +116,7 @@ uv run --locked noscheme convert-library /usr/share/kicad/symbols/Device.kicad_s
 ```
 
 The generated directory contains the module, conversion report, and footprint
-snapshot. The board's `footprints.json` includes those candidate records so
+snapshot. The board's `kicad_lib/footprints.json` includes those candidate records so
 alternative selections can be exported. KiCad's passive filters are broad,
 including through-hole parts; review the package before choosing.
 

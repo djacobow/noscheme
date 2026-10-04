@@ -144,7 +144,7 @@ def test_reset_button_and_surface_mount_parts(board):
     reset = p["reset_button"]
     assert [reset["pins"][pin]["net"] for pin in ("1", "2")] == ["debug.reset#", "gnd"]
     assert p["mcu.reset_cap"]["pins"]["1"]["net"] == reset["pins"]["1"]["net"]
-    records = json.loads((PROJECT / "footprints.json").read_text())["footprints"]
+    records = json.loads((PROJECT / "kicad_lib/footprints.json").read_text())["footprints"]
     for part in c["parts"]:
         if part["identity"] == "usb_c.connector":
             continue  # USB shield anchors are through-hole.
@@ -164,7 +164,7 @@ def test_reference_exports_every_part_and_repeats_without_changes(board, tmp_pat
             project.config, path=tmp_path / "noscheme.toml", output_dir=tmp_path / "out"
         ),
     )
-    export_project(project, c, PROJECT / "footprints.json")
+    export_project(project, c, PROJECT / "kicad_lib/footprints.json")
     path = tmp_path / "out" / "board.net"
     before = path.read_bytes()
     netlist = load(path)
@@ -173,7 +173,7 @@ def test_reference_exports_every_part_and_repeats_without_changes(board, tmp_pat
     )
     assert len(components) == 58
     assert all(scalar(comp, "footprint") for comp in components)
-    export_project(project, c, PROJECT / "footprints.json")
+    export_project(project, c, PROJECT / "kicad_lib/footprints.json")
     assert path.read_bytes() == before
     report = json.loads((tmp_path / "out" / "export.json").read_text())
     assert report["omitted_without_footprints"] == []
@@ -191,7 +191,7 @@ def test_passive_inherits_kicad_pins_and_offline_footprint_hints(kind, letter):
     candidates = component.metadata["custom"].value["kicad_footprint_candidates"].value
     alternate = f"{kind}_SMD:{letter}_0805_2012Metric"
     assert alternate in candidates
-    records = json.loads((PROJECT / "footprints.json").read_text())["footprints"]
+    records = json.loads((PROJECT / "kicad_lib/footprints.json").read_text())["footprints"]
     assert all(set(records[name]["pads"]) == {"1", "2"} for name in candidates)
 
     path = ROOT / "examples/stm32h523/components.nosch"
