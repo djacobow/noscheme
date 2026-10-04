@@ -134,6 +134,9 @@ block MicroSD:
                 7:
                     external_role: role.digital_output
     )
+    // DAT1/DAT2 are unused by SPI but each has a physical pull-up to supply.
+    // These passive nets have no resistance budget; their two-terminal wiring
+    // is explicit even though no bias metadata is needed for current checks.
     inst unused_dat_pullups[2]: InputBias0603(
         connections:
             1: supply
@@ -148,6 +151,7 @@ block MicroSD:
                 2:
                     bias: bias.pull_up
                     pull_resistance_ohm: 10000
+                    bias_reference_pin: "1"
     )
     inst miso_pullup: InputBias0603(
         connections:
@@ -158,6 +162,7 @@ block MicroSD:
                 2:
                     bias: bias.pull_up
                     pull_resistance_ohm: 10000
+                    bias_reference_pin: "1"
     )
     inst detect_pullup: InputBias0603(
         connections:
@@ -168,6 +173,7 @@ block MicroSD:
                 2:
                     bias: bias.pull_up
                     pull_resistance_ohm: 10000
+                    bias_reference_pin: "1"
     )
     inst decouple: Capacitor0603(
         connections:

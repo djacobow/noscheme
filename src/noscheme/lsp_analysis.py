@@ -241,7 +241,17 @@ def reference_index(project, definitions, hover=None):
                     target_def = (
                         definitions.get((sym.module, sym.name)) if sym and definitions else None
                     )
-                    for section in node.sections:
+                    sections = (
+                        *node.sections,
+                        *(
+                            s
+                            for group in node.sections
+                            if group.name == "elements"
+                            for element in group.entries
+                            for s in element.sections
+                        ),
+                    )
+                    for section in sections:
                         for entry in section.entries:
                             if isinstance(entry, a.Binding):
                                 expression(entry.target)

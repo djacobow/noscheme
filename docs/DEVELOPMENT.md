@@ -36,8 +36,8 @@ run only on nets with declared limits. Try the included example:
 uv run --locked noscheme check --project examples/erc_extensions
 ```
 
-See [PROJECT.md](PROJECT.md) for the language and design decisions,
-[PLAN.md](PLAN.md) for implementation status and KiCad export commands, and
+See [LRM.md](LRM.md) for language behavior, [PROJECT.md](PROJECT.md) for design
+rationale, [PLAN.md](PLAN.md) for implementation status, and
 [experiments/README.md](experiments/README.md) for the manual KiCad checks.
 The retained harness and local trial outputs live under `tools/experiments/`.
 
@@ -53,6 +53,21 @@ uv run --locked noscheme check --project examples/tristate
 ```
 
 The example intentionally has no footprints; those warnings are expected.
+
+## Rulos six-line matrix
+
+The [matrix example](../examples/rulos_6matrix/README.md) transcribes Jeremy
+Elson's Rev B schematic using nested arrays. Its README includes attribution,
+source verification, package substitutions, and local footprint-library setup.
+
+```sh
+uv run --locked noscheme check --project examples/rulos_6matrix
+uv run --locked noscheme export-kicad --project examples/rulos_6matrix --footprints examples/rulos_6matrix/footprints/footprints.json
+```
+
+The export contains 93 parts and 107 nets. Its passive-net checking model focuses
+on preserving source connectivity; stronger electrical modeling and manual PCB
+Editor validation remain outstanding.
 
 ## STM32 proof-of-concept board
 
@@ -133,6 +148,12 @@ ERC extension modules are loaded once per loaded project configuration, shared
 by metadata validation and electrical checking. CLI export runs ERC once and
 uses the same diagnostics for its reports and stderr. Each fresh CLI operation
 or LSP analysis reloads extensions; there is no process-wide registry cache.
+`erc_rule_sets` selects automatic policies; the default is `["std.default"]`.
+Explicit `checks` applications run independently of that selection. Every rule
+receives the same recursively immutable graph for its configuration, with no
+per-callback circuit copy. Schema/registration/callback failures block artifact
+publication; ordinary electrical diagnostics retain the existing compile/export
+behavior. See [LRM §12](LRM.md#12-extending-erc) for the public API.
 
 ## CI
 
@@ -170,3 +191,53 @@ st f erc -py -build
 The config requires a Git repository with an `origin` remote. Exclusion regexes
 are attached to each search scope; a standalone `EXCLUDE` variable is not read
 by st.
+
+## Reference tables, coverage, and performance
+
+The LRM's core metadata, built-in extension metadata, and role tables are generated
+from schemas and the shared hover descriptions. After changing these definitions:
+
+```sh
+uv run --locked python -m tools.reference_tables
+uv run --locked python -m tools.reference_tables --check
+```
+
+A regression test checks that the committed tables match. Edit explanatory prose
+outside the generated markers; regenerate table changes from their source.
+
+CI reports statement and branch coverage for the production package. There is no
+coverage threshold yet; use missing lines to identify worthwhile tests. Coverage
+is for the test process; separately launched LSP subprocesses are not measured.
+
+```sh
+uv run --locked coverage run -m pytest -q
+uv run --locked coverage report
+uv run --locked coverage html
+```
+
+To measure resolve/elaborate, circuit copying, ERC, and complete LSP analysis:
+
+```sh
+uv run --locked python -m tools.benchmark_analysis examples/stm32h523 --repeat 5
+uv run --locked python -m tools.benchmark_analysis examples/rulos_6matrix --repeat 5
+```
+
+The benchmark writes no export state. It reports cold initialization separately
+from repeated operations. Timings are machine-dependent observations, not CI
+thresholds; extension-heavy projects can behave differently from these examples.
+
+## Parameterized ERC example
+
+[examples/parameterized_erc](../examples/parameterized_erc/README.md) combines a
+numeric resistor parameter, displayed values, per-element overrides, and pull
+reference-terminal checks. Run `noscheme check --project examples/parameterized_erc`;
+the abstract endpoint's missing-footprint warning is intentional.
+
+Optional source lint is separate from compiler/CI electrical checks:
+
+```sh
+uv run --locked noscheme lint --project examples/stm32h523
+uv run --locked noscheme lint --project examples/parameterized_erc --diagnostics json
+```
+
+It reports unreferenced public parameters without assuming they should be removed.

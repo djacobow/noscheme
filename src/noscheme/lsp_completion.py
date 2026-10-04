@@ -255,9 +255,104 @@ def bundle_completion(path, config, sources, offset, masked):
         return []
 
 
+def erc_completion(path, config, sources, offset):
+    """Registry completions survive unfinished quotes and parameter keys."""
+    from .project import read_config
+
+    source = sources[path]
+    line_start = source.rfind("\n", 0, offset) + 1
+    line_end = source.find("\n", offset)
+    if line_end < 0:
+        line_end = len(source)
+    line = source[line_start:line_end]
+    before = source[line_start:offset]
+    # Mask the edited line so an unfinished quote cannot hide its ancestors.
+    safe = source[:line_start] + " " * (line_end - line_start) + source[line_end:]
+    masked = masked_source(safe, line_start)
+    if masked is None:
+        return []
+    indent = len(before) - len(before.lstrip())
+    ancestors = []
+    pos = 0
+    for previous in masked[:line_start].splitlines(keepends=True):
+        if previous.strip():
+            depth = len(previous) - len(previous.lstrip())
+            while ancestors and ancestors[-1][0] >= depth:
+                ancestors.pop()
+            ancestors.append((depth, previous.strip(), pos))
+        pos += len(previous)
+    while ancestors and ancestors[-1][0] >= indent:
+        ancestors.pop()
+    names = [a[1] for a in ancestors]
+    if "checks:" not in names or "custom:" in names:
+        return []
+    checks = names.index("checks:")
+    if len(ancestors) < checks + 2:
+        return []
+    try:
+        registry = read_config(config, sources=sources).erc_registry
+    except (DiagnosticError, OSError, ValueError):
+        return []
+    match = re.fullmatch(r'\s*(checker|reducer|predicate|missing):\s*"?([A-Za-z0-9_.]*)', before)
+    if match:
+        field, prefix = match.groups()
+        table = {
+            "checker": registry.rules,
+            "predicate": registry.predicates,
+            "reducer": registry.reducers,
+            "missing": {"warning": None, "error": None, "ignore": None},
+        }[field]
+        value_start = line_start + line.index(":") + 1
+        while value_start < line_end and source[value_start].isspace():
+            value_start += 1
+        value_end = value_start
+        if source[value_start : value_start + 1] == '"':
+            end_quote = source.find('"', value_start + 1, line_end)
+            value_end = end_quote + 1 if end_quote >= 0 else offset
+        else:
+            value_end = offset
+        return [
+            Suggestion(
+                name,
+                json.dumps(name),
+                str(getattr(item, "scope", field)),
+                "value",
+                value_start,
+                value_end,
+            )
+            for name, item in sorted(table.items())
+            if name.startswith(prefix)
+        ]
+    if names[-1] != "params:" or not re.fullmatch(r"\s*[A-Za-z0-9_]*", before):
+        return []
+    app_start = ancestors[checks + 1][2]
+    checker = re.search(r'(?m)^\s*checker:\s*"([^"\n]+)"', source[app_start:line_start])
+    if checker is None or checker[1] not in registry.rules:
+        return []
+    rule = registry.rules[checker[1]]
+    prefix = before.strip()
+    start = offset - len(prefix)
+    end = offset + len(re.match(r"[A-Za-z0-9_]*", source[offset:]).group())
+    return [
+        Suggestion(
+            name,
+            name,
+            f"{kind}" + (" (optional)" if name in rule.defaults else " (required)"),
+            "value",
+            start,
+            end,
+        )
+        for name, kind in sorted(rule.parameters.items())
+        if name.startswith(prefix)
+    ]
+
+
 def completion_items(path, config, sources, offset):
     source = sources[path]
     if config is not None:
+        electrical = erc_completion(path, config, sources, offset)
+        if electrical:
+            return electrical
         footprints = footprint_completion(path, config, sources, offset)
         if footprints:
             return footprints

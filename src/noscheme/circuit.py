@@ -4,13 +4,21 @@ Union-find joins public ports to caller nets. It does not infer connections,
 assign CAD names or reference numbers, or perform electrical rules checking.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from . import ast as a
 from .diagnostics import Diagnostic, Related
 from .evaluate import Evaluator, Limits, encoded
-from .metadata import Value, merge, read_metadata, possible_selections
+from .metadata import (
+    Value,
+    NumericExpression,
+    merge,
+    read_metadata,
+    possible_selections,
+    valid_quantity,
+)
 from .resolve import Resolver
+from .instances import arguments, element_overrides
 
 
 def path_text(path):
@@ -134,6 +142,7 @@ class Elaborator:
     def typed(self, value, environment, path, scope, kind, metadata, span, depth=0):
         if depth > self.limits.type_depth or len(path) > self.limits.hierarchy_depth:
             self.error("circuit.limit", "bundle nesting exceeds configured limit", span)
+        metadata = self.numeric_metadata(metadata, environment)
         expr, selections = value.value, []
         while isinstance(expr, a.Subscript):
             selections.append(expr.selection)
@@ -289,30 +298,67 @@ class Elaborator:
 
         bind(left, right)
 
-    def effective_metadata(self, definition, node, owner_module, caller):
-        sections = node.sections if node else ()
-        fields = next((s.entries for s in sections if s.name == "metadata"), ())
-        overrides = (
-            read_metadata(
+    def numeric_metadata(self, values, environment, overrides=None, caller=None):
+        result = {}
+        overrides = overrides or {}
+        for key, record in merge(values, overrides).items():
+            value = record.value
+            if (
+                key in overrides
+                and key in values
+                and isinstance(value, dict)
+                and isinstance(values[key].value, dict)
+                and isinstance(overrides[key].value, dict)
+            ):
+                value = self.numeric_metadata(
+                    values[key].value, environment, overrides[key].value, caller
+                )
+                result[key] = replace(record, value=value)
+                continue
+            scope = caller if key in overrides else environment
+            if isinstance(value, NumericExpression):
+                number = self.evaluator.numeric(
+                    self.evaluator.evaluate(value.expression, record.module, scope),
+                    record.span,
+                )
+                if not valid_quantity(number, value.constraint):
+                    self.error(
+                        "metadata.value",
+                        f"{key!r} requires {value.constraint} metadata",
+                        record.span,
+                    )
+                value = number
+            elif isinstance(value, dict):
+                value = self.numeric_metadata(value, scope)
+            result[key] = replace(record, value=value)
+        return result
+
+    def effective_metadata(self, definition, node, owner_module, caller, environment, element=None):
+        overrides, annotations = {}, {}
+        for source in (node, element):
+            fields = (
+                next((s.entries for s in source.sections if s.name == "metadata"), ())
+                if source
+                else ()
+            )
+            values = read_metadata(
                 tuple(f for f in fields if f.key.first.text != "pins"),
                 "instance",
                 self.project,
                 owner_module,
                 caller,
             )
-            if node
-            else {}
-        )
-        metadata = merge(definition.metadata, overrides)
-        annotations = {}
-        for group in fields:
-            if group.key.first.text == "pins":
-                for f in group.fields:
-                    values = read_metadata(
-                        f.fields, "instance_pin", self.project, owner_module, caller
-                    )
-                    for key in self.resolver.keys(f.key):
-                        annotations[definition.aliases[key]] = values
+            overrides = merge(overrides, values)
+            for group in fields:
+                if group.key.first.text == "pins":
+                    for f in group.fields:
+                        values = read_metadata(
+                            f.fields, "instance_pin", self.project, owner_module, caller
+                        )
+                        for key in self.resolver.keys(f.key):
+                            pin = definition.aliases[key]
+                            annotations[pin] = merge(annotations.get(pin, {}), values)
+        metadata = self.numeric_metadata(definition.metadata, environment, overrides, caller)
         return metadata, overrides, annotations
 
     def expand(
@@ -325,6 +371,7 @@ class Elaborator:
         ancestry=(),
         ancestor_identity=None,
         caller_scope=(),
+        element=None,
     ):
         definition = self.definitions[key]
         self.evaluator.instance_path = path_text(path) or definition.name
@@ -337,10 +384,10 @@ class Elaborator:
         ):
             self.error("circuit.limit", "instance expansion exceeds configured limit", span)
         self.instance_count += 1
-        args = next((s.entries for s in node.sections if s.name == "params"), ()) if node else ()
+        args = arguments(node, element)
         environment = self.evaluator.bind(definition, args, caller_module, caller, span)
         metadata, overrides, annotations = self.effective_metadata(
-            definition, node, caller_module, caller
+            definition, node, caller_module, caller, environment, element
         )
         if definition.kind != "component":
             self.choice_scopes.append(
@@ -357,7 +404,9 @@ class Elaborator:
             )
         ports = {}
         for name, port in sorted(definition.interface.items()):
-            attrs = merge(port.metadata, annotations.get(name, {}))
+            attrs = self.numeric_metadata(
+                port.metadata, environment, annotations.get(name, {}), caller
+            )
             selections = {}
             for role_key in ("role", "external_role"):
                 value = attrs.get(role_key)
@@ -481,6 +530,7 @@ class Elaborator:
                     "instance path exceeds configured nesting limit",
                     declaration.span,
                 )
+            elements = element_overrides(declaration, dimensions, self.evaluator)
             instances = self.array(
                 dimensions,
                 lambda indices: self.expand(
@@ -492,6 +542,7 @@ class Elaborator:
                     ancestry + (key,),
                     inherited_identity,
                     path,
+                    elements.get(indices),
                 ),
                 declaration.span,
             )
@@ -612,6 +663,7 @@ class Elaborator:
             "stage": "circuit",
             "erc_performed": False,
             "erc_modules": [str(p) for p in self.project.config.erc_modules],
+            "erc_rule_sets": list(self.project.config.erc_rule_sets),
             "board": f"{self.project.board.module}.{self.project.board.name}",
             "source": a.to_data(board.source.span),
             "erc_choice_scopes": self.choice_scopes,

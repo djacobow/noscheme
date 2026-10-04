@@ -1,12 +1,7 @@
-from noscheme.erc_registry import value
-
-
 def register(registry):
-    registry.fields("net", {"demo": {"max_pins": "nonnegative"}})
-    registry.check("demo_pin_count", check, net_fields=("demo",))
+    registry.net_rule("demo.pin_count", check, parameters={"max_pins": "nonnegative"})
 
 
-def check(ctx):
-    annotation = value(ctx.origin, "demo")
-    if annotation and len(ctx.endpoints) > annotation["max_pins"]["value"]:
-        yield ctx.diagnostic("demo_pin_count", "too many attached physical pins")
+def check(ctx, *, max_pins):
+    if len(ctx.pins) > max_pins:
+        yield ctx.error("too many attached physical pins")

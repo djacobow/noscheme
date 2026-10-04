@@ -14,6 +14,7 @@ from .project import load_project, project_summary
 from .resolve import resolve_project, resolution_summary
 from .evaluate import evaluate_project
 from .circuit import elaborate_project
+from .lint import unused_parameters
 from .erc import apply_erc, report_files, report_diagnostics
 from .kicad.convert import convert_library
 from .kicad.export import export_project
@@ -55,6 +56,9 @@ def main(argv=None):
     )
     resolver.add_argument("--project", type=Path, default=Path("."))
     resolver.add_argument("--diagnostics", choices=["text", "json"], default="text")
+    linter = sub.add_parser("lint", help="opt-in unused-parameter warnings; no elaboration or ERC")
+    linter.add_argument("--project", type=Path, default=Path("."))
+    linter.add_argument("--diagnostics", choices=["text", "json"], default="text")
     evaluator = sub.add_parser(
         "evaluate",
         help="evaluate parameterized declarations; no array expansion, connectivity, or ERC",
@@ -171,6 +175,12 @@ def main(argv=None):
                 renderer = render_json if args.diagnostics == "json" else render_text
                 print(renderer((*warnings, *electrical)), file=sys.stderr)
             return int(args.command == "check" and circuit["erc"]["errors"] > 0)
+        if args.command == "lint":
+            _, definitions = resolve_project(args.project)
+            warnings = unused_parameters(definitions)
+            renderer = render_json if args.diagnostics == "json" else render_text
+            print(renderer(warnings))
+            return 0
         if args.command == "evaluate":
             report, warnings = evaluate_project(*resolve_project(args.project))
             print(json.dumps(report, indent=2))

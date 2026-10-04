@@ -68,53 +68,54 @@ block MCU_H523:
     net vcap: nettype.power
         waivers:
             multiple_drivers: "VCAP pins 48 and 98 belong to the same internal regulator (AN5711)."
+    // Signal aliases come from KiCad; grouped supplies keep physical pad numbers.
     inst chip: STM32H523Board(
         connections:
-            1: expansion_gpio[0]
-            2: expansion_gpio[1]
-            3: expansion_gpio[2]
-            4: expansion_gpio[3]
-            5: expansion_gpio[4]
+            PE2: expansion_gpio[0]
+            PE3: expansion_gpio[1]
+            PE4: expansion_gpio[2]
+            PE5: expansion_gpio[3]
+            PE6: expansion_gpio[4]
             [6, 11, 21..22, 28, 50, 73, 75, 100]: supply
             [7..9, 23..24, 35..37, 47, 51..54, 57..65, 68..69, 77..88, 90..91, 95..97]: no_connect
             [10, 19..20, 27, 49, 74, 99]: ground
-            12: osc_in
-            13: osc_out
-            14: debug.reset#
-            15: led_drive[0]
-            16: led_drive[1]
-            17: led_drive[2]
-            18: sd_detect#
-            25: uart_tx[0]
-            26: uart_rx[0]
-            29: sd.cs#
-            30: sd.sck
-            31: sd.miso
-            32: sd.mosi
-            33: buttons#[0]
-            34: buttons#[1]
-            38: expansion_gpio[5]
-            39: expansion_gpio[6]
-            40: expansion_gpio[7]
-            41: expansion_gpio[8]
-            42: expansion_spi.cs#
-            43: expansion_spi.sck
-            44: expansion_spi.miso
-            45: expansion_spi.mosi
-            46: expansion_gpio[9]
+            PH0: osc_in
+            PH1: osc_out
+            NRST: debug.reset#
+            PC0: led_drive[0]
+            PC1: led_drive[1]
+            PC2: led_drive[2]
+            PC3: sd_detect#
+            PA2: uart_tx[0]
+            PA3: uart_rx[0]
+            PA4: sd.cs#
+            PA5: sd.sck
+            PA6: sd.miso
+            PA7: sd.mosi
+            PC4: buttons#[0]
+            PC5: buttons#[1]
+            PE7: expansion_gpio[5]
+            PE8: expansion_gpio[6]
+            PE9: expansion_gpio[7]
+            PE10: expansion_gpio[8]
+            PE11: expansion_spi.cs#
+            PE12: expansion_spi.sck
+            PE13: expansion_spi.miso
+            PE14: expansion_spi.mosi
+            PE15: expansion_gpio[9]
             [48, 98]: vcap
-            55: uart_tx[1]
-            56: uart_rx[1]
-            66: expansion_i2c.sda
-            67: expansion_i2c.scl
-            70: usb.dm
-            71: usb.dp
+            PD8: uart_tx[1]
+            PD9: uart_rx[1]
+            PC9: expansion_i2c.sda
+            PA8: expansion_i2c.scl
+            PA11: usb.dm
+            PA12: usb.dp
             72: debug.swdio
             76: debug.swclk
             89: debug.swo
-            92: oled.scl
-            93: oled.sda
-            94: boot0
+            PB6: oled.scl
+            PB7: oled.sda
+            BOOT0: boot0
     )
     inst decouple_pin_6: Capacitor0603(
         connections:

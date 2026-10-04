@@ -165,3 +165,34 @@ def test_nested_custom_metadata_does_not_offer_footprints(tmp_path):
         '                metadata:\n                    footprint: "|'
     )
     assert not complete(tmp_path, source)
+
+
+def test_erc_checker_completion_with_unclosed_quote(tmp_path):
+    suggestions = complete(
+        tmp_path,
+        PRELUDE
+        + """    net bus: nettype.digital
+        checks:
+            drive:
+                checker: "std.co|
+""",
+    )
+    assert set(suggestions) == {"std.count"}
+    assert suggestions["std.count"].text == '"std.count"'
+
+
+def test_erc_parameter_and_predicate_completion(tmp_path):
+    source = (
+        PRELUDE
+        + """    net bus: nettype.digital
+        checks:
+            drive:
+                checker: "std.count"
+                params:
+                    pre|
+"""
+    )
+    assert set(complete(tmp_path, source)) == {"predicate"}
+    source = source.replace("pre|", 'predicate: "std.active_|')
+    assert set(complete(tmp_path, source)) == {"std.active_digital_driver"}
+    assert not complete(tmp_path, source.replace("        checks:", "        custom:"))

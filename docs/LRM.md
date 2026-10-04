@@ -4,12 +4,21 @@
 
 **Scope:** the implemented language and compiler in this repository.
 
+Version `0.1` is experimental and has not been frozen. Syntax and semantics can
+change while retaining this version number; pin a repository revision together
+with project sources and converted library snapshots for exact reproducibility.
+An explicit future freeze will establish a compatibility baseline. After that
+freeze, breaking source-language changes require a new language version. The
+compiler currently accepts only `language_version = "0.1"`; artifact/state schema
+versions are separate and do not imply source-language compatibility.
+
 NoScheme describes a circuit as explicit physical parts connected by named nets.
 The compiler expands reusable blocks and arrays, checks connectivity and declared
 electrical constraints, and exports a netlist for KiCad. Placement and routing
 belong to the CAD tool.
 
-This manual describes source-language behavior. [DEVELOPMENT.md](DEVELOPMENT.md)
+This manual is the normative reference for the implemented source language and
+compiler behavior. [DEVELOPMENT.md](DEVELOPMENT.md)
 covers installation and commands; [EDITOR_SUPPORT.md](EDITOR_SUPPORT.md) covers
 editor setup; [PROJECT.md](PROJECT.md) records design decisions;
 [PLAN.md](PLAN.md) tracks implementation work. Features identified as unsupported
@@ -274,6 +283,11 @@ parameters, ports, choices, and supported instance metadata. It cannot access
 Each expanded port must lead internally to a physical pin, an explicitly modeled
 external endpoint, or a placeholder. Recursive block instantiation is an error.
 
+A block cannot directly connect two of its own ports: there is no internal
+net-alias or net-merging statement. A pure-wiring bundle adapter must therefore
+be expressed through field bindings at its caller. Placeholders permit incomplete
+implementations but do not create a connection between otherwise separate ports.
+
 ### 3.3 Boards and globals
 
 A board is the selected top-level circuit. It may declare local nets, instances,
@@ -318,8 +332,8 @@ are named entries under `params:`. Unknown arguments and wrong types are errors.
 Defaults may depend on other parameters; dependency cycles are errors. An
 explicit argument replaces its default, so the replaced default is not evaluated.
 
-Parameters may determine dimensions, indices, and physical part values, and may
-be forwarded to child parameters. They do not select topology, imported types,
+Parameters may determine dimensions, indices, physical part values, and numeric
+ERC quantities, and may be forwarded to child parameters. They do not select topology, imported types,
 footprints, electrical roles, or arbitrary metadata. ERC choices are a separate
 mechanism, described in section 11.
 
@@ -389,12 +403,20 @@ traversal, conversion flags such as `!r`, and nested format fields are errors.
 Numeric format specifications accept optional width, optional `.precision`, and a
 required `d`, `f`, `e`, or `g` suffix. `d` requires an integer and forbids precision.
 Formatting width, precision, and output size are bounded.
+Without a format specification, integers render exactly and doubles use their
+shortest round-trip representation, with a trailing `.0` removed.
 
 Import `f` for `Ohm`, `kOhm`, `MOhm`, `pF`, `nF`, `uF`, `nH`, `uH`, and `mH`.
 Each takes one positional number and appends its fixed suffix: `f.nF(100)` yields
 `"100nF"`. There is no automatic rescaling, dimensional type, or unit conversion.
-Integers render in decimal; doubles use their shortest round-trip representation,
-with a trailing `.0` removed. ERC never derives a quantity from a displayed value.
+Integers render exactly in decimal. Doubles round to six significant digits
+(nearest, ties to even), then render in decimal without exponent notation or
+unnecessary fractional trailing zeros. Negative zero renders as `0`.
+For example, `f.kOhm(4.7 * 3)` yields `"14.1kOhm"` and `f.kOhm(0.00001)`
+yields `"0.00001kOhm"`. Output length limits include the suffix. This rounding
+affects only the displayed string; arithmetic values and explicit `.format()`
+specifications retain their existing behavior. Use `.format()` when a different
+display precision is needed. ERC never derives a quantity from a displayed value.
 
 ## 5. Instances and connections
 
@@ -415,10 +437,50 @@ inst series: Resistor(
 )
 ```
 
-`connections`, `params`, and `metadata` may be omitted when unnecessary. Omit an
+`connections`, `params`, `metadata`, and `elements` may be omitted when unnecessary. Omit an
 empty section rather than writing its header without entries. The parentheses
 contain the instance's contract; there is no additional instance implementation
 body. Part and block instances always bind by name, never position.
+
+#### Explicit array element overrides
+
+An array instance may contain an `elements:` section. Each entry selects exactly
+one element, with one nonnegative integer literal per dimension:
+
+```nosch
+inst pulls[2]: Pullup(
+    connections:
+        supply: supply
+        signal: bus
+    params:
+        resistance_ohm: 4700
+    elements:
+        [0]:
+            params:
+                resistance_ohm: 2200
+            metadata:
+                custom:
+                    placement: "Beside the controller"
+)
+```
+
+An entry contains `params:` and/or `metadata:`. Element parameters replace common
+arguments with the same name; metadata merges recursively, including annotations
+on the same canonical physical pin. Both evaluate in the caller's scope. Component
+defaults apply after these arguments are chosen. An element can supply a required
+parameter without a common argument if every element supplies it.
+
+`[1][2]:` selects one element of a two-dimensional array. Slices, partial indices,
+index variables, duplicate selectors, out-of-range indices, nested `elements`,
+and element-local connections are not supported. Use indexed connections in the
+common `connections:` section. Per-element `ref` and `identity` are disallowed;
+existing common identity rules, including array index suffixes, remain unchanged.
+Changing an element's value does not change its identity. Reordering or inserting
+array positions still can change physical identities.
+
+`evaluate` reports the common declaration template when any elements use it, plus
+explicit element variants. `compile` expands every element and checks the resulting
+connection shapes; element parameters do not relax shape compatibility.
 
 ### 5.2 Endpoint binding
 
@@ -450,6 +512,11 @@ A net name alone does not establish a useful physical connection. A connected
 physical pin subject to connection requirements needs another physical or modeled
 external endpoint. Ordinary forwarding ports and placeholders do not count as
 additional physical endpoints.
+
+For an intentionally lone endpoint, such as a test pad or antenna feed on its
+own net, declare `unused: unused.always` on the pin definition or a metadata
+specialization. This permits the lone connection; it does not waive driver or
+other electrical checks on that net. A net waiver cannot replace this pin policy.
 
 `role.do_not_connect` forbids assigning any net, including an otherwise empty net.
 Omission and `no_connect` are allowed. Combining it with `unused.never` is a
@@ -618,27 +685,38 @@ policies. Instances must obey the resulting definition.
 ## 8. Metadata reference
 
 Unknown fields outside `custom` are errors. Recognized fields have explicit scopes
-and types. Most metadata is literal; the notable deferred expression is `value`.
+and types. Most metadata is literal; `value` and numeric ERC quantities support
+restricted parameter expressions.
 Numeric electrical metadata uses units in field names, not formatted strings.
 
 ### 8.1 Core fields
 
+<!-- generated:core-fields -->
 | Scope | Fields |
 |---|---|
-| Component `metadata` | `footprint`, `ref_prefix`, `value`, `current_loads`, `custom` |
-| Block `metadata` | `erc_choices`, `custom` |
-| Board `metadata` | `erc_choices`, `configurations`, `custom` |
-| Bundle `metadata` | `custom` |
-| Physical pin declaration | `aliases`, `role`, `unused`, `tristate_capable`, `max_source_current_mA`, `max_load_current_mA`, `custom` |
-| Port/bundle field declaration | `role`, `unused`, `placeholder`, `waivers`, `aggregate_load`, `custom` |
-| Net declaration | `placeholder`, `net_class`, `waivers`, `custom` |
-| Physical instance `metadata` | `footprint`, `ref`, `identity`, `value`, `pins`, `custom` |
-| Block instance `metadata` | `identity`, `erc_choices`, `pins`, `custom` |
-| Instance `metadata.pins` entries | `role`, `external_role`, `tristate_capable`, `custom` |
+| `component` | `current_loads`, `custom`, `footprint`, `ref_prefix`, `value` |
+| `current_load` | `max_load_current_mA`, `pins` |
+| `block` | `custom`, `erc_choices` |
+| `board` | `configurations`, `custom`, `erc_choices` |
+| `bundle` | `custom` |
+| `pin` | `aliases`, `checks`, `custom`, `max_load_current_mA`, `max_source_current_mA`, `role`, `tristate_capable`, `unused` |
+| `aggregate_load` | `max_load_current_mA` |
+| `port` | `aggregate_load`, `checks`, `custom`, `placeholder`, `role`, `unused`, `waivers` |
+| `net` | `checks`, `custom`, `net_class`, `placeholder`, `waivers` |
+| `instance` | `custom`, `erc_choices`, `footprint`, `identity`, `ref`, `value` |
+| `instance_pin` | `checks`, `custom`, `external_role`, `role`, `tristate_capable` |
+<!-- /generated:core-fields -->
+
+The table uses internal scope names: `pin` means a physical pin declaration,
+`port` includes bundle fields, and `instance_pin` means `metadata.pins` entries.
+The `current_load` and `aggregate_load` scopes describe nested entries.
+`pins` is a structural instance section handled separately from these fields.
+Physical instances accept `footprint`, `ref`, `identity`, `value`, and `custom`;
+block instances accept `identity`, `erc_choices`, and `custom`.
 
 `footprint`, `ref_prefix`, `ref`, `identity`, and `net_class` are strings.
 `tristate_capable` and `placeholder` are booleans. Current amounts are finite,
-nonnegative numeric literals. `aliases` is a list of names/strings. `role` on a
+nonnegative numeric expressions. `aliases` is a list of names/strings. `role` on a
 definition can be one role or a list of permitted roles; an instance's `role`
 selects one permitted role, directly or through a choice mapping.
 
@@ -655,17 +733,58 @@ convention and does not automatically omit a part or change ERC.
 
 These fields use the same registry available to project ERC extensions:
 
-| Scope | Fields and types |
-|---|---|
-| Pin or instance pin | `bias`: `bias.pull_up`, `bias.pull_down`, or `bias.none` |
-| Pin or instance pin | `pull_resistance_ohm`: positive numeric literal |
-| Pin or instance pin | `capacitance_pF`: nonnegative numeric literal |
-| Net or port | `min_pull_up_resistance_ohm`, `max_pull_up_resistance_ohm`, `min_pull_down_resistance_ohm`, `max_pull_down_resistance_ohm`: positive numeric literals |
-| Net or port | `max_capacitance_pF`: nonnegative numeric literal |
-| Net | `wiring_capacitance_pF`: nonnegative numeric literal |
+<!-- generated:extension-fields -->
+| Scope | Field | Type |
+|---|---|---|
+| `instance_pin` | `bias` | `bias.none`, `bias.pull_down`, `bias.pull_up` |
+| `instance_pin` | `bias_reference_pin` | `string` |
+| `instance_pin` | `capacitance_pF` | `nonnegative` |
+| `instance_pin` | `max_voltage_V` | `number` |
+| `instance_pin` | `min_voltage_V` | `number` |
+| `instance_pin` | `pull_resistance_ohm` | `positive` |
+| `net` | `voltage_max_V` | `number` |
+| `net` | `voltage_min_V` | `number` |
+| `net` | `wiring_capacitance_pF` | `nonnegative` |
+| `pin` | `bias` | `bias.none`, `bias.pull_down`, `bias.pull_up` |
+| `pin` | `bias_reference_pin` | `string` |
+| `pin` | `capacitance_pF` | `nonnegative` |
+| `pin` | `max_voltage_V` | `number` |
+| `pin` | `min_voltage_V` | `number` |
+| `pin` | `pull_resistance_ohm` | `positive` |
+<!-- /generated:extension-fields -->
 
-All numeric metadata must be finite. Neither parameters nor part-value strings
-supply these quantities implicitly.
+`number` accepts any finite signed number. `positive` and `nonnegative` add the
+stated bounds.
+Numeric fields accept the restricted expressions in section 4. Definition fields
+evaluate using the component/block's bound parameters; instance fields use the
+caller. Inherited expressions retain their lexical module. Nested numeric fields
+in current-load groups and project extension schemas follow the same rules.
+Values are checked after evaluation and before ERC. Unrecognized names are source
+errors even in unused definitions; overwritten expressions are not evaluated.
+
+Use one numeric parameter for a displayed value and a physical quantity:
+
+```nosch
+component Pullup:
+    params:
+        resistance_ohm: number = 4700
+    pins:
+        1:
+            role: role.passive
+        2:
+            role: role.passive
+            bias: bias.pull_up
+            bias_reference_pin: "1"
+            pull_resistance_ohm: resistance_ohm
+    metadata:
+        value: f.kOhm(resistance_ohm / 1000)
+```
+
+Import `role`, `bias`, and `f` from `noscheme` for this fragment. Quantities are
+never inferred from display strings. Independent instance metadata overrides can
+still intentionally change the model; shared parameters eliminate duplicated
+constants in the ordinary case. See the complete
+[parameterized ERC example](../examples/parameterized_erc/README.md).
 
 ## 9. Electrical roles and net types
 
@@ -673,18 +792,24 @@ supply these quantities implicitly.
 
 Import `role` and use one of:
 
+<!-- generated:roles -->
 | Role | Meaning |
 |---|---|
-| `passive` | No active driver or electrical-domain assertion |
-| `digital_input`, `digital_output` | Digital receiver or active output |
-| `digital_bidirectional` | Digital input/output capability; not automatically tri-state |
-| `analog_input`, `analog_output`, `analog_bidirectional` | Analog endpoint behavior |
-| `power_input`, `power_output` | Supply load or supply source |
-| `ground` | Ground endpoint |
-| `open_drain` | Output that pulls low and can release the net |
-| `open_source` | Output that pulls high and can release the net |
-| `unchecked` | Endpoint behavior is not checked as a known role |
-| `do_not_connect` | Must remain disconnected |
+| `passive` | Passive contact; imposes no electrical domain and supplies no active driver. |
+| `digital_input` | Receives a digital signal. An explicitly declared input port may be tied to a power or ground rail. |
+| `digital_output` | Actively drives a digital signal; participates in multiple-driver checks. |
+| `digital_bidirectional` | Can receive or drive digital signals. Single-driver nets need an operating assumption to resolve driver ambiguity. |
+| `analog_input` | Receives an analog signal. |
+| `analog_output` | Actively drives an analog signal; participates in multiple-driver checks. |
+| `analog_bidirectional` | Can receive or drive analog signals. |
+| `power_input` | Consumes power. Connecting to a ground net requires an explicit incompatible_role waiver. Optional max_load_current_mA metadata contributes to current-budget checks. |
+| `power_output` | Supplies power. Optional max_source_current_mA metadata declares its current capacity. |
+| `ground` | Ground connection; connecting a power output to ground is an ERC error. |
+| `open_drain` | Can pull a signal low or release it. Multiple open-drain drivers may share a net; a pull-up provides the high level. |
+| `open_source` | Can pull a signal high or release it. Multiple open-source drivers may share a net; a pull-down provides the low level. |
+| `unchecked` | Electrical behavior is unspecified; ERC cannot treat this endpoint as passive or prove its driver behavior. |
+| `do_not_connect` | Must not be assigned to any net. Conflicts with unused.never; this connection rule cannot be waived. |
+<!-- /generated:roles -->
 
 An absent, unchecked, or unselected role is not silently treated as passive.
 These roles do not assert voltage tolerance, logic thresholds, timing, or a
@@ -726,7 +851,7 @@ Input contracts admit inputs and passive contacts. Output contracts admit output
 feedback inputs, and passive contacts in the same domain. Bidirectional contracts
 admit the corresponding directional roles. Open-drain/open-source contracts admit
 their respective drivers, digital inputs, and passive contacts. Ground contracts
-admit ground, passive, and input roles. Passive/unchecked contracts add no domain
+admit ground, passive, digital-input, and analog-input roles. Passive/unchecked contracts add no domain
 restriction.
 
 A directional contract requires a corresponding implementing endpoint. A
@@ -823,27 +948,89 @@ checks cannot be waived and still run on unchecked nets.
 ### 10.4 Pull resistance and capacitance
 
 `bias` is an assertion about a signal-side endpoint. It does not verify a
-resistor's other terminal, rail, displayed resistance, or supply voltage.
+resistor's other terminal, rail, displayed resistance, or supply voltage by itself.
+Use `bias_reference_pin` for the optional terminal check described below.
 Open-drain default-level checks require pull-up bias; open-source default-level
 checks require pull-down bias. Bias cannot power a rail or satisfy an output-port
 contract.
 
-A net/port opts into pull-resistance checks by declaring a min/max resistance
-limit. Matching annotated pulls combine as `1/R = sum(1/R_i)`. Each physical
-endpoint counts once. Missing annotated resistance or no matching pulls warns.
-Known pulls below the minimum prove a violation even with unknown contributors;
-a maximum-resistance violation requires complete information about contributors.
-Unannotated pins are not inferred to have internal pulls.
+Nets and public ports opt into budgets with named rule applications. For example:
 
-A net/port opts into capacitance checking with `max_capacitance_pF`. Sum annotated
-endpoint capacitances and the outermost net's `wiring_capacitance_pF`. Missing
-endpoint/wiring values warn; explicit zero declares a known zero contribution.
-Known overloads remain errors even with unknown contributions. All limits on
-public boundaries are enforced without duplicating endpoints.
+```nosch
+net bus: nettype.open_drain
+    wiring_capacitance_pF: 2
+    checks:
+        pull_strength:
+            checker: "std.reduce"
+            params:
+                attribute: "pull_resistance_ohm"
+                where:
+                    bias: bias.pull_up
+                reducer: "std.parallel"
+                min: 1500
+                max: 10000
+        capacitance:
+            checker: "std.reduce"
+            params:
+                attribute: "capacitance_pF"
+                net_attributes: ["wiring_capacitance_pF"]
+                reducer: "std.sum"
+                max: 400
+```
 
-Nets without the corresponding limits do not receive these budget or missing-data
-diagnostics. Tolerance, mixed reference rails, and protocol-derived limits are
-not automatically modeled.
+Each physical endpoint counts once. Ordinary public ports contribute assertions,
+not extra physical loads. Explicit external endpoints do contribute. An inner
+port's assertions and its caller's assertions both run against the flattened net.
+`net_attributes` adds the named outermost-net quantities once per application.
+
+Matching pulls combine as `1/R = sum(1/R_i)`. `std.sum` adds capacitance or other
+numeric attributes. Numeric limits accept parameter expressions. Missing values
+and unknown selections remain unknown; use explicit zero for a known zero
+capacitance and `bias.none` for an endpoint known to have no pull. Known overloads
+and known parallel resistance below a minimum remain errors even with missing
+contributors. Incomplete reductions also warn by default. An empty parallel
+reduction represents an open circuit: it passes a finite minimum and fails a
+finite maximum. Empty sums are zero.
+
+Nets without an application do not receive these budget diagnostics. Tolerance,
+mixed reference rails, and protocol-derived limits are not automatically modeled.
+The former `max_capacitance_pF` and `min/max_pull_up/down_resistance_ohm`
+activation fields are rejected with migration guidance; replace them with
+applications as above.
+
+#### Pull reference terminals
+
+A physical signal-side pin can opt into `bias_reference_pin: "1"`, naming another
+pin ID or alias on the same component. With `bias.pull_up`, that reference terminal
+must reach a net declared `nettype.power`; with `bias.pull_down`, it must reach
+`nettype.ground`. Missing pins, disconnected references, conflicting rail types,
+and a reference tied to the signal net itself produce `erc.bias_reference`.
+
+The default rule set applies `std.bias_reference` to physical pins with this
+annotation, including disconnected signal pins. It traces no paths through other
+components and infers no voltages. To waive a particular application, use its
+qualified identity, for example `"pin:pull.2:bias_reference"`, on the outermost
+net. Disconnected pins have no net waiver. Explicit pin applications work too.
+
+#### Explicit voltage ranges and pin limits
+
+A net can declare `voltage_min_V` and `voltage_max_V` together. A physical pin or
+instance pin can declare `min_voltage_V`, `max_voltage_V`, or both as absolute
+limits. These fields accept finite signed numeric expressions, in volts. Bounds
+are inclusive; minimum values cannot exceed maximum values.
+
+`erc.voltage_limits` compares each annotated pin against the declared net range.
+Exceeding either pin limit is an error. An annotated pin without a complete net
+range produces a warning; an incomplete or reversed net range is an error.
+Unannotated pins produce no missing-limit warnings. When connected declarations
+specify different ranges, ERC reports a conflict rather than choosing one; it
+also checks the pin against each declared range.
+
+This checks only explicit quantities. Ground is not implicitly zero volts, signal
+levels are not inferred from pull resistors, and no supply-domain, logic-threshold,
+transient, clamp-current, or operating-state model is assumed. Use explicit ranges
+for signal nets too when appropriate. Net and targeted pin waivers are supported;
+an outermost unchecked net skips the check.
 
 ### 10.5 Waivers and check names
 
@@ -855,7 +1042,11 @@ net signal: nettype.digital
         missing_driver: "Driver is across the explicitly modeled series resistor."
 ```
 
-A waiver names one implemented check and gives a nonempty literal reason. Only
+A waiver names one application and gives a nonempty literal reason. A short
+name refers to an application on that outermost declaration. To identify an
+inner-boundary or physical-pin application, use its report identity as a quoted
+key, such as `"net:receiver.bus:capacitance"` or `"pin:pull.2:bias_reference"`.
+Unknown applications and attempts to waive non-waivable rules are errors. Only
 the outermost declaration of the flattened net may waive its checks. Inner-port
 waivers produce `waiver_scope` and do not suppress diagnostics. Private-net
 waivers apply independently to each block instance. Reports retain reasons,
@@ -893,7 +1084,7 @@ role explicitly in a specialization or instance. ERC does not choose a role to
 fit the net; unselected alternatives warn when compatibility is uncertain.
 Digital and analog input pins may still be tied directly to supply or ground.
 
-Core check identifiers are:
+The default standard-library diagnostics retain these identifiers:
 
 ```text
 do_not_connect             required_connection          unused_pin
@@ -906,8 +1097,12 @@ port_role                  incomplete_port_role         required_port_connection
 unused_port
 ```
 
-Built-in registry checks are `pull_resistance_budget` and `capacitance_budget`.
-Diagnostic codes prefix these names with `erc.`; waiver keys omit the prefix.
+Standard rules have qualified registry names such as `std.multiple_drivers` and
+`std.voltage_limits`; their default application names omit `std.`. Primitive
+applications report `erc.std.reduce`, `erc.std.count`, `erc.std.any`, or
+`erc.std.all`. Every result carries a separate application identity, so two
+applications of the same rule can be diagnosed and waived independently.
+`waiver_scope` and `waiver_target` are engine diagnostics.
 
 `do_not_connect`, `required_connection`, `unused_pin`, `required_port_connection`,
 `unused_port`, `waiver_scope`, `waiver_target`, `current_load_group`, `aggregate_load_boundary`,
@@ -961,8 +1156,8 @@ metadata:
 
 Choices are forwarded explicitly through each block interface. They are not
 addressable by private instance paths or available in parameter expressions.
-All elements of an instance array share the declaration's choice bindings while
-retaining distinct expanded instances.
+Array elements inherit common choice bindings; `elements:` metadata may override
+bindings for an individual block element. Each retains a distinct expanded scope.
 
 Board metadata defines named configurations:
 
@@ -987,48 +1182,166 @@ See [examples/power_modes](../examples/power_modes) for a complete project.
 
 ## 12. Extending ERC
 
+### 12.1 Registry and project configuration
+
+Built-in and project rules use the same Python API and immutable circuit views.
 Declare extension files relative to `noscheme.toml`:
 
 ```toml
 erc_modules = ["checks.py"]
+erc_rule_sets = ["std.default"]
 ```
 
-Each Python file defines `register(registry)`. This extends metadata and checks
-without adding grammar productions.
+`erc_rule_sets` defaults to `["std.default"]`. Use `[]` to disable automatic
+electrical policies, or name project rule sets to replace or augment them.
+Explicit source applications always run, including on unchecked nets. Disabling
+defaults does not disable parsing, resolution, connection-shape validation, or
+other structural compiler checks. The standard rule set preserves the documented
+role, nettype, current, voltage, and pull-reference policies.
+
+Each module defines `register(registry)`. Registration names are qualified strings
+such as `myboard.pin_count`. Duplicates in a registry category are errors.
 
 | API | Purpose |
 |---|---|
-| `registry.fields(scope, schema)` | Add recognized metadata fields |
-| `registry.check(name, callback, net_fields=(...))` | Add a named net check, optionally activated by declaration fields |
-| `value(record, key, default=None)` | Read a metadata value; import from `noscheme.erc_registry` |
-| `ctx.diagnostic(name, message, record=..., severity=..., related=...)` | Construct a source-located result |
+| `fields(scope, schema)` | Add descriptive metadata fields |
+| `net_rule(name, callback, parameters={}, defaults={}, waivable=True)` | Register a net assertion |
+| `pin_rule(name, callback, parameters={}, defaults={}, waivable=True)` | Register a physical-pin assertion |
+| `predicate(name, callback)` | Register `(pin, ctx) -> True / False / None` |
+| `reducer(name, callback)` | Register a function from a tuple of intervals to an interval |
+| `rule_set(name, callback)` | Register `(ctx) -> iterable[Application]` |
 
-Register fields in `pin`, `port`, `net`, `instance_pin`, `component`, `block`,
-`board`, or `instance` scopes. Field schemas may use `positive`, `nonnegative`,
-`string`, `bool`, `literal`, or nested dictionaries. Duplicate fields, replacement
-of core fields, and duplicate/core check identifiers are errors. Prefer
-project-specific field groups and check-name prefixes.
+The table's rule options are keyword arguments. Schemas accept `number`,
+`positive`, `nonnegative`, `string`, `bool`, `literal`, `attributes` (an arbitrary
+literal mapping), nested dictionaries, or `(namespace, choices)` enums. Enum
+values can be literal strings; built-in namespaces also accept explicitly
+imported enum values. Numeric values are finite and can use parameter expressions.
+Parameters without defaults are required after specialization and overlays merge.
+Unknown arguments and invalid evaluated values are blocking errors.
 
-A callback receives `NetContext`: `net`, `origin`, `endpoints` as label/record
-pairs, and `circuit`. Return an iterable of diagnostics or yield them; yield
-nothing when the check does not apply. A callback's diagnostic code must match
-its registered name. `net_fields` activates a check when any flattened declaration
-contains one of the named fields; without it, the callback decides applicability.
+`fields` accepts existing metadata scopes, including `pin`, `instance_pin`, `net`,
+and `port`. It cannot replace core fields or previously registered fields.
+Attributes do not cause the engine to invent check applications; a rule set may
+select applications based on their presence.
 
-Each invocation receives an isolated copy with source information and effective
-roles for its ERC configuration. `circuit.erc_configuration` and
-`circuit.erc_effective_choices` identify that context. A callback cannot mutate
-another check's input or CAD connectivity through this copy. Registered checks
-use ordinary net waivers and are skipped by outermost unchecked nets.
+### 12.2 Source applications and defaults
 
-Extensions execute Python in the compiler process, including editor checks.
-They should be deterministic and side-effect free. Context isolation is not a
-Python sandbox. Import/registration errors, exceptions, and invalid diagnostic
-results block publication; reported electrical violations follow ordinary ERC
-publication rules.
+Use `checks` in pin, net, or public-port metadata, or in an instance's pin
+metadata overlay. Pins accept pin rules; nets and public ports accept net rules.
+Each application has a local name, a required string `checker`, optional `params`,
+and optional `missing: "warning"`, `"error"`, or `"ignore"`.
 
-See [examples/erc_extensions/checks.py](../examples/erc_extensions/checks.py) for a
-complete extension.
+```nosch
+net signal: nettype.digital
+    checks:
+        driver_present:
+            checker: "std.any"
+            params:
+                predicate: "std.active_digital_driver"
+        no_contention:
+            checker: "std.count"
+            params:
+                predicate: "std.active_digital_driver"
+                max: 1
+```
+
+These illustrate generic presence and count assertions. Full standard drive
+policy also accounts for selectable roles, open-drain/source bias, tri-state
+capability, and public-boundary contracts; replacing it requires choosing those
+policies explicitly.
+
+A specialization or instance overlay merges same-name applications recursively.
+Repeat the same `checker` and override only the parameters that change. Changing
+the checker under an inherited name is an error; use a new application name.
+Applications from multiple selected rule sets must have distinct names on an
+object, as must automatic and explicit applications. There is no implicit removal
+or replacement of a default application.
+
+Rule sets receive a context once per flattened net and once per physical pin,
+including disconnected pins, for each configuration. Return
+`Application("name", "qualified.checker", params={}, missing="warning")` from
+`noscheme.erc_registry`. Net contexts have `ctx.pin is None`; pin contexts have a
+pin and a connected net or `None`. Explicit applications on inner declarations
+run separately; all see the same flattened endpoints.
+
+### 12.3 Shared contexts and callbacks
+
+A rule callback is called as `callback(ctx, **params)` and yields diagnostics.
+For example, `checks.py` can contain:
+
+```python
+def register(registry):
+    registry.net_rule("demo.pin_count", check,
+                      parameters={"max_pins": "nonnegative"})
+
+def check(ctx, *, max_pins):
+    if len(ctx.pins) > max_pins:
+        yield ctx.error("too many attached endpoints")
+```
+
+Contexts expose:
+
+- `circuit`: a shared mapping with `nets`, `pins`, and `components` lookup
+  attributes. Dictionary access exposes the JSON circuit representation,
+  including `erc_configuration` and `erc_effective_choices`.
+- `net`, `pin`, `owner`: the connected net, physical pin (pin rules only), and
+  declaration or pin that owns the application. `net.declarations` retains every
+  public boundary. `pin.component` gives its physical component.
+- `pins`, `other_pins`: physical and explicitly modeled external endpoints on
+  the connected net, with the current physical pin excluded from `other_pins`.
+- Records have `label`, unwrapped `attributes`, and mapping access to source
+  spans, bindings, raw metadata, and other circuit fields.
+- `application`, `checker`, `span`, and `missing`: application identity,
+  registered rule name, application source location, and missing-data policy.
+- `predicates`, `reducers`: registered functions, available to project callbacks
+  as well as built-ins.
+- `shared(key, factory)`: cache immutable derived facts within one configuration;
+  use a project-qualified key to avoid collisions.
+
+The circuit graph, attributes, and parameter mappings are recursively read-only.
+Built-in and project callbacks share the same views; there is no whole-circuit
+copy per rule. Mutation attempts fail. Rules should be deterministic and free of
+side effects. Python extensions still execute in the compiler/editor process;
+read-only views are not a Python sandbox.
+
+`ctx.error(message, related=())` and `ctx.unknown(message, related=())` attach the
+application's location and identity. Unknown results become warnings by default;
+`missing` changes only those results, never definite violations. For additional
+locations or standard diagnostic names, use
+`ctx.diagnostic(code, message, record=..., severity=..., related=...)`.
+Import/registration errors, callback failures, and malformed results block
+publication. Ordinary ERC errors retain the existing check/compile/export behavior.
+Text and JSON reports preserve application identities, related locations, and
+configuration names, including for waived diagnostics.
+
+### 12.4 Generic predicates and reductions
+
+`std.reduce` requires `attribute` and `reducer`, plus `min` and/or `max`. Optional
+`where` compares endpoint attributes; missing attributes and unselected role
+alternatives make selection unknown. An optional `predicate` further filters
+contributors. `net_attributes` optionally includes outermost-net quantities.
+
+`std.count` requires `predicate` and at least one bound. `std.any` and `std.all`
+require `predicate` and assert at least one or every selected endpoint. All three
+accept `where`. Empty count is zero, empty any is false, and empty all is true.
+Available predicates include `std.active_digital_driver`, `std.power_source`,
+`std.digital_compatible`, `std.open_drain_compatible`,
+`std.open_source_compatible`, and `std.tristate_capable`. Active drive and the
+capability to tri-state are separate facts; runtime enable states are not inferred.
+
+Reducers receive `Interval(lower, upper, optional=False, unknown=False)` values
+from `noscheme.erc_primitives`. Bounds describe possible contributions;
+`optional=True` means selection is uncertain. Unknown nonnegative quantities
+range from zero to infinity; general signed quantities are unbounded.
+`std.sum` and `std.parallel` propagate intervals and completeness. A custom
+reducer must return an ordered interval and retain uncertainty honestly. Infinities
+represent internal bounds/open circuits and are never serialized as JSON numbers.
+Each incomplete reduction warns by default, even when known contributions already
+prove an error. Explicit zero is complete. Assertions can report a definite
+violation and missing-data warning together.
+
+See [the extension example](../examples/erc_extensions/README.md) and
+[parameterized ERC example](../examples/parameterized_erc/README.md).
 
 ## 13. CAD identities and export
 
@@ -1119,6 +1432,7 @@ environment, prefix commands with `uv run --locked`.
 | `noscheme parse FILE` | Parse source and emit typed AST JSON |
 | `noscheme load --project PATH` | Load configuration and imports |
 | `noscheme resolve --project PATH` | Resolve definitions and public interfaces |
+| `noscheme lint --project PATH` | Opt-in unused-parameter warnings; no artifacts |
 | `noscheme evaluate --project PATH` | Evaluate parameterized declarations |
 | `noscheme check --project PATH` | Check structure and ERC |
 | `noscheme compile --project PATH` | Write circuit and ERC reports |
@@ -1135,6 +1449,21 @@ all symbols. The conversion output directory must not already exist.
 
 `check`, `compile`, and `export-kicad` accept repeated `--erc-configuration NAME`.
 `load`, `resolve`, and `evaluate` are inspection stages, not electrical validation.
+
+Conversion maps KiCad `open_collector` to `role.open_drain` and `open_emitter`
+to `role.open_source`. `free` and `unspecified` remain unmapped, retain their
+original type in custom metadata, and produce conversion issues. They do not
+silently become unchecked endpoints.
+
+`noscheme lint --project PATH` reports `lint.unused-parameter` warnings in text,
+or JSON with `--diagnostics json`. It runs only when explicitly requested, returns
+zero for warnings, and writes no artifacts. Structural errors still fail. It
+checks lexical references across loaded definitions, including inherited uses,
+default expressions, numeric metadata, array dimensions, and element overrides.
+The conventional component `value` parameter is implicitly used unless replaced
+by `metadata.value`. Supplying a named argument alone is not a use inside the
+component. This is a source lint, not whole-program dead-code analysis; intentional
+public compatibility placeholders can remain unused.
 
 ### 14.1 Failures and publication
 
@@ -1165,9 +1494,25 @@ Compilation produces `circuit.json`, `erc.txt`, and `erc.json`. KiCad export
 produces ERC reports, `board.net`, `names.json`, `netclasses.json`, `nets.txt`, `nets.json`,
 `changes.txt`, and `export.json`, plus persistent `noscheme.state.json` outside the
 output directory. Change reports compare against the last successful export.
+`changes.txt` lists before/after values, footprints, references, paths, and each
+changed pin connection. `export.json.probable_renames` lists unique pairs of
+removed/added identities with exactly matching footprints, values, and pin nets.
+These are advisory hints, not proof of a rename. They never transfer UUIDs,
+references, or placement; added and removed identities remain distinct. To retain
+identity across a planned source rename, set explicit `identity` metadata before
+exporting the renamed design (section 13).
 
-The language server supports diagnostics, go-to-definition, basic hover, and
-contextual completion. It uses unsaved buffers and a short typing debounce.
+KiCad `libparts` retains the first declared pin alias (or physical pad ID when
+there is no alias). A single known role maps to the corresponding KiCad pin type;
+analog and digital inputs/outputs share KiCad's input/output types, ground maps
+to `power_in`, and explicitly tri-state-capable outputs map to `tri_state`.
+Unknown, unresolved, or differing instance types in a shared component entry
+become `unspecified`. NoScheme ERC remains authoritative. The field format follows
+[KiCad's documented libparts format](https://github.com/KiCad/kicad-doc/blob/master/src/eeschema/eeschema_creating_customized_netlists_and_bom_files.adoc);
+PCB Editor display behavior still requires manual validation.
+
+The language server supports diagnostics, go-to-definition, references, rename,
+formatted hover, and contextual completion. It uses unsaved buffers and a short typing debounce.
 See [EDITOR_SUPPORT.md](EDITOR_SUPPORT.md#language-server) for client setup and current limits.
 
 ## 15. Complete example
@@ -1234,8 +1579,9 @@ output_dir = "build"
 Run `noscheme check --project .` and `noscheme compile --project .`. Export also
 requires explicit footprint records. Larger runnable examples are
 [blink](../examples/blink), [power_modes](../examples/power_modes),
-[tristate](../examples/tristate), [erc_extensions](../examples/erc_extensions), and the
-[STM32 reference board](../examples/stm32h523).
+[tristate](../examples/tristate), [erc_extensions](../examples/erc_extensions), the
+[STM32 reference board](../examples/stm32h523), and the
+[Rulos six-line matrix](../examples/rulos_6matrix/README.md).
 
 ## 16. Limits and unsupported features
 
@@ -1255,7 +1601,10 @@ Not implemented:
 - Tri-state output-enable simulation or arbitration proofs.
 - Resistance/capacitance tolerance models and automatic protocol-limit derivation.
 - Language-level differential-pair declarations.
-- A compiler formatter, rename/refactoring, or complete bundle-member LSP navigation.
+- A compiler formatter, incremental compiler analysis, or automatic preservation
+  of CAD identity during source refactoring. LSP rename and public bundle-member
+  navigation are implemented; supported cases and limitations are documented in
+  [Editor support](EDITOR_SUPPORT.md).
 - CAD-to-source circuit synchronization or automatic placement/routing.
 
 The parser grammar is maintained in

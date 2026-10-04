@@ -182,6 +182,51 @@ def verify_footprints(circuit, snapshot, path):
     return omitted
 
 
+KICAD_PIN_TYPES = {
+    "passive": "passive",
+    "digital_input": "input",
+    "analog_input": "input",
+    "digital_output": "output",
+    "analog_output": "output",
+    "digital_bidirectional": "bidirectional",
+    "analog_bidirectional": "bidirectional",
+    "power_input": "power_in",
+    "ground": "power_in",
+    "power_output": "power_out",
+    "open_drain": "open_collector",
+    "open_source": "open_emitter",
+    "do_not_connect": "no_connect",
+    "unchecked": "unspecified",
+}
+
+
+def libpart_pins(parts):
+    """Shared library records must not pick one instance's role arbitrarily."""
+    pins = []
+    for number in sorted(parts[0]["pins"]):
+        records = [part["pins"][number] for part in parts]
+        aliases = attribute(records[0], "aliases", [])
+        kinds = set()
+        for record in records:
+            roles = attribute(record, "role", [])
+            kind = (
+                KICAD_PIN_TYPES.get(roles[0], "unspecified") if len(roles) == 1 else "unspecified"
+            )
+            if kind == "output" and attribute(record, "tristate_capable", False):
+                kind = "tri_state"
+            kinds.add(kind)
+        kind = next(iter(kinds)) if len(kinds) == 1 else "unspecified"
+        pins.append(
+            form(
+                "pin",
+                form("num", number),
+                form("name", aliases[0] if aliases else number),
+                form("type", kind),
+            )
+        )
+    return form("pins", *pins)
+
+
 def render(circuit, state):
     names = KiCadNames()
     net_names = {net["name"]: names.encode(net) for net in circuit["nets"]}
@@ -196,6 +241,10 @@ def render(circuit, state):
             raise ValueError(f"conflicting classes on net {net['name']!r}")
         if classes:
             membership[net_names[net["name"]]] = sorted(classes)
+    definitions = {}
+    for part in circuit["parts"]:
+        if attribute(part, "footprint"):
+            definitions.setdefault(part["definition"], []).append(part)
     for part in sorted(circuit["parts"], key=lambda p: p["identity"]):
         footprint = attribute(part, "footprint")
         if not footprint:
@@ -217,18 +266,13 @@ def render(circuit, state):
                 form("tstamps", entry["uuid"]),
             )
         )
-        libparts[kind] = form(
-            "libpart",
-            form("lib", "NoScheme"),
-            form("part", kind),
-            form(
-                "pins",
-                *[
-                    form("pin", form("num", pin), form("name", pin), form("type", "passive"))
-                    for pin in sorted(part["pins"])
-                ],
-            ),
-        )
+        if kind not in libparts:
+            libparts[kind] = form(
+                "libpart",
+                form("lib", "NoScheme"),
+                form("part", kind),
+                libpart_pins(definitions[kind]),
+            )
         for pin, data in sorted(part["pins"].items()):
             if data["net"] is not None:
                 net = net_names[data["net"]]
@@ -288,6 +332,58 @@ def publish(files):
                 path.unlink()
 
 
+def probable_renames(old, current):
+    """Suggest only unique exact electrical matches; never change identity state."""
+
+    def group(parts, identities):
+        groups = {}
+        for identity in sorted(identities):
+            part = parts[identity]
+            signature = json.dumps(
+                {k: part.get(k) for k in ("footprint", "value", "pins")}, sort_keys=True
+            )
+            groups.setdefault(signature, []).append(identity)
+        return groups
+
+    removed = group(old, old.keys() - current.keys())
+    added = group(current, current.keys() - old.keys())
+    return sorted(
+        [
+            {"before": removed[key][0], "after": added[key][0]}
+            for key in removed.keys() & added.keys()
+            if len(removed[key]) == len(added[key]) == 1
+        ],
+        key=lambda hint: (hint["before"], hint["after"]),
+    )
+
+
+def change_lines(changes):
+    """Render state differences without changing the machine-readable report."""
+    lines = [
+        *(f"Added {n}" for n in changes["added"]),
+        *(f"Removed {n}" for n in changes["removed"]),
+    ]
+
+    def display(value):
+        if isinstance(value, dict) and "type" in value and "value" in value:
+            value = value["value"]
+        return "unconnected" if value is None else json.dumps(value, ensure_ascii=False)
+
+    for change in changes["changed"]:
+        lines.append(f"Changed {change['identity']}")
+        before, after = change["before"], change["after"]
+        for key in ("path", "reference", "value", "footprint"):
+            if before.get(key) != after.get(key):
+                lines.append(f"  {key}: {display(before.get(key))} -> {display(after.get(key))}")
+        old_pins, new_pins = before.get("pins", {}), after.get("pins", {})
+        for pin in sorted(old_pins.keys() | new_pins.keys()):
+            old = display(old_pins[pin]) if pin in old_pins else "absent"
+            new = display(new_pins[pin]) if pin in new_pins else "absent"
+            if old != new:
+                lines.append(f"  pin {pin}: {old} -> {new}")
+    return lines
+
+
 def export_project(project, circuit, footprint_records, *, configurations=None, warnings=None):
     apply_erc(circuit, configurations, registry=project.config.erc_registry)
     state_path = project.config.path.parent / "noscheme.state.json"
@@ -340,6 +436,7 @@ def export_project(project, circuit, footprint_records, *, configurations=None, 
             if current[k] != old[k]
         ],
     }
+    rename_hints = probable_renames(old, current)
     updated["previous_parts"] = current
     updated["netlist_sha256"] = hashlib.sha256(netlist.encode("utf-8")).hexdigest()
     report = {
@@ -353,6 +450,7 @@ def export_project(project, circuit, footprint_records, *, configurations=None, 
         "erc_configurations": circuit["erc"]["configurations"],
         "omitted_without_footprints": omitted,
         "changes": changes,
+        "probable_renames": rename_hints,
         "footprint_records_sha256": hashlib.sha256(
             Path(footprint_records).read_bytes()
         ).hexdigest(),
@@ -379,10 +477,11 @@ def export_project(project, circuit, footprint_records, *, configurations=None, 
         )
         + "\n",
         out / "changes.txt": "\n".join(
-            [
-                *(f"Added {n}" for n in changes["added"]),
-                *(f"Removed {n}" for n in changes["removed"]),
-                *(f"Changed {n['identity']}" for n in changes["changed"]),
+            change_lines(changes)
+            + [
+                f"Possible rename {hint['before']} -> {hint['after']} "
+                "(same footprint, value, and connections; identity was not preserved)"
+                for hint in rename_hints
             ]
         )
         + "\n",

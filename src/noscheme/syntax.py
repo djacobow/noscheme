@@ -73,6 +73,28 @@ def make_parser():
     )
 
 
+def expected_syntax(names):
+    """Describe terminals using source spellings, never parser implementation names."""
+    labels = {
+        "$END": "end of file",
+        "_NL": "end of line",
+        "_INDENT": "an indented block",
+        "_DEDENT": "the end of an indented block",
+        "NAME": "a name",
+        "INT": "an integer",
+        "NUMBER": "a number",
+        "STRING": "a quoted string",
+        "ADD": "'+' or '-'",
+        "MUL": "'*' or '/'",
+        "SHIFT": "'<<' or '>>'",
+    }
+    for terminal in make_parser().terminals:
+        if terminal.pattern.type == "str":
+            labels[terminal.name] = repr(terminal.pattern.value)
+    # Omit unknown implementation terminals instead of leaking their names.
+    return sorted({labels[name] for name in names if name in labels})
+
+
 def parse(source: str, filename: str = "<input>") -> Tree:
     masked = mask_comments(source, filename)
     for line_number, line in enumerate(masked.splitlines(), 1):
@@ -93,6 +115,7 @@ def parse(source: str, filename: str = "<input>") -> Tree:
         elif getattr(exc, "token", None) is not None and exc.token.type in {"_INDENT", "_DEDENT"}:
             line, column = exc.token.end_line, exc.token.end_column
         expected = sorted(getattr(exc, "expected", None) or getattr(exc, "allowed", None) or [])
+        expected = expected_syntax(expected)
         detail = f"; expected {', '.join(expected)}" if expected else ""
         raise SyntaxDiagnostic(filename, line, column, "invalid syntax" + detail) from exc
     except DedentError as exc:

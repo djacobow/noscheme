@@ -58,8 +58,8 @@ After `uv sync --locked`, configure your editor's LSP client to run:
 /home/david/personal/noscheme/.venv/bin/noscheme-lsp
 ```
 
-The language server provides compiler/ERC diagnostics, go-to-definition, and
-resolved hover details, plus completion for component/block names, connection pins/ports,
+The language server provides compiler/ERC diagnostics, go-to-definition,
+find-references, rename, and resolved hover details, plus completion for component/block names, connection pins/ports,
 imported `role.` / `nettype.` values, and footprint strings. It checks unsaved buffers, including
 imported files, after a 200 ms typing delay. It does not write circuit artifacts,
 netlists, or identity state.
@@ -272,3 +272,12 @@ are used throughout; hover does not write files or export artifacts.
 For example, hover over `resistor` in the `Indicator` block in
 `examples/stm32h523/components.nosch` to see the three elaborated
 LED resistors, their 1kOhm values, and their selected 0603 footprints.
+
+## ERC application completion
+
+Inside `checks`, completion suggests registered `checker`, `predicate`, and
+`reducer` names, including when the string's closing quote has not been typed.
+Under `params`, suggestions come from the selected checker's parameter schema.
+The registry includes modules from the project's `erc_modules` configuration.
+Application-specific ERC diagnostics use the same source locations and related
+locations as command-line reports.

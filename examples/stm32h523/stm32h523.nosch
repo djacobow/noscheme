@@ -241,6 +241,7 @@ board STM32H523Reference:
                 2:
                     bias: bias.pull_up
                     pull_resistance_ohm: 10000
+                    bias_reference_pin: "1"
     )
     // NRST uses the MCU internal pull-up and the existing 100 nF reset capacitor.
     inst reset_button: PushButton(
@@ -264,6 +265,7 @@ board STM32H523Reference:
                 1:
                     bias: bias.pull_down
                     pull_resistance_ohm: 10000
+                    bias_reference_pin: "2"
     )
     // Bias annotations are explicit; passive parts alone do not imply propagation.
 

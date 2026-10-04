@@ -25,6 +25,7 @@ ROLE_MAP = {
     "power_in": "power_input",
     "power_out": "power_output",
     "open_collector": "open_drain",
+    "open_emitter": "open_source",
     "no_connect": "do_not_connect",
 }
 

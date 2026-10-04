@@ -275,8 +275,12 @@ class Builder:
                 tuple(self.name(x) for x in c[i].children),
                 tuple(self.build(x) for x in c[i + 1 :]),
             )
-        if kind in {"connections", "arguments", "instance_metadata"}:
+        if kind == "element_override":
+            indices = tuple(self.index(x) for x in c if x.data == "index")
+            return a.ElementOverride(span, indices, tuple(self.build(x) for x in c[len(indices) :]))
+        if kind in {"connections", "arguments", "instance_metadata", "elements"}:
             names = {
+                "elements": "elements",
                 "connections": "connections",
                 "arguments": "params",
                 "instance_metadata": "metadata",
@@ -413,7 +417,12 @@ def validate_structure(module):
                     fields(n.fields)
                 else:
                     unique(n.sections, lambda s: s.name)
-                    for s in n.sections:
+                    nested = [
+                        e.sections for s in n.sections if s.name == "elements" for e in s.entries
+                    ]
+                    for sections in nested:
+                        unique(sections, lambda s: s.name)
+                    for s in (*n.sections, *(s for sections in nested for s in sections)):
                         if s.name == "params":
                             unique(s.entries, lambda e: e.name.text)
                         elif s.name == "metadata":

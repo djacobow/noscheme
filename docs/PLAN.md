@@ -71,7 +71,8 @@ headless Vim and, when installed, Neovim. With vim-plug, register the runtime as
 a local `Plug` entry; do not prepend it before a no-argument `plug#begin()`.
 
 The following compiler-core sequence records the original milestone and its
-historical implementation steps. Current behavior is documented in PROJECT.md.
+historical implementation steps. Current behavior is specified in [LRM.md](LRM.md);
+[PROJECT.md](PROJECT.md) records goals and design rationale.
 
 ### Outcome
 
@@ -196,10 +197,9 @@ Inheritance traversal is iterative and tested beyond 1,000 levels. Recursive
 bundle types, alias collisions, invalid specialization, private-interface access,
 unknown helpers/parameters, and invalid metadata are diagnosed.
 
-Only the initial schema documented in PROJECT.md is implemented. Advanced ERC
-metadata remains explicitly unsupported. Required argument/type evaluation,
-shape and binding-overlap checks, global existence in expanded blocks, structural
-port reachability, and mandatory-connection ERC belong to subsequent steps.
+At this milestone only the initial metadata schema was implemented. Argument
+evaluation, shape checks, port reachability, and ERC were added in the subsequent
+steps below. The current metadata schema is documented in [LRM §8](LRM.md#8-metadata-reference).
 
 - Implement configuration validation, deterministic module discovery, explicit
   imports, and separate namespaces for builtins and ordinary definitions.
@@ -240,7 +240,7 @@ arguments are evaluated in caller scope; inherited defaults in their origin
 module. Overridden defaults are not evaluated. Cycles among defaults still needed
 for binding are errors. Recursive block instantiation is diagnosed.
 
-Numeric operations and rounding implement PROJECT.md's rules. Named arguments
+Numeric operations and rounding implement [LRM §4](LRM.md#4-parameters-and-expressions). Named arguments
 are now supported for `.format()`; numeric/unit helpers take one positional
 argument. Formatting permits explicit indices/names, escaped braces, and bounded
 numeric width/precision; object traversal, implicit capture, conversion flags,
@@ -435,7 +435,7 @@ explicit `no_connect` binding is allowed; assigning any net is an ERC error.
 
 ### ERC compatibility and public contracts
 
-The initial role/net-type table is in PROJECT.md. Every scalar declaration keeps
+The role/net-type table is in [LRM §9](LRM.md#9-electrical-roles-and-net-types). Every scalar declaration keeps
 its type constraints; missing/alternative roles are never silently selected.
 Public-port checks inspect only endpoints inside the block instance, enforce
 caller-side unused/required policies, and retain definition and binding locations.
@@ -503,7 +503,7 @@ Pin bias annotations follow physical connections; open-source roles mirror
 open-drain roles. The STM32 draft now explicitly annotates its existing OLED,
 button, and BOOT0 bias resistors; bus budget limits await hardware selection.
 
-Callbacks receive isolated circuit/net/endpoint contexts per configuration.
+Callbacks now receive shared immutable circuit/net/endpoint views per configuration (see the unified ERC implementation below).
 Registered checks support source-located diagnostics and scoped waivers; plugin
 failures block publication. Tests cover applicability, parallel pulls, incomplete
 budgets, hierarchy, configuration context, schema validation, callback isolation,
@@ -551,9 +551,10 @@ mapping, and boot configuration still need verification.
 ## Objective and boundaries
 
 Prove the KiCad update path and grammar before building a production compiler.
-Manual import in PCBNew is acceptable. PROJECT.md remains authoritative; these
-experiments must not silently change language semantics or select an untested
-fallback backend. The STM32 board remains the eventual acceptance target.
+This completed milestone used manual import in PCBNew and the design decisions
+then recorded in PROJECT.md. The STM32 board was the later acceptance target.
+The experiments are historical evidence; [LRM.md](LRM.md) now specifies production
+behavior, including decisions made after these experiments.
 
 ## Deliverables
 
@@ -750,83 +751,95 @@ a stronger use case. Unknown electrical roles remain unspecified.
 ## TODO: remaining implementation-review follow-up
 
 Recorded from the October 2026 implementation review and subsequent discussion.
-These are pending tasks and design questions, not adopted language changes.
-Suggested next steps are value formatting, then documentation cleanup.
+Unchecked entries are pending tasks and design questions, not adopted language
+changes. Concrete review fixes and the agreed extensions are implemented below. Identity
+refactoring and differential pairs are deferred by user decision. Deferred language
+proposals should not be treated as implementation commitments.
 
 ### Values and language usability
 
-- [ ] Fix float noise in `f.*` part-value strings, such as
-  `14.100000000000001kOhm`. Define precision and exponent/engineering notation
-  behavior without changing arithmetic semantics.
-- [ ] Explore deriving display values and ERC quantities from one numeric
-  parameter, so `value` and `pull_resistance_ohm` cannot silently drift apart.
-  Assess this before introducing a quantity type or unit syntax.
-- [ ] Design per-element array parameters and metadata, including an element
-  index and placement notes. Discuss multidimensional behavior and identity
-  implications before changing existing instances into arrays.
-- [ ] Consider compact role annotations beside connections. Instance role
-  selection already exists; preserve explicit selection from permitted roles.
-  Do not infer GPIO capabilities from KiCad's broad `bidirectional` type.
-- [ ] Use unambiguous MCU pin aliases in the STM32 example, retaining physical
+- [x] Fix float noise in `f.*` part-value strings. Doubles render to six
+  significant digits without exponent notation; integers remain exact. Fixed
+  suffixes, arithmetic, and `.format()` behavior are unchanged. Regression tests
+  cover rounding, tiny/large numbers, negative zero, and output limits.
+- [x] Allow numeric parameter expressions in numeric ERC fields, including
+  nested extension schemas. Values and quantities can share a parameter without
+  units or quantity syntax; independent explicit metadata overrides remain possible.
+- [x] Add explicit `elements:` overrides for parameters and metadata. Full
+  literal multidimensional indices are supported; index variables and per-element
+  identity/ref overrides are deferred. Existing STM32 identities remain unchanged.
+- [x] Keep current role-selection syntax (user decision). No compact role
+  annotations or inference from KiCad bidirectional pins.
+- [x] Use unambiguous MCU pin aliases in the STM32 example, retaining physical
   pad lists where appropriate for shared supplies and ambiguous aliases.
-- [ ] Revisit named pin groups if explicit lists prove insufficient.
-  Component-wide `pin_defaults` remain deferred after the example cleanup.
-- [ ] Assess integer division, modulo, and `num.min`/`num.max` against actual
-  use cases. `//` already starts a comment, so it cannot simply become division.
-- [ ] Review syntax consistency proposals only where they provide a concrete
-  benefit: array-dimension placement, choice references, and `params`/`args`
-  naming. Preserve current syntax until a change is agreed.
+- [x] Keep explicit pin lists/ranges; no example currently requires named
+  groups. Revisit groups and component-wide `pin_defaults` only with a concrete
+  case that existing lists and specialization cannot express clearly.
+- [x] Assess numeric helper demand: current examples and explicit element
+  overrides do not require new operators. Keep `num.floor`/`num.int` and existing
+  arithmetic; defer modulo/min/max until a concrete use case. `//` remains a comment.
+- [x] Keep current array-dimension placement, choice references, and params
+  naming (user decision). Revisit only with a concrete benefit.
 
 ### Documentation and diagnostics
 
-- [ ] Fix stale claims about the AST, tri-state ERC, and LSP diagnostics,
+- [x] Fix stale claims about the AST, tri-state ERC, and LSP diagnostics,
   completion, references, rename, hover, and bundle-member navigation.
-- [ ] Make the LRM authoritative for behavior; reduce duplicated rules in
-  PROJECT.md to goals, rationale, and links. Consider generating role and
-  metadata tables from the implementation.
-- [ ] Document pure-wiring adapter limitations and the intended `unused.always`
+- [x] Make the LRM authoritative for behavior; reduce PROJECT.md to goals,
+  rationale, hardware decisions, and links. Keep language tables in the LRM.
+- [x] Generate LRM role and metadata tables from the implementation, with a
+  regeneration command and drift test.
+- [x] Document pure-wiring adapter limitations and the intended `unused.always`
   idiom for intentionally lone endpoints. Clarify the historical review's scope.
-- [ ] Replace internal parser token names with readable syntax diagnostics.
+- [x] Replace internal parser token names with readable syntax diagnostics.
   Keep broader parser recovery deferred; independent resolution diagnostics
   are already implemented.
-- [ ] Consider unused-parameter lint and define a language-version compatibility
-  policy before external adoption.
+- [x] Add opt-in unused-parameter lint as `noscheme lint`; default compiler
+  and LSP diagnostics are unchanged.
+- [x] Document experimental 0.1 revision pinning and an explicit future freeze;
+  breaking language changes after the freeze require a new language version.
 
 ### KiCad conversion, export, and refactoring
 
-- [ ] Review missing converter mappings, especially `open_emitter` to
-  `open_source`. Assess `free` and `unspecified` individually before mapping
-  them to `unchecked` and suppressing checks.
-- [ ] Assess storing footprint candidates in sidecar data to reduce generated
-  source size while retaining completion and useful hover information.
-- [ ] Preserve useful pin names/roles in exported libparts where KiCad supports
-  them; verify the practical benefit for PCB inspection.
-- [ ] Make `changes.txt` describe changed values, footprints, and connections.
-- [ ] Explore probable-rename hints and identity-preserving LSP refactoring to
-  protect PCB placement. Never silently equate parts based on a heuristic.
+- [x] Map `open_emitter` to `open_source`. Keep `free` and `unspecified`
+  unmapped with conversion issues; neither safely asserts a known role.
+- [x] Measure footprint candidate source size and assess sidecars (below).
+  Keep self-contained metadata until a discovery/versioning contract is agreed.
+- [x] Preserve useful aliases/roles in exported libparts with consensus for
+  differing instance selections.
+- [ ] Manually verify the practical benefit of pin names/types in PCB inspection.
+- [x] Make `changes.txt` describe changed values, footprints, connections,
+  references, and paths.
+- [x] Add advisory probable-rename hints for unique exact footprint/value/net
+  matches. Never transfer identities or PCB placement based on a heuristic.
+- [x] Defer identity-preserving instance refactoring (user decision). Settle
+  the broader model before implementing board-only or reusable-block renames;
+  no `local_identity` field has been added.
 
 ### Further ERC capabilities and example clarity
 
-- [ ] Design opt-in voltage-domain and absolute-maximum checks using metadata
-  and the extension registry where possible.
-- [ ] Consider checking a pull-up/down's reference terminal, so declared bias
-  can be checked against its actual supply/ground connection.
-- [ ] Design differential-pair support; the metadata remains explicitly
-  unsupported until implemented.
-- [ ] Clarify the one-pin pull-up in the extension example and point readers to
+- [x] Implement opt-in explicit net voltage intervals and absolute pin limits
+  through the registry. Supply-domain and logic-threshold inference remain deferred.
+- [x] Add opt-in `bias_reference_pin` checks against actual power/ground nets.
+  Use a registered pin rule selected by the standard rule set; annotate STM32 pulls.
+- [x] Defer differential-pair support (user decision); the metadata remains
+  explicitly unsupported.
+- [x] Clarify the one-pin pull-up in the extension example and point readers to
   the two-terminal pattern. Explain or annotate the microSD DAT pull-ups.
-- [ ] Retain the agreed direct input-to-rail behavior; any proposal for an
+- [x] Retain the agreed direct input-to-rail behavior; any proposal for an
   additional strap marker needs a concrete use case and a separate decision.
 
 ### Implementation maintenance
 
-- [ ] Freeze the historical experiment grammar explicitly or retire it while
-  preserving useful production-parser regression cases.
-- [ ] Assess small typed circuit views and splitting ERC by check family.
-- [ ] Measure circuit-copying and LSP analysis costs before introducing
-  read-only plugin views or incremental compilation.
-- [ ] Evaluate broader Ruff rules, gradual type checking, and CI coverage
-  reporting as maintenance improvements.
+- [x] Freeze the historical experiment grammar and test only its retained
+  corpus. Current examples and language features use production parser tests.
+- [x] Assess typed views; defer whole-circuit wrapping. New voltage checks live
+  in their own check-family module, preserving the JSON interchange representation.
+- [x] Measure circuit-copying and LSP analysis costs; retain isolation and full
+  analysis for now. Repeatable benchmark added (see assessment below).
+- [x] Enable clean UP/SIM and selected bug-prevention Ruff rules; add branch
+  coverage reports in CI. Broader B rules and type-checking rollout need a
+  focused follow-up rather than blanket suppression of existing diagnostics.
 
 ### Rulos six-line matrix example (implemented)
 
@@ -847,3 +860,88 @@ capacitors retain their source packages. SWD uses the STM32 example's SMT Cortex
 header footprint. The original source evidence and an explicit substitution map
 verify unchanged connectivity, values, and identities. Unresolved package
 choices are documented in the example's `KICAD_MATCHES.md`.
+
+### Review maintenance assessment (October 2026)
+
+Initial five-repeat medians on the current machine, before the new reference checks:
+
+| Example | Resolve/elaborate | Circuit deepcopy | ERC | Full LSP analysis |
+|---|---:|---:|---:|---:|
+| STM32, 58 parts / 52 nets | 172 ms | 17 ms | 38 ms | 255 ms |
+| Rulos, 93 parts / 107 nets | 187 ms | 30 ms | 36 ms | 262 ms |
+
+These examples do not stress many active extension callbacks; a callback copies
+its full context to protect later checks from mutation. Keep that isolation for project plugins until
+a larger extension-heavy workload demonstrates a bottleneck. The benchmark in
+`tools/benchmark_analysis.py` makes follow-up measurements repeatable.
+
+Footprint candidate lines account for 24,243 of 41,992 generated source bytes in
+the STM32 libraries and 71,686 of 89,504 in Rulos. A sidecar would reduce source
+noise, but would require a discovery/versioning contract for conversion, compiler,
+and LSP. Current measured analysis times do not require the migration. Keep the
+self-contained metadata until that contract is agreed.
+
+Broad Ruff B/UP/SIM evaluation found 29 B diagnostics (mainly loop closures and
+explicit zip lengths); UP and SIM were clean. Enable UP/SIM plus checks for mutable
+defaults, calls in defaults, unused comparisons, and unused expressions. Leave a
+full B-rule rollout and gradual static typing for dedicated work. Introducing
+wrappers around the entire circuit solely to satisfy a type checker would be a
+larger change than these fixes; start with typed helper boundaries when a concrete
+ERC change needs them. Budget checks already have a separate module; further
+splitting should follow a check family change so behavior stays reviewable.
+
+Exported libparts now retain aliases and consistent KiCad pin types, with tests
+for conflicting instance selections. Manual PCB Editor inspection is still needed
+to establish the visible benefit; no placement or connectivity change is intended.
+
+After adding the STM32 reference-terminal annotations, repeated full-circuit copies
+inside compiler-owned checks increased local ERC time to roughly 510 ms and LSP
+analysis to 674 ms. Compiler-owned callbacks now use the circuit directly under
+the same read-only contract as core ERC; project callbacks still receive isolated
+copies. Five-repeat medians after this change were 38 ms ERC and 261 ms LSP
+analysis. Tests verify both built-in nonmutation and project-plugin isolation.
+
+### Unified ERC implementation
+
+The user reopened ERC work after the review batch and approved a common plugin
+architecture for built-in and project rules. Implemented:
+
+- [x] Registry APIs for net rules, pin rules, predicates, reducers, rule sets,
+  and descriptive fields; qualified names and duplicate detection.
+- [x] Named `checks` applications on nets, public ports, physical pins, and
+  instance overlays, with typed parameters and per-application missing-data policy.
+- [x] Same-name specialization/overlay merging with checker changes rejected.
+- [x] `erc_rule_sets` configuration with replaceable `std.default`; structural
+  compiler validation remains independent.
+- [x] Shared recursively immutable graph and parameter views for every callback.
+  Built-in electrical policies moved out of the scheduler into registered rules.
+- [x] Sum, parallel resistance, count, any, and all assertions; three-valued
+  predicates and conservative interval/optional-contributor handling.
+- [x] Application identities in text/JSON diagnostics and scoped waivers.
+- [x] Direct migration of budget annotations, examples, tests, and extension API;
+  retired fields produce actionable diagnostics.
+- [x] LSP completion for rule/predicate/reducer strings and rule parameters,
+  including unfinished quotes; documentation and regression coverage.
+
+Earlier copy/isolation timing notes above describe the superseded implementation.
+The shared-view engine removes per-callback copies for both built-in and project
+rules. Differential pairs and identity refactoring remain deferred. Manual PCB
+Editor inspection of exported pin names/types is still outstanding.
+
+Validation of the unified ERC implementation: **799 tests passed, 1 skipped**;
+branch-aware coverage is 89%. Ruff lint/format, generated reference tables,
+local documentation links, and both ERC example checks pass. STM32 and Rulos
+regression tests verify physical connectivity, values, footprints, and repeatable
+export identities.
+
+Five-repeat local medians after sharing frozen subgraphs and contexts:
+
+| Example | ERC | Full LSP analysis |
+|---|---:|---:|
+| STM32, 58 parts / 52 nets | 106 ms | 350 ms |
+| Rulos, 93 parts / 107 nets | 115 ms | 365 ms |
+
+These are observations, not CI thresholds. Rich views and individually scheduled
+applications add overhead versus the earlier core-only implementation; sharing
+subgraphs reduced the first migrated STM32 measurement from about 195 ms to
+106 ms. Each configuration still has its own circuit snapshot.

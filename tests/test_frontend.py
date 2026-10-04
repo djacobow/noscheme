@@ -212,3 +212,20 @@ def test_cli_atomic_artifact_and_diagnostics(tmp_path, capsys):
     assert error["span"]["line"] == 2
     assert main(["parse", str(source), "--output", str(source)]) == 2
     assert main(["parse", str(tmp_path / "absent.nosch")]) == 2
+
+
+def test_syntax_diagnostics_use_source_spellings():
+    from noscheme.syntax import expected_syntax, parse, SyntaxDiagnostic
+
+    assert expected_syntax(["_INST_RPAR", "_RPAR", "NAME", "_NL", "$END"]) == [
+        "')'",
+        "a name",
+        "end of file",
+        "end of line",
+    ]
+    with pytest.raises(SyntaxDiagnostic) as error:
+        parse("board B\n", "broken.nosch")
+    assert "expected ':'" in str(error.value)
+    assert "COLON" not in str(error.value)
+    assert error.value.filename == "broken.nosch"
+    assert error.value.line == 1

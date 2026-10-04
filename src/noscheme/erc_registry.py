@@ -1,123 +1,114 @@
-"""Project-local ERC schemas and net checks; extensions never change the grammar."""
+"""Registration for electrical rules, predicates, reducers, and default rule sets."""
 
-from dataclasses import dataclass
-from copy import deepcopy
+from dataclasses import dataclass, field
 import importlib.util
+import re
 import sys
 
-from .ast import Span
 from .diagnostics import Diagnostic, DiagnosticError
+from .erc_views import value as value
 
 
-def value(record, key, default=None):
-    return record.get("metadata", {}).get(key, {}).get("value", default)
+@dataclass(frozen=True)
+class Rule:
+    scope: str
+    callback: object
+    parameters: dict
+    defaults: dict
+    waivable: bool = True
 
 
-@dataclass
-class NetContext:
-    circuit: dict
-    net: dict
-    endpoints: list
-    origin: dict
-
-    def diagnostic(self, code, message, *, record=None, severity="error", related=()):
-        record = record or self.origin
-        return Diagnostic("erc." + code, severity, message, Span(**record["span"]), tuple(related))
+@dataclass(frozen=True)
+class Application:
+    name: str
+    checker: str
+    params: dict = field(default_factory=dict)
+    missing: str = "warning"
 
 
 class Registry:
     def __init__(self):
         self.schemas = {}
-        self.checks = {}
-        self.activation = {}
+        self.rules = {}
+        self.predicates = {}
+        self.reducers = {}
+        self.rule_sets = {}
 
     def fields(self, scope, fields):
-        """Register metadata fields: literal types, enum tuples, or nested schemas."""
-        if scope not in {
-            "pin",
-            "port",
-            "net",
-            "instance_pin",
-            "component",
-            "block",
-            "board",
-            "instance",
-        }:
-            raise ValueError(f"unsupported metadata scope {scope!r}")
         from .metadata import SCHEMAS
 
+        if scope not in SCHEMAS:
+            raise ValueError(f"unsupported metadata scope {scope!r}")
         validate_schema(fields)
-        if SCHEMAS[scope].keys() & fields.keys():
-            raise ValueError("ERC metadata duplicates core fields")
         target = self.schemas.setdefault(scope, {})
-        if target.keys() & fields.keys():
+        if fields.keys() & (SCHEMAS[scope].keys() | target.keys()):
             raise ValueError("duplicate ERC metadata fields")
         target.update(fields)
 
-    def check(self, name, callback, *, net_fields=()):
-        """Register a net callback returning diagnostics under its check name."""
-        from .erc_rules import CHECKS
-
-        if (
-            not name.isidentifier()
-            or name in self.checks
-            or name in CHECKS
-            or not callable(callback)
+    def _register(self, table, name, item):
+        if not isinstance(name, str) or not re.fullmatch(
+            r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)+", name
         ):
-            raise ValueError(f"invalid or duplicate ERC check {name!r}")
-        allowed = set(self.schemas.get("net", {})) | set(self.schemas.get("port", {}))
-        from .metadata import SCHEMAS
+            raise ValueError(f"invalid registration name {name!r}")
+        if name in table:
+            raise ValueError(f"duplicate registration {name!r}")
+        table[name] = item
 
-        allowed |= SCHEMAS["net"].keys() | SCHEMAS["port"].keys()
-        if not isinstance(net_fields, (tuple, list)) or any(
-            not isinstance(k, str) or k not in allowed for k in net_fields
-        ):
-            raise ValueError("activation fields must name registered net or port metadata")
-        self.checks[name] = callback
-        self.activation[name] = tuple(net_fields)
+    def _rule(self, scope, name, callback, parameters=None, defaults=None, waivable=True):
+        if not callable(callback):
+            raise ValueError("rule callback must be callable")
+        parameters, defaults = dict(parameters or {}), dict(defaults or {})
+        if parameters:
+            validate_schema(parameters)
+        if defaults.keys() - parameters.keys():
+            raise ValueError("rule defaults must name declared parameters")
+        self._register(self.rules, name, Rule(scope, callback, parameters, defaults, waivable))
 
-    def run(self, context):
-        for name, callback in self.checks.items():
-            fields = self.activation[name]
-            if fields and not any(
-                set(fields) & d["metadata"].keys() for d in context.net["declarations"]
-            ):
-                continue
-            try:
-                # A check cannot alter another check's inputs or the exported circuit.
-                result = list(callback(deepcopy(context)))
-                for diagnostic in result:
-                    if (
-                        not isinstance(diagnostic, Diagnostic)
-                        or not isinstance(diagnostic.span, Span)
-                        or diagnostic.code != "erc." + name
-                        or diagnostic.severity not in {"error", "warning"}
-                    ):
-                        raise ValueError(f"check {name!r} returned an invalid diagnostic")
-                yield from result
-            except Exception as exc:
-                raise DiagnosticError(
-                    [context.diagnostic("plugin_failure", f"ERC check {name!r} failed: {exc}")]
-                ) from exc
+    def net_rule(self, name, callback, *, parameters=None, defaults=None, waivable=True):
+        self._rule("net", name, callback, parameters, defaults, waivable)
+
+    def pin_rule(self, name, callback, *, parameters=None, defaults=None, waivable=True):
+        self._rule("pin", name, callback, parameters, defaults, waivable)
+
+    def predicate(self, name, callback):
+        if not callable(callback):
+            raise ValueError("predicate must be callable")
+        self._register(self.predicates, name, callback)
+
+    def reducer(self, name, callback):
+        if not callable(callback):
+            raise ValueError("reducer must be callable")
+        self._register(self.reducers, name, callback)
+
+    def rule_set(self, name, callback):
+        """A callback receives a context and yields Application objects."""
+        if not callable(callback):
+            raise ValueError("rule-set callback must be callable")
+        self._register(self.rule_sets, name, callback)
 
 
 def load_registry(paths=(), span=None):
-    from .erc_electrical import register
+    from .erc_standard import register
+    from .erc_primitives import register as register_primitives
+    from .erc_electrical import register as register_electrical
+    from .erc_voltage import register as register_voltage
 
     registry = Registry()
-    register(registry)
+    for callback in (register, register_primitives, register_electrical, register_voltage):
+        callback(registry)
     for index, path in enumerate(paths):
+        name = f"_noscheme_erc_{index}"
         try:
-            spec = importlib.util.spec_from_file_location(f"_noscheme_erc_{index}", path)
+            spec = importlib.util.spec_from_file_location(name, path)
             if spec is None or spec.loader is None:
                 raise ValueError("expected a Python module file")
             module = importlib.util.module_from_spec(spec)
-            sys.modules[spec.name] = module
+            sys.modules[name] = module
             try:
                 spec.loader.exec_module(module)
                 module.register(registry)
             finally:
-                sys.modules.pop(spec.name, None)
+                sys.modules.pop(name, None)
         except Exception as exc:
             raise DiagnosticError(
                 [
@@ -140,10 +131,18 @@ def validate_schema(fields):
         elif isinstance(kind, tuple):
             if (
                 len(kind) != 2
-                or kind[0] != "bias"
+                or not isinstance(kind[0], str)
                 or not kind[1]
                 or not all(isinstance(v, str) for v in kind[1])
             ):
                 raise ValueError("unsupported metadata enum schema")
-        elif kind not in {"positive", "nonnegative", "string", "bool", "literal"}:
+        elif kind not in {
+            "number",
+            "positive",
+            "nonnegative",
+            "string",
+            "bool",
+            "literal",
+            "attributes",
+        }:
             raise ValueError(f"unsupported metadata field type {kind!r}")

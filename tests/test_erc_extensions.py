@@ -21,12 +21,27 @@ component Device:
     pins:
         1:
             role: role.open_drain
+            bias: bias.none
             capacitance_pF: 10
 board B:
     net bus: nettype.open_drain
-        min_pull_up_resistance_ohm: 2500
-        max_pull_up_resistance_ohm: 5000
-        max_capacitance_pF: 20
+        checks:
+            pull_up:
+                checker: "std.reduce"
+                params:
+                    attribute: "pull_resistance_ohm"
+                    reducer: "std.parallel"
+                    where:
+                        bias: bias.pull_up
+                    min: 2500
+                    max: 5000
+            capacitance:
+                checker: "std.reduce"
+                params:
+                    attribute: "capacitance_pF"
+                    reducer: "std.sum"
+                    net_attributes: ["wiring_capacitance_pF"]
+                    max: 20
         wiring_capacitance_pF: 2
     inst pull[2]: Pull(
         connections:
@@ -45,42 +60,26 @@ def check(tmp_path, source=SOURCE):
 
 def test_parallel_pulls_count_each_physical_pin_once(tmp_path):
     result = check(tmp_path)
-    assert [d.code for d in result] == ["erc.pull_resistance_budget"]
+    assert [d.code for d in result] == ["erc.std.reduce"]
     assert result[0].severity == "error" and len(result[0].related) == 2
     assert "2500" in result[0].message
 
 
 def test_capacitance_and_resistance_overload(tmp_path):
-    result = check(tmp_path, SOURCE.replace("max_capacitance_pF: 20", "max_capacitance_pF: 15"))
-    assert {d.code for d in result} == {"erc.pull_resistance_budget", "erc.capacitance_budget"}
+    result = check(tmp_path, SOURCE.replace("max: 20", "max: 15"))
+    assert {d.application for d in result} == {"net:bus:pull_up", "net:bus:capacitance"}
 
 
 def test_no_limits_means_no_budget_warnings(tmp_path):
-    source = (
-        "\n".join(
-            line
-            for line in SOURCE.splitlines()
-            if not any(
-                key in line
-                for key in (
-                    "min_pull_",
-                    "max_pull_",
-                    "max_capacitance",
-                    "capacitance_pF",
-                    "pull_resistance_ohm",
-                )
-            )
-        )
-        + "\n"
-    )
+    start = SOURCE.index("        checks:")
+    end = SOURCE.index("    inst pull", start)
+    source = SOURCE[:start] + SOURCE[end:]
     assert check(tmp_path, source) == ()
 
 
 def test_missing_capacitance_does_not_hide_known_overload(tmp_path):
-    source = SOURCE.replace("            capacitance_pF: 10\n", "").replace(
-        "max_capacitance_pF: 20", "max_capacitance_pF: 5"
-    )
-    result = [d for d in check(tmp_path, source) if d.code == "erc.capacitance_budget"]
+    source = SOURCE.replace("            capacitance_pF: 10\n", "").replace("max: 20", "max: 5")
+    result = [d for d in check(tmp_path, source) if d.application.endswith(":capacitance")]
     assert {d.severity for d in result} == {"warning", "error"}
 
 
@@ -105,13 +104,13 @@ board B:
             1: bus
     )""",
     )
-    result = [d for d in check(tmp_path, source) if d.code == "erc.pull_resistance_budget"]
+    result = [d for d in check(tmp_path, source) if d.application.endswith(":pull_up")]
     assert {d.severity for d in result} == {"error", "warning"}
 
 
 def test_open_source_and_pulldown_symmetry(tmp_path):
     source = SOURCE.replace("open_drain", "open_source").replace("pull_up", "pull_down")
-    assert [d.code for d in check(tmp_path, source)] == ["erc.pull_resistance_budget"]
+    assert [d.code for d in check(tmp_path, source)] == ["erc.std.reduce"]
 
 
 @pytest.mark.parametrize(
@@ -131,7 +130,7 @@ def test_bias_satisfies_digital_idle_without_becoming_output(tmp_path):
     source = (
         SOURCE.replace("nettype.open_drain", "nettype.digital")
         .replace("role.open_drain", "role.digital_input")
-        .replace("min_pull_up_resistance_ohm: 2500", "min_pull_up_resistance_ohm: 2000")
+        .replace("min: 2500", "min: 2000")
     )
     assert check(tmp_path, source) == ()
 
@@ -140,7 +139,9 @@ PLUGIN = """from noscheme.erc_registry import value
 
 def register(registry):
     registry.fields("net", {"demo": {"max_pins": "nonnegative"}})
-    registry.check("demo_pin_count", check)
+    registry.net_rule("demo.pin_count", check)
+    from noscheme.erc_registry import Application
+    registry.rule_set("demo.defaults", lambda ctx: [Application("demo_pin_count", "demo.pin_count")] if ctx.net and not ctx.pin else [])
 
 def check(ctx):
     annotation = value(ctx.origin, "demo")
@@ -153,7 +154,7 @@ def project(tmp_path, plugin=PLUGIN, source=SOURCE):
     make(tmp_path, source)
     (tmp_path / "checks.py").write_text(plugin)
     with (tmp_path / "noscheme.toml").open("a") as f:
-        f.write('erc_modules = ["checks.py"]\n')
+        f.write('erc_modules = ["checks.py"]\nerc_rule_sets = ["std.default", "demo.defaults"]\n')
     return elaborate_project(*resolve_project(tmp_path))[0]
 
 
@@ -165,7 +166,7 @@ def test_extension_schema_and_check_without_grammar_changes(tmp_path):
     circuit = project(tmp_path, source=source)
     result = apply_erc(circuit)
     assert any(d.code == "erc.demo_pin_count" for d in result)
-    assert "demo_pin_count" in circuit["erc"]["checks"]
+    assert "demo.pin_count" in circuit["erc"]["checks"]
     assert main(["compile", "--project", str(tmp_path)]) == 0
     assert "erc.demo_pin_count" in (tmp_path / "build" / "erc.json").read_text()
 
@@ -222,7 +223,7 @@ def test_registered_check_waiver(tmp_path):
         demo:
             max_pins: 2
         waivers:
-            demo_pin_count: "Reviewed test fixture."''',
+            "net:bus:demo_pin_count": "Reviewed test fixture."''',
     )
     circuit = project(tmp_path, source=source)
     assert not any(d.code == "erc.demo_pin_count" for d in apply_erc(circuit))
@@ -231,7 +232,8 @@ def test_registered_check_waiver(tmp_path):
 
 def test_plugin_mutation_isolated(tmp_path):
     plugin = """def register(registry):
-    registry.check("mutator", check)
+    registry.net_rule("demo.mutator", check)
+    registry.rule_set("demo.defaults", lambda ctx: [__import__("noscheme.erc_registry", fromlist=["Application"]).Application("mutator", "demo.mutator")] if ctx.net and not ctx.pin else [])
 def check(ctx):
     ctx.circuit["parts"].clear()
     ctx.endpoints.clear()
@@ -239,7 +241,8 @@ def check(ctx):
 """
     circuit = project(tmp_path, plugin)
     before = json.dumps(circuit["parts"], sort_keys=True)
-    apply_erc(circuit)
+    with pytest.raises(DiagnosticError, match="failed"):
+        apply_erc(circuit)
     assert json.dumps(circuit["parts"], sort_keys=True) == before
 
 
@@ -301,7 +304,14 @@ def test_inner_port_capacitance_limit_counts_physical_pins_once(tmp_path):
         """block Receiver:
     ports:
         bus: nettype.open_drain
-            max_capacitance_pF: 20
+            checks:
+                capacitance:
+                    checker: "std.reduce"
+                    params:
+                        attribute: "capacitance_pF"
+                        reducer: "std.sum"
+                        net_attributes: ["wiring_capacitance_pF"]
+                        max: 20
     inst inner: Device(
         connections:
             1: bus
@@ -312,11 +322,45 @@ board B:""",
         "    inst device: Receiver(\n        connections:\n            1: bus",
         "    inst device: Receiver(\n        connections:\n            bus: bus",
     )
-    assert [d.code for d in check(tmp_path, source)] == ["erc.pull_resistance_budget"]
+    assert [d.code for d in check(tmp_path, source)] == ["erc.std.reduce"]
 
 
 def test_explicit_zero_capacitance_is_complete(tmp_path):
     source = SOURCE.replace("capacitance_pF: 2", "capacitance_pF: 0").replace(
         "capacitance_pF: 10", "capacitance_pF: 0"
     )
-    assert not [d for d in check(tmp_path, source) if d.code == "erc.capacitance_budget"]
+    assert not [d for d in check(tmp_path, source) if d.application.endswith(":capacitance")]
+
+
+def test_builtin_checks_do_not_mutate_circuit(tmp_path):
+    from copy import deepcopy
+
+    circuit = compile_source(tmp_path, SOURCE)
+    before = deepcopy(circuit)
+    check_circuit(circuit)
+    assert circuit == before
+
+
+def test_project_callback_stays_isolated_after_builtin_registration(tmp_path):
+    from copy import deepcopy
+    from noscheme.erc_registry import load_registry
+
+    circuit = compile_source(tmp_path, SOURCE)
+    before = deepcopy(circuit)
+    registry = load_registry()
+
+    def mutate(ctx):
+        ctx.circuit["parts"].clear()
+        ctx.net["declarations"].clear()
+        return ()
+
+    from noscheme.erc_registry import Application
+
+    registry.net_rule("demo.mutate", mutate)
+    registry.rule_set(
+        "demo.defaults", lambda ctx: [Application("mutation", "demo.mutate")] if not ctx.pin else []
+    )
+    circuit["erc_rule_sets"] = ["std.default", "demo.defaults"]
+    with pytest.raises(DiagnosticError, match="failed"):
+        check_circuit(circuit, registry=registry)
+    assert circuit == dict(before, erc_rule_sets=["std.default", "demo.defaults"])

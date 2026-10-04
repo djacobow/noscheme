@@ -246,3 +246,80 @@ def test_class_merge_preserves_layout_settings_and_inputs(tmp_path):
     with pytest.raises(DiagnosticError):
         update_classes(project, memberships, tmp_path / "bad.kicad_pro")
     assert not (tmp_path / "bad.kicad_pro").exists()
+
+
+def test_text_changes_describe_value_footprint_and_connections(setup):
+    project, circuit, records = setup
+    export_project(*setup)
+    part = circuit["parts"][0]
+    part["value"] = {"type": "string", "value": "changed value"}
+    old_footprint = part["metadata"]["footprint"]["value"]
+    snapshot = json.loads(records.read_text())
+    snapshot["footprints"]["Test:Replacement"] = snapshot["footprints"][old_footprint]
+    records.write_text(json.dumps(snapshot))
+    part["metadata"]["footprint"]["value"] = "Test:Replacement"
+    connected = next(pin for pin in part["pins"].values() if pin["net"] is not None)
+    old_net = connected["net"]
+    connected["net"] = None
+    report = export_project(*setup)
+    text = (project.config.output_dir / "changes.txt").read_text()
+    assert "value:" in text and '"changed value"' in text
+    assert f'"{old_footprint}" -> "Test:Replacement"' in text
+    assert f"{json.dumps(old_net)} -> unconnected" in text
+    assert len(report["changes"]["changed"]) == 1
+    export_project(*setup)
+    assert (project.config.output_dir / "changes.txt").read_text() == "\n"
+
+
+def test_libpart_pin_names_and_role_consensus(setup):
+    project, circuit, _ = setup
+    led_parts = [p for p in circuit["parts"] if p["definition"] == "parts.Led"]
+    for part in led_parts:
+        part["pins"]["1"]["metadata"]["role"]["value"] = ["open_source"]
+    export_project(*setup)
+    netlist = load(project.config.output_dir / "board.net")
+    libparts = children(children(netlist, "libparts")[0], "libpart")
+    led = next(p for p in libparts if scalar(p, "part") == "parts.Led")
+    pins = children(children(led, "pins")[0], "pin")
+    assert (scalar(pins[0], "num"), scalar(pins[0], "name"), scalar(pins[0], "type")) == (
+        "1",
+        "cathode",
+        "open_emitter",
+    )
+    led_parts[0]["pins"]["1"]["metadata"]["role"]["value"] = ["digital_input"]
+    export_project(*setup)
+    netlist = load(project.config.output_dir / "board.net")
+    led = next(
+        p
+        for p in children(children(netlist, "libparts")[0], "libpart")
+        if scalar(p, "part") == "parts.Led"
+    )
+    assert scalar(children(children(led, "pins")[0], "pin")[0], "type") == "unspecified"
+
+
+def test_probable_rename_is_advisory_and_never_reuses_identity(setup):
+    project, circuit, _ = setup
+    export_project(*setup)
+    part = circuit["parts"][0]
+    old_identity = part["identity"]
+    old_uuid = state(project)["entries"][old_identity]["uuid"]
+    part["identity"] = "renamed_led"
+    report = export_project(*setup)
+    assert report["probable_renames"] == [{"before": old_identity, "after": "renamed_led"}]
+    assert state(project)["entries"]["renamed_led"]["uuid"] != old_uuid
+    assert "identity was not preserved" in (project.config.output_dir / "changes.txt").read_text()
+
+
+def test_probable_rename_requires_unique_exact_match():
+    from noscheme.kicad.export import probable_renames
+
+    part = {
+        "footprint": "Test:R",
+        "value": {"type": "string", "value": "1k"},
+        "pins": {"1": "vcc", "2": "bus"},
+    }
+    assert probable_renames({"old": part}, {"new": part}) == [{"before": "old", "after": "new"}]
+    assert probable_renames({"old": part}, {"new": part, "other": part}) == []
+    assert probable_renames({"old": part, "other": part}, {"new": part}) == []
+    for changed in ({"footprint": "Test:C"}, {"value": None}, {"pins": {"1": "gnd", "2": "bus"}}):
+        assert probable_renames({"old": part}, {"new": part | changed}) == []

@@ -71,6 +71,8 @@ class NoSchemeServer(LanguageServer):
 
     def diagnostic(self, diagnostic, sources):
         message = diagnostic.message
+        if diagnostic.application:
+            message = f"{diagnostic.application}: {message}"
         if diagnostic.configuration:
             message = f"[{diagnostic.configuration}] {message}"
         return types.Diagnostic(
@@ -117,7 +119,7 @@ class NoSchemeServer(LanguageServer):
             self.analysis[uri] = result
             for d in result.diagnostics:
                 target = Path(d.span.filename).as_uri()
-                key = (target, d.code, d.span.start_pos, d.message, d.configuration)
+                key = (target, d.code, d.span.start_pos, d.message, d.configuration, d.application)
                 if key not in cache:
                     cache[key] = True
                     grouped.setdefault(target, []).append(self.diagnostic(d, sources))
@@ -309,6 +311,7 @@ def create_server(project=None):
             return []
         kinds = {
             "enum": types.CompletionItemKind.EnumMember,
+            "value": types.CompletionItemKind.Value,
             "type": types.CompletionItemKind.Class,
             "pin": types.CompletionItemKind.Field,
             "footprint": types.CompletionItemKind.File,

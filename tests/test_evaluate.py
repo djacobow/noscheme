@@ -123,6 +123,44 @@ def test_formatting(evaluator, text, result):
     assert run(evaluator, text) == result
 
 
+@pytest.mark.parametrize(
+    "text,result",
+    [
+        ("f.kOhm(4.7 * 3)", "14.1kOhm"),
+        ("f.uF(0.1 + 0.2)", "0.3uF"),
+        ("f.kOhm(0.00001)", "0.00001kOhm"),
+        ("f.MOhm(1e22)", "10000000000000000000000MOhm"),
+        ("f.Ohm(1.23456789)", "1.23457Ohm"),
+        ("f.Ohm(1.015625)", "1.01562Ohm"),
+        ("f.Ohm(1.046875)", "1.04688Ohm"),
+        ("f.nF(999999.9)", "1000000nF"),
+        ("f.pF(-1.23456789)", "-1.23457pF"),
+        ("f.nH(-0.0)", "0nH"),
+        ("f.mH(120.0)", "120mH"),
+        ("f.Ohm(123456789)", "123456789Ohm"),
+    ],
+)
+def test_part_values_round_only_display_doubles(evaluator, text, result):
+    assert run(evaluator, text) == result
+    assert evaluator.warnings == []
+
+
+def test_part_value_formatting_preserves_arithmetic_and_explicit_formats(evaluator):
+    assert run(evaluator, "4.7 * 3").value == 14.100000000000001
+    assert run(evaluator, '"{0}".format(4.7 * 3)') == "14.100000000000001"
+    assert run(evaluator, '"{0:.8f}Ohm".format(1.23456789)') == "1.23456789Ohm"
+    assert run(evaluator, "f.Ohm(1 << 16000)") == evaluator.decimal(1 << 16000) + "Ohm"
+
+
+def test_part_value_expansion_is_bounded(evaluator):
+    assert run(evaluator, "f.pF(5e-324)") == "0." + "0" * 323 + "494066pF"
+    assert run(evaluator, "f.MOhm(1e308)") == "1" + "0" * 308 + "MOhm"
+    evaluator.limits = Limits(string_length=10)
+    for text in ("f.pF(1e-20)", "f.MOhm(1e20)", "f.Ohm(12345678)"):
+        with pytest.raises(DiagnosticError, match="length limit"):
+            run(evaluator, text)
+
+
 def test_big_integers_and_output_limits(evaluator):
     result = run(evaluator, "1 << 16000")
     assert result.value.bit_length() == 16001

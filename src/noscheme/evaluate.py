@@ -1,6 +1,7 @@
 """Restricted expression evaluator and named parameter binding; never Python eval."""
 
 from dataclasses import dataclass
+from decimal import Decimal
 import math
 import re
 from string import Formatter
@@ -8,6 +9,7 @@ from string import Formatter
 from . import ast as a
 from .diagnostics import Diagnostic, DiagnosticError, Related
 from .metadata import Value
+from .instances import arguments as instance_arguments, element_overrides
 from .project import IDENTIFIER, expression_path
 from .resolve import Resolver
 
@@ -214,7 +216,7 @@ class Evaluator:
                     "uH",
                     "mH",
                 }:
-                    return self.bounded_string(self.display(args[0], expr.span) + helper, expr.span)
+                    return self.bounded_string(self.part_value(value) + helper, expr.span)
                 self.error("expression.call", "unknown numeric or unit helper", member.span)
             self.error("expression.unsupported", "unsupported expression", expr.span)
         except ZeroDivisionError:
@@ -244,6 +246,15 @@ class Evaluator:
             return self.decimal(number)
         text = repr(number)
         return text[:-2] if text.endswith(".0") else text
+
+    def part_value(self, number):
+        """Round display-only doubles, then expand exponents without float noise."""
+        if type(number) is int:
+            return self.decimal(number)
+        if number == 0:
+            return "0"
+        text = format(Decimal(format(number, ".6g")), "f")
+        return text.rstrip("0").rstrip(".") if "." in text else text
 
     def format(self, template, args, kwargs, span):
         result, length = [], 0
@@ -486,7 +497,7 @@ def evaluate_project(project, definitions, limits=None):
                 )
                 for s in node.dimensions
             )
-            args = next((s.entries for s in node.sections if s.name == "params"), ())
+            args = instance_arguments(node)
             selected = []
             for section in node.sections:
                 if section.name != "connections":
@@ -537,19 +548,41 @@ def evaluate_project(project, definitions, limits=None):
                 if override
                 else None
             )
-            children.append(
-                (
-                    target,
-                    child_path,
-                    ancestry + (key,),
-                    args,
-                    parameters,
-                    definition.body_module,
-                    node.span,
-                    child_dimensions,
-                    override_value,
+            elements = element_overrides(node, child_dimensions, evaluator)
+            variants = []
+            count = math.prod(child_dimensions)
+            if len(elements) < count:
+                variants.append((child_path, args, child_dimensions, override_value))
+            for indices, element in elements.items():
+                fields = next((s.entries for s in element.sections if s.name == "metadata"), ())
+                field = next((f for f in fields if f.key.first.text == "value"), None)
+                value = (
+                    evaluator.evaluate(field.value, definition.body_module, parameters)
+                    if field
+                    else override_value
                 )
-            )
+                variants.append(
+                    (
+                        child_path + "".join(f"[{i}]" for i in indices),
+                        instance_arguments(node, element),
+                        (),
+                        value,
+                    )
+                )
+            for variant_path, variant_args, variant_dimensions, variant_value in variants:
+                children.append(
+                    (
+                        target,
+                        variant_path,
+                        ancestry + (key,),
+                        variant_args,
+                        parameters,
+                        definition.body_module,
+                        node.span,
+                        variant_dimensions,
+                        variant_value,
+                    )
+                )
         stack.extend(reversed(children))
     report = {
         "schema_version": 1,

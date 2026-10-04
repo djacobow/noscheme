@@ -1,0 +1,75 @@
+// Electrical-model demonstration, not a fabrication design.
+from noscheme import role, unused, nettype, bias, f
+
+component Pullup:
+    params:
+        resistance_ohm: number = 4700
+    pins:
+        1:
+            aliases: [supply]
+            role: role.passive
+            unused: unused.never
+        2:
+            aliases: [signal]
+            role: role.passive
+            unused: unused.never
+            bias: bias.pull_up
+            bias_reference_pin: "supply"
+            pull_resistance_ohm: resistance_ohm
+    metadata:
+        value: f.kOhm(resistance_ohm / 1000)
+        ref_prefix: "R"
+        footprint: "Resistor_SMD:R_0603_1608Metric"
+
+component Endpoint:
+    pins:
+        1:
+            role: role.open_drain
+            bias: bias.none
+            min_voltage_V: -0.3
+            max_voltage_V: 3.6
+            unused: unused.never
+        2:
+            role: role.power_output
+            unused: unused.never
+    metadata:
+        custom:
+            description: "Abstract external source and open-drain endpoint"
+
+board Demo:
+    net supply: nettype.power
+        voltage_min_V: 3.3 * 0.95
+        voltage_max_V: 3.3 * 1.05
+    net bus: nettype.open_drain
+        voltage_min_V: 0
+        voltage_max_V: 3.3 * 1.05
+        checks:
+            pull_up:
+                checker: "std.reduce"
+                params:
+                    attribute: "pull_resistance_ohm"
+                    reducer: "std.parallel"
+                    where:
+                        bias: bias.pull_up
+                    min: 1000
+    inst pulls[2]: Pullup(
+        connections:
+            supply: supply
+            signal: bus
+        elements:
+            [0]:
+                params:
+                    resistance_ohm: 2200
+                metadata:
+                    custom:
+                        placement: "At the bus controller"
+            [1]:
+                metadata:
+                    custom:
+                        placement: "At the remote connector"
+    )
+    inst endpoint: Endpoint(
+        connections:
+            1: bus
+            2: supply
+    )

@@ -17,7 +17,7 @@ From the repository root on the current Linux host:
 ```sh
 uv sync --locked
 .venv/bin/python -m pytest tools/experiments/tests -q
-.venv/bin/python -m tools.experiments.parser.parse examples/stm32h523/stm32h523.nosch --output tools/experiments/output/stm32h523.syntax.json
+.venv/bin/python -m noscheme parse examples/stm32h523/stm32h523.nosch --output tools/experiments/output/stm32h523.syntax.json
 .venv/bin/python -m tools.experiments.kicad.fixtures
 ```
 
@@ -27,11 +27,17 @@ which is ignored by version control. Rerunning generation rewrites its generated
 netlists/manifests, not saved `.kicad_pcb` files. Version information is in
 `tools/experiments/output/kicad/versions.json`.
 
+The experiment grammar is frozen as a historical feasibility snapshot. Its tests
+use the retained corpus, not evolving board examples. Add language features and
+regression cases to the production parser and `tests/test_frontend.py`; use
+`noscheme parse` for current examples. The KiCad import experiments remain useful
+for reproducing editor behavior independently of the compiler.
+
 The parser has no evaluator or compiler side effects. It writes a JSON syntax
 tree containing original token spelling and filename/line/column/offset spans.
 Its field syntax is deliberately schema-neutral; it does not yet validate legal
-metadata, electrical roles, or definitions. The grammar does not implement ERC
-configuration or waiver syntax that the design has not specified.
+metadata, electrical roles, or definitions. The historical grammar does not define the current language; see the
+[LRM](../LRM.md) for implemented syntax and semantics.
 
 ## KiCad inputs
 

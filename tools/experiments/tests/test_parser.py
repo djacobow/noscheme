@@ -12,7 +12,7 @@ CORPUS = ROOT / "tools/experiments/corpus"
 
 @pytest.mark.parametrize(
     "path",
-    sorted((CORPUS / "positive").glob("*.nosch")) + [ROOT / "examples/stm32h523/stm32h523.nosch"],
+    sorted((CORPUS / "positive").glob("*.nosch")),
 )
 def test_positive(path):
     tree = parse(path.read_text(), str(path))

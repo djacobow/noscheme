@@ -7,6 +7,7 @@ from . import ast as a
 from .diagnostics import Related, DiagnosticError, collect_errors
 from .metadata import (
     NETTYPES,
+    metadata_expressions,
     Value,
     enum,
     merge,
@@ -401,17 +402,22 @@ class Resolver:
             if isinstance(node, a.Net):
                 value = Value(node.type, node.type.span, definition.body_module)
                 self.type_definition(value)
-                read_metadata(
+                net_metadata = read_metadata(
                     node.fields, "net", self.project, definition.body_module, definition.parameters
                 )
+                for expression in metadata_expressions(net_metadata):
+                    self.check_expression(expression, definition.parameters)
                 nets[node.name.text] = value
         errors = []
         for parameter in definition.parameters.values():
             if parameter.default:
                 with collect_errors(errors):
                     self.check_expression(parameter.default, definition.parameters)
-        for value in definition.metadata.values():
-            if isinstance(value.value, a.Node):
+        for metadata in (
+            definition.metadata,
+            *(port.metadata for port in definition.interface.values()),
+        ):
+            for value in metadata_expressions(metadata):
                 with collect_errors(errors):
                     self.check_expression(value, definition.parameters)
         for value in nets.values():
@@ -452,6 +458,35 @@ class Resolver:
                 self.check_binding(binding, target, definition, nets)
         with collect_errors(errors):
             self.instance_metadata(node, target, definition)
+        for element in sections.get("elements", a.Section(node.span, "", ())).entries:
+            with collect_errors(errors):
+                if not node.dimensions or len(element.indices) != len(node.dimensions):
+                    fail(
+                        "array.element-rank",
+                        "element overrides require one index per array dimension",
+                        element.span,
+                    )
+                for index in element.indices:
+                    if (
+                        index.stop is not None
+                        or not isinstance(index.start, a.Number)
+                        or index.start.tag != "integer"
+                    ):
+                        fail(
+                            "array.element-index",
+                            "element indices must be nonnegative integer literals, without slices",
+                            index.span,
+                        )
+                for section in element.sections:
+                    if section.name == "metadata":
+                        for field in section.entries:
+                            if field.key.first.text in {"identity", "ref"}:
+                                fail(
+                                    "array.element-identity",
+                                    "per-element identity and ref overrides are not supported",
+                                    field.span,
+                                )
+                self.check_instance(replace(node, sections=element.sections), definition, nets)
         if errors:
             raise DiagnosticError(errors)
 
@@ -602,9 +637,8 @@ class Resolver:
                         f"selection is outside alternatives for {name!r}",
                         binding.span,
                     )
-        for value in values.values():
-            if isinstance(value.value, a.Node):
-                self.check_expression(value, owner.parameters)
+        for value in metadata_expressions(values):
+            self.check_expression(value, owner.parameters)
         for group in fields:
             if group.key.first.text != "pins":
                 continue
@@ -625,6 +659,8 @@ class Resolver:
                 values = read_metadata(
                     field.fields, "instance_pin", self.project, owner.body_module, owner.parameters
                 )
+                for value in metadata_expressions(values):
+                    self.check_expression(value, owner.parameters)
                 for key in ("role", "external_role"):
                     if key in values:
                         validate_selection(values[key], choices)

@@ -1,4 +1,5 @@
-// Experimental concrete syntax. Name resolution and schemas are separate.
+// Frozen historical feasibility grammar. Do not add production language features.
+// Current syntax and regression tests live in src/noscheme and tests/.
 start: _NL* (import_stmt | definition)*
 import_stmt: "from" name_path "import" imported_name ("," imported_name)* _NL
            | "import" name_path _NL

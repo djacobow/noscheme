@@ -207,3 +207,20 @@ def test_footprint_filter_globs(name, pattern, expected):
     from noscheme.kicad.convert import footprint_matches
 
     assert footprint_matches(name, pattern) is expected
+
+
+@pytest.mark.parametrize(
+    "kind,role", [("open_emitter", "open_source"), ("open_collector", "open_drain")]
+)
+def test_open_output_conversion(tmp_path, kind, role):
+    source = library(tmp_path / "Test.kicad_sym", symbol("C", [pin("1", "OUT", kind)]))
+    report = convert_library(source, tmp_path / "out")
+    assert not any(i["check"] == "unmapped_pin_type" for i in report["issues"])
+    assert f"role: role.{role}" in (tmp_path / "out/Test.nosch").read_text()
+
+
+def test_free_pin_type_does_not_silently_disable_erc(tmp_path):
+    source = library(tmp_path / "Test.kicad_sym", symbol("C", [pin("1", "X", "free")]))
+    report = convert_library(source, tmp_path / "out")
+    assert any(i["check"] == "unmapped_pin_type" for i in report["issues"])
+    assert "role: role.unchecked" not in (tmp_path / "out/Test.nosch").read_text()

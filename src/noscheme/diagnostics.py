@@ -16,12 +16,13 @@ class Related:
 @dataclass(frozen=True)
 class Diagnostic:
     code: str
-    severity: Literal["error", "warning"]
+    severity: Literal["error", "warning", "unknown"]
     message: str
     span: Span
     related: tuple[Related, ...] = ()
     instance_path: str | None = None
     configuration: str | None = None
+    application: str | None = None
 
 
 class DiagnosticError(ValueError):
@@ -44,8 +45,9 @@ def render_text(diagnostics):
     for d in diagnostics:
         s = d.span
         configuration = f" [{d.configuration}]" if d.configuration is not None else ""
+        application = f" ({d.application})" if d.application else ""
         lines.append(
-            f"{s.filename}:{s.line}:{s.column}: {d.severity} {d.code}{configuration}: {d.message}"
+            f"{s.filename}:{s.line}:{s.column}: {d.severity} {d.code}{configuration}{application}: {d.message}"
         )
         for r in d.related:
             s = r.span

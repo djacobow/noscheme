@@ -6,7 +6,9 @@ import re
 
 from . import ast as a
 from .project import fail, IDENTIFIER, expression_path
-from .erc_rules import WAIVABLE
+from .erc_rules import WAIVABLE, CHECKS
+
+BIAS_VALUES = {"pull_up", "pull_down", "none"}
 
 ROLES = frozenset(
     {
@@ -91,6 +93,9 @@ SCHEMAS = {
         "custom": "custom",
     },
 }
+for _scope in ("pin", "port", "net", "instance_pin"):
+    SCHEMAS[_scope]["checks"] = "checks"
+
 UNIMPLEMENTED = {
     "erc",
     "differential_pair",
@@ -103,6 +108,31 @@ class Value:
     value: object
     span: a.Span
     module: str
+
+
+@dataclass(frozen=True)
+class NumericExpression:
+    expression: a.Expr
+    constraint: str
+
+
+def valid_quantity(value, constraint):
+    return (
+        type(value) in {int, float}
+        and (not isinstance(value, float) or math.isfinite(value))
+        and (constraint == "number" or (value > 0 if constraint == "positive" else value >= 0))
+    )
+
+
+def metadata_expressions(values):
+    """Yield expressions with lexical provenance, including nested quantities."""
+    for value in values.values():
+        if isinstance(value.value, NumericExpression):
+            yield Value(value.value.expression, value.span, value.module)
+        elif isinstance(value.value, a.Node):
+            yield value
+        elif isinstance(value.value, dict):
+            yield from metadata_expressions(value.value)
 
 
 def enum(expr, namespace, choices, project, module, local_names=()):
@@ -151,8 +181,8 @@ def read_metadata(fields, scope, project, module, local_names=()):
         key = field.key.first.text
         if field.key.grouped:
             fail("metadata.key", "metadata field names cannot be ranges", field.key.span)
-        if scope == "custom":
-            kind = "custom" if field.fields else "literal"
+        if isinstance(scope, str) and scope in {"custom", "attributes"}:
+            kind = scope if field.fields else "literal"
         else:
             schema = scope if isinstance(scope, dict) else SCHEMAS[scope]
             extension = (
@@ -164,6 +194,14 @@ def read_metadata(fields, scope, project, module, local_names=()):
                 fail("metadata.schema", "ERC module duplicates core metadata fields", field.span)
             kind = schema.get(key, extension.get(key))
             if kind is None:
+                if key == "max_capacitance_pF" or re.fullmatch(
+                    r"(?:min|max)_pull_(?:up|down)_resistance_ohm", key
+                ):
+                    fail(
+                        "metadata.retired",
+                        f"{key} was replaced by a named checks application using std.reduce; put the limit in params.min or params.max",
+                        field.span,
+                    )
                 code = "metadata.unsupported" if key in UNIMPLEMENTED else "metadata.unknown"
                 fail(
                     code,
@@ -179,7 +217,11 @@ def read_metadata(fields, scope, project, module, local_names=()):
             if expr is None or field.fields:
                 fail("metadata.value", f"{key!r} requires an enum value", field.span)
             namespace, alternatives = kind
-            value = enum(expr, namespace, alternatives, project, module, local_names)
+            value = (
+                expr.value
+                if isinstance(expr, a.String) and expr.value in alternatives
+                else enum(expr, namespace, alternatives, project, module, local_names)
+            )
         elif kind in {"choice_declarations", "choice_bindings", "configurations"}:
             value = read_choices(field, kind, module)
         elif scope == "instance_pin" and kind in {"roles", "role"} and field.fields:
@@ -207,6 +249,12 @@ def read_metadata(fields, scope, project, module, local_names=()):
                 if "pins" in entries and not entries["pins"].value:
                     fail("metadata.current_load", "current load pins cannot be empty", group.span)
                 value[name] = Value(entries, group.span, module)
+        elif kind == "checks":
+            value = read_checks(field, scope, project, module, local_names)
+        elif kind == "attributes":
+            if expr is not None or not field.fields:
+                fail("metadata.value", f"{key!r} requires an indented mapping", field.span)
+            value = read_metadata(field.fields, "attributes", project, module, local_names)
         elif kind == "waivers":
             if expr is not None or not field.fields:
                 fail(
@@ -217,9 +265,21 @@ def read_metadata(fields, scope, project, module, local_names=()):
             value = {}
             for waiver in mapping(field).values():
                 check = waiver.key.first.text
+                local_checks = {
+                    child.key.first.text
+                    for f in fields
+                    if f.key.first.text == "checks"
+                    for child in f.fields
+                }
+                standard_checks = {
+                    name.removeprefix("std.")
+                    for name, rule in project.config.erc_registry.rules.items()
+                    if name.startswith("std.") and rule.waivable
+                }
                 if (
                     waiver.key.last
-                    or check not in WAIVABLE | project.config.erc_registry.checks.keys()
+                    or check in set(CHECKS) - WAIVABLE
+                    or (":" not in check and check not in WAIVABLE | standard_checks | local_checks)
                 ):
                     fail(
                         "metadata.waiver",
@@ -307,17 +367,40 @@ def read_metadata(fields, scope, project, module, local_names=()):
                 )
                 if any(x is None or not x for x in value):
                     fail("metadata.value", "aliases must be nonempty names or strings", expr.span)
+            elif kind in {"number", "positive", "nonnegative"} and not (
+                isinstance(expr, (a.Number, a.String, a.ListExpr))
+                or isinstance(expr, a.Unary)
+                and isinstance(expr.operand, a.Number)
+                or isinstance(expr, a.Name)
+                and expr.text in {"true", "false"}
+            ):
+                value = NumericExpression(expr, kind)
             else:
-                value = literal(expr)
+                if scope == "attributes" and isinstance(expr, a.Member):
+                    symbol = project.modules[module].symbols.get(expression_path(expr.base))
+                    alternatives = {
+                        "bias": BIAS_VALUES,
+                        "role": ROLES,
+                        "nettype": NETTYPES,
+                        "unused": UNUSED,
+                    }
+                    if symbol is None or symbol.name not in alternatives:
+                        fail(
+                            "metadata.value", "expected a literal or imported enum value", expr.span
+                        )
+                    value = enum(
+                        expr, symbol.name, alternatives[symbol.name], project, module, local_names
+                    )
+                else:
+                    value = literal(expr)
                 valid = (
                     kind == "literal"
                     or kind == "string"
                     and isinstance(value, str)
                     or kind == "bool"
                     and isinstance(value, bool)
-                    or kind in {"positive", "nonnegative"}
-                    and type(value) in {int, float}
-                    and (value > 0 if kind == "positive" else value >= 0)
+                    or kind in {"number", "positive", "nonnegative"}
+                    and valid_quantity(value, kind)
                 )
                 if not valid:
                     fail("metadata.value", f"{key!r} requires {kind} metadata", expr.span)
@@ -325,12 +408,26 @@ def read_metadata(fields, scope, project, module, local_names=()):
     return result
 
 
-def merge(parent, child):
+def merge(parent, child, *, _path=()):
     result = dict(parent)
     for key, value in child.items():
         previous = result.get(key)
+        if (
+            previous
+            and key == "checker"
+            and _path[-2:-1] == ("checks",)
+            and "custom" not in _path
+            and previous.value != value.value
+        ):
+            fail(
+                "erc.application_checker",
+                "an inherited application cannot change checker; use a new application name",
+                value.span,
+            )
         if previous and isinstance(previous.value, dict) and isinstance(value.value, dict):
-            value = Value(merge(previous.value, value.value), value.span, value.module)
+            value = Value(
+                merge(previous.value, value.value, _path=(*_path, key)), value.span, value.module
+            )
         result[key] = value
     return result
 
@@ -429,3 +526,56 @@ def validate_selection(value, choices):
 def declared_choices(definition):
     value = definition.metadata.get("erc_choices")
     return value.value if value else {}
+
+
+def read_checks(field, scope, project, module, local_names):
+    result = {}
+    registry = project.config.erc_registry
+    for name, entry in mapping(field).items():
+        entries = mapping(entry)
+        if entries.keys() - {"checker", "params", "missing"} or "checker" not in entries:
+            fail(
+                "erc.application",
+                "each application requires checker and optional params/missing",
+                entry.span,
+            )
+        checker = entries["checker"]
+        if (
+            not isinstance(checker.value, a.String)
+            or checker.fields
+            or checker.value.value not in registry.rules
+        ):
+            fail("erc.application", "checker must name a registered rule", checker.span)
+        rule = registry.rules[checker.value.value]
+        expected = "pin" if scope in {"pin", "instance_pin"} else "net"
+        if rule.scope != expected:
+            fail(
+                "erc.application",
+                f"{checker.value.value} is a {rule.scope} rule, not a {expected} rule",
+                checker.span,
+            )
+        values = {"checker": Value(checker.value.value, checker.span, module)}
+        if "params" in entries:
+            params = entries["params"]
+            if params.value is not None:
+                fail("erc.application", "params requires an indented mapping", params.span)
+            values["params"] = Value(
+                read_metadata(params.fields, rule.parameters, project, module, local_names),
+                params.span,
+                module,
+            )
+        if "missing" in entries:
+            policy = entries["missing"]
+            if (
+                not isinstance(policy.value, a.String)
+                or policy.value.value not in {"warning", "error", "ignore"}
+                or policy.fields
+            ):
+                fail(
+                    "erc.application",
+                    'missing must be "warning", "error", or "ignore"',
+                    policy.span,
+                )
+            values["missing"] = Value(policy.value.value, policy.span, module)
+        result[name] = Value(values, entry.span, module)
+    return result

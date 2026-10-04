@@ -24,6 +24,7 @@ component I2CPullup extends Resistor0603:
         2:
             bias: bias.pull_up
             pull_resistance_ohm: 4700
+            bias_reference_pin: "1"
     defaults:
         value: f.kOhm(4.7)
 

@@ -33,7 +33,8 @@ jobs:
       - run: uv sync --locked
       - run: uv run --locked ruff format --check .
       - run: uv run --locked ruff check .
-      - run: uv run --locked pytest -q -rs
+      - run: uv run --locked coverage run -m pytest -q -rs
+      - run: uv run --locked coverage report
       - name: Build distributions and exercise installed wheel
         run: |
           uv build

@@ -124,7 +124,7 @@ class Field(Node):
 @dataclass(frozen=True)
 class Section(Node):
     name: str
-    entries: tuple[Field | Binding | Argument, ...]
+    entries: tuple[Field | Binding | Argument | ElementOverride, ...]
 
 
 @dataclass(frozen=True)
@@ -144,6 +144,12 @@ class Binding(Node):
 class Argument(Node):
     name: Name
     value: Expr
+
+
+@dataclass(frozen=True)
+class ElementOverride(Node):
+    indices: tuple[Index, ...]
+    sections: tuple[Section, ...]
 
 
 @dataclass(frozen=True)

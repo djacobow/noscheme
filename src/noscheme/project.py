@@ -36,6 +36,7 @@ class ProjectConfig:
     output_dir: Path
     span: a.Span
     erc_modules: tuple[Path, ...] = ()
+    erc_rule_sets: tuple[str, ...] = ("std.default",)
 
     @cached_property
     def erc_registry(self):
@@ -115,7 +116,7 @@ def read_config(path: Path | str = ".", *, sources=None) -> ProjectConfig:
     except tomllib.TOMLDecodeError as exc:
         fail("project.toml", str(exc), file_span, config=True)
     expected = {"language_version", "board", "source_paths", "library_paths", "output_dir"}
-    unknown = sorted(data.keys() - expected - {"erc_modules"})
+    unknown = sorted(data.keys() - expected - {"erc_modules", "erc_rule_sets"})
     if unknown:
         invalid(re.escape(unknown[0]), f"unknown configuration key {unknown[0]!r}")
     missing = sorted(expected - data.keys())
@@ -164,8 +165,24 @@ def read_config(path: Path | str = ".", *, sources=None) -> ProjectConfig:
         not v.is_file() or v.suffix != ".py" for v in modules
     ):
         invalid("erc_modules", "erc_modules must name distinct existing Python files")
+    rule_sets = data.get("erc_rule_sets", ["std.default"])
+    if (
+        not isinstance(rule_sets, list)
+        or any(not isinstance(v, str) or not v for v in rule_sets)
+        or len(set(rule_sets)) != len(rule_sets)
+    ):
+        invalid("erc_rule_sets", "erc_rule_sets must be an array of distinct rule-set names")
     return ProjectConfig(
-        path, "0.1", module, name, sources, libraries, output, span("board"), modules
+        path,
+        "0.1",
+        module,
+        name,
+        sources,
+        libraries,
+        output,
+        span("board"),
+        modules,
+        tuple(rule_sets),
     )
 
 
