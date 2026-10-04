@@ -130,11 +130,15 @@ GitHub Actions runs on pushes, pull requests, and manual dispatch:
 
 - Python 3.11 and 3.14: locked dependencies, Ruff formatting/lint, all tests,
   distribution builds, and installed-wheel parser/compiler smoke checks.
-- Python 3.12 with Ubuntu's KiCad library data: all tests, including conversion
+- Python 3.12 with KiCad 10.0 library data: all tests, including conversion
   and saved-board fixtures that otherwise skip when KiCad data is unavailable.
 
 CI does not replace PCBNew's manual import/update checks. The KiCad data job uses
-Ubuntu's packaged libraries; it is not a KiCad 10 GUI validation job.
+the official `ppa:kicad/kicad-10.0-releases` repository, following
+[KiCad's Ubuntu installation instructions](https://www.kicad.org/download/details/ubuntu/).
+It installs symbols, footprints, and demo boards, logs their versions, and fails
+if any package is outside the 10.0 series. Patch releases follow the PPA's latest
+available packages. The job does not install or exercise the KiCad GUI.
 Action revisions are pinned to commits, and workflow permissions are read-only.
 The uv setup follows its [official GitHub Actions guide](https://docs.astral.sh/uv/guides/integration/github/).
 

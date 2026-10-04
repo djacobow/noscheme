@@ -43,7 +43,7 @@ jobs:
           build/wheel-env/bin/noscheme compile --project examples/blink
 
   kicad-libraries:
-    name: KiCad library integration
+    name: KiCad 10 library integration
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -57,8 +57,17 @@ jobs:
           enable-cache: true
       - name: Install KiCad library data
         run: |
+          sudo add-apt-repository --yes --no-update ppa:kicad/kicad-10.0-releases
           sudo apt-get update
           sudo apt-get install --no-install-recommends -y kicad-symbols kicad-footprints kicad-demos
+          for package in kicad-symbols kicad-footprints kicad-demos; do
+            version=$(dpkg-query -W -f='${Version}' "$package")
+            echo "$package $version"
+            case "${version#*:}" in
+              10.0.*) ;;
+              *) echo "Expected KiCad 10.0 package: $package" >&2; exit 1 ;;
+            esac
+          done
           test -f /usr/share/kicad/symbols/Device.kicad_sym
           test -d /usr/share/kicad/footprints
           test -f /usr/share/kicad/demos/ecc83/ecc83-pp.kicad_pcb
