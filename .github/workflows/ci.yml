@@ -39,7 +39,7 @@ jobs:
           uv build
           uv venv build/wheel-env
           uv pip install --python build/wheel-env/bin/python dist/*.whl
-          build/wheel-env/bin/noscheme parse examples/stm32h523.nosch --output build/wheel-smoke.json
+          build/wheel-env/bin/noscheme parse examples/stm32h523/stm32h523.nosch --output build/wheel-smoke.json
           build/wheel-env/bin/noscheme compile --project examples/blink
 
   kicad-libraries:
