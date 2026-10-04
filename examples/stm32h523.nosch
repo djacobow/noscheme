@@ -2,7 +2,7 @@
 STM32H523VCT6 proof-of-concept board, LQFP100.
 
 All parts now have physical pin maps and footprints. This is a placement/routing
-example, not a production-qualified design. See PROJECT.md for source references
+example, not a production-qualified design. See docs/PROJECT.md for source references
 and pin allocation. USB and external power are operator-controlled: no reverse
 feed protection or automatic source selection is provided.
 
@@ -382,7 +382,7 @@ component STM32H523Board extends STM32H523VCTx:
             role: role.power_input
             unused: unused.never
 // Concrete reference-board implementations.
-// Sources and pin allocation are recorded in PROJECT.md.
+// Sources and pin allocation are recorded in docs/PROJECT.md.
 // These blocks expose logical interfaces over explicit physical pins.
 // Support parts are explicitly instantiated inside each block.
 block MCU_H523:

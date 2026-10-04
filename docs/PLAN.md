@@ -5,7 +5,7 @@
 Compiler-core steps 1–5, explicit library conversion, persistent KiCad export,
 role/configuration ERC, grouped and aggregate currents, and opt-in extensible
 bias/resistance/capacitance checks are implemented. The Vim/Neovim runtime is
-implemented with installation instructions in README.md.
+implemented with installation instructions in [EDITOR_SUPPORT.md](EDITOR_SUPPORT.md).
 
 The STM32 reference now compiles and exports 58 physical parts on 52 nets with
 14 validated footprint types, no omitted parts, and zero active ERC errors or
@@ -49,7 +49,7 @@ labels, use negotiated position encoding, and clear obsolete results.
 Definition and basic hover lookup use AST spans, imported symbols, lexical names,
 and resolved pin/port aliases. Files outside a loaded board graph receive syntax
 checks only. The server discovers parent/workspace projects or accepts --project;
-ambiguous workspace ownership is reported. README includes Vim client setup.
+ambiguous workspace ownership is reported. [EDITOR_SUPPORT.md](EDITOR_SUPPORT.md) includes Vim client setup.
 Stdio integration tests cover initialization/shutdown, unsaved changes, syntax
 recovery, imports, dependency close/revert, and Unicode incremental edits.
 

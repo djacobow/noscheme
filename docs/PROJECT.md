@@ -16,7 +16,8 @@ not perform layout, but carries information such as net classes and differential
 pairs that helps the CAD tool.
 
 This document consolidates the agreed design. It is not yet a complete grammar
-or implementation specification. The [reference-board draft](examples/stm32h523.nosch)
+or implementation specification. [LRM.md](LRM.md) describes the implemented
+language and compiler behavior. The [reference-board draft](../examples/stm32h523.nosch)
 exercises the design; it compiles structurally but is not electrically verified.
 Examples below illustrate accepted syntax choices, with remaining details listed
 under [Unresolved design and implementation work](#unresolved-design-and-implementation-work).
@@ -82,7 +83,7 @@ and extension model has not been chosen. A separate logical-pin/package layer
 and a dedicated pin-group feature are not needed in v1; wrappers can provide
 convenient interfaces over explicit physical pins.
 
-Basic Vim/Neovim syntax highlighting is implemented in `editors/vim`; README.md
+Basic Vim/Neovim syntax highlighting is implemented in `editors/vim`; [EDITOR_SUPPORT.md](EDITOR_SUPPORT.md)
 describes installation.
 LSP diagnostics and completion follow afterward. Canonical formatting/linter
 support follows once the syntax stabilizes.
@@ -404,7 +405,7 @@ with open-document source overlays for diagnostics, definition navigation, and
 basic symbol hover, and completion for visible component/block names, public
 connection pins/ports, and imported role/nettype values. Completion recovers
 incomplete statements in a private snapshot, including inherited pin aliases.
-The server never writes build artifacts or export state. README
+The server never writes build artifacts or export state. [EDITOR_SUPPORT.md](EDITOR_SUPPORT.md)
 contains project discovery rules, Vim setup, and the currently supported
 navigation cases. Unsaved dependency edits recheck open boards. Syntax errors
 may limit semantic navigation until corrected. Rename, bundle-member
@@ -898,7 +899,7 @@ returns 1 if any selected configuration has errors.
 Text/JSON reports include per-configuration counts, effective selections by
 instance scope, configuration names on diagnostics, and configuration names on
 waived diagnostics. Overall counts sum the selected configurations. The complete
-[power-mode example](examples/power_modes/main.nosch) demonstrates two sources
+[power-mode example](../examples/power_modes/main.nosch) demonstrates two sources
 behind private block internals; both configurations produce the same netlist.
 
 ### Current budgets
@@ -1087,9 +1088,9 @@ are blocking errors: no partial success report or export is published. Electrica
 violations remain nonblocking for compile/export. Plugins must be deterministic
 and side-effect free; isolated context copies are not a Python security sandbox.
 
-The runnable [extension example](examples/erc_extensions/main.nosch) combines
+The runnable [extension example](../examples/erc_extensions/main.nosch) combines
 pull-resistance and capacitance budgets with a project-local
-[pin-count check](examples/erc_extensions/checks.py). Its simplified electrical
+[pin-count check](../examples/erc_extensions/checks.py). Its simplified electrical
 models are not a fabrication-ready board.
 
 ### Passive components and waivers
