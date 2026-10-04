@@ -516,10 +516,15 @@ class Elaborator:
                     "declarations": [
                         {
                             "path": list(self.leaves[i]["path"]),
+                            "scope": list(self.leaves[i]["scope"]),
                             "kind": self.leaves[i]["kind"],
                             "type": self.leaves[i]["type"],
                             "metadata": a.to_data(self.leaves[i]["metadata"]),
                             "span": a.to_data(self.leaves[i]["span"]),
+                            "binding": self.bound.get(i, {}).get("state", "omitted"),
+                            "binding_span": a.to_data(self.bound[i]["span"])
+                            if i in self.bound
+                            else None,
                         }
                         for i in sorted(declared, key=lambda j: path_text(self.leaves[j]["path"]))
                     ],

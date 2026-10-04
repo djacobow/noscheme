@@ -1,7 +1,7 @@
 """Electrical checks on flattened physical endpoints, without component traversal.
 
 This first pass deliberately reports its coverage. Configuration selection,
-port contracts, bias models, and aggregate budgets remain separate work.
+bias models and aggregate budgets remain separate work.
 """
 
 from fractions import Fraction
@@ -10,11 +10,9 @@ import json
 from .ast import Span, to_data
 from .circuit import path_text
 from .diagnostics import Diagnostic, Related, render_text
-from .erc_rules import CHECKS
+from .erc_rules import CHECKS, ALLOWED_ROLES, PORT_ALLOWED, PORT_EVIDENCE
 
 PENDING = (
-    "role_nettype_compatibility",
-    "public_port_contracts",
     "erc_configurations",
     "bias_and_tristate",
     "aggregate_current_budgets",
@@ -23,6 +21,104 @@ PENDING = (
 
 def attribute(record, name, default=None):
     return record.get("metadata", {}).get(name, {}).get("value", default)
+
+
+def check_port(port, endpoints, emit):
+    """Check the block side of a public boundary without inventing endpoints."""
+    scope = port["scope"]
+    label = path_text(port["path"])
+    roles = set(attribute(port, "role", []))
+    policy = attribute(port, "unused", "explicit")
+    binding = port["binding"]
+    internal = [(name, pin) for name, pin in endpoints if pin["scope"][: len(scope)] == scope]
+    external = [(name, pin) for name, pin in endpoints if pin["scope"][: len(scope)] != scope]
+    if roles == {"do_not_connect"}:
+        if binding == "connected":
+            emit("do_not_connect", f"port {label} must not connect to a caller net", port, label)
+        if policy == "never":
+            emit(
+                "required_port_connection",
+                f"port {label}: unused.never conflicts with role.do_not_connect",
+                port,
+                label,
+            )
+        return
+    # Board ports have no caller. Child ports must honor their caller contract,
+    # regardless of how many physical endpoints happen to exist inside them.
+    if scope:
+        if binding == "omitted" and policy == "explicit":
+            emit(
+                "unused_port",
+                f"port {label} must connect or explicitly bind to no_connect",
+                port,
+                label,
+            )
+        elif policy == "never" and binding != "connected":
+            emit(
+                "required_port_connection",
+                f"port {label} must connect; no_connect cannot override unused.never",
+                port,
+                label,
+            )
+        elif policy != "always" and binding == "connected" and not external:
+            emit(
+                "required_port_connection",
+                f"port {label} needs an endpoint outside its block",
+                port,
+                label,
+            )
+    if not roles or roles == {"unchecked"}:
+        return
+    known, unknown, alternatives = set(), False, []
+    for _, pin in internal:
+        possible = set(attribute(pin, "external_role", attribute(pin, "role", [])))
+        if len(possible) != 1 or "unchecked" in possible:
+            unknown = True
+        else:
+            known.update(possible)
+        if possible and "unchecked" not in possible:
+            alternatives.append(possible)
+    # Each permitted role is an alternative aggregate contract. Without a
+    # selection we can reject only when none could describe the implementation.
+    candidates = [r for r in roles if all(possible & PORT_ALLOWED[r] for possible in alternatives)]
+    if not candidates:
+        emit(
+            "port_role",
+            f"port {label} roles {', '.join(sorted(roles))} contradict its internal endpoints ({', '.join(sorted(known))})",
+            port,
+            label,
+            related=[
+                Related(name, Span(**(pin.get("binding_span") or pin["span"])))
+                for name, pin in internal
+            ],
+        )
+        return
+
+    def has_evidence(role):
+        if role not in PORT_EVIDENCE:
+            return True
+        if known & PORT_EVIDENCE[role]:
+            return True
+        if role.endswith("_bidirectional"):
+            domain = role.removesuffix("_bidirectional")
+            return {domain + "_input", domain + "_output"} <= known
+        return False
+
+    if unknown or len(roles) > 1:
+        emit(
+            "incomplete_port_role",
+            f"port {label} has unknown or unselected roles; its contract is not fully verified",
+            port,
+            label,
+            severity="warning",
+        )
+    elif not any(has_evidence(r) for r in candidates):
+        emit(
+            "port_role",
+            f"port {label} has no internal endpoint implementing {next(iter(roles))}",
+            port,
+            label,
+        )
 
 
 def check_circuit(circuit, *, waiver_records=None):
@@ -44,7 +140,9 @@ def check_circuit(circuit, *, waiver_records=None):
     for part in circuit["parts"]:
         for number, pin in part["pins"].items():
             label = f"{path_text(part['path'])}.{number}"
-            record = dict(pin, span=pin.get("span", part["source"]["declaration"]))
+            record = dict(
+                pin, scope=part["path"], span=pin.get("span", part["source"]["declaration"])
+            )
             if pin["net"] is not None:
                 by_net[pin["net"]].append((label, record))
             roles = attribute(pin, "role", [])
@@ -77,6 +175,13 @@ def check_circuit(circuit, *, waiver_records=None):
                     label,
                 )
 
+    # A declared external port endpoint is real modeled equipment. Ordinary
+    # ports remain contracts only and never add drivers or loads.
+    for net in circuit["nets"]:
+        for declaration in net["declarations"]:
+            if "external_role" in declaration["metadata"]:
+                by_net[net["name"]].append((path_text(declaration["path"]), declaration))
+
     for net in circuit["nets"]:
         endpoints = by_net[net["name"]]
         declarations = net["declarations"]
@@ -108,7 +213,8 @@ def check_circuit(circuit, *, waiver_records=None):
         # passive contact for driver/load accounting, not an additional source.
         for label, pin in endpoints:
             if (
-                len(endpoints) < 2
+                pin.get("kind") != "port"
+                and len(endpoints) < 2
                 and attribute(pin, "unused", "explicit") != "always"
                 and attribute(pin, "role") != ["do_not_connect"]
             ):
@@ -120,11 +226,55 @@ def check_circuit(circuit, *, waiver_records=None):
                 )
         if not endpoints and not any(attribute(d, "placeholder", False) for d in declarations):
             emit("unconnected_net", f"net {name!r} has no physical endpoints", origin)
-        types = {d["type"] for d in declarations}
-        if "unchecked" in types:
+        for declaration in declarations:
+            if declaration["kind"] == "port":
+                check_port(declaration, endpoints, emit)
+
+        # Each declaration keeps its own constraints. An inner unchecked port
+        # cannot turn off checking for the rest of the flattened net.
+        def fixed_input_port(declaration):
+            return (
+                origin["type"] in {"power", "ground"}
+                and declaration["kind"] == "port"
+                and declaration["type"] in {"digital", "bidirectional", "open_drain"}
+                and attribute(declaration, "role") == ["digital_input"]
+            )
+
+        constraints = [
+            d for d in declarations if d["type"] != "unchecked" and not fixed_input_port(d)
+        ]
+        compatibility_uncertain = False
+        for label, pin in endpoints:
+            roles = set(attribute(pin, "external_role", attribute(pin, "role", [])))
+            if not roles or "unchecked" in roles:
+                compatibility_uncertain = True
+                continue
+            if roles == {"do_not_connect"}:
+                continue  # The mandatory connection policy reports this separately.
+            permitted = roles.copy()
+            for declaration in constraints:
+                permitted &= ALLOWED_ROLES[declaration["type"]]
+            incompatible = [d for d in constraints if not roles & ALLOWED_ROLES[d["type"]]]
+            if not permitted and not incompatible:
+                incompatible = constraints
+            if incompatible:
+                emit(
+                    "incompatible_role",
+                    f"{label} roles {', '.join(sorted(roles))} are incompatible with net {name!r}",
+                    pin,
+                    label,
+                    related=[
+                        Related(f"nettype.{d['type']} constraint", Span(**d["span"]))
+                        for d in incompatible
+                    ],
+                )
+            elif any(not roles <= ALLOWED_ROLES[d["type"]] for d in constraints):
+                compatibility_uncertain = True
+        types = {d["type"] for d in constraints}
+        if origin["type"] == "unchecked":
             emit(
                 "unchecked_net",
-                f"net {name!r} skips driver and current checks",
+                f"net {name!r} skips driver and current checks; inner type and port constraints still apply",
                 origin,
                 severity="warning",
             )
@@ -137,15 +287,17 @@ def check_circuit(circuit, *, waiver_records=None):
             else:
                 known.append((roles[0], label, pin))
         drivers = [e for e in known if e[0] in {"digital_output", "analog_output", "power_output"}]
-        if len(drivers) > 1:
+        open_drivers = [e for e in known if e[0] == "open_drain"]
+        if len(drivers) > 1 or (drivers and open_drivers):
+            conflicting = drivers + open_drivers
             emit(
                 "multiple_drivers",
                 f"net {name!r} has multiple active output drivers: "
-                + ", ".join(e[1] for e in drivers),
+                + ", ".join(e[1] for e in conflicting),
                 origin,
                 related=[
                     Related(e[1], Span(**(e[2].get("binding_span") or e[2]["span"])))
-                    for e in drivers
+                    for e in conflicting
                 ],
             )
         if any(e[0] == "power_output" for e in known) and (
@@ -158,10 +310,17 @@ def check_circuit(circuit, *, waiver_records=None):
         ambiguous_driver = bool(uncertain) or any(
             e[0] in {"digital_bidirectional", "analog_bidirectional"} for e in known
         )
+        if compatibility_uncertain and not needs_driver:
+            emit(
+                "incomplete_roles",
+                f"net {name!r} has unknown or unselected roles; compatibility checking is incomplete",
+                origin,
+                severity="warning",
+            )
         if needs_driver:
             expected = "power_output" if "power" in types else "digital_output"
             matching = [e for e in known if e[0] == expected]
-            if ambiguous_driver:
+            if ambiguous_driver or compatibility_uncertain:
                 emit(
                     "incomplete_roles",
                     f"net {name!r} has unknown or unselected endpoint roles; driver checking is incomplete",

@@ -36,7 +36,8 @@ structure and runs implemented electrical checks; `noscheme compile` writes a
 deterministic `circuit.json` plus `erc.txt` and `erc.json`.
 `convert-library` explicitly converts KiCad libraries, and `export-kicad` emits
 a netlist using converted footprint records and persistent identity state.
-Initial ERC now checks physical pin connections, drivers, and per-net current budgets,
+ERC now checks physical pin connections, role/net-type compatibility, public-port
+contracts, drivers, and per-net current budgets,
 and writes text/JSON reports. Advanced ERC and GUI validation of the production
 exporter remain. Development commands are in
 [PLAN.md](PLAN.md).
@@ -538,9 +539,87 @@ Implemented checks use the `erc.` diagnostic prefix:
 
 External connector roles replace the physical contact's role for driver and load
 accounting. Hierarchical ports never duplicate physical drivers or loads.
-General role/net-type compatibility, public port contracts, ERC configurations,
-bias/tristate models and aggregate budgets remain pending. Their missing
+ERC configurations, bias/tristate models, and aggregate budgets remain pending. Their missing
 metadata forms are rejected rather than silently ignored.
+
+### Role/net-type compatibility
+
+Each scalar net declaration retains its constraints after hierarchy is flattened.
+A physical or explicitly modeled external endpoint must satisfy all applicable
+checked declarations, including public-port types. The initial compatibility table
+allows these roles (all rows also permit `role.passive`):
+
+| Net type | Other permitted endpoint roles |
+|---|---|
+| `passive` | Any ordinary digital, analog, power, or ground role |
+| `digital` | `digital_input`, `digital_output`, `digital_bidirectional`, `open_drain` |
+| `bidirectional` | `digital_input`, `digital_output`, `digital_bidirectional`, `open_drain` |
+| `open_drain` | `digital_input`, `open_drain` |
+| `analog` | `analog_input`, `analog_output`, `analog_bidirectional` |
+| `power` | `power_input`, `power_output`, `digital_input`, `analog_input` |
+| `ground` | `ground`, `power_input`, `digital_input`, `analog_input` |
+| `unchecked` | No domain restriction from this declaration |
+
+`do_not_connect` retains its separate mandatory disconnection rule. Missing or
+unchecked roles produce `incomplete_roles` where a check cannot be established.
+For unselected role lists, all declarations must admit at least one common role;
+a definite mismatch produces `incompatible_role`, while a choice requiring
+selection produces an uncertainty warning. The checker never chooses a role.
+These checks do not establish voltage tolerance or a valid logic threshold.
+
+Digital/power driver requirements remain separate from compatibility. Multiple
+open-drain endpoints are allowed together, but an active digital/analog/power
+output sharing a net with an open-drain endpoint produces `multiple_drivers`.
+Only an outermost `nettype.unchecked` declaration disables the flattened net's
+driver/current checks. Inner unchecked declarations do not suppress caller checks;
+other declared type and public-port contracts still apply even when the outermost
+net is unchecked.
+
+A public port explicitly declaring `role.digital_input` may connect directly to
+an outermost `nettype.power` or `nettype.ground` net as a fixed logic level.
+Its digital/bidirectional/open-drain type then adds no signal-driver requirement
+or restriction on the rail's other endpoints. Its internal input-role contract
+still applies, as do the rail's type, power-driver, and current checks. Every
+forwarding public port must explicitly declare the input role for this exception.
+An unselected role list, an untyped/passive caller net, or an output/bidirectional
+role does not qualify. This permits connectivity, not a claim of voltage tolerance.
+
+### Public-port contracts
+
+A public port's `role` describes behavior implemented inside its block. The port
+adds no driver or load. Checking uses physical endpoints and explicitly modeled
+external endpoints within that instance's scope; caller endpoints cannot prove
+an internal output exists. Checks run separately for every array/bundle leaf.
+
+Input contracts admit passive contacts and inputs of the same domain. Output
+contracts also admit same-domain input feedback/load endpoints. Bidirectional
+contracts admit the corresponding input/output/bidirectional roles (and open-drain
+for digital). Open-drain contracts admit passive contacts, digital inputs, and
+open-drain endpoints. Ground contracts admit passive contacts, ground, and input
+roles. Passive/unchecked contracts impose no extra role restriction.
+
+The declared behavior requires a directly connected implementing endpoint:
+an output contract needs a physical or modeled external output; an input needs
+an input; an open-drain contract needs an open-drain endpoint. Bidirectional
+behavior may be represented by a bidirectional endpoint or by separate input and
+output endpoints. Contradictions or missing evidence produce `port_role`;
+unknown or unselected roles produce `incomplete_port_role`. There is no inference
+through resistors or other components. Top-level net waivers may waive these role
+checks, with the usual explicit reason and retained diagnostics.
+
+A child port's default `unused.explicit` policy requires a caller binding or
+`no_connect`; `unused.never` requires a real connection and cannot be waived.
+Connected required ports need an endpoint outside the block; internal endpoints
+and placeholder-only caller nets do not satisfy that boundary obligation.
+`unused.always` permits omission. Board ports have no caller, so only their
+implementation contracts apply. `role.do_not_connect` on a port forbids binding
+it to a caller net. Violations use `unused_port`, `required_port_connection`, or
+`do_not_connect` and cannot be waived.
+
+An explicit `external_role` annotation on a block port represents an external
+endpoint once. Ordinary enclosing ports do not copy it into additional endpoints.
+The modeled endpoint participates in ERC but creates no physical CAD pin. On a
+physical connector pin, `external_role` replaces the contact's role as before.
 
 ### Required and unused pins
 
@@ -754,7 +833,7 @@ These are remaining details, not permission to reverse the decisions above.
 | Expressions | Tagged evaluation, finite binary64 doubles, integer resource limits, precedence, restricted formatting, helper inventory, and parameter binding are implemented above. Integrate values and integer-context warnings into full connectivity elaboration. |
 | Arrays | Set rank and dimension limits, empty-array behavior, and rules for omitted slice bounds, strides, negative indices, and descending ranges. |
 | Metadata | Initial fields, scopes, literal values, role lists, and `ref_prefix` are implemented as documented above. Extend the schema for advanced ERC configurations, budgets, waivers, and explicit differential pairs. |
-| ERC | Complete role/net-type compatibility and driver tables, biasing and tristate rules, unchecked-net diagnostics, stable check names, and waiver syntax. |
+| ERC | Role/net-type compatibility, public port contracts, driver checks, and scoped waivers are implemented. Biasing/tristate rules and configurations remain. |
 | ERC configurations | Define public choices, permitted alternatives, internal role binding, board selection, and insufficient-information severity. |
 | Current accounting | Define aggregate annotations and represented loads, grouping across supply pins and rails, and treatment of budget boundaries between components. |
 | Footprints | Define converted footprint records, handling of footprints selected after conversion, mismatch severity, and validation of electrical versus mechanical pads. |

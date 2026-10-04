@@ -6,7 +6,7 @@ Status: compiler-core steps 1–5 are implemented for the documented initial
 metadata schema. Explicit library conversion and the first persistent KiCad
 exporter are implemented. Initial physical-pin ERC and text/JSON reporting are
 implemented; advanced ERC and production-output GUI validation remain.
-The combined suite has 278 passing tests.
+The combined suite has 333 passing tests.
 The feasibility milestone below is complete;
 results and limitations are in [experiments/FINDINGS.md](experiments/FINDINGS.md).
 PROJECT.md remains the language authority. Proposed policies below resolve open
@@ -372,6 +372,21 @@ Format reference: [KiCad S-expression documentation](https://dev-docs.kicad.org/
 KiCad `no_connect` pins now convert to `role.do_not_connect`: omission or an
 explicit `no_connect` binding is allowed; assigning any net is an ERC error.
 
+### ERC compatibility and public contracts
+
+The initial role/net-type table is in PROJECT.md. Every scalar declaration keeps
+its type constraints; missing/alternative roles are never silently selected.
+Public-port checks inspect only endpoints inside the block instance, enforce
+caller-side unused/required policies, and retain definition and binding locations.
+Explicit external endpoints count once, while ordinary ports add no endpoints.
+Only an outermost unchecked declaration can disable net-wide driver/current checks.
+
+Regression cases cover mixed domains, fixed physical inputs on rails, open-drain
+versus active drivers, incompatible selectable roles, nested output contracts,
+caller drivers that cannot satisfy internal promises, array/bundle boundaries,
+external endpoints, and waiver interaction. Compatibility and role diagnostics
+remain nonblocking for export; required connections cannot be waived.
+
 ### ERC: implemented first pass
 
 `check`, `compile`, and `export-kicad` run physical pin policies, known driver
@@ -387,8 +402,10 @@ outputs. Electrical errors do not block these commands or persistent export stat
 pending checks; the circuit now records `erc_performed: true` after checking.
 The elaboration-only Python API still returns `erc_performed: false`.
 
-General role/net-type compatibility, public port constraints, selectable ERC
-configurations, bias/tristate models, aggregate budgets remain pending.
+Role/net-type compatibility and public-port contracts are now implemented.
+Selectable ERC configurations, bias/tristate models, and aggregate budgets remain
+pending. Explicit digital-input ports may tie to power/ground rails while retaining
+their internal input contracts and the rail checks.
 Waivers now require the outermost declaration of the flattened net. Inner-port
 waivers produce a scope error and cannot suppress checks on caller circuitry.
 Waivers name implemented net checks and require literal reasons; pin constraints
