@@ -26,8 +26,9 @@ Snapshot paths record provenance; compilation does not read those installed
 library paths. PCB Editor needs the standard KiCad footprint libraries and the
 local `Rulos_RevB` library to instantiate the geometry. KiCad library sources are
 available from the official [symbol](https://gitlab.com/kicad/libraries/kicad-symbols)
-and [footprint](https://gitlab.com/kicad/libraries/kicad-footprints) repositories,
-under their library license terms.
+and [footprint](https://gitlab.com/kicad/libraries/kicad-footprints) repositories.
+The converted snapshots remain under the KiCad libraries license (CC-BY-SA 4.0
+with a design exception); see [LICENSE.md](LICENSE.md).
 
 ## Regenerate
 

@@ -69,3 +69,7 @@ NoScheme is free software, licensed under the
 [GNU General Public License v3.0 or later](LICENSE.md). Designs you write in
 NoScheme and the files it generates from them are your own; the GPL does not
 apply to them.
+
+The KiCad library snapshots under `examples/*/kicad_lib/` are derived from the
+KiCad libraries and keep their CC-BY-SA 4.0 license; see the `LICENSE.md` in
+each of those directories.

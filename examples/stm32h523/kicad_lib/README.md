@@ -19,6 +19,10 @@ hashes. They do not contain the full footprint geometry; PCB Editor still needs
 the actual KiCad footprint libraries when importing the netlist. Recorded source
 paths are provenance, not paths that must exist to compile this example.
 
+The snapshots are derived from the KiCad libraries and remain under the KiCad
+libraries license (CC-BY-SA 4.0 with a design exception), not NoScheme's GPL;
+see [LICENSE.md](LICENSE.md).
+
 The project adds `device/` and `mcu/` to its library search paths. Handwritten
 specializations remain in `../components.nosch` and `../mcu.nosch`. Keep changes
 to values, pin roles, and board-specific metadata there.

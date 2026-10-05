@@ -157,7 +157,9 @@ behavior. See [LRM §12](LRM.md#12-extending-erc) for the public API.
 
 ## CI
 
-GitHub Actions runs on pushes, pull requests, and manual dispatch:
+GitHub Actions runs on pushes, pull requests, and manual dispatch. Both jobs use
+the explicit `ubuntu-26.04` runner label, which is
+[generally available](https://github.blog/changelog/2026-09-17-ubuntu-26-generally-available-and-latest-migration/):
 
 - Python 3.11 and 3.14: locked dependencies, Ruff formatting/lint, all tests,
   distribution builds, and installed-wheel parser/compiler smoke checks.
@@ -170,6 +172,8 @@ the official `ppa:kicad/kicad-10.0-releases` repository, following
 It installs symbols, footprints, and demo boards, logs their versions, and fails
 if any package is outside the 10.0 series. Patch releases follow the PPA's latest
 available packages. The job does not install or exercise the KiCad GUI.
+The PPA publishes all three packages for Ubuntu 26.04 (`resolute`); version
+10.0.6 was available when the runner configuration was updated on October 5, 2026.
 Action revisions are pinned to commits, and workflow permissions are read-only.
 The uv setup follows its [official GitHub Actions guide](https://docs.astral.sh/uv/guides/integration/github/).
 

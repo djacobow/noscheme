@@ -316,10 +316,10 @@ limitations are documented in [EDITOR_SUPPORT.md](EDITOR_SUPPORT.md).
 ## Unresolved design and implementation work
 
 The maintained backlog is the [review TODO section in PLAN.md](PLAN.md#todo-remaining-implementation-review-follow-up).
-It distinguishes implemented fixes from deferred proposals, including differential
-pairs, moves between scopes, and identity-preserving internal instance renames.
-Board-level instance rename preserves identities through existing metadata. Deferred proposals are not
-language features or approval to change existing behavior.
+All remaining review follow-up items are deferred by user decision; see the
+[deferred work list](PLAN.md#deferred-work). Board-level instance rename preserves
+identities through existing metadata. Deferred proposals are not language
+features or approval to change existing behavior.
 
 ## Research and review references
 

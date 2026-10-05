@@ -1,5 +1,29 @@
 # NoScheme implementation plan
 
+## New work items
+
+Requested October 5, 2026. These are separate from the deferred review backlog.
+
+- [ ] **Move CI to Ubuntu 26.04.** Both jobs now use the explicit
+  `ubuntu-26.04` label, generally available since September 17, 2026. Verified
+  that the KiCad 10 PPA publishes symbols, footprints, and demos at version
+  `10.0.6~ubuntu26.04.1` for `resolute`. Remaining: confirm the Python matrix,
+  library integration, and installed-wheel checks in the first pushed CI run.
+- [ ] **Test the LSP in Neovim and VS Code.** Help the user find and install a
+  recent stable Neovim release, checking official release information rather
+  than assuming Ubuntu's apt package is current. Document the tested editor and
+  client versions and setup instructions. Exercise diagnostics on unsaved edits,
+  completion (including unfinished strings), cross-file definition/references,
+  hover, and rename with identity preservation in both editors. Include a
+  repeatable smoke-test checklist and record any client-specific issues.
+- [ ] **Export full source hierarchy as instance attributes.** Add a property
+  such as `noscheme_path` to every exported physical component, containing its
+  full current hierarchical source name, including array indices. Retain the
+  existing `noscheme_identity` property: an explicit stable identity can differ
+  from the current source path after a rename. Keep connectivity flattened and
+  preserve UUID/reference allocation. Test nested blocks, arrays, and renamed
+  instances, and verify how the property appears after KiCad import.
+
 ## Current milestone: physical STM32 proof-of-concept and KiCad handoff
 
 Compiler-core steps 1–5, explicit library conversion, persistent KiCad export,
@@ -752,10 +776,27 @@ a stronger use case. Unknown electrical roles remain unspecified.
 ## TODO: remaining implementation-review follow-up
 
 Recorded from the October 2026 implementation review and subsequent discussion.
-Unchecked entries are pending tasks and design questions, not adopted language
-changes. Concrete review fixes and the agreed extensions are implemented below. Identity
-refactoring and differential pairs are deferred by user decision. Deferred language
-proposals should not be treated as implementation commitments.
+The agreed review fixes are implemented. All remaining follow-up items are
+deferred by user decision as of October 5, 2026; none is an active next task.
+Deferred proposals should not be treated as implementation commitments.
+
+### Deferred work
+
+Revisit these only when the user chooses to resume them:
+
+- Further diagnostic collection and recovery during parsing, evaluation, and
+  elaboration.
+- Larger-design performance tests covering configurations, plugins, and LSP
+  responsiveness; incremental analysis and further optimization.
+- Footprint candidate sidecars and their storage/discovery convention.
+- Manual KiCad inspection of the practical benefit of exported pin names/types.
+- Voltage-domain and logic-level compatibility checks beyond existing explicit
+  rail ranges and pin limits.
+- Static typing of the ERC API and a broader type-checking rollout.
+- Identity-preserving internal instance renames and moves between scopes.
+- Differential-pair support.
+- Physical quantity types and further syntax extensions, including index-based
+  array expressions, named pin groups, pin defaults, and additional operators.
 
 ### Values and language usability
 
@@ -808,7 +849,7 @@ proposals should not be treated as implementation commitments.
   Keep self-contained metadata until a discovery/versioning contract is agreed.
 - [x] Preserve useful aliases/roles in exported libparts with consensus for
   differing instance selections.
-- [ ] Manually verify the practical benefit of pin names/types in PCB inspection.
+- Deferred: manually verify the practical benefit of pin names/types in PCB inspection.
 - [x] Make `changes.txt` describe changed values, footprints, connections,
   references, and paths.
 - [x] Add advisory probable-rename hints for unique exact footprint/value/net
