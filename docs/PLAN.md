@@ -4,11 +4,12 @@
 
 Requested October 5, 2026. These are separate from the deferred review backlog.
 
-- [ ] **Move CI to Ubuntu 26.04.** Both jobs now use the explicit
+- [x] **Move CI to Ubuntu 26.04.** Both jobs now use the explicit
   `ubuntu-26.04` label, generally available since September 17, 2026. Verified
   that the KiCad 10 PPA publishes symbols, footprints, and demos at version
-  `10.0.6~ubuntu26.04.1` for `resolute`. Remaining: confirm the Python matrix,
-  library integration, and installed-wheel checks in the first pushed CI run.
+  `10.0.6~ubuntu26.04.1` for `resolute`. Python matrix, library integration,
+  and installed-wheel checks passed in
+  [CI run 37248148487](https://github.com/djacobow/noscheme/actions/runs/37248148487).
 - [ ] **Test the LSP in Neovim and VS Code.** Help the user find and install a
   recent stable Neovim release, checking official release information rather
   than assuming Ubuntu's apt package is current. Document the tested editor and
@@ -16,6 +17,18 @@ Requested October 5, 2026. These are separate from the deferred review backlog.
   completion (including unfinished strings), cross-file definition/references,
   hover, and rename with identity preservation in both editors. Include a
   repeatable smoke-test checklist and record any client-specific issues.
+  Neovim 0.12.5 is installed and configured with its built-in LSP client;
+  headless checks passed for attachment, cross-file definition, hover,
+  references, unfinished-string completion, and unsaved diagnostics. Setup and
+  a manual checklist are in [EDITOR_SUPPORT.md](EDITOR_SUPPORT.md#neovim-client-setup).
+  The user confirmed Neovim completion, cross-file navigation/hover, and that
+  board-instance rename retains `metadata.identity`. VS Code 1.140.0 and the
+  local NoScheme client extension 0.1.0 are installed. The user confirmed
+  highlighting, hover, definition, completion, identity metadata preservation
+  on rename, and unsaved diagnostics appearing and clearing in VS Code.
+  Restricted Mode initially disabled the extension; trusting the project
+  resolved it and this is documented. VS Code references and a post-rename
+  export comparison remain pending.
 - [ ] **Export full source hierarchy as instance attributes.** Add a property
   such as `noscheme_path` to every exported physical component, containing its
   full current hierarchical source name, including array indices. Retain the

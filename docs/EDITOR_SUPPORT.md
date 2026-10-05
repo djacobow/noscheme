@@ -143,6 +143,98 @@ This follows the [vim-lsp registration interface](https://github.com/prabirshres
 Other LSP clients, including Neovim's, use the same server command and `noscheme`
 filetype. No editor configuration is modified by installing NoScheme.
 
+### Neovim client setup
+
+Use Neovim 0.11 or newer. The setup was tested with the official stable
+[Neovim 0.12.5 release](https://github.com/neovim/neovim/releases/tag/v0.12.5)
+and its built-in LSP client. Official Linux release archives can be unpacked
+under your home directory without replacing the distribution's package.
+Check `nvim --version` after installation; shell aliases can select an older
+binary even when your PATH includes the new one.
+
+After `uv sync --locked`, add this to `~/.config/nvim/init.lua`, adjusting the
+checkout path:
+
+```lua
+dofile('/home/david/personal/noscheme/editors/neovim/noscheme.lua')
+```
+
+This loads the repository's highlighting and registers the server using
+`vim.lsp.config` / `vim.lsp.enable`. No LSP installer or additional plugin is
+required. The nearest `noscheme.toml` identifies the project, with `.git` as
+a workspace fallback. Existing completion plugins can use the server too.
+
+Open `examples/stm32h523/peripherals.nosch`. Use:
+
+| Action | Keys / command |
+| --- | --- |
+| Completion in Insert mode | Ctrl-X Ctrl-O |
+| Hover | `K` |
+| Definition | `gd` or `gD` |
+| References | `gr` |
+| Rename | `<leader>rn` |
+| Diagnostic details | `<leader>e` |
+| Next / previous diagnostic | `]d` / `[d` |
+| Check attached clients | `:checkhealth vim.lsp` |
+
+`<leader>` is your configured leader key (backslash by default). Completion
+plugins may add their own popup keys. NoScheme does not provide formatting.
+
+#### Manual smoke checklist
+
+- Confirm `:set filetype?` reports `noscheme` and the client attaches.
+- Hover over `SWD`, then follow its definition to `interfaces.nosch`; check
+  hover and references in that opened buffer too.
+- Complete a bundle field after `debug.` and a footprint inside an unfinished
+  quoted string. Accept a suggestion and check the inserted text.
+- Introduce an error without saving; check its diagnostic, then undo it and
+  check that the diagnostic clears.
+- In a disposable copy of the example, rename a board-level instance and
+  inspect the edits and inserted identity metadata before saving. Re-export
+  and confirm that its physical identities remain stable.
+
+A headless check with Neovim 0.12.5 exercised attachment, cross-file definition,
+hover, references, unfinished footprint-string completion using inherited KiCad
+candidates, and diagnostics from unsaved edits. The user also confirmed
+interactive completion, cross-file navigation and hover, and board-instance
+rename retaining the original `metadata.identity`.
+
+### VS Code client setup
+
+The local extension in [editors/vscode](../editors/vscode/README.md) provides
+highlighting, `.nosch` file detection, and a client for the same language server.
+Build and install it following that directory's README, then run
+**Developer: Reload Window** from the Command Palette (Ctrl-Shift-P).
+
+Open the NoScheme checkout as a folder after running `uv sync --locked`.
+The extension finds `.venv/bin/noscheme-lsp` at the workspace root. If you open
+an example directory on its own, set `noscheme.serverPath` in User Settings to
+the absolute server executable path. `noscheme.serverArgs` optionally accepts
+`["--project", "/absolute/project/path"]`. Reload after changing these settings.
+Workspace Trust is required because project-local ERC plugins run Python code.
+
+- Open `examples/stm32h523/components.nosch`; the language mode should be
+  **NoScheme**.
+- Hover over `Resistor`, use F12 for definition, and Shift-F12 for references.
+- Use Ctrl-Space inside a footprint string for completion, including an
+  unfinished quote. Inspect the text after accepting a suggestion.
+- Introduce an unsaved error and check Problems (Ctrl-Shift-M); undo it and
+  confirm the diagnostic clears.
+- Use F2 on a board-level instance to rename it. Review the workspace edits
+  and retained `metadata.identity` before saving.
+
+Server messages appear in **View → Output → NoScheme**. If no server attaches,
+check the executable path, language mode, and workspace trust. In Restricted
+Mode the extension is disabled, including its language association: `.nosch`
+files may appear as Plain Text. For a project you trust, use **Manage Workspace
+Trust**, then reload the window.
+
+With VS Code 1.140.0 and the local NoScheme extension 0.1.0, the user confirmed
+highlighting, hover, definition navigation, completion, board-instance rename
+retaining `metadata.identity`, and unsaved diagnostics appearing and clearing
+after undo. References and a post-rename export comparison remain to be checked
+in this client.
+
 ### Footprint completion
 
 Inside a component or instance's `metadata.footprint` string, use

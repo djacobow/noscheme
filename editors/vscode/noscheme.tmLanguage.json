@@ -1,0 +1,46 @@
+{
+  "scopeName": "source.noscheme",
+  "patterns": [
+    {
+      "name": "comment.line.double-slash.noscheme",
+      "begin": "//",
+      "end": "$"
+    },
+    {
+      "name": "comment.block.noscheme",
+      "begin": "/\\*",
+      "end": "\\*/"
+    },
+    {
+      "name": "string.quoted.double.noscheme",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.noscheme",
+          "match": "\\\\."
+        }
+      ]
+    },
+    {
+      "name": "keyword.control.noscheme",
+      "match": "(?<![\\w#])(?:component|block|board|bundle|inst|net|global|extends|from|import|as)(?![\\w#])"
+    },
+    {
+      "name": "keyword.other.noscheme",
+      "match": "^\\s*(?:pins|ports|params|defaults|metadata|connections|elements|checks)(?=\\s*:)"
+    },
+    {
+      "name": "constant.language.noscheme",
+      "match": "(?<![\\w#])(?:true|false|no_connect)(?![\\w#])"
+    },
+    {
+      "name": "support.constant.noscheme",
+      "match": "(?<![\\w#])(?:role|nettype|unused|bias)\\.[A-Za-z_#][A-Za-z0-9_#]*"
+    },
+    {
+      "name": "constant.numeric.noscheme",
+      "match": "(?<![\\w#])\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?(?![\\w#])"
+    }
+  ]
+}

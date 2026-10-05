@@ -18,3 +18,7 @@ __pycache__/
 .coverage.*
 htmlcov/
 coverage.xml
+
+# Editor extension dependencies and packages
+node_modules/
+*.vsix

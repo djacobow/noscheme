@@ -1,0 +1,74 @@
+{
+  "name": "noscheme",
+  "displayName": "NoScheme",
+  "description": "NoScheme PCB language support and LSP client.",
+  "version": "0.1.0",
+  "publisher": "djacobow",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djacobow/noscheme"
+  },
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "main": "./extension.js",
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "NoScheme projects may execute project-local Python ERC plugins."
+    }
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "noscheme",
+        "aliases": [
+          "NoScheme"
+        ],
+        "extensions": [
+          ".nosch"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "configuration": {
+      "title": "NoScheme",
+      "properties": {
+        "noscheme.serverPath": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "description": "Absolute noscheme-lsp executable path. Defaults to the workspace .venv, then PATH."
+        },
+        "noscheme.serverArgs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Server arguments, e.g. --project followed by a project directory."
+        }
+      }
+    },
+    "grammars": [
+      {
+        "language": "noscheme",
+        "scopeName": "source.noscheme",
+        "path": "./noscheme.tmLanguage.json"
+      }
+    ]
+  },
+  "scripts": {
+    "package": "vsce package --allow-missing-repository --out ../../build/noscheme-0.1.0.vsix"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^3.0.0"
+  }
+}
