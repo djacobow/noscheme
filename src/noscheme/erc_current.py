@@ -5,6 +5,7 @@ from .ast import Span
 from .circuit import path_text
 from .diagnostics import Related
 from .erc_facts import Results, net_facts, attribute
+from .units import format_quantity
 
 
 def grouped_current_loads(circuit, emit):
@@ -44,9 +45,7 @@ def grouped_current_loads(circuit, emit):
                 )
                 continue
             net = next(iter(nets))
-            demands.setdefault(net, []).append(
-                (part["path"], fields["max_load_current_mA"]["value"])
-            )
+            demands.setdefault(net, []).append((part["path"], fields["max_load_current"]["value"]))
             covered.update(f"{path}.{number}" for number in numbers)
     return demands, covered, annotated
 
@@ -58,7 +57,7 @@ def aggregate_current_loads(declarations, endpoints, demands, emit):
         scope = port["scope"]
         label = path_text(port["path"])
         annotation = port["metadata"]["aggregate_load"]
-        amount = annotation["value"]["max_load_current_mA"]["value"]
+        amount = annotation["value"]["max_load_current"]["value"]
 
         def inside(path):
             return path[: len(scope)] == scope
@@ -109,7 +108,7 @@ def aggregate_current_loads(declarations, endpoints, demands, emit):
         if total > Fraction(str(amount)):
             emit(
                 "aggregate_current_overload",
-                f"known internal loads exceed aggregate {label} ({amount} mA)",
+                f"known internal loads exceed aggregate {label} ({format_quantity(amount, 'current')})",
                 annotation,
                 label,
                 related=related,
@@ -146,7 +145,7 @@ def net_results(ctx):
     grouped_demands, grouped_pins, grouped_nets, _ = group_facts(ctx)
     known, uncertain = facts.known, facts.uncertain
     demands = [
-        (pin["scope"], attribute(pin, "max_load_current_mA"))
+        (pin["scope"], attribute(pin, "max_load_current"))
         for label, pin in endpoints
         if label not in grouped_pins
         and attribute(pin, "external_role", attribute(pin, "role", [])) == ("power_input",)
@@ -163,12 +162,12 @@ def net_results(ctx):
         or any(
             attribute(pin, key) is not None
             for _, pin in endpoints
-            for key in ("max_source_current_mA", "max_load_current_mA")
+            for key in ("max_source_current", "max_load_current")
         )
     )
     if not annotated:
         return tuple(results.diagnostics)
-    capacities = [attribute(e[2], "max_source_current_mA") for e in sources]
+    capacities = [attribute(e[2], "max_source_current") for e in sources]
     if uncertain or len(sources) != 1 or any(x is None for x in capacities + amounts):
         emit(
             "incomplete_budget",
@@ -182,7 +181,8 @@ def net_results(ctx):
         if total > Fraction(str(capacities[0])):
             emit(
                 "current_overload",
-                f"known maximum loads on {name!r} exceed source capacity ({capacities[0]} mA)",
+                f"known maximum loads on {name!r} exceed source capacity "
+                f"({format_quantity(capacities[0], 'current')})",
                 origin,
             )
     return tuple(results.diagnostics)

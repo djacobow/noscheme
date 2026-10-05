@@ -12,7 +12,7 @@ from test_resolve import make_project
 LIBRARY = """from noscheme import role, nettype
 component R:
     params:
-        value: string = "1kOhm"
+        value: resistance = 1k
     pins:
         1:
             role: role.passive
@@ -32,13 +32,13 @@ block Wrapper:
 SOURCE = """import Device
 from Device import R as KiCadResistor, Bus as SignalBus
 import noscheme
-from noscheme import f as units, num as numbers, unused as unconnected
+from noscheme import num as numbers, unused as unconnected
 component Specialized extends Device.R:
     pins:
         1:
             unused: unconnected.never
     defaults:
-        value: units.kOhm(numbers.int(2.0))
+        value: numbers.int(2.0) * 1k
 board B:
     net a: noscheme.nettype.passive
     net bus: Device.Bus

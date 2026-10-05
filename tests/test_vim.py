@@ -31,7 +31,7 @@ def test_noscheme_runtime(tmp_path, editor):
         "net hidden: nettype.digital",
         "*/",
         "component Resistor:",
-        "    value: f.kOhm(10)",
+        "    value: num.round(4.7k) + 4k7",
     ]
     design = tmp_path / "sample.nosch"
     design.write_text("\n".join(source) + "\n")
@@ -69,7 +69,9 @@ def test_noscheme_runtime(tmp_path, editor):
         (11, "net#", ""),
         (13, "net", "noschemeBlockComment"),
         (15, "Resistor", "noschemeDefinition"),
-        (16, "f.kOhm", "noschemeFunction"),
+        (16, "num.round", "noschemeFunction"),
+        (16, "4.7k", "noschemeNumber"),
+        (16, "4k7", "noschemeNumber"),
     ]:
         column = source[line - 1].index(token) + 1
         commands.append(

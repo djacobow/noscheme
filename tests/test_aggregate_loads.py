@@ -12,18 +12,18 @@ SOURCE = """component Supply:
     pins:
         1:
             role: role.power_output
-            max_source_current_mA: 110
+            max_source_current: 110m
 component Load:
     pins:
         1:
             role: role.power_input
-            max_load_current_mA: 80
+            max_load_current: 80m
 block Module:
     ports:
         power: nettype.power
             role: role.power_input
             aggregate_load:
-                max_load_current_mA: 100
+                max_load_current: 100m
     inst load: Load(
         connections:
             1: power
@@ -52,12 +52,12 @@ def codes(tmp_path, source=SOURCE):
 def test_aggregate_replaces_internal_load(tmp_path):
     assert errors(tmp_path) == ()
     # Parent sees 100, not the internal 80 or their combined 180.
-    source = SOURCE.replace("max_source_current_mA: 110", "max_source_current_mA: 90")
+    source = SOURCE.replace("max_source_current: 110m", "max_source_current: 90m")
     assert codes(tmp_path, source) == ["erc.current_overload"]
 
 
 def test_internal_overload_keeps_declared_parent_budget(tmp_path):
-    source = SOURCE.replace("max_load_current_mA: 80", "max_load_current_mA: 120")
+    source = SOURCE.replace("max_load_current: 80m", "max_load_current: 120m")
     diagnostics = errors(tmp_path, source)
     assert [d.code for d in diagnostics] == ["erc.aggregate_current_overload"]
     assert diagnostics[0].instance_path == "module.power"
@@ -65,7 +65,7 @@ def test_internal_overload_keeps_declared_parent_budget(tmp_path):
 
 
 def test_missing_internal_annotation_remains_visible(tmp_path):
-    source = SOURCE.replace("            max_load_current_mA: 80\n", "")
+    source = SOURCE.replace("            max_load_current: 80m\n", "")
     diagnostics = errors(tmp_path, source)
     assert [d.code for d in diagnostics] == ["erc.incomplete_aggregate_load"]
     assert diagnostics[0].severity == "warning"
@@ -84,14 +84,14 @@ def test_nested_boundaries_check_each_level(tmp_path):
         power: nettype.power
             role: role.power_input
             aggregate_load:
-                max_load_current_mA: 90
+                max_load_current: 90m
     inst inner: Module(
         connections:
             power: power
     )
 board B:""",
     ).replace("inst module: Module", "inst module: Outer")
-    source = source.replace("max_load_current_mA: 80", "max_load_current_mA: 120")
+    source = source.replace("max_load_current: 80m", "max_load_current: 120m")
     diagnostics = errors(tmp_path, source)
     assert [d.code for d in diagnostics] == ["erc.aggregate_current_overload"] * 2
     assert {d.instance_path for d in diagnostics} == {"module.inner.power", "module.power"}
@@ -111,14 +111,14 @@ def test_siblings_and_outside_loads_are_not_hidden(tmp_path):
 
 def test_grouped_physical_loads_inside_aggregate(tmp_path):
     source = SOURCE.replace(
-        "            max_load_current_mA: 80",
+        "            max_load_current: 80m",
         """        2:
             role: role.power_input
     metadata:
         current_loads:
             pair:
                 pins: ["1", "2"]
-                max_load_current_mA: 80""",
+                max_load_current: 80m""",
     ).replace("            1: power", "            1: power\n            2: power")
     assert errors(tmp_path, source) == ()
 
@@ -129,7 +129,7 @@ def test_same_scope_overlapping_boundaries_are_rejected(tmp_path):
         """        second: nettype.power
             role: role.power_input
             aggregate_load:
-                max_load_current_mA: 100
+                max_load_current: 100m
     inst load2: Load(
         connections:
             1: second
@@ -159,19 +159,19 @@ def test_internal_source_cannot_be_hidden_by_aggregate(tmp_path):
 def test_invalid_amounts_are_source_errors(tmp_path, amount):
     with pytest.raises(DiagnosticError):
         compile_source(
-            tmp_path, SOURCE.replace("max_load_current_mA: 100", f"max_load_current_mA: {amount}")
+            tmp_path, SOURCE.replace("max_load_current: 100m", f"max_load_current: {amount}")
         )
 
 
 def test_internal_check_survives_unchecked_outer_net(tmp_path):
     source = SOURCE.replace("net rail: nettype.power", "net rail: nettype.unchecked").replace(
-        "max_load_current_mA: 80", "max_load_current_mA: 120"
+        "max_load_current: 80m", "max_load_current: 120m"
     )
     assert "erc.aggregate_current_overload" in codes(tmp_path, source)
 
 
 def test_compile_publishes_source_located_aggregate_error(tmp_path):
-    make(tmp_path, SOURCE.replace("max_load_current_mA: 80", "max_load_current_mA: 120"))
+    make(tmp_path, SOURCE.replace("max_load_current: 80m", "max_load_current: 120m"))
     assert main(["compile", "--project", str(tmp_path)]) == 0
     reports = list(tmp_path.rglob("erc.json"))
     assert len(reports) == 1
@@ -193,7 +193,7 @@ def test_inherited_port_budget_override(tmp_path):
     ports:
         power:
             aggregate_load:
-                max_load_current_mA: 70
+                max_load_current: 70m
 board B:""",
     ).replace("inst module: Module", "inst module: Smaller")
     assert codes(tmp_path, source) == ["erc.aggregate_current_overload"]
@@ -201,8 +201,8 @@ board B:""",
 
 def test_configuration_role_selection_checks_each_internal_budget(tmp_path):
     source = SOURCE.replace(
-        "            role: role.power_input\n            max_load_current_mA: 80",
-        "            role: [role.power_input, role.passive]\n            max_load_current_mA: 120",
+        "            role: role.power_input\n            max_load_current: 80m",
+        "            role: [role.power_input, role.passive]\n            max_load_current: 120m",
     )
     source = source.replace(
         "    inst load: Load(",

@@ -7,15 +7,18 @@ import re
 from .diagnostics import DiagnosticError
 from .parser import parse
 from .lsp_bundles import BundleLookup
-from .metadata import NETTYPES, ROLES
-from .project import IDENTIFIER, load_project
+from .erc_registry import namespace, signature
+from .metadata import MISSING, NETTYPES, PIN_SCOPES, ROLES, endpoint_fields
+from .project import ERC_MODULE, IDENTIFIER, load_project
 from .resolve import Resolver
 from .syntax import comment_lexer
 
 WORD = r"[A-Za-z0-9_#]*"
 TYPE_PATH = rf"{IDENTIFIER}(?:\.{IDENTIFIER})*"
 TYPE_PREFIX = r"[A-Za-z0-9_#.]*"
-DEFINITION = re.compile(rf"^(component|block|board|bundle)\s+({IDENTIFIER})(?=\s|:)[^\n]*:", re.M)
+DEFINITION = re.compile(
+    rf"^(component|block|board|bundle|nettype)\s+({IDENTIFIER})(?=\s|:)[^\n]*:", re.M
+)
 INSTANCE = re.compile(rf"^(\s*)inst\s+{IDENTIFIER}(?:\[[^\n]*?\])*\s*:\s*({TYPE_PATH})\s*\(")
 
 
@@ -255,96 +258,144 @@ def bundle_completion(path, config, sources, offset, masked):
         return []
 
 
-def erc_completion(path, config, sources, offset):
-    """Registry completions survive unfinished quotes and parameter keys."""
-    from .project import read_config
+def registered_spellings(module, names):
+    """Map the source spellings that reach registered names through this module's imports."""
+    result = {}
+    for key, symbol in module.symbols.items():
+        if symbol.module == "noscheme" and symbol.name == "std":
+            for name in names:
+                if namespace(name) == "std":
+                    result[key + name.removeprefix("std")] = name
+        elif symbol.module == ERC_MODULE and symbol.name in names:
+            result[key] = symbol.name
+    return result
 
+
+def current_argument(arguments):
+    """Return (positional index, keyword or None, text) of the argument being typed."""
+    depth, start, index = 0, 0, 0
+    for position, char in enumerate(arguments):
+        if char in "([":
+            depth += 1
+        elif char in ")]":
+            depth -= 1
+        elif char == "," and depth == 0:
+            start, index = position + 1, index + 1
+    text = arguments[start:]
+    keyword = re.match(r"\s*([A-Za-z_][A-Za-z0-9_]*)\s*=", text)
+    return index, keyword and keyword[1], text
+
+
+def erc_completion(path, config, sources, offset):
+    """Complete rule names, parameter keywords, and typed arguments in check calls."""
     source = sources[path]
-    line_start = source.rfind("\n", 0, offset) + 1
-    line_end = source.find("\n", offset)
-    if line_end < 0:
-        line_end = len(source)
-    line = source[line_start:line_end]
-    before = source[line_start:offset]
-    # Mask the edited line so an unfinished quote cannot hide its ancestors.
-    safe = source[:line_start] + " " * (line_end - line_start) + source[line_end:]
-    masked = masked_source(safe, line_start)
-    if masked is None:
+    masked = masked_source(source, offset)
+    owners = list(DEFINITION.finditer(masked or "", 0, offset))
+    if masked is None or not owners:
         return []
-    indent = len(before) - len(before.lstrip())
     ancestors = []
     pos = 0
-    for previous in masked[:line_start].splitlines(keepends=True):
+    for previous in masked[:offset].splitlines(keepends=True):
         if previous.strip():
             depth = len(previous) - len(previous.lstrip())
             while ancestors and ancestors[-1][0] >= depth:
                 ancestors.pop()
             ancestors.append((depth, previous.strip(), pos))
         pos += len(previous)
-    while ancestors and ancestors[-1][0] >= indent:
-        ancestors.pop()
     names = [a[1] for a in ancestors]
-    if "checks:" not in names or "custom:" in names:
+    if "checks:" not in names or "custom:" in names[names.index("checks:") :]:
         return []
     checks = names.index("checks:")
     if len(ancestors) < checks + 2:
         return []
+    application = ancestors[checks + 1][2]
+    colon = masked.find(":", application, offset)
+    if colon < 0:
+        return []
+    text = masked[colon + 1 : offset]
+    word = re.search(r"[A-Za-z0-9_#.]*$", text).group()
+    start = offset - len(word)
+    end = offset + len(re.match(r"[A-Za-z0-9_#]*", masked[offset:]).group())
     try:
-        registry = read_config(config, sources=sources).erc_registry
-    except (DiagnosticError, OSError, ValueError):
+        project, module = recovered_project(path, config, sources, masked, owners[-1])
+    except (DiagnosticError, OSError, UnicodeError, ValueError):
         return []
-    match = re.fullmatch(r'\s*(checker|reducer|predicate|missing):\s*"?([A-Za-z0-9_.]*)', before)
-    if match:
-        field, prefix = match.groups()
-        table = {
-            "checker": registry.rules,
-            "predicate": registry.predicates,
-            "reducer": registry.reducers,
-            "missing": {"warning": None, "error": None, "ignore": None},
-        }[field]
-        value_start = line_start + line.index(":") + 1
-        while value_start < line_end and source[value_start].isspace():
-            value_start += 1
-        value_end = value_start
-        if source[value_start : value_start + 1] == '"':
-            end_quote = source.find('"', value_start + 1, line_end)
-            value_end = end_quote + 1 if end_quote >= 0 else offset
-        else:
-            value_end = offset
-        return [
-            Suggestion(
-                name,
-                json.dumps(name),
-                str(getattr(item, "scope", field)),
-                "value",
-                value_start,
-                value_end,
-            )
-            for name, item in sorted(table.items())
-            if name.startswith(prefix)
+    if module is None:
+        return []
+    registry = project.config.erc_registry
+    # Pins (definition or instance overlays) take pin rules; nets, ports, and fields take net rules.
+    scope = "pin" if names[checks - 2 : checks - 1] == ["pins:"] else "net"
+    rules = registered_spellings(module, registry.rules)
+    choices = []
+    if re.fullmatch(r"\s*[A-Za-z0-9_#.]*", text):
+        choices = [
+            (spelling, spelling, signature(name, registry.rules[name]).split("\n")[0], "function")
+            for spelling, name in rules.items()
+            if registry.rules[name].scope == scope
         ]
-    if names[-1] != "params:" or not re.fullmatch(r"\s*[A-Za-z0-9_]*", before):
-        return []
-    app_start = ancestors[checks + 1][2]
-    checker = re.search(r'(?m)^\s*checker:\s*"([^"\n]+)"', source[app_start:line_start])
-    if checker is None or checker[1] not in registry.rules:
-        return []
-    rule = registry.rules[checker[1]]
-    prefix = before.strip()
-    start = offset - len(prefix)
-    end = offset + len(re.match(r"[A-Za-z0-9_]*", source[offset:]).group())
-    return [
-        Suggestion(
-            name,
-            name,
-            f"{kind}" + (" (optional)" if name in rule.defaults else " (required)"),
-            "value",
-            start,
-            end,
+    elif call := re.fullmatch(r"\s*([A-Za-z0-9_#.]+)\s*\((.*)", text, re.S):
+        rule_name = rules.get(call[1])
+        if rule_name is None:
+            return []
+        rule = registry.rules[rule_name]
+        index, keyword, argument = current_argument(call[2])
+        if keyword is None and re.fullmatch(r"\s*[A-Za-z0-9_#]*", argument):
+            used = set(re.findall(r"([A-Za-z_][A-Za-z0-9_]*)\s*=", call[2]))
+            choices = [
+                (
+                    name,
+                    name + "=",
+                    str(rule.parameters.get(name, "missing-data policy")),
+                    "property",
+                )
+                for name in [*list(rule.parameters)[index:], "missing"]
+                if name not in used
+            ]
+        kind = (
+            "missing"
+            if keyword == "missing"
+            else rule.parameters.get(keyword)
+            if keyword
+            else list(rule.parameters.values())[index]
+            if index < len(rule.parameters)
+            else None
         )
-        for name, kind in sorted(rule.parameters.items())
-        if name.startswith(prefix)
+        if kind == "selector":
+            predicates = registered_spellings(module, registry.predicates)
+            choices += [(s, s, "predicate", "function") for s in predicates]
+            choices += [
+                (n, n, "boolean field", "field")
+                for n, k in endpoint_fields(project).items()
+                if k == "bool"
+            ]
+        elif kind in {"field", "net_fields"}:
+            fields = endpoint_fields(project, ("net",) if kind == "net_fields" else PIN_SCOPES)
+            choices += [(n, n, str(k), "field") for n, k in fields.items() if isinstance(k, str)]
+        elif kind == "missing":
+            choices += [(json.dumps(v), json.dumps(v), "policy", "value") for v in MISSING]
+    return [
+        Suggestion(label, text, detail, kind, start, end)
+        for label, text, detail, kind in sorted(set(choices))
+        if label.startswith(word)
     ]
+
+
+def recovered_project(path, config, sources, masked, owner):
+    """Load the project with the definition under the cursor replaced by a stub.
+
+    This lets incomplete lines, sections and parentheses coexist with the real
+    import graph and component definitions, without stale ASTs.
+    """
+    source = sources[path]
+    next_owner = DEFINITION.search(masked, owner.end())
+    stop = next_owner.start() if next_owner else len(source)
+    recovered = (
+        source[: owner.start()]
+        + f"{owner[1]} {owner[2]}:\n    metadata:\n        custom:\n            completion: true\n"
+        + source[stop:]
+    )
+    project = load_project(config, sources={**sources, path: recovered})
+    return project, next((m for m in project.modules.values() if m.path == path), None)
 
 
 def completion_items(path, config, sources, offset):
@@ -372,7 +423,7 @@ def completion_items(path, config, sources, offset):
         rf"\s*inst\s+{IDENTIFIER}(?:\[[^\n]*?\])*\s*:\s*{TYPE_PREFIX}", before
     )
     base_type = re.compile(
-        rf"(component|block)[ \t]+({IDENTIFIER})[ \t]+extends[ \t]+{TYPE_PREFIX}$"
+        rf"(component|block|nettype)[ \t]+({IDENTIFIER})[ \t]+extends[ \t]+{TYPE_PREFIX}$"
     ).match(masked, line_start, offset)
     if instance_type or base_type:
         word = re.search(TYPE_PREFIX + r"$", before).group()
@@ -388,19 +439,8 @@ def completion_items(path, config, sources, offset):
     if not owners and not base_type:
         return []
     owner = base_type or owners[-1]
-    # Only the definition under the cursor is replaced in a private analysis
-    # snapshot. This lets incomplete lines, sections and parentheses coexist with
-    # the real import graph and component definitions, without stale ASTs.
-    next_owner = DEFINITION.search(masked, owner.end())
-    stop = next_owner.start() if next_owner else len(source)
-    recovered = (
-        source[: owner.start()]
-        + f"{owner[1]} {owner[2]}:\n    metadata:\n        custom:\n            completion: true\n"
-        + source[stop:]
-    )
     try:
-        project = load_project(config, sources={**sources, path: recovered})
-        module = next((m for m in project.modules.values() if m.path == path), None)
+        project, module = recovered_project(path, config, sources, masked, owner)
         if module is None:
             return []
         choices = []

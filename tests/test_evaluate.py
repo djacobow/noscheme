@@ -14,7 +14,7 @@ def make(tmp_path, declarations="", board="board B:\n    net n: nettype.passive\
         'language_version = "0.1"\nboard = "main.B"\nsource_paths = ["."]\nlibrary_paths = []\noutput_dir = "build"\n'
     )
     (tmp_path / "main.nosch").write_text(
-        "from noscheme import num, f, nettype\n" + declarations + board
+        "from noscheme import num, nettype\n" + declarations + board
     )
     return tmp_path
 
@@ -85,8 +85,10 @@ def test_integer_context_warns_even_when_integral(evaluator):
         ('"a" + 1', "expression.type"),
         ('num.int("x")', "expression.type"),
         ("num.round()", "expression.arguments"),
-        ("f.nF(1,2)", "expression.arguments"),
-        ("f.nF(x=1)", "expression.arguments"),
+        ("num.int(1,2)", "expression.arguments"),
+        ("num.int(x=1)", "expression.arguments"),
+        ("f.nF(10)", "expression.call"),
+        ("4.7k7", "syntax.number"),
         ("num.typo(1)", "expression.call"),
         ('"{x.__class__}".format(x=3)', "format.field"),
         ('"{0[0]}".format("x")', "format.field"),
@@ -110,9 +112,6 @@ def test_invalid_expressions(evaluator, text, code):
 @pytest.mark.parametrize(
     "text,result",
     [
-        ("f.nF(10)", "10nF"),
-        ("f.kOhm(4.7)", "4.7kOhm"),
-        ("f.uH(2.0)", "2uH"),
         ('"{{{0}}}".format(3)', "{3}"),
         ('"{resistance:.1f} Ohm".format(resistance=4.75)', "4.8 Ohm"),
         ('"{0:04d}".format(-3)', "-003"),
@@ -124,41 +123,55 @@ def test_formatting(evaluator, text, result):
 
 
 @pytest.mark.parametrize(
-    "text,result",
+    "text,value",
     [
-        ("f.kOhm(4.7 * 3)", "14.1kOhm"),
-        ("f.uF(0.1 + 0.2)", "0.3uF"),
-        ("f.kOhm(0.00001)", "0.00001kOhm"),
-        ("f.MOhm(1e22)", "10000000000000000000000MOhm"),
-        ("f.Ohm(1.23456789)", "1.23457Ohm"),
-        ("f.Ohm(1.015625)", "1.01562Ohm"),
-        ("f.Ohm(1.046875)", "1.04688Ohm"),
-        ("f.nF(999999.9)", "1000000nF"),
-        ("f.pF(-1.23456789)", "-1.23457pF"),
-        ("f.nH(-0.0)", "0nH"),
-        ("f.mH(120.0)", "120mH"),
-        ("f.Ohm(123456789)", "123456789Ohm"),
+        ("4.7k", 4700),
+        ("4k7", 4700),
+        ("1k0", 1000),
+        ("47R", 47),
+        ("4R7", 4.7),
+        ("0R1", 0.1),
+        ("100n", 1e-7),
+        ("1u5", 1.5e-6),
+        ("10f", 1e-14),
+        ("1a", 1e-18),
+        ("2.2M", 2200000),
+        ("3P", 3 * 10**15),
+        ("-10m", -0.01),
+        ("2 * 4.7k", 9400),
     ],
 )
-def test_part_values_round_only_display_doubles(evaluator, text, result):
-    assert run(evaluator, text) == result
-    assert evaluator.warnings == []
+def test_scaled_literals_are_exact(evaluator, text, value):
+    result = run(evaluator, text)
+    assert result.value == value and type(result.value) is type(value)
 
 
-def test_part_value_formatting_preserves_arithmetic_and_explicit_formats(evaluator):
+@pytest.mark.parametrize(
+    "value,quantity,text",
+    [
+        (4.7 * 3 * 1000, "resistance", "14.1kOhm"),
+        ((0.1 + 0.2) * 1e-6, "capacitance", "300nF"),
+        (1.23456789, "resistance", "1.23457Ohm"),
+        (999999.9, "resistance", "1MOhm"),
+        (-1.23456789e-12, "capacitance", "-1.23457pF"),
+        (-0.0, "inductance", "0H"),
+        (0.12, "inductance", "120mH"),
+        (123456789, "resistance", "123.457MOhm"),
+        (3.3 * 1.05, "voltage", "3.465V"),
+        (1e-7, "capacitance", "100nF"),
+        (1e19, "frequency", "10000PHz"),
+    ],
+)
+def test_quantity_display_uses_engineering_prefixes(value, quantity, text):
+    from noscheme.units import format_quantity
+
+    assert format_quantity(value, quantity) == text
+
+
+def test_arithmetic_and_explicit_formats_are_not_rounded(evaluator):
     assert run(evaluator, "4.7 * 3").value == 14.100000000000001
     assert run(evaluator, '"{0}".format(4.7 * 3)') == "14.100000000000001"
     assert run(evaluator, '"{0:.8f}Ohm".format(1.23456789)') == "1.23456789Ohm"
-    assert run(evaluator, "f.Ohm(1 << 16000)") == evaluator.decimal(1 << 16000) + "Ohm"
-
-
-def test_part_value_expansion_is_bounded(evaluator):
-    assert run(evaluator, "f.pF(5e-324)") == "0." + "0" * 323 + "494066pF"
-    assert run(evaluator, "f.MOhm(1e308)") == "1" + "0" * 308 + "MOhm"
-    evaluator.limits = Limits(string_length=10)
-    for text in ("f.pF(1e-20)", "f.MOhm(1e20)", "f.Ohm(12345678)"):
-        with pytest.raises(DiagnosticError, match="length limit"):
-            run(evaluator, text)
 
 
 def test_big_integers_and_output_limits(evaluator):
@@ -242,7 +255,9 @@ def test_blink_template_evaluation():
     assert len(report["instances"]) == 5  # Board, header, array template, resistor, LED.
     indicator = next(x for x in report["instances"] if x["path"] == "Blink.indicators")
     assert indicator["dimensions"] == [2]
-    assert indicator["parameters"]["resistance"]["value"] == "1kOhm"
+    assert indicator["parameters"]["resistance"]["value"] == "1000"
+    resistor = next(x for x in report["instances"] if x["path"] == "Blink.indicators.resistor")
+    assert resistor["values"]["value"]["value"] == "1kOhm"
     assert report["array_representation"] == "unexpanded declaration templates"
 
 
@@ -291,11 +306,9 @@ def test_inherited_defaults_evaluate_in_origin_module(tmp_path):
     (p / "main.nosch").write_text(
         (p / "main.nosch").read_text().replace("num, f, nettype", "nettype")
     )
-    (p / "lib.nosch").write_text(
-        "from noscheme import f\ncomponent C:\n    params:\n        value: string = f.nF(10)\n"
-    )
+    (p / "lib.nosch").write_text("component C:\n    params:\n        value: capacitance = 10n\n")
     report, _ = evaluate_project(*resolve_project(p))
-    assert report["instances"][1]["parameters"]["value"]["value"] == "10nF"
+    assert report["instances"][1]["values"]["value"]["value"] == "10nF"
 
 
 def test_cli_warnings_are_nonblocking(tmp_path, capsys):

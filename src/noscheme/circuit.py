@@ -151,11 +151,19 @@ class Elaborator:
         if len(path) + len(dimensions) > self.limits.hierarchy_depth:
             self.error("circuit.limit", "net path exceeds configured nesting limit", span)
         base = self.resolver.type_definition(Value(expr, expr.span, value.module))
+        if base is not None and base.kind == "nettype":
+            # A net type supplies metadata beneath the declaration's own, like a base definition.
+            metadata = merge(self.numeric_metadata(base.metadata, {}), metadata)
 
         def build(indices):
             here = path + indices
-            if base is None:
-                return self.new_leaf(here, scope, kind, expr.name.text, metadata, span)
+            if base is None or base.kind == "nettype":
+                leaf = self.new_leaf(
+                    here, scope, kind, base.electrical if base else expr.name.text, metadata, span
+                )
+                if base:
+                    self.leaves[leaf.leaf]["nettype"] = f"{base.module}.{base.name}"
+                return leaf
             fields = {}
             for name, port in sorted(base.interface.items()):
                 fields[name] = self.typed(
@@ -462,14 +470,16 @@ class Elaborator:
                         span,
                     )
                 self.references[reference] = span
-            value = None
-            if "value" in metadata:
-                v = metadata["value"]
-                value = self.evaluator.evaluate(
-                    v.value, v.module, caller if "value" in overrides else environment
+            if "value" in overrides:
+                # An instance override is written, evaluated, and typed in the caller.
+                shown = overrides["value"]
+                value = self.evaluator.displayed(
+                    shown.value,
+                    self.definitions[ancestry[-1]].parameters,
+                    self.evaluator.evaluate(shown.value, shown.module, caller),
                 )
-            elif "value" in environment:
-                value = environment["value"]
+            else:
+                value = self.evaluator.part_value(definition, environment)
             record = {
                 "path": path,
                 "identity": identity,
@@ -613,6 +623,11 @@ class Elaborator:
                             "scope": list(self.leaves[i]["scope"]),
                             "kind": self.leaves[i]["kind"],
                             "type": self.leaves[i]["type"],
+                            **(
+                                {"nettype": self.leaves[i]["nettype"]}
+                                if "nettype" in self.leaves[i]
+                                else {}
+                            ),
                             "metadata": a.to_data(self.leaves[i]["metadata"]),
                             "span": a.to_data(self.leaves[i]["span"]),
                             "binding": self.bound.get(i, {}).get("state", "omitted"),

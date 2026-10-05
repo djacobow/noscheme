@@ -67,7 +67,7 @@ ERC configuration views share unchanged circuit records and copy the paths to
 records whose selected roles change. A freeze memo local to each `apply_erc`
 call reuses immutable subgraphs across configurations; plugins still receive
 recursively immutable views. Default rule arguments are validated and frozen
-once per checker per configuration. Explicit arguments are validated at each
+once per rule per configuration. Explicit arguments are validated at each
 application. Neither cache survives a new ERC run, so source and registry edits
 are observed on the next call. Rule scheduling and electrical policies are
 unchanged by these optimizations.

@@ -92,7 +92,7 @@ class RenameSession:
             for item in module.ast.items:
                 if not isinstance(item, a.Definition):
                     continue
-                if item.kind in {"component", "block", "bundle"}:
+                if item.kind in {"component", "block", "bundle", "nettype"}:
                     named.add(span_key(item.name.span))
                 for node in item.body:
                     if isinstance(node, a.Instance) and item.kind == "board":
@@ -152,7 +152,7 @@ class RenameSession:
             )
             if insertion:
                 edits.append(insertion)
-            edits.extend(waiver_edits(self.project, target.owner, target.name, new_name))
+            edits.extend(waiver_edits(target.owner, target.name, new_name))
         edited = dict(self.sources)
         for span, text in sorted(edits, key=lambda edit: span_key(edit[0]), reverse=True):
             file = Path(span.filename)

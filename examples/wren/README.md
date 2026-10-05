@@ -176,7 +176,7 @@ entries, and 1,309 unchecked-net warnings, with no errors.
 Configuration selection copies only changed role records and their parent
 containers. One freeze memo per ERC run shares immutable subgraphs across
 configurations, while plugins retain recursively immutable circuit views.
-Successful default-parameter validation is reused per checker per configuration;
+Successful default-parameter validation is reused per rule per configuration;
 explicit arguments validate individually. These caches do not survive between
 ERC runs. Rule scheduling and electrical policies are unchanged.
 

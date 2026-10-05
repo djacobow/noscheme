@@ -8,6 +8,7 @@ definition_kind: "component" -> component_kind
                | "block" -> block_kind
                | "board" -> board_kind
                | "bundle" -> bundle_kind
+               | "nettype" -> nettype_kind
 extends: "extends" name_path
 ?definition_item: instance | net_decl | section | field
 section: section_name ":" _NL _INDENT field+ _DEDENT
@@ -53,7 +54,8 @@ instance_metadata: "metadata" ":" _NL _INDENT field+ _DEDENT
 ?unary: ADD unary -> unary
       | postfix
 ?postfix: atom postfix_suffix*
-?atom: NUMBER -> number
+?atom: SCALED -> scaled
+     | NUMBER -> number
      | INT -> integer
      | STRING -> string
      | NAME -> name
@@ -74,6 +76,8 @@ PINS: "pins"
 PARAMS: "params"
 ADD: "+" | "-"
 MUL: "*" | "/"
+// SI-prefixed literals: 4.7k, 4k7, 100n, 4R7. A following name character is not a suffix.
+SCALED.3: /[0-9]+(?:\.[0-9]+)?[afpnumkMGTPR](?:[0-9]+)?(?![A-Za-z0-9_#])/
 NUMBER.2: /(?:[0-9]+\.[0-9]+(?:[eE][+-]?[0-9]+)?|[0-9]+[eE][+-]?[0-9]+)/
 INT: /[0-9]+/
 NAME: /[A-Za-z_#][A-Za-z0-9_#]*/

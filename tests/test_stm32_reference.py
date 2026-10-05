@@ -200,7 +200,7 @@ def test_passive_inherits_kicad_pins_and_offline_footprint_hints(kind, letter):
     _, definitions = resolve_project(PROJECT)
     component = definitions[("components", kind + "0603")]
     assert set(component.interface) == {"1", "2"}
-    assert component.parameters["value"].type == "string"
+    assert component.parameters["value"].type in {"resistance", "capacitance"}
     candidates = component.metadata["custom"].value["kicad_footprint_candidates"].value
     alternate = f"{kind}_SMD:{letter}_0805_2012Metric"
     assert alternate in candidates

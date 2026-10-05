@@ -24,7 +24,7 @@
     },
     {
       "name": "keyword.control.noscheme",
-      "match": "(?<![\\w#])(?:component|block|board|bundle|inst|net|global|extends|from|import|as)(?![\\w#])"
+      "match": "(?<![\\w#])(?:component|block|board|bundle|nettype(?=[ \\t]+[A-Za-z_#])|inst|net|global|extends|from|import|as)(?![\\w#])"
     },
     {
       "name": "keyword.other.noscheme",
@@ -36,11 +36,11 @@
     },
     {
       "name": "support.constant.noscheme",
-      "match": "(?<![\\w#])(?:role|nettype|unused|bias)\\.[A-Za-z_#][A-Za-z0-9_#]*"
+      "match": "(?<![\\w#])(?:role|nettype|unused|bias|std)\\.[A-Za-z_#][A-Za-z0-9_#]*"
     },
     {
       "name": "constant.numeric.noscheme",
-      "match": "(?<![\\w#])\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?(?![\\w#])"
+      "match": "(?<![\\w#])\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+|[afpnumkMGTPR]\\d*)?(?![\\w#])"
     }
   ]
 }

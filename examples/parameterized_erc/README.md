@@ -12,15 +12,17 @@ The abstract external endpoint intentionally has no footprint; its footprint
 warning is expected. This is not a fabrication-ready board.
 
 Both array elements are real two-terminal resistors. Element 0 uses 2.2 kΩ;
-element 1 keeps the 4.7 kΩ default. Each displayed value and ERC resistance derive
-from `resistance_ohm`. Their parallel resistance is about 1.50 kΩ, above the
-example's 1 kΩ minimum, asserted by the named `pull_up` application using
-`std.reduce` and `std.parallel`. Per-element placement notes appear under custom metadata.
+element 1 keeps the 4.7 kΩ default. Each part's `value` parameter is a
+`resistance`: it displays as `2.2kOhm` or `4.7kOhm` and also supplies the pin's
+`pull_resistance`. Their parallel resistance is about 1.50 kΩ, above the example's
+1 kΩ minimum, asserted by the named check
+`pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=1k)`. Per-element
+placement notes appear under custom metadata.
 
-`bias_reference_pin` names the resistor's supply terminal. ERC checks its actual
-connection to a declared power net. It does not infer voltage or trace through
-other components. The design can therefore fail this check even if the resistance
-budget passes.
+The pin check `reference: std.bias_reference("supply")` names the resistor's supply
+terminal. ERC checks its actual connection to a declared power net. It does not
+infer voltage or trace through other components. The design can therefore fail this
+check even if the resistance budget passes.
 
 Changing parameters or placement notes preserves identities `pulls[0]` and
 `pulls[1]`. Inserting/reordering array elements is still a physical identity change;

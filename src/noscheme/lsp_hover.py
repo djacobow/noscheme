@@ -1,5 +1,6 @@
 """Bounded hover descriptions from resolved metadata and elaborated instances."""
 
+from contextlib import suppress
 from pathlib import Path
 from dataclasses import dataclass
 import re
@@ -7,7 +8,8 @@ import re
 from . import ast as a
 from .diagnostics import DiagnosticError
 from .evaluate import Evaluator, Number
-from .metadata import Value
+from .erc_registry import signature
+from .metadata import Value, registered_name
 from .project import expression_path, source_text
 
 
@@ -20,8 +22,8 @@ BUILTIN_HELP = {
         "analog_input": "Receives an analog signal.",
         "analog_output": "Actively drives an analog signal; participates in multiple-driver checks.",
         "analog_bidirectional": "Can receive or drive analog signals.",
-        "power_input": "Consumes power. Connecting to a ground net requires an explicit incompatible_role waiver. Optional max_load_current_mA metadata contributes to current-budget checks.",
-        "power_output": "Supplies power. Optional max_source_current_mA metadata declares its current capacity.",
+        "power_input": "Consumes power. Connecting to a ground net requires an explicit incompatible_role waiver. Optional max_load_current metadata contributes to current-budget checks.",
+        "power_output": "Supplies power. Optional max_source_current metadata declares its current capacity.",
         "ground": "Ground connection; connecting a power output to ground is an ERC error.",
         "open_drain": "Can pull a signal low or release it. Multiple open-drain drivers may share a net; a pull-up provides the high level.",
         "open_source": "Can pull a signal high or release it. Multiple open-source drivers may share a net; a pull-down provides the low level.",
@@ -115,7 +117,13 @@ class HoverDetails:
                     )
 
     def builtin(self, expr, module, local):
-        if not isinstance(expr, a.Member):
+        registry = self.project.config.erc_registry
+        name = registered_name(expr, self.project, module.name, local)
+        if name in registry.rules:
+            self.builtins.append(HoverEntry(expr.span, signature(name, registry.rules[name])))
+        elif name in registry.predicates:
+            self.builtins.append(HoverEntry(expr.span, f"endpoint predicate {name}"))
+        if name or not isinstance(expr, a.Member):
             return
         base = expression_path(expr.base)
         if not base or base.split(".")[0] in local:
@@ -195,15 +203,22 @@ class HoverDetails:
             f"{Path(parameter.default.span.filename).name}:{parameter.default.span.line}"
         )
 
+    def default_value(self, definition, env):
+        """The displayed value with defaults, formatted like an elaborated part's value."""
+        if env is not None:
+            with suppress(DiagnosticError):
+                return brief(self.evaluator.part_value(definition, env))
+        return self.value(definition.metadata["value"], env)
+
     def definition(self, definition):
         lines = [f"{definition.kind} {definition.module}.{definition.name}"]
         if definition.source.base:
             lines.append("Extends: " + ".".join(n.text for n in definition.source.base))
+        if definition.electrical:
+            lines.append(f"Electrical type: nettype.{definition.electrical}")
         env = self.environment(definition)
-        if "value" in definition.metadata:
-            lines.append("Default value: " + self.value(definition.metadata["value"], env))
-        elif env is not None and "value" in env:
-            lines.append("Default value: " + brief(env["value"]))
+        if "value" in definition.metadata or env is not None and "value" in env:
+            lines.append("Default value: " + self.default_value(definition, env))
         for name in list(definition.parameters)[:6]:
             lines.append(self.parameter(definition, name))
         if len(definition.parameters) > 6:

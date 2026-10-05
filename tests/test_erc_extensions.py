@@ -9,40 +9,26 @@ from noscheme.erc import apply_erc, check_circuit
 from noscheme.resolve import resolve_project
 from test_circuit import compile_source, make
 
-SOURCE = """from noscheme import bias
+SOURCE = """from noscheme import bias, std
 component Pull:
     pins:
         1:
             role: role.passive
             bias: bias.pull_up
-            pull_resistance_ohm: 4700
-            capacitance_pF: 2
+            pull_resistance: 4700
+            capacitance: 2p
 component Device:
     pins:
         1:
             role: role.open_drain
             bias: bias.none
-            capacitance_pF: 10
+            capacitance: 10p
 board B:
     net bus: nettype.open_drain
         checks:
-            pull_up:
-                checker: "std.reduce"
-                params:
-                    attribute: "pull_resistance_ohm"
-                    reducer: "std.parallel"
-                    where:
-                        bias: bias.pull_up
-                    min: 2500
-                    max: 5000
-            capacitance:
-                checker: "std.reduce"
-                params:
-                    attribute: "capacitance_pF"
-                    reducer: "std.sum"
-                    net_attributes: ["wiring_capacitance_pF"]
-                    max: 20
-        wiring_capacitance_pF: 2
+            pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=2500, max=5000)
+            capacitance: std.sum(capacitance, net=wiring_capacitance, max=20p)
+        wiring_capacitance: 2p
     inst pull[2]: Pull(
         connections:
             1: bus
@@ -60,13 +46,13 @@ def check(tmp_path, source=SOURCE):
 
 def test_parallel_pulls_count_each_physical_pin_once(tmp_path):
     result = check(tmp_path)
-    assert [d.code for d in result] == ["erc.std.reduce"]
+    assert [d.code for d in result] == ["erc.std.parallel"]
     assert result[0].severity == "error" and len(result[0].related) == 2
-    assert "2500" in result[0].message
+    assert "2.5kOhm" in result[0].message
 
 
 def test_capacitance_and_resistance_overload(tmp_path):
-    result = check(tmp_path, SOURCE.replace("max: 20", "max: 15"))
+    result = check(tmp_path, SOURCE.replace("max=20p", "max=15p"))
     assert {d.application for d in result} == {"net:bus:pull_up", "net:bus:capacitance"}
 
 
@@ -78,13 +64,13 @@ def test_no_limits_means_no_budget_warnings(tmp_path):
 
 
 def test_missing_capacitance_does_not_hide_known_overload(tmp_path):
-    source = SOURCE.replace("            capacitance_pF: 10\n", "").replace("max: 20", "max: 5")
+    source = SOURCE.replace("            capacitance: 10p\n", "").replace("max=20p", "max=5p")
     result = [d for d in check(tmp_path, source) if d.application.endswith(":capacitance")]
     assert {d.severity for d in result} == {"warning", "error"}
 
 
 def test_missing_pull_resistance_does_not_invent_maximum_violation(tmp_path):
-    source = SOURCE.replace("            pull_resistance_ohm: 4700\n", "")
+    source = SOURCE.replace("            pull_resistance: 4700\n", "")
     result = check(tmp_path, source)
     assert [d.severity for d in result] == ["warning"]
 
@@ -97,7 +83,7 @@ def test_known_minimum_violation_with_unknown_additional_pull(tmp_path):
         1:
             role: role.passive
             bias: bias.pull_up
-            capacitance_pF: 0
+            capacitance: 0p
 board B:
     inst unknown: Unknown(
         connections:
@@ -110,14 +96,14 @@ board B:
 
 def test_open_source_and_pulldown_symmetry(tmp_path):
     source = SOURCE.replace("open_drain", "open_source").replace("pull_up", "pull_down")
-    assert [d.code for d in check(tmp_path, source)] == ["erc.std.reduce"]
+    assert [d.code for d in check(tmp_path, source)] == ["erc.std.parallel"]
 
 
 @pytest.mark.parametrize(
     "field,bad",
     [
-        ("pull_resistance_ohm: 4700", "pull_resistance_ohm: 0"),
-        ("capacitance_pF: 10", "capacitance_pF: -1"),
+        ("pull_resistance: 4700", "pull_resistance: 0"),
+        ("capacitance: 10p", "capacitance: -1p"),
         ("bias: bias.pull_up", "bias: bias.typo"),
     ],
 )
@@ -130,7 +116,7 @@ def test_bias_satisfies_digital_idle_without_becoming_output(tmp_path):
     source = (
         SOURCE.replace("nettype.open_drain", "nettype.digital")
         .replace("role.open_drain", "role.digital_input")
-        .replace("min: 2500", "min: 2000")
+        .replace("min=2500", "min=2000")
     )
     assert check(tmp_path, source) == ()
 
@@ -223,7 +209,7 @@ def test_registered_check_waiver(tmp_path):
         demo:
             max_pins: 2
         waivers:
-            "net:bus:demo_pin_count": "Reviewed test fixture."''',
+            demo_pin_count: "Reviewed test fixture."''',
     )
     circuit = project(tmp_path, source=source)
     assert not any(d.code == "erc.demo_pin_count" for d in apply_erc(circuit))
@@ -305,13 +291,7 @@ def test_inner_port_capacitance_limit_counts_physical_pins_once(tmp_path):
     ports:
         bus: nettype.open_drain
             checks:
-                capacitance:
-                    checker: "std.reduce"
-                    params:
-                        attribute: "capacitance_pF"
-                        reducer: "std.sum"
-                        net_attributes: ["wiring_capacitance_pF"]
-                        max: 20
+                capacitance: std.sum(capacitance, net=wiring_capacitance, max=20p)
     inst inner: Device(
         connections:
             1: bus
@@ -322,12 +302,12 @@ board B:""",
         "    inst device: Receiver(\n        connections:\n            1: bus",
         "    inst device: Receiver(\n        connections:\n            bus: bus",
     )
-    assert [d.code for d in check(tmp_path, source)] == ["erc.std.reduce"]
+    assert [d.code for d in check(tmp_path, source)] == ["erc.std.parallel"]
 
 
 def test_explicit_zero_capacitance_is_complete(tmp_path):
-    source = SOURCE.replace("capacitance_pF: 2", "capacitance_pF: 0").replace(
-        "capacitance_pF: 10", "capacitance_pF: 0"
+    source = SOURCE.replace("capacitance: 2p", "capacitance: 0p").replace(
+        "capacitance: 10p", "capacitance: 0p"
     )
     assert not [d for d in check(tmp_path, source) if d.application.endswith(":capacitance")]
 

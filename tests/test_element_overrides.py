@@ -5,15 +5,14 @@ from noscheme.evaluate import evaluate_project
 from noscheme.resolve import resolve_project
 from test_circuit import compile_source, make
 
-SOURCE = """from noscheme import f
-component Cap:
+SOURCE = """component Cap:
     params:
-        capacitance: number = 100
+        capacitance: capacitance = 100n
     pins:
         1..2:
             role: role.passive
     metadata:
-        value: f.nF(capacitance)
+        value: capacitance
 board B:
     net rail: nettype.passive
     inst caps[2]: Cap(
@@ -27,13 +26,13 @@ board B:
         elements:
             [1]:
                 params:
-                    capacitance: 220
+                    capacitance: 220n
                 metadata:
                     custom:
                         placement: "beside MCU"
                     pins:
                         1:
-                            capacitance_pF: 2 + 3
+                            capacitance: 2p + 3p
     )
 """
 
@@ -46,8 +45,8 @@ def test_element_parameters_and_metadata_merge_without_identity_changes(tmp_path
     custom = second["metadata"]["custom"]["value"]
     assert custom["common"]["value"] == "kept"
     assert custom["placement"]["value"] == "beside MCU"
-    assert second["pins"]["1"]["metadata"]["capacitance_pF"]["value"] == 5
-    assert "capacitance_pF" not in first["pins"]["1"]["metadata"]
+    assert second["pins"]["1"]["metadata"]["capacitance"]["value"] == pytest.approx(5e-12)
+    assert "capacitance" not in first["pins"]["1"]["metadata"]
 
 
 def test_complete_multidimensional_indices_and_common_identity(tmp_path):
@@ -86,7 +85,7 @@ def test_invalid_element_selectors(tmp_path, selector, code):
 def test_duplicate_elements_and_scalar_overrides_rejected(tmp_path):
     duplicate = SOURCE.replace(
         "    )\n",
-        "            [1]:\n                params:\n                    capacitance: 330\n    )\n",
+        "            [1]:\n                params:\n                    capacitance: 330n\n    )\n",
     )
     with pytest.raises(DiagnosticError, match="array.element-overlap"):
         compile_source(tmp_path, duplicate)
@@ -107,15 +106,15 @@ def test_element_identity_overrides_rejected(tmp_path, key):
 def test_evaluate_inspection_reports_explicit_variants(tmp_path):
     report, _ = evaluate_project(*resolve_project(make(tmp_path, SOURCE)))
     records = {p["path"]: p for p in report["instances"]}
-    assert records["B.caps"]["parameters"]["capacitance"]["value"] == "100"
-    assert records["B.caps[1]"]["parameters"]["capacitance"]["value"] == "220"
+    assert records["B.caps"]["parameters"]["capacitance"]["value"] == 1e-7
+    assert records["B.caps[1]"]["parameters"]["capacitance"]["value"] == 2.2e-7
     assert records["B.caps[1]"]["dimensions"] == []
 
 
 def test_each_element_can_supply_required_parameter(tmp_path):
     source = SOURCE.replace("number = 100", "number").replace(
         "        elements:\n",
-        "        elements:\n            [0]:\n                params:\n                    capacitance: 10\n",
+        "        elements:\n            [0]:\n                params:\n                    capacitance: 10n\n",
     )
     circuit = compile_source(tmp_path, source)
     assert [p["value"]["value"] for p in circuit["parts"]] == ["10nF", "220nF"]
@@ -130,11 +129,11 @@ def test_lsp_navigates_element_parameter_name(tmp_path):
     path = tmp_path / "main.nosch"
     text = path.read_text()
     result = analyze(path, tmp_path, {path: text})
-    offset = text.index("capacitance: 220")
+    offset = text.index("capacitance: 220n")
     reference = result.reference_at(path, offset)
     assert reference is not None
     assert text[reference.target.start_pos : reference.target.end_pos].startswith(
-        "capacitance: number"
+        "capacitance: capacitance"
     )
 
 
@@ -144,7 +143,7 @@ def test_overrides_apply_to_child_parts_of_block_arrays(tmp_path):
             "board B:\n",
             """block Unit:
     params:
-        capacitance: number = 100
+        capacitance: capacitance = 100n
     ports:
         signal: nettype.passive
     inst cap: Cap(
@@ -161,7 +160,7 @@ board B:
         .replace("            1: rail\n            2: no_connect", "            signal: rail")
     )
     source = source.replace(
-        "                    pins:\n                        1:\n                            capacitance_pF: 2 + 3\n",
+        "                    pins:\n                        1:\n                            capacitance: 2p + 3p\n",
         "",
     )
     circuit = compile_source(tmp_path, source)

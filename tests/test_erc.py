@@ -119,8 +119,8 @@ def test_power_ground_conflict(tmp_path):
 
 
 def test_current_budget_known_overload_and_missing_load(tmp_path):
-    cap = "            max_source_current_mA: 20\n"
-    load = "            max_load_current_mA: 30\n"
+    cap = "            max_source_current: 20m\n"
+    load = "            max_load_current: 30m\n"
     assert codes(pair(tmp_path, "power_output", "power_input", "power", cap, load)) == [
         "current_overload"
     ]
@@ -213,7 +213,7 @@ def test_net_waiver_preserves_diagnostics_and_reason_in_reports(tmp_path):
 
 
 @pytest.mark.parametrize(
-    "check", ["required_connection", "do_not_connect", "unused_pin", "waiver_scope", "typo"]
+    "check", ["required_connection", "do_not_connect", "unused_pin", "waiver_scope", '"net:n:x"']
 )
 def test_invalid_or_nonwaivable_check_is_rejected(tmp_path, check):
     from noscheme.diagnostics import DiagnosticError
@@ -228,6 +228,20 @@ def test_invalid_or_nonwaivable_check_is_rejected(tmp_path, check):
 """,
         )
     assert exc.value.diagnostics[0].code == "metadata.waiver"
+
+
+def test_waiver_without_matching_application_is_reported(tmp_path):
+    from noscheme.erc import apply_erc
+
+    circuit = compile_source(
+        tmp_path,
+        """board B:
+    net n: nettype.passive
+        waivers:
+            typo: "reason"
+""",
+    )
+    assert "erc.waiver_target" in {d.code for d in apply_erc(circuit)}
 
 
 @pytest.mark.parametrize("reason", ['""', '"  "', "123", "true"])

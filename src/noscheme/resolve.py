@@ -17,6 +17,9 @@ from .metadata import (
     possible_selections,
 )
 from .project import IDENTIFIER, expression_path, fail, load_project
+from .units import QUANTITIES
+
+PARAMETER_TYPES = frozenset({"number", "string", *QUANTITIES})
 
 
 @dataclass(frozen=True)
@@ -47,6 +50,7 @@ class Definition:
     metadata: dict[str, Value]
     body: tuple[a.Net | a.Instance, ...]
     body_module: str
+    electrical: str | None = None  # A net type's builtin nettype kind.
 
 
 class Resolver:
@@ -78,6 +82,22 @@ class Resolver:
                 names[0].span,
             )
         return (symbol.module, symbol.name)
+
+    def builtin_base(self, module, source):
+        """Return the builtin nettype kind that a root net type extends, or None."""
+        if source.kind != "nettype":
+            return None
+        prefix = ".".join(n.text for n in source.base[:-1])
+        symbol = self.project.modules[module].symbols.get(prefix)
+        if symbol is None or symbol.module != "noscheme" or symbol.name != "nettype":
+            return None
+        if source.base[-1].text not in NETTYPES:
+            fail(
+                "metadata.enum",
+                f"expected a nettype value from: {', '.join(sorted(NETTYPES))}",
+                source.base[-1].span,
+            )
+        return source.base[-1].text
 
     def keys(self, key):
         if key.items:
@@ -131,8 +151,13 @@ class Resolver:
         sections = {s.name: s for s in source.body if isinstance(s, a.Section)}
         params = dict(parent.parameters) if parent else {}
         for f in sections.get("params", a.Section(source.span, "", ())).entries:
-            if not isinstance(f.value, a.Name) or f.value.text not in {"number", "string"}:
-                fail("resolve.parameter-type", "parameters have type number or string", f.span)
+            if not isinstance(f.value, a.Name) or f.value.text not in PARAMETER_TYPES:
+                fail(
+                    "resolve.parameter-type",
+                    "parameters have type number, string, or a quantity: "
+                    + ", ".join(sorted(QUANTITIES)),
+                    f.span,
+                )
             name = f.key.first.text
             if not re.fullmatch(IDENTIFIER, name):
                 fail("resolve.parameter-name", "parameter name must be an identifier", f.key.span)
@@ -235,7 +260,16 @@ class Resolver:
                         )
                     aliases[alias], locations[alias] = name, value.span
         metadata_fields = sections.get("metadata", a.Section(source.span, "", ())).entries
-        metadata = read_metadata(metadata_fields, source.kind, self.project, module, params)
+        if source.kind == "nettype":
+            # A net type's body holds the metadata of a net declaration.
+            metadata_fields = tuple(n for n in source.body if isinstance(n, a.Field))
+        metadata = read_metadata(
+            metadata_fields,
+            "net" if source.kind == "nettype" else source.kind,
+            self.project,
+            module,
+            params,
+        )
         body = (
             parent.body
             if parent
@@ -267,6 +301,7 @@ class Resolver:
             combined,
             body,
             parent.body_module if parent else module,
+            parent.electrical if parent else self.builtin_base(module, source),
         )
 
     def resolve_interfaces(self):
@@ -290,14 +325,14 @@ class Resolver:
                 active.add(current)
                 chain.append(current)
                 source = sources[current]
-                if not source.base:
+                if not source.base or self.builtin_base(current[0], source):
                     break
                 current = self.symbol(current[0], source.base, {source.kind})
             for key in reversed(chain):
                 source = sources[key]
                 parent = (
                     self.definitions[self.symbol(key[0], source.base, {source.kind})]
-                    if source.base
+                    if source.base and not self.builtin_base(key[0], source)
                     else None
                 )
                 self.definitions[key] = self.build(key[0], source, parent)
@@ -356,13 +391,13 @@ class Resolver:
                 names.insert(0, current.name)
                 current = current.base
             names.insert(0, current)
-            return self.definitions[self.symbol(value.module, tuple(names), {"bundle"})]
+            return self.definitions[self.symbol(value.module, tuple(names), {"bundle", "nettype"})]
         if isinstance(expr, a.Member):
             enum(expr, "nettype", NETTYPES, self.project, value.module)
             return None
         if not isinstance(expr, a.Name):
-            fail("resolve.net-type", "expected a nettype value or named bundle type", expr.span)
-        return self.definitions[self.symbol(value.module, (expr,), {"bundle"})]
+            fail("resolve.net-type", "expected a nettype value, net type, or bundle", expr.span)
+        return self.definitions[self.symbol(value.module, (expr,), {"bundle", "nettype"})]
 
     def select(self, value, selectors):
         for selector in selectors:
@@ -583,10 +618,7 @@ class Resolver:
                     Value(callee.base, callee.base.span, value.module), parameters, depth + 1
                 )
             elif (namespace := expression_path(callee.base)) is not None:
-                helpers = {
-                    "num": {"int", "ceil", "floor", "round"},
-                    "f": {"Ohm", "kOhm", "MOhm", "pF", "nF", "uF", "nH", "uH", "mH"},
-                }
+                helpers = {"num": {"int", "ceil", "floor", "round"}}
                 symbol = self.project.modules[value.module].symbols.get(namespace)
                 if (
                     namespace.split(".")[0] in parameters
@@ -597,7 +629,7 @@ class Resolver:
                 ):
                     fail(
                         "resolve.helper",
-                        "unknown or unimported formatting/numeric helper",
+                        "unknown or unimported numeric helper",
                         callee.span,
                     )
             else:
@@ -729,10 +761,10 @@ def validate_current_loads(metadata, interface, aliases):
         return metadata
     resolved, seen = {}, set()
     for name, group in groups.value.items():
-        if set(group.value) != {"pins", "max_load_current_mA"}:
+        if set(group.value) != {"pins", "max_load_current"}:
             fail(
                 "metadata.current_load",
-                "each current load requires pins and max_load_current_mA",
+                "each current load requires pins and max_load_current",
                 group.span,
             )
         members = group.value["pins"]
@@ -756,7 +788,7 @@ def validate_current_loads(metadata, interface, aliases):
                     f"current load pin {number!r} must permit role.power_input",
                     members.span,
                 )
-            if "max_load_current_mA" in pin.metadata:
+            if "max_load_current" in pin.metadata:
                 fail(
                     "metadata.current_load",
                     f"pin {number!r} cannot have both an individual and grouped load",

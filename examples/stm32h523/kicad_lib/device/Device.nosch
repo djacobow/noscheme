@@ -2,7 +2,7 @@ from noscheme import role
 
 component C:
     params:
-        value: string = "C"
+        value: capacitance
     pins:
         "1":
             role: role.passive
@@ -29,7 +29,7 @@ component C:
 
 component R:
     params:
-        value: string = "R"
+        value: resistance
     pins:
         "1":
             role: role.passive

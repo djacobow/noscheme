@@ -719,3 +719,61 @@ def test_analysis_reuses_open_file_parse_and_still_checks_unimported_files(proje
     result = analyze(draft, project, {draft: "board Broken:\n    inst ???\n"})
     assert any(d.severity == "error" and d.span.filename == str(draft) for d in result.diagnostics)
     assert calls == [str(draft)]
+
+
+def test_check_calls_hover_rules_and_keep_field_names_out_of_scope(tmp_path):
+    source = """from noscheme import role, nettype, std
+component P:
+    pins:
+        1:
+            role: role.passive
+            capacitance: 2p
+block Bus:
+    params:
+        capacitance: number = 3
+    ports:
+        line: nettype.passive
+            checks:
+                load: std.sum(capacitance, max=capacitance * 10)
+    inst p: P(
+        connections:
+            1: line
+    )
+board B:
+    net n: nettype.passive
+    inst bus: Bus(
+        connections:
+            line: n
+    )
+"""
+    make(tmp_path, "")
+    path = tmp_path / "main.nosch"
+    path.write_text(source)
+    result = analyze(path, tmp_path / "noscheme.toml", {})
+    assert all(d.severity == "warning" or d.code.startswith("erc.") for d in result.diagnostics)
+    call = source.index("std.sum")
+    assert result.hover_at(path, call + 5).description.startswith(
+        "net rule std.sum(field, where, net, min, max)"
+    )
+    field = source.index("capacitance, max")
+    limit = source.index("capacitance * 10")
+    declaration = source.index("capacitance: number")
+    assert result.reference_at(path, field) is None
+    assert result.reference_at(path, limit).target.start_pos == declaration
+
+
+def test_net_type_navigation_hover_and_checks(tmp_path):
+    from test_nettypes import SOURCE as nettypes
+
+    source = "from noscheme import role, unused, nettype\n" + nettypes
+    make(tmp_path, "")
+    path = tmp_path / "main.nosch"
+    path.write_text(source)
+    result = analyze(path, tmp_path / "noscheme.toml", {})
+    declaration = source.index("I2CLine extends")
+    use = source.index("scl: I2CLine") + len("scl: ")
+    assert result.reference_at(path, use).target.start_pos == declaration
+    hover = result.hover_at(path, declaration).description
+    assert "nettype main.I2CLine" in hover and "Electrical type: nettype.open_drain" in hover
+    call = source.index("std.parallel(pull_resistance")
+    assert result.hover_at(path, call).description.startswith("net rule std.parallel(")

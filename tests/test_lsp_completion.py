@@ -1,5 +1,6 @@
 """Completion must work on unfinished editor buffers without changing source."""
 
+import pytest
 from noscheme.lsp_completion import completion_items
 from test_circuit import make
 
@@ -167,32 +168,54 @@ def test_nested_custom_metadata_does_not_offer_footprints(tmp_path):
     assert not complete(tmp_path, source)
 
 
-def test_erc_checker_completion_with_unclosed_quote(tmp_path):
-    suggestions = complete(
-        tmp_path,
-        PRELUDE
-        + """    net bus: nettype.digital
-        checks:
-            drive:
-                checker: "std.co|
-""",
+def check_source(call):
+    return (
+        PRELUDE.replace(
+            "from noscheme import role, nettype", "from noscheme import role, nettype, std"
+        )
+        + "    net bus: nettype.digital\n        checks:\n            drive: "
+        + call
+        + "\n"
     )
-    assert set(suggestions) == {"std.count"}
-    assert suggestions["std.count"].text == '"std.count"'
 
 
-def test_erc_parameter_and_predicate_completion(tmp_path):
-    source = (
-        PRELUDE
-        + """    net bus: nettype.digital
-        checks:
-            drive:
-                checker: "std.count"
-                params:
-                    pre|
+@pytest.mark.parametrize(
+    "call,expected",
+    [
+        ("std.co|", {"std.count"}),
+        ("std.count(m|", {"min", "max", "missing"}),
+        ("std.count(std.active_|", {"std.active_digital_driver"}),
+        ("std.count(std.active_digital_driver, m|", {"min", "max", "missing"}),
+        ("std.sum(capa|", {"capacitance"}),
+        ("std.sum(capacitance, net=wir|", {"wiring_capacitance"}),
+        ("std.sum(capacitance, where=[tri|", {"tristate_capable"}),
+        ("std.count(\n                std.active_|", {"std.active_digital_driver"}),
+        ("unknown.rule(m|", set()),
+    ],
+)
+def test_erc_rule_call_completion(tmp_path, call, expected):
+    assert set(complete(tmp_path, check_source(call))) == expected
+
+
+def test_erc_completion_offers_keywords_and_scoped_rules(tmp_path):
+    suggestions = complete(tmp_path, check_source("std.count(ma|"))
+    assert suggestions["max"].text == "max="
+    pin = """from noscheme import role, nettype, std
+component Part:
+    pins:
+        1:
+            role: role.passive
+            checks:
+                drive: std.|
+board B:
+    net bus: nettype.passive
 """
-    )
-    assert set(complete(tmp_path, source)) == {"predicate"}
-    source = source.replace("pre|", 'predicate: "std.active_|')
-    assert set(complete(tmp_path, source)) == {"std.active_digital_driver"}
+    assert set(complete(tmp_path, pin)) == {
+        "std.bias_reference",
+        "std.current_groups",
+        "std.pin_do_not_connect",
+        "std.pin_required_connection",
+        "std.pin_unused_pin",
+    }
+    source = check_source("std.co|")
     assert not complete(tmp_path, source.replace("        checks:", "        custom:"))

@@ -292,7 +292,7 @@ autocmd FileType noscheme nmap <buffer> gr <plug>(lsp-references)
 
 Results cover the selected board's reachable module graph, including unopened
 dependencies and current unsaved buffers. Supported targets include component,
-block and bundle definitions, local and global nets, parameters, public ports,
+block, bundle, and net type definitions, local and global nets, parameters, public ports,
 physical pins/aliases, and bundle fields. Imported aliases are grouped with
 their original definition; unrelated symbols with the same spelling stay
 separate. Import sites count as references. The client's `includeDeclaration`
@@ -316,7 +316,7 @@ buffers when satisfied. An optional mapping is:
 autocmd FileType noscheme nmap <buffer> <leader>rn <plug>(lsp-rename)
 ```
 
-Supported targets are nets, parameters, component/block/bundle names, public
+Supported targets are nets, parameters, component/block/bundle/net type names, public
 block ports, and bundle fields. Qualified references keep their module prefix.
 Place the cursor on the final name in `Device.R`, not on `Device`.
 
@@ -358,8 +358,7 @@ After accepting the edit, compile/export and reimport normally. Footprint UUIDs
 and reference designators remain stable; source paths and private net names may
 change with the instance spelling.
 
-Targeted waiver pin paths on the containing board and qualified application-path
-waiver keys are updated too. Comments, custom text, reasons, and existing identity
+Targeted waiver pin paths on the containing board are updated too. Comments, custom text, reasons, and existing identity
 strings stay unchanged. The identity insertion preserves comments and indentation.
 
 Physical pin IDs and aliases, internal instance names in reusable blocks,
@@ -373,6 +372,7 @@ board are included; outside consumers of a reusable library require separate upd
 
 Use `:LspHover` on a declaration or use. Hover includes:
 
+- Net types: base type, builtin electrical type, and merged metadata, including checks.
 - Components, blocks, and bundles: base definition, parameter defaults or required
   values, public interface, and merged metadata. Core metadata shows its source
   module and line, including inherited footprint selections.
@@ -402,9 +402,14 @@ LED resistors, their 1kOhm values, and their selected 0603 footprints.
 
 ## ERC application completion
 
-Inside `checks`, completion suggests registered `checker`, `predicate`, and
-`reducer` names, including when the string's closing quote has not been typed.
-Under `params`, suggestions come from the selected checker's parameter schema.
-The registry includes modules from the project's `erc_modules` configuration.
+Inside `checks`, completion suggests imported rules of the right scope (pin or
+net) as you type a call, such as `std.co` → `std.count`. Inside the parentheses
+it offers the rule's remaining parameters as `name=` keywords, then values for
+the parameter being typed: predicates and boolean fields for selectors, endpoint
+or net field names for field parameters, and the `missing` policies. Calls may
+span lines. Hovering a rule shows its parameters and summary. Field-name
+arguments are not linked to same-named parameters, so renaming a parameter leaves
+them unchanged. The registry includes modules from the project's `erc_modules`
+configuration.
 Application-specific ERC diagnostics use the same source locations and related
 locations as command-line reports.

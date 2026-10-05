@@ -12,6 +12,7 @@ from .project import expression_path, load_project, read_config, source_text
 from .resolve import Resolver
 from .lsp_bundles import BundleLookup
 from .lsp_hover import HoverDetails
+from .metadata import rule_call
 
 
 @dataclass(frozen=True)
@@ -207,8 +208,31 @@ def reference_index(project, definitions, hover=None):
                             for child in value:
                                 expression(child)
 
+            def check_call(call):
+                # Field and selector names refer to metadata fields, not names in scope.
+                try:
+                    _, rule, arguments, missing = rule_call(call, project, module.name, local)
+                except DiagnosticError:
+                    expression(call)
+                    return
+                expression(call.callee)
+                for name, value in arguments.items():
+                    kind = rule.parameters[name]
+                    items = value.items if isinstance(value, a.ListExpr) else (value,)
+                    if kind == "selector":
+                        for item in items:
+                            if not isinstance(item, a.Name):
+                                expression(item)
+                    elif kind not in {"field", "net_fields"}:
+                        expression(value)
+
             def metadata_expressions(entry):
                 if entry.key.first.text in {"custom", "aliases"}:
+                    return
+                if entry.key.first.text == "checks":
+                    for application in entry.fields:
+                        if application.value is not None:
+                            check_call(application.value)
                     return
                 expression(entry.value)
                 expression(entry.default)
@@ -323,6 +347,8 @@ def reference_index(project, definitions, hover=None):
                     expression(node.type)
                     for metadata in node.fields:
                         metadata_expressions(metadata)
+                elif isinstance(node, a.Field) and item.kind == "nettype":
+                    metadata_expressions(node)
                 elif isinstance(node, a.Field) and item.kind == "bundle":
                     if owner and node.key.first.text in owner.interface:
                         member = owner.interface[node.key.first.text]

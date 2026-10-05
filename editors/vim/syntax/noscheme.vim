@@ -7,6 +7,8 @@ syntax case match
 syntax iskeyword 65-90,97-122,48-57,_,35
 
 syntax keyword noschemeDeclaration component block board bundle nextgroup=noschemeDefinition skipwhite
+" nettype declares a net type only before a name; nettype.member is a builtin value.
+syntax match noschemeDeclaration /\<nettype\ze\s\+[A-Za-z_#]/ nextgroup=noschemeDefinition skipwhite
 syntax match noschemeDefinition /[A-Za-z_#][A-Za-z0-9_#]*/ contained
 syntax keyword noschemeKeyword inst net global extends
 syntax keyword noschemeImport from import as
@@ -14,10 +16,12 @@ syntax keyword noschemeType number string
 syntax keyword noschemeConstant true false no_connect
 syntax match noschemeField /^\s*\zs[A-Za-z_#][A-Za-z0-9_#]*\ze\s*:/
 syntax match noschemeSection /^\s*\zs\%(pins\|ports\|params\|defaults\|metadata\|connections\|elements\|checks\)\ze\s*:/
-syntax match noschemeBuiltin /\<\%(role\|nettype\|unused\|bias\)\.[A-Za-z_#][A-Za-z0-9_#]*\>/
-syntax match noschemeFunction /\<\%(f\|num\)\.[A-Za-z_#][A-Za-z0-9_#]*\>/
+syntax match noschemeBuiltin /\<\%(role\|nettype\|unused\|bias\|std\)\.[A-Za-z_#][A-Za-z0-9_#]*\>/
+syntax match noschemeFunction /\<num\.[A-Za-z_#][A-Za-z0-9_#]*\>/
 syntax match noschemeFunction /\.\zsformat\ze\s*(/
 syntax match noschemeNumber /\<[0-9]\+\%([.][0-9]\+\)\?\%([eE][+-]\?[0-9]\+\)\?\>/
+" SI-prefixed literals: 4.7k, 4k7, 100n, 4R7.
+syntax match noschemeNumber /\<[0-9]\+\%([.][0-9]\+\)\?[afpnumkMGTPR]\%([0-9]\+\)\?\>/
 syntax match noschemeOperator /<<\|>>\|[=+*\/-]/
 syntax match noschemeDelimiter /[][():,.]/
 

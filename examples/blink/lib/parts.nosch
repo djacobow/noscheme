@@ -2,7 +2,7 @@ from noscheme import role, unused
 
 component Resistor:
     params:
-        value: string
+        value: resistance
     pins:
         1..2:
             role: role.passive

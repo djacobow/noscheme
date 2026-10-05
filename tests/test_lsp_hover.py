@@ -8,10 +8,10 @@ from noscheme.lsp_hover import BUILTIN_HELP, format_hover
 from noscheme.metadata import ROLES, NETTYPES, UNUSED
 from test_resolve import make_project
 
-LIBRARY = """from noscheme import role, unused, f
+LIBRARY = """from noscheme import role, unused
 component Resistor:
     params:
-        value: string
+        value: resistance
     pins:
         1:
             aliases: [terminal]
@@ -24,7 +24,7 @@ component Resistor:
             kicad_footprint_candidates: ["Test:0603", "Test:0805"]
 component Pullup extends Resistor:
     defaults:
-        value: f.kOhm(4.7)
+        value: 4.7k
 """
 
 SOURCE = """import parts
@@ -123,7 +123,7 @@ def test_unsaved_inherited_metadata_and_bounded_custom_lists(tmp_path):
 
 
 def test_evaluation_failure_keeps_declared_hover_without_claiming_actual_values(tmp_path):
-    source = SOURCE.replace('value: "10kOhm"', "value: 2")
+    source = SOURCE.replace('value: "10kOhm"', "value: 1 / 0")
     path, result = setup(tmp_path, source)
     assert any(d.severity == "error" for d in result.diagnostics)
     text = hover(result, path, source, "resistors[")
@@ -163,7 +163,7 @@ def test_builtin_help_covers_enum_registries():
 )
 def test_builtin_hover_respects_imports_without_navigation(tmp_path, import_line, prefix):
     library = LIBRARY.replace(
-        "from noscheme import role, unused, f", import_line + "\nfrom noscheme import unused, f"
+        "from noscheme import role, unused", import_line + "\nfrom noscheme import unused"
     ).replace("role.passive", prefix + ".passive")
     _, result = setup(tmp_path, library=library)
     path = tmp_path / "parts.nosch"

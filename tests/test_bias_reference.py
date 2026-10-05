@@ -3,7 +3,7 @@ import pytest
 from noscheme.erc import check_circuit
 from test_circuit import compile_source
 
-SOURCE = """from noscheme import bias
+SOURCE = """from noscheme import bias, std
 component Pull:
     pins:
         1:
@@ -12,7 +12,8 @@ component Pull:
         2:
             role: role.passive
             bias: bias.pull_up
-            bias_reference_pin: "reference"
+            checks:
+                reference: std.bias_reference("reference")
 component Driver:
     pins:
         1:
@@ -66,9 +67,9 @@ def test_invalid_reference_is_source_located(tmp_path, old, new, reason):
 
 
 def test_no_reference_annotation_retains_existing_behavior(tmp_path):
-    source = SOURCE.replace('            bias_reference_pin: "reference"\n', "").replace(
-        "nettype.power", "nettype.ground"
-    )
+    source = SOURCE.replace(
+        '            checks:\n                reference: std.bias_reference("reference")\n', ""
+    ).replace("nettype.power", "nettype.ground")
     assert not results(tmp_path, source)
 
 
@@ -77,7 +78,7 @@ def test_reference_check_supports_targeted_waiver(tmp_path):
         "    net bus: nettype.open_drain\n",
         """    net bus: nettype.open_drain
         waivers:
-            "pin:pull.2:bias_reference":
+            reference:
                 reason: "Intentional test arrangement"
                 pins: ["pull.2"]
 """,

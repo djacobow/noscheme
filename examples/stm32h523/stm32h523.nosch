@@ -13,7 +13,7 @@ Use the placement notes on decoupling capacitors during PCB layout. All small
 resistors/capacitors use 0603. No unverified current capacities are annotated.
 */
 
-from noscheme import role, nettype, bias
+from noscheme import role, nettype, bias, std
 from interfaces import I2C, SPI, USB2, SWD
 from components import I2CPullup, InputBias0603, Capacitor0603
 from components import PushButton, Indicator
@@ -109,7 +109,7 @@ board STM32H523Reference:
             1: global.v3v3
             2: global.gnd
         params:
-            value: "100nF"
+            value: 100n
         metadata:
             custom:
                 placement: "Place beside display header supply pin."
@@ -119,7 +119,7 @@ board STM32H523Reference:
             1: global.v3v3
             2: global.gnd
         params:
-            value: "4.7uF"
+            value: 4.7u
     )
 
     inst oled_header: Header1x4(
@@ -134,10 +134,13 @@ board STM32H523Reference:
                     external_role: role.power_input
                 2:
                     external_role: role.ground
+                // Assumes the display module adds no pull-ups; model them here if it does.
                 3:
                     external_role: role.open_drain
+                    bias: bias.none
                 4:
                     external_role: role.open_drain
+                    bias: bias.none
     )
 
     inst oled_scl_pullup: I2CPullup(
@@ -182,10 +185,13 @@ board STM32H523Reference:
                             header5v: role.power_output
                 4:
                     external_role: role.power_input
+                // Assumes expansion devices add no I2C pull-ups of their own.
                 5:
                     external_role: role.open_drain
+                    bias: bias.none
                 6:
                     external_role: role.open_drain
+                    bias: bias.none
                 7:
                     external_role: role.digital_input
                 8:
@@ -240,8 +246,9 @@ board STM32H523Reference:
             pins:
                 2:
                     bias: bias.pull_up
-                    pull_resistance_ohm: 10000
-                    bias_reference_pin: "1"
+                    pull_resistance: 10k
+                    checks:
+                        reference: std.bias_reference("1")
     )
     // NRST uses the MCU internal pull-up and the existing 100 nF reset capacitor.
     inst reset_button: PushButton(
@@ -264,8 +271,9 @@ board STM32H523Reference:
             pins:
                 1:
                     bias: bias.pull_down
-                    pull_resistance_ohm: 10000
-                    bias_reference_pin: "2"
+                    pull_resistance: 10k
+                    checks:
+                        reference: std.bias_reference("2")
     )
     // Bias annotations are explicit; passive parts alone do not imply propagation.
 

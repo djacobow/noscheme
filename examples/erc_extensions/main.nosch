@@ -1,6 +1,6 @@
 // Electrical-check example; simplified pin models, not a fabrication design.
-from noscheme import role, nettype
-from noscheme import bias
+from noscheme import role, nettype, bias, std
+import demo
 // Pull models only the bus-side electrical contribution of a pull-up.
 // Its supply terminal is omitted for this registry demonstration. For a real
 // two-terminal resistor, see I2CPullup in ../stm32h523/components.nosch and
@@ -10,38 +10,21 @@ component Pull:
         1:
             role: role.passive
             bias: bias.pull_up
-            pull_resistance_ohm: 4700
-            capacitance_pF: 2
+            pull_resistance: 4.7k
+            capacitance: 2p
 component Device:
     pins:
         1:
             role: role.open_drain
             bias: bias.none
-            capacitance_pF: 10
+            capacitance: 10p
 board B:
     net bus: nettype.open_drain
         checks:
-            pin_count:
-                checker: "demo.pin_count"
-                params:
-                    max_pins: 3
-            pull_up:
-                checker: "std.reduce"
-                params:
-                    attribute: "pull_resistance_ohm"
-                    reducer: "std.parallel"
-                    where:
-                        bias: bias.pull_up
-                    min: 2000
-                    max: 5000
-            capacitance:
-                checker: "std.reduce"
-                params:
-                    attribute: "capacitance_pF"
-                    reducer: "std.sum"
-                    net_attributes: ["wiring_capacitance_pF"]
-                    max: 20
-        wiring_capacitance_pF: 2
+            pin_count: demo.pin_count(max_pins=3)
+            pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=2k, max=5k)
+            capacitance: std.sum(capacitance, net=wiring_capacitance, max=20p)
+        wiring_capacitance: 2p
     inst pull[2]: Pull(
         connections:
             1: bus

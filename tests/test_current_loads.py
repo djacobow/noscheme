@@ -9,7 +9,7 @@ SOURCE = """component Supply:
     pins:
         1:
             role: role.power_output
-            max_source_current_mA: 150
+            max_source_current: 150m
 component MCU:
     pins:
         1:
@@ -21,7 +21,7 @@ component MCU:
         current_loads:
             core:
                 pins: [vdd, "2"]
-                max_load_current_mA: 100
+                max_load_current: 100m
 board B:
     net rail: nettype.power
     inst supply: Supply(
@@ -74,15 +74,15 @@ def test_group_rejects_split_or_disconnected_pins(tmp_path, connection):
         ('[vdd, "2"]', "[]"),
         ('[vdd, "2"]', '[vdd, "1"]'),
         ('[vdd, "2"]', "[missing]"),
-        ("max_load_current_mA: 100", "max_load_current_mA: -1"),
-        ("max_load_current_mA: 100", "max_load_current_mA: true"),
-        ("max_load_current_mA: 100", "unexpected: 100"),
-        ("                max_load_current_mA: 100\n", ""),
+        ("max_load_current: 100m", "max_load_current: -1m"),
+        ("max_load_current: 100m", "max_load_current: true"),
+        ("max_load_current: 100m", "unexpected: 100"),
+        ("                max_load_current: 100m\n", ""),
         ("role: role.power_input", "role: role.passive"),
-        ("aliases: [vdd]", "aliases: [vdd]\n            max_load_current_mA: 50"),
+        ("aliases: [vdd]", "aliases: [vdd]\n            max_load_current: 50m"),
         (
-            "max_load_current_mA: 100",
-            "max_load_current_mA: 100\n            extra:\n                pins: [vdd]\n                max_load_current_mA: 10",
+            "max_load_current: 100m",
+            "max_load_current: 100m\n            extra:\n                pins: [vdd]\n                max_load_current: 10m",
         ),
     ],
 )
@@ -98,7 +98,7 @@ def test_group_and_individual_loads_sum(tmp_path):
     pins:
         1:
             role: role.power_input
-            max_load_current_mA: 60
+            max_load_current: 60m
 board B:
     inst extra: Extra(
         connections:
@@ -115,14 +115,14 @@ def test_inherited_group_amount_override(tmp_path):
     metadata:
         current_loads:
             core:
-                max_load_current_mA: 160
+                max_load_current: 160m
 board B:""",
     ).replace("inst mcu: MCU", "inst mcu: Bigger")
     assert [d.code for d in diagnostics(tmp_path, source)] == ["erc.current_overload"]
 
 
 def test_group_requires_capacity_even_without_pin_annotations(tmp_path):
-    source = SOURCE.replace("            max_source_current_mA: 150\n", "")
+    source = SOURCE.replace("            max_source_current: 150m\n", "")
     assert [d.code for d in diagnostics(tmp_path, source)] == ["erc.incomplete_budget"]
 
 
@@ -145,11 +145,11 @@ def test_independent_supply_groups_on_separate_rails(tmp_path):
     source = (
         SOURCE.replace('[vdd, "2"]', "[vdd]")
         .replace(
-            "                max_load_current_mA: 100",
-            """                max_load_current_mA: 100
+            "                max_load_current: 100m",
+            """                max_load_current: 100m
             analog:
                 pins: ["2"]
-                max_load_current_mA: 20""",
+                max_load_current: 20m""",
         )
         .replace(
             "    net rail:",

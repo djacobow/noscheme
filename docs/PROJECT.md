@@ -148,6 +148,9 @@ USB2 contacts, and a grounded shield. The microSD socket uses the Hirose
 DM3AT-SF-PEJM5 footprint, explicit SPI roles and detect contacts, pull-ups, and
 local 100 nF/4.7 uF capacitors. The OLED header has the same local capacitor pair.
 Both I2C buses have 4.7 kOhm pull-ups; all these resistors/capacitors use 0603.
+The `I2CLine` net type in `interfaces.nosch` checks every I2C line for a parallel
+pull-up between 1.5 and 10 kOhm. The MCU pins and both headers declare no pull of
+their own, so a module that adds pull-ups must be modeled for the check to stay valid.
 The Cortex connector uses a vertical SMT 2x5 1.27 mm footprint with the standard
 SWD pinout. OLED, expansion, and BOOT0 headers also use vertical SMT footprints
 at 2.54 mm pitch. Prefer SMT throughout; the USB connector retains its shield
@@ -227,18 +230,23 @@ resulting definition. See [LRM §3](LRM.md#3-declarations) and
 
 ### Parameters and metadata
 
-Parameters begin with `number` and `string`, with explicit defaults and arguments.
-Restricting their use keeps expansion predictable. Integer/double tags support
-ordinary arithmetic while making conversion in integer contexts visible.
-Part-value helpers format labels; they do not supply electrical quantities to ERC.
+Parameters are `number`, `string`, or a physical quantity such as `resistance`,
+with explicit defaults and arguments. Restricting their use keeps expansion
+predictable. Integer/double tags support ordinary arithmetic while making
+conversion in integer contexts visible. Literals take SI prefixes (`4.7k`, `4k7`,
+`100n`), and a quantity-typed part value displays with its unit (`4.7kOhm`), so one
+parameter can drive both the displayed value and an ERC field. Quantities name
+units without dimensional checking: that would add type machinery the design does
+not need yet, and annotations leave room for it later.
 [LRM §4](LRM.md#4-parameters-and-expressions) defines evaluation and formatting.
 
 Recognized metadata is checked so a typo does not silently disable a constraint.
 User conventions such as purchasing notes and DNP belong under `custom`. ERC
 extensions register net/pin rules, predicates, reducers, rule sets, and descriptive
-metadata through the same API as built-ins. Named `checks` applications and
-TOML `erc_rule_sets` select policies without changing the
-language grammar. The authoritative field tables are in
+metadata through the same API as built-ins. Each named `checks` entry is a call
+to an imported rule, such as `std.sum(capacitance, max=400p)`; together with
+TOML `erc_rule_sets`, these select policies using the existing expression
+grammar. The authoritative field tables are in
 [LRM §8](LRM.md#8-metadata-reference); the extension API is in
 [§12](LRM.md#12-extending-erc).
 
@@ -273,8 +281,12 @@ behavior through resistors, regulators, or other components. Ports are contracts
 not extra drivers; hierarchy must not multiply current loads or driver counts.
 Grouped supply loads and block aggregates express accounting boundaries explicitly.
 
-Electrical quantities use metadata with units in field names. Budgets are opt-in
-because many nets have no meaningful pull-resistance or capacitance limit. Missing
+Electrical quantities are metadata fields in base SI units; a field's declared
+quantity, not its name, carries the unit, and the scale belongs in the literal
+(`capacitance: 10p`). Budgets are opt-in
+because many nets have no meaningful pull-resistance or capacitance limit. A
+`nettype` definition gathers such checks for a kind of signal, such as an I2C
+line, so every net, port, and bundle field of that type carries them. Missing
 annotations do not imply zero load, and source capacities are not automatically
 summed. Tri-state checking verifies declared capability, not runtime arbitration.
 See [LRM §10](LRM.md#10-electrical-checks) for check behavior and waivers.

@@ -1,6 +1,6 @@
 // Common passives, LEDs, buttons, and small connectors.
 
-from noscheme import role, nettype, unused, f, bias
+from noscheme import role, nettype, unused, bias, std
 import Device
 
 // KiCad supplies pins, passive roles, reference prefix, and footprint hints.
@@ -17,21 +17,22 @@ component Resistor0603 extends Resistor:
 // Values are starting points for discussion, not selected from a power budget.
 component LedResistor extends Resistor0603:
     defaults:
-        value: f.kOhm(1)
+        value: 1k
 
 component I2CPullup extends Resistor0603:
     pins:
         2:
             bias: bias.pull_up
-            pull_resistance_ohm: 4700
-            bias_reference_pin: "1"
+            pull_resistance: value
+            checks:
+                reference: std.bias_reference("1")
     defaults:
-        value: f.kOhm(4.7)
+        value: 4.7k
 
 // Provisional values; verify input leakage and timing when selecting the MCU pins.
 component InputBias0603 extends Resistor0603:
     defaults:
-        value: f.kOhm(10)
+        value: 10k
 
 component PushButton:
     pins:
@@ -82,7 +83,7 @@ component GreenLed0603 extends Led:
 
 block Indicator:
     params:
-        resistance: string = f.kOhm(1)
+        resistance: resistance = 1k
     ports:
         drive: nettype.digital
     net anode: nettype.passive
@@ -140,7 +141,7 @@ component Capacitor extends Device.C:
 
 component Capacitor0603 extends Capacitor:
     defaults:
-        value: "100nF"
+        value: 100n
     metadata:
         footprint: "Capacitor_SMD:C_0603_1608Metric"
 

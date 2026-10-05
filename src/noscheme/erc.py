@@ -10,7 +10,8 @@ from .diagnostics import Diagnostic, DiagnosticError, Related, render_text
 from .erc_config import configuration_views
 from .erc_registry import Application, load_registry
 from .erc_views import Circuit, Context, freeze, value
-from .metadata import SCHEMAS, valid_quantity
+from .metadata import NUMERIC, SCHEMAS, valid_quantity
+from .units import QUANTITIES, constraint
 
 PENDING = ()
 
@@ -19,7 +20,7 @@ def failure(message, span):
     raise DiagnosticError([Diagnostic("erc.plugin", "error", message, span)])
 
 
-def validate_params(rule, supplied, span):
+def validate_params(rule, supplied, span, registry):
     if not isinstance(supplied, Mapping):
         failure("rule parameters must be a mapping", span)
     unknown = supplied.keys() - rule.parameters.keys()
@@ -39,15 +40,26 @@ def validate_params(rule, supplied, span):
             )
         if isinstance(kind, tuple):
             return item in kind[1]
-        if kind in {"number", "positive", "nonnegative"}:
-            return valid_quantity(item, kind)
+        if constraint(kind) in NUMERIC:
+            return valid_quantity(item, constraint(kind))
         if kind == "string":
             return isinstance(item, str)
         if kind == "bool":
             return isinstance(item, bool)
-        if kind == "attributes":
-            return isinstance(item, Mapping)
+        if kind == "field":
+            return isinstance(item, str) and bool(item)
+        if kind == "net_fields":
+            return isinstance(item, tuple) and all(isinstance(v, str) and v for v in item)
+        if kind == "selector":
+            return isinstance(item, tuple) and all(valid_term(term) for term in item)
         return True
+
+    def valid_term(term):
+        if not isinstance(term, tuple) or not term or not all(isinstance(v, str) for v in term[:2]):
+            return False
+        if term[0] == "predicate":
+            return len(term) == 2 and term[1] in registry.predicates
+        return term[0] == "role" and len(term) == 2 or term[0] == "field" and len(term) == 3
 
     for name, item in params.items():
         if item is None and name in rule.defaults and rule.defaults[name] is None:
@@ -74,6 +86,7 @@ def check_circuit(circuit, *, waiver_records=None, registry=None, _freeze_memo=N
     for scope in ("pin", "instance_pin", "port"):
         for key, kind in schemas[scope].items():
             if isinstance(kind, str):
+                kind = constraint(kind)
                 previous = pin_domains.get(key, kind)
                 pin_domains[key] = (
                     kind
@@ -84,7 +97,16 @@ def check_circuit(circuit, *, waiver_records=None, registry=None, _freeze_memo=N
                 )
     domains = {
         "pin": pin_domains,
-        "net": {key: kind for key, kind in schemas["net"].items() if isinstance(kind, str)},
+        "net": {
+            key: constraint(kind) for key, kind in schemas["net"].items() if isinstance(kind, str)
+        },
+        # The physical quantity of each field, for messages; independent of scope.
+        "quantity": {
+            key: kind
+            for scope in schemas.values()
+            for key, kind in scope.items()
+            if isinstance(kind, str) and kind in QUANTITIES
+        },
     }
     rulesets = circuit.get("erc_rule_sets", ["std.default"])
     for name in rulesets:
@@ -167,10 +189,21 @@ def check_circuit(circuit, *, waiver_records=None, registry=None, _freeze_memo=N
     schedules = {}
     default_params = {}
     for net in view.nets.values():
-        for declaration in net.declarations:
-            schedules[("net", declaration.label)] = tuple(
-                applications(context(declaration, net), declaration["path"] == net["path"])
-            )
+        # A net type's application reaches a net through every declaration of that type.
+        # Identical applications of a net-only rule run once, on the outermost declaration;
+        # other rules may inspect ctx.owner, so each declaration keeps its application.
+        seen = set()
+        for declaration in sorted(net.declarations, key=lambda d: d["path"] != net["path"]):
+            entries = []
+            for entry in applications(
+                context(declaration, net), declaration["path"] == net["path"]
+            ):
+                app, rule, active = entry
+                key = (app.name, app.checker, app.missing, active.span, repr(app.params))
+                if not rule.net_only or key not in seen:
+                    seen.add(key)
+                    entries.append(entry)
+            schedules[("net", declaration.label)] = tuple(entries)
     for pin in view.pins.values():
         schedules[("pin", pin.label)] = tuple(
             applications(context(pin, view.nets.get(pin["net"]), pin))
@@ -183,10 +216,12 @@ def check_circuit(circuit, *, waiver_records=None, registry=None, _freeze_memo=N
                 # application span for errors. Explicit arguments still validate
                 # independently, and callbacks receive immutable parameters.
                 if app.checker not in default_params:
-                    default_params[app.checker] = validate_params(rule, app.params, active.span)
+                    default_params[app.checker] = validate_params(
+                        rule, app.params, active.span, registry
+                    )
                 params = default_params[app.checker]
             else:
-                params = validate_params(rule, app.params, active.span)
+                params = validate_params(rule, app.params, active.span, registry)
             try:
                 results = tuple(rule.callback(active, **params))
                 for diagnostic in results:
@@ -218,15 +253,8 @@ def check_circuit(circuit, *, waiver_records=None, registry=None, _freeze_memo=N
                     if diagnostic.severity == "unknown"
                     else diagnostic.severity,
                 )
-                waiver = (waivers or {}).get(active.application)
-                # Short names apply only to applications on the outer declaration.
-                if (
-                    waiver is None
-                    and not ctx.pin
-                    and ctx.net
-                    and ctx.owner["path"] == ctx.net["path"]
-                ):
-                    waiver = (waivers or {}).get(app.name)
+                # A waiver names applications anywhere on its flattened net.
+                waiver = (waivers or {}).get(app.name)
                 if (
                     waiver
                     and rule.waivable
@@ -276,20 +304,21 @@ def check_circuit(circuit, *, waiver_records=None, registry=None, _freeze_memo=N
                 if valid and record.get("valid_targets", True):
                     candidates = [
                         entry
-                        for (scope, label), entries in schedules.items()
+                        for entries in schedules.values()
                         for entry in entries
-                        if entry[2].net is net
-                        and (
-                            entry[2].application == check
-                            or (scope == "net" and label == origin.label and entry[0].name == check)
-                        )
+                        if entry[2].net is net and entry[0].name == check
                     ]
                     if not candidates or any(not rule.waivable for _, rule, _ in candidates):
-                        failure(
-                            f"waiver {check!r} must name a waivable application on this net",
-                            Span(**waiver["span"]),
+                        diagnostics.append(
+                            Diagnostic(
+                                "erc.waiver_target",
+                                "error",
+                                f"waiver {check!r} names no waivable application on {net.label!r}",
+                                Span(**waiver["span"]),
+                            )
                         )
-                    active_waivers[check] = record
+                    else:
+                        active_waivers[check] = record
                 elif not valid:
                     diagnostics.append(
                         Diagnostic(

@@ -1,6 +1,6 @@
 // STM32H523 pin roles, decoupling, crystal, and public subsystem interface.
 
-from noscheme import role, nettype, unused
+from noscheme import role, nettype, unused, bias
 from MCU_ST_STM32H5 import STM32H523VCTx
 from interfaces import I2C, SPI, USB2, SWD
 from components import Capacitor0603, CrystalHC49
@@ -24,9 +24,14 @@ component STM32H523Board extends STM32H523VCTx:
         13:
             role: role.analog_output
             unused: unused.never
-        [14, 66..67, 92..93]:
+        14:
             role: role.open_drain
             unused: unused.never
+        // I2C pins: firmware leaves the internal pull-ups off; board resistors set the level.
+        [66..67, 92..93]:
+            role: role.open_drain
+            unused: unused.never
+            bias: bias.none
         [15..17, 25, 29..30, 32, 42..43, 45, 55, 89]:
             role: role.digital_output
             unused: unused.never
@@ -122,7 +127,7 @@ block MCU_H523:
             1: supply
             2: ground
         params:
-            value: "100nF"
+            value: 100n
         metadata:
             custom:
                 placement: "Place beside MCU pad 6, short return to ground."
@@ -132,7 +137,7 @@ block MCU_H523:
             1: supply
             2: ground
         params:
-            value: "100nF"
+            value: 100n
         metadata:
             custom:
                 placement: "Place beside MCU pad 11, short return to ground."
@@ -142,7 +147,7 @@ block MCU_H523:
             1: supply
             2: ground
         params:
-            value: "100nF"
+            value: 100n
         metadata:
             custom:
                 placement: "Place beside MCU pad 21, short return to ground."
@@ -152,7 +157,7 @@ block MCU_H523:
             1: supply
             2: ground
         params:
-            value: "100nF"
+            value: 100n
         metadata:
             custom:
                 placement: "Place beside MCU pad 22, short return to ground."
@@ -162,7 +167,7 @@ block MCU_H523:
             1: supply
             2: ground
         params:
-            value: "100nF"
+            value: 100n
         metadata:
             custom:
                 placement: "Place beside MCU pad 28, short return to ground."
@@ -172,7 +177,7 @@ block MCU_H523:
             1: supply
             2: ground
         params:
-            value: "100nF"
+            value: 100n
         metadata:
             custom:
                 placement: "Place beside MCU pad 50, short return to ground."
@@ -182,7 +187,7 @@ block MCU_H523:
             1: supply
             2: ground
         params:
-            value: "100nF"
+            value: 100n
         metadata:
             custom:
                 placement: "Place beside MCU pad 73, short return to ground."
@@ -192,7 +197,7 @@ block MCU_H523:
             1: supply
             2: ground
         params:
-            value: "100nF"
+            value: 100n
         metadata:
             custom:
                 placement: "Place beside MCU pad 75, short return to ground."
@@ -202,7 +207,7 @@ block MCU_H523:
             1: supply
             2: ground
         params:
-            value: "100nF"
+            value: 100n
         metadata:
             custom:
                 placement: "Place beside MCU pad 100, short return to ground."
@@ -212,14 +217,14 @@ block MCU_H523:
             1: supply
             2: ground
         params:
-            value: "4.7uF"
+            value: 4.7u
     )
     inst analog_bulk: Capacitor0603(
         connections:
             1: supply
             2: ground
         params:
-            value: "1uF"
+            value: 1u
         metadata:
             custom:
                 placement: "Place beside MCU pad 22."
@@ -229,7 +234,7 @@ block MCU_H523:
             1: supply
             2: ground
         params:
-            value: "1uF"
+            value: 1u
         metadata:
             custom:
                 placement: "Place beside MCU pad 21."
@@ -239,7 +244,7 @@ block MCU_H523:
             1: supply
             2: ground
         params:
-            value: "1uF"
+            value: 1u
         metadata:
             custom:
                 placement: "Place beside MCU pad 73."
@@ -249,7 +254,7 @@ block MCU_H523:
             1: vcap
             2: ground
         params:
-            value: "2.2uF"
+            value: 2.2u
         metadata:
             custom:
                 placement: "Place beside MCU pad 48; low ESR, do not connect VCAP to 3.3 V."
@@ -259,7 +264,7 @@ block MCU_H523:
             1: vcap
             2: ground
         params:
-            value: "2.2uF"
+            value: 2.2u
         metadata:
             custom:
                 placement: "Place beside MCU pad 98; low ESR, do not connect VCAP to 3.3 V."
@@ -274,7 +279,7 @@ block MCU_H523:
             1: osc_in
             2: ground
         params:
-            value: "27pF"
+            value: 27p
         metadata:
             custom:
                 placement: "C0G; provisional for CL18pF crystal, tune for PCB stray capacitance."
@@ -284,7 +289,7 @@ block MCU_H523:
             1: osc_out
             2: ground
         params:
-            value: "27pF"
+            value: 27p
         metadata:
             custom:
                 placement: "C0G; provisional for CL18pF crystal, tune for PCB stray capacitance."
@@ -294,5 +299,5 @@ block MCU_H523:
             1: debug.reset#
             2: ground
         params:
-            value: "100nF"
+            value: 100n
     )

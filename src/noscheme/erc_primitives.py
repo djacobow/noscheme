@@ -6,6 +6,7 @@ from math import inf, isnan
 
 from .ast import Span
 from .diagnostics import Related
+from .units import format_quantity
 
 
 @dataclass(frozen=True)
@@ -81,50 +82,55 @@ def register(registry):
         is True
         else None,
     )
-    bounds = {"min": "number", "max": "number"}
     registry.net_rule(
-        "std.reduce",
-        reduce_rule,
-        parameters={
-            "attribute": "string",
-            "reducer": "string",
-            "where": "attributes",
-            "predicate": "string",
-            "net_attributes": "literal",
-            **bounds,
-        },
-        defaults={"where": {}, "predicate": "", "net_attributes": (), "min": None, "max": None},
+        "std.count",
+        count_rule,
+        parameters={"what": "selector", "min": "number", "max": "number"},
+        defaults={"min": None, "max": None},
+        net_only=True,
     )
-    for name, callback in [("count", count_rule), ("any", any_rule), ("all", all_rule)]:
-        registry.net_rule(
-            "std." + name,
-            callback,
-            parameters={
-                "predicate": "string",
-                "where": "attributes",
-                **(bounds if name == "count" else {}),
-            },
-            defaults={"where": {}, **({"min": None, "max": None} if name == "count" else {})},
-        )
+    registry.net_rule("std.any", any_rule, parameters={"what": "selector"}, net_only=True)
+    registry.net_rule(
+        "std.all",
+        all_rule,
+        parameters={"what": "selector", "where": "selector"},
+        defaults={"where": ()},
+        net_only=True,
+    )
 
 
-def selected(pin, ctx, where, predicate=""):
+# A reducer is also a net rule: std.sum(capacitance, max=400).
+REDUCTION_PARAMETERS = {
+    "field": "field",
+    "where": "selector",
+    "net": "net_fields",
+    "min": "number",
+    "max": "number",
+}
+REDUCTION_DEFAULTS = {"where": (), "net": (), "min": None, "max": None}
+
+
+def selected(pin, ctx, where):
+    """Three-valued selection: every term must hold; unknown terms make it None.
+
+    A selector is a tuple of terms resolved from source: ("field", name, value)
+    compares an endpoint attribute, ("role", name) tests the effective role, and
+    ("predicate", name) calls a registered predicate.
+    """
     state = True
-    for key, expected in where.items():
-        actual = pin.attributes.get(key)
-        if actual is None:
-            state = None
-        elif isinstance(actual, tuple):
-            if expected not in actual:
-                return False
-            if len(actual) > 1:
-                state = None
-        elif actual != expected:
-            return False
-    if predicate:
-        result = ctx.predicates[predicate](pin, ctx)
-        if result is not True and result is not False and result is not None:
-            raise ValueError("predicate must return True, False, or None")
+    for term in where:
+        if term[0] == "role":
+            result = roles(pin, {term[1]})
+        elif term[0] == "predicate":
+            result = ctx.predicates[term[1]](pin, ctx)
+            if result is not True and result is not False and result is not None:
+                raise ValueError("predicate must return True, False, or None")
+        else:
+            actual = pin.attributes.get(term[1])
+            if isinstance(actual, tuple):
+                result = None if term[2] in actual and len(actual) > 1 else term[2] in actual
+            else:
+                result = None if actual is None else actual == term[2]
         if result is False:
             return False
         if result is None:
@@ -136,7 +142,11 @@ def related(pins):
     return tuple(Related(pin.label, Span(**pin["span"])) for pin in pins)
 
 
-def compare(ctx, result, minimum, maximum, pins):
+def shown(value, quantity):
+    return format_quantity(value, quantity) if quantity else str(value)
+
+
+def compare(ctx, result, minimum, maximum, pins, quantity=None):
     if (
         not isinstance(result, Interval)
         or any(isinstance(v, float) and isnan(v) for v in (result.lower, result.upper))
@@ -148,9 +158,13 @@ def compare(ctx, result, minimum, maximum, pins):
     if minimum is not None and maximum is not None and minimum > maximum:
         raise ValueError("min exceeds max")
     if minimum is not None and result.upper < numeric(minimum):
-        yield ctx.error(f"reduction is below minimum {minimum}", related=related(pins))
+        yield ctx.error(
+            f"reduction is below minimum {shown(minimum, quantity)}", related=related(pins)
+        )
     if maximum is not None and result.lower > numeric(maximum):
-        yield ctx.error(f"reduction exceeds maximum {maximum}", related=related(pins))
+        yield ctx.error(
+            f"reduction exceeds maximum {shown(maximum, quantity)}", related=related(pins)
+        )
     uncertain = (
         minimum is not None
         and result.lower < numeric(minimum) <= result.upper
@@ -163,26 +177,15 @@ def compare(ctx, result, minimum, maximum, pins):
         )
 
 
-def reduce_rule(ctx, *, attribute, reducer, where, predicate, net_attributes, min, max):
-    if not isinstance(net_attributes, (list, tuple)) or any(
-        not isinstance(name, str) for name in net_attributes
-    ):
-        raise ValueError("net_attributes must be a list of attribute names")
-    if (
-        not attribute
-        or reducer not in ctx.reducers
-        or predicate
-        and predicate not in ctx.predicates
-    ):
-        raise ValueError("reduce requires an attribute and registered reducer/predicate names")
+def reduce_rule(ctx, *, reducer, field, where, net, min, max):
     samples, pins = [], []
-    nonnegative = ctx.domains["pin"].get(attribute) in {"nonnegative", "positive"}
+    nonnegative = ctx.domains["pin"].get(field) in {"nonnegative", "positive"}
     for pin in ctx.pins:
-        state = selected(pin, ctx, where, predicate)
+        state = selected(pin, ctx, where)
         if state is False:
             continue
         pins.append(pin)
-        amount = pin.attributes.get(attribute)
+        amount = pin.attributes.get(field)
         sample = (
             Interval(0 if nonnegative else -inf, inf, unknown=True)
             if amount is None
@@ -191,11 +194,11 @@ def reduce_rule(ctx, *, attribute, reducer, where, predicate, net_attributes, mi
         if state is None:
             sample = Interval(sample.lower, sample.upper, optional=True, unknown=True)
         samples.append(sample)
-    for field in net_attributes:
-        amount = ctx.net.attributes.get(field)
+    for name in net:
+        amount = ctx.net.attributes.get(name)
         samples.append(
             Interval(
-                0 if ctx.domains["net"].get(field) in {"positive", "nonnegative"} else -inf,
+                0 if ctx.domains["net"].get(name) in {"positive", "nonnegative"} else -inf,
                 inf,
                 unknown=True,
             )
@@ -203,36 +206,34 @@ def reduce_rule(ctx, *, attribute, reducer, where, predicate, net_attributes, mi
             else Interval(numeric(amount), numeric(amount))
         )
     result = ctx.reducers[reducer](tuple(samples))
+    yield from compare(ctx, result, min, max, pins, ctx.domains["quantity"].get(field))
+
+
+def count_rule(ctx, *, what, min, max):
+    """Bound the number of endpoints matching a selector."""
+    states = [(p, selected(p, ctx, what)) for p in ctx.pins]
+    pins = [p for p, s in states if s is not False]
+    result = Interval(sum(s is True for _, s in states), len(pins))
     yield from compare(ctx, result, min, max, pins)
 
 
-def count_rule(ctx, *, predicate, where, min, max):
-    if predicate not in ctx.predicates:
-        raise ValueError("predicate must name a registered predicate")
-    pins = [p for p in ctx.pins if selected(p, ctx, where) is not False]
-    states = [selected(p, ctx, where, predicate) for p in pins]
-    result = Interval(sum(s is True for s in states), sum(s is not False for s in states))
-    yield from compare(ctx, result, min, max, pins)
+def any_rule(ctx, *, what):
+    """Require at least one endpoint matching a selector."""
+    yield from count_rule(ctx, what=what, min=1, max=None)
 
 
-def any_rule(ctx, *, predicate, where):
-    yield from count_rule(ctx, predicate=predicate, where=where, min=1, max=None)
-
-
-def all_rule(ctx, *, predicate, where):
-    if predicate not in ctx.predicates:
-        raise ValueError("predicate must name a registered predicate")
+def all_rule(ctx, *, what, where):
+    """Require every endpoint selected by where to match what."""
     pins = [p for p in ctx.pins if selected(p, ctx, where) is not False]
     states = []
     for pin in pins:
-        selection = selected(pin, ctx, where)
-        predicate_result = selected(pin, ctx, {}, predicate)
+        result = selected(pin, ctx, what)
         states.append(
-            True if predicate_result is True else None if selection is None else predicate_result
+            True if result is True else None if selected(pin, ctx, where) is None else result
         )
     if False in states:
         yield ctx.error(
-            "not every selected endpoint satisfies the predicate", related=related(pins)
+            "not every selected endpoint satisfies the condition", related=related(pins)
         )
     if None in states:
-        yield ctx.unknown("some endpoint predicates are unknown", related=related(pins))
+        yield ctx.unknown("some endpoint conditions are unknown", related=related(pins))

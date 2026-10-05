@@ -16,7 +16,9 @@ from .parser import Builder, parse
 
 IDENTIFIER = r"[A-Za-z_#][A-Za-z0-9_#]*"
 QUALIFIED = re.compile(rf"{IDENTIFIER}(?:\.{IDENTIFIER})*\Z")
-BUILTINS = frozenset({"role", "nettype", "unused", "f", "num", "bias"})
+BUILTINS = frozenset({"role", "nettype", "unused", "num", "bias", "std"})
+# Symbol.module for a rule or predicate imported from a project ERC namespace.
+ERC_MODULE = "<erc>"
 
 
 class ProjectError(DiagnosticError):
@@ -209,6 +211,25 @@ def module_path(config, name, span, sources=None):
     return matches[0]
 
 
+def erc_exports(config):
+    """Map each project ERC namespace to its rules and predicates as importable names.
+
+    The standard namespace is a builtin (`from noscheme import std`), not a module.
+    """
+    if not config.erc_modules:
+        return {}
+    from .erc_registry import namespace
+
+    registry = config.erc_registry
+    result = {}
+    for name in (*registry.rules, *registry.predicates):
+        if namespace(name).split(".")[0] not in {"std", "noscheme"}:
+            result.setdefault(namespace(name), {})[name.rpartition(".")[2]] = Symbol(
+                ERC_MODULE, name, None
+            )
+    return result
+
+
 def load_project(path: Path | str = ".", *, sources=None, parsed_sources=None) -> Project:
     """Load a project, optionally reusing ASTs from the same analysis.
 
@@ -217,6 +238,7 @@ def load_project(path: Path | str = ".", *, sources=None, parsed_sources=None) -
     This mapping is caller-owned and is not a persistent cache.
     """
     config = read_config(path, sources=sources)
+    extensions = erc_exports(config)
     parsed = {}
     dependencies = {}
     order = []
@@ -248,7 +270,17 @@ def load_project(path: Path | str = ".", *, sources=None, parsed_sources=None) -
         stack.append((name, origin, True))
         for imp in reversed(imports):
             target = ".".join(n.text for n in imp.module)
-            if target != "noscheme":
+            if target in extensions:
+                if any(
+                    (root / Path(*target.split("."))).with_suffix(".nosch").is_file()
+                    for root in config.search_paths
+                ):
+                    fail(
+                        "import.ambiguous-module",
+                        f"{target!r} names both an ERC namespace and a source module",
+                        imp.span,
+                    )
+            elif target != "noscheme":
                 stack.append((target, imp.span, False))
 
     modules = {}
@@ -266,6 +298,8 @@ def load_project(path: Path | str = ".", *, sources=None, parsed_sources=None) -
             exports = (
                 {key: Symbol("noscheme", key, None) for key in BUILTINS}
                 if target == "noscheme"
+                else extensions[target]
+                if target in extensions
                 else modules[target].symbols
             )
 
@@ -304,6 +338,13 @@ def load_project(path: Path | str = ".", *, sources=None, parsed_sources=None) -
                     original = imported.name.text
                     key = (imported.alias or imported.name).text
                     symbol = exports.get(original)
+                    if symbol is None and target == "noscheme" and original == "f":
+                        fail(
+                            "import.retired",
+                            "the f formatting helpers were removed: declare the value parameter "
+                            "with a quantity type, such as value: resistance = 4.7k",
+                            imported.name.span,
+                        )
                     if symbol is None:
                         fail(
                             "import.missing-name",

@@ -43,43 +43,25 @@ def renamed_path(value, old, new):
     return value
 
 
-def waiver_edits(project, owner, old, new):
-    """Update semantic path strings; custom text and waiver reasons stay untouched."""
+def waiver_edits(owner, old, new):
+    """Update waiver pin paths in the renamed instance's definition; reasons stay untouched."""
+    # Target pin paths are relative to the containing declaration.
+    fields = [f for node in owner.body if isinstance(node, a.Net) for f in node.fields]
+    for section in owner.body:
+        if isinstance(section, a.Section) and section.name == "ports":
+            fields.extend(f for port in section.entries for f in port.fields)
     edits = []
-    for module in project.modules.values():
-        for definition in module.ast.items:
-            if (
-                not isinstance(definition, a.Definition)
-                or definition.kind == "board"
-                and definition is not owner
-            ):
-                continue
-            fields = [f for node in definition.body if isinstance(node, a.Net) for f in node.fields]
-            for section in definition.body:
-                if isinstance(section, a.Section) and section.name == "ports":
-                    fields.extend(f for port in section.entries for f in port.fields)
-            for field in fields:
-                if field.key.first.text != "waivers":
-                    continue
-                for waiver in field.fields:
-                    name = waiver.key.first
-                    if name.text.startswith(("pin:", "net:")) and name.text.count(":") >= 2:
-                        scope, path, application = name.text.split(":", 2)
-                        updated = renamed_path(path, old, new)
-                        if updated != path:
-                            edits.append(
-                                (name.span, json.dumps(f"{scope}:{updated}:{application}"))
-                            )
-                    # Target pin paths are relative to the containing declaration.
-                    if definition is not owner:
-                        continue
-                    for entry in waiver.fields:
-                        if entry.key.first.text == "pins" and isinstance(entry.value, a.ListExpr):
-                            for pin in entry.value.items:
-                                if isinstance(pin, a.String):
-                                    updated = renamed_path(pin.value, old, new)
-                                    if updated != pin.value:
-                                        edits.append((pin.span, json.dumps(updated)))
+    for field in fields:
+        if field.key.first.text != "waivers":
+            continue
+        for waiver in field.fields:
+            for entry in waiver.fields:
+                if entry.key.first.text == "pins" and isinstance(entry.value, a.ListExpr):
+                    for pin in entry.value.items:
+                        if isinstance(pin, a.String):
+                            updated = renamed_path(pin.value, old, new)
+                            if updated != pin.value:
+                                edits.append((pin.span, json.dumps(updated)))
     return edits
 
 

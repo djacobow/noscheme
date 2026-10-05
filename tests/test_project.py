@@ -113,7 +113,7 @@ def test_missing_keys_and_malformed_toml(tmp_path):
             "import.missing-name",
         ),
         (
-            {"src/main.nosch": "from noscheme import f, f\nboard Blink:\n    net n: T\n"},
+            {"src/main.nosch": "from noscheme import num, num\nboard Blink:\n    net n: T\n"},
             "import.duplicate-name",
         ),
         (

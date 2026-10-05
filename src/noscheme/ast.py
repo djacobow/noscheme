@@ -170,7 +170,7 @@ class Net(Node):
 
 @dataclass(frozen=True)
 class Definition(Node):
-    kind: Literal["component", "block", "board", "bundle"]
+    kind: Literal["component", "block", "board", "bundle", "nettype"]
     name: Name
     base: tuple[Name, ...] | None
     body: tuple[Section | Instance | Net | Field, ...]

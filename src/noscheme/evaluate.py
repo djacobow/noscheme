@@ -1,7 +1,6 @@
 """Restricted expression evaluator and named parameter binding; never Python eval."""
 
 from dataclasses import dataclass
-from decimal import Decimal
 import math
 import re
 from string import Formatter
@@ -12,6 +11,7 @@ from .metadata import Value
 from .instances import arguments as instance_arguments, element_overrides
 from .project import IDENTIFIER, expression_path
 from .resolve import Resolver
+from .units import QUANTITIES, format_quantity, is_scaled, scaled_value
 
 
 @dataclass(frozen=True)
@@ -104,6 +104,8 @@ class Evaluator:
 
         try:
             if isinstance(expr, a.Number):
+                if is_scaled(expr.spelling):
+                    return self.number(scaled_value(expr.spelling), expr.span)
                 if expr.tag == "integer":
                     # Parse in chunks to avoid Python's process-global decimal conversion limit.
                     if len(expr.spelling.lstrip("0")) > self.limits.integer_bits:
@@ -175,7 +177,7 @@ class Evaluator:
                     namespace.split(".")[0] in environment
                     or symbol is None
                     or symbol.module != "noscheme"
-                    or symbol.name not in {"num", "f"}
+                    or symbol.name != "num"
                 ):
                     self.error(
                         "expression.call",
@@ -186,7 +188,7 @@ class Evaluator:
                 if len(args) != 1 or kwargs:
                     self.error(
                         "expression.arguments",
-                        "numeric and unit helpers take one positional argument",
+                        "numeric helpers take one positional argument",
                         expr.span,
                     )
                 value = self.numeric(args[0], expr.span)
@@ -205,19 +207,7 @@ class Evaluator:
                             value
                         )
                     return self.number(rounded, expr.span)
-                if namespace == "f" and helper in {
-                    "Ohm",
-                    "kOhm",
-                    "MOhm",
-                    "pF",
-                    "nF",
-                    "uF",
-                    "nH",
-                    "uH",
-                    "mH",
-                }:
-                    return self.bounded_string(self.part_value(value) + helper, expr.span)
-                self.error("expression.call", "unknown numeric or unit helper", member.span)
+                self.error("expression.call", "unknown numeric helper", member.span)
             self.error("expression.unsupported", "unsupported expression", expr.span)
         except ZeroDivisionError:
             self.error("number.divide-by-zero", "division by zero", expr.span)
@@ -247,14 +237,29 @@ class Evaluator:
         text = repr(number)
         return text[:-2] if text.endswith(".0") else text
 
-    def part_value(self, number):
-        """Round display-only doubles, then expand exponents without float noise."""
-        if type(number) is int:
-            return self.decimal(number)
-        if number == 0:
-            return "0"
-        text = format(Decimal(format(number, ".6g")), "f")
-        return text.rstrip("0").rstrip(".") if "." in text else text
+    @staticmethod
+    def displayed(expression, parameters, value):
+        """Render a part value; a number gets a unit only as a bare quantity parameter.
+
+        `parameters` are the declarations of the scope where `expression` is written:
+        the component for its own `value` or `metadata.value`, the caller for an
+        instance override. Computed and literal numbers display plainly.
+        """
+        name = expression.text if isinstance(expression, a.Name) else expression
+        parameter = parameters.get(name)
+        if not isinstance(value, Number) or parameter is None or parameter.type not in QUANTITIES:
+            return value
+        return format_quantity(value.value, parameter.type)
+
+    def part_value(self, definition, parameters):
+        """The displayed value from `metadata.value` or the `value` parameter, if any."""
+        shown = definition.metadata.get("value")
+        if shown is not None:
+            value = self.evaluate(shown.value, shown.module, parameters)
+            return self.displayed(shown.value, definition.parameters, value)
+        if "value" in parameters:
+            return self.displayed("value", definition.parameters, parameters["value"])
+        return None
 
     def format(self, template, args, kwargs, span):
         result, length = [], 0
@@ -398,7 +403,13 @@ class Evaluator:
                 pending.remove(name)
         for name, value in bound.items():
             parameter = definition.parameters[name]
-            if (parameter.type == "number") != isinstance(value, Number):
+            # A quantity also accepts a verbatim string, such as "10k 1%" or "DNP".
+            if (
+                parameter.type == "string"
+                and not isinstance(value, str)
+                or parameter.type == "number"
+                and not isinstance(value, Number)
+            ):
                 location = supplied[name].span if name in supplied else parameter.default.span
                 self.error(
                     "parameter.type",
@@ -462,11 +473,14 @@ def evaluate_project(project, definitions, limits=None):
             name: shape(port.type) for name, port in definition.interface.items() if port.type
         }
         values = {}
-        if value_override is not None:
-            values["value"] = encoded(value_override)
-        elif "value" in definition.metadata:
-            value = definition.metadata["value"]
-            values["value"] = encoded(evaluator.evaluate(value.value, value.module, parameters))
+        # An override is already rendered in its caller's scope.
+        shown = (
+            value_override
+            if value_override is not None
+            else evaluator.part_value(definition, parameters)
+        )
+        if shown is not None:
+            values["value"] = encoded(shown)
         records.append(
             {
                 "path": path,
@@ -544,7 +558,11 @@ def evaluate_project(project, definitions, limits=None):
             overrides = next((s.entries for s in node.sections if s.name == "metadata"), ())
             override = next((f for f in overrides if f.key.first.text == "value"), None)
             override_value = (
-                evaluator.evaluate(override.value, definition.body_module, parameters)
+                evaluator.displayed(
+                    override.value,
+                    definition.parameters,
+                    evaluator.evaluate(override.value, definition.body_module, parameters),
+                )
                 if override
                 else None
             )
@@ -557,7 +575,11 @@ def evaluate_project(project, definitions, limits=None):
                 fields = next((s.entries for s in element.sections if s.name == "metadata"), ())
                 field = next((f for f in fields if f.key.first.text == "value"), None)
                 value = (
-                    evaluator.evaluate(field.value, definition.body_module, parameters)
+                    evaluator.displayed(
+                        field.value,
+                        definition.parameters,
+                        evaluator.evaluate(field.value, definition.body_module, parameters),
+                    )
                     if field
                     else override_value
                 )

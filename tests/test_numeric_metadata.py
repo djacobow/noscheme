@@ -6,18 +6,18 @@ from noscheme.diagnostics import DiagnosticError
 from noscheme.erc import check_circuit
 from test_circuit import compile_source
 
-SOURCE = """from noscheme import bias, f
+SOURCE = """from noscheme import bias, std
 component Pull:
     params:
-        resistance: number = 4700
+        resistance: resistance = 4.7k
     pins:
         1:
             role: role.passive
             bias: bias.pull_up
-            pull_resistance_ohm: resistance
-            capacitance_pF: resistance / 1000
+            pull_resistance: resistance
+            capacitance: resistance * 1f
     metadata:
-        value: f.kOhm(resistance / 1000)
+        value: resistance
 component Device:
     pins:
         1:
@@ -26,19 +26,12 @@ component Device:
 board B:
     net bus: nettype.open_drain
         checks:
-            pull_up:
-                checker: "std.reduce"
-                params:
-                    attribute: "pull_resistance_ohm"
-                    reducer: "std.parallel"
-                    where:
-                        bias: bias.pull_up
-                    min: 1000 + 1000
+            pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=1k + 1k)
     inst pull: Pull(
         connections:
             1: bus
         params:
-            resistance: 3300
+            resistance: 3.3k
     )
     inst device: Device(
         connections:
@@ -51,14 +44,14 @@ def test_numeric_parameter_drives_display_and_budget(tmp_path):
     circuit = compile_source(tmp_path, SOURCE)
     pull = next(p for p in circuit["parts"] if p["identity"] == "pull")
     assert pull["value"]["value"] == "3.3kOhm"
-    assert pull["pins"]["1"]["metadata"]["pull_resistance_ohm"]["value"] == 3300
-    assert pull["pins"]["1"]["metadata"]["capacitance_pF"]["value"] == 3.3
+    assert pull["pins"]["1"]["metadata"]["pull_resistance"]["value"] == 3300
+    assert pull["pins"]["1"]["metadata"]["capacitance"]["value"] == pytest.approx(3.3e-12)
     assert not check_circuit(circuit)
 
 
 @pytest.mark.parametrize("quantity", ["0", "-1", '"bad"', "1e308 * 1e308"])
 def test_invalid_evaluated_quantities_fail_before_erc(tmp_path, quantity):
-    source = SOURCE.replace("pull_resistance_ohm: resistance", f"pull_resistance_ohm: ({quantity})")
+    source = SOURCE.replace("pull_resistance: resistance", f"pull_resistance: ({quantity})")
     with pytest.raises(DiagnosticError):
         compile_source(tmp_path, source)
 
@@ -71,7 +64,7 @@ def test_metadata_expression_names_are_resolved_even_for_uninstantiated_parts(tm
             + """component Unused:
     pins:
         1:
-            capacitance_pF: missing + 1
+            capacitance: missing + 1
 """,
         )
     assert any(d.code == "resolve.expression-name" for d in error.value.diagnostics)
@@ -82,25 +75,25 @@ def test_instance_quantities_use_caller_environment(tmp_path):
         "board B:\n", "block Circuit:\n    params:\n        resistance: number = 2200\n"
     )
     source = source.replace(
-        "            resistance: 3300\n",
-        """            resistance: 3300
+        "            resistance: 3.3k\n",
+        """            resistance: 3.3k
         metadata:
             pins:
                 1:
-                    pull_resistance_ohm: resistance
+                    pull_resistance: resistance
 """,
     )
     source += "board B:\n    inst circuit: Circuit()\n"
     circuit = compile_source(tmp_path, source)
     pull = next(p for p in circuit["parts"] if p["identity"] == "circuit.pull")
     assert pull["value"]["value"] == "3.3kOhm"
-    assert pull["pins"]["1"]["metadata"]["pull_resistance_ohm"]["value"] == 2200
+    assert pull["pins"]["1"]["metadata"]["pull_resistance"]["value"] == 2200
 
 
 def test_nested_current_load_expression(tmp_path):
     source = """component Load:
     params:
-        current: number = 12
+        current: current = 12m
     pins:
         1:
             role: role.power_input
@@ -108,7 +101,7 @@ def test_nested_current_load_expression(tmp_path):
         current_loads:
             supply:
                 pins: ["1"]
-                max_load_current_mA: current * 2
+                max_load_current: current * 2
 board B:
     net rail: nettype.power
     inst load: Load(
@@ -117,26 +110,23 @@ board B:
     )
 """
     circuit = compile_source(tmp_path, source)
-    assert (
-        circuit["parts"][0]["metadata"]["current_loads"]["value"]["supply"]["value"][
-            "max_load_current_mA"
-        ]["value"]
-        == 24
-    )
+    assert circuit["parts"][0]["metadata"]["current_loads"]["value"]["supply"]["value"][
+        "max_load_current"
+    ]["value"] == pytest.approx(0.024)
 
 
 def test_overridden_quantity_does_not_evaluate_shadowed_expression(tmp_path):
     source = SOURCE.replace(
-        "pull_resistance_ohm: resistance", "pull_resistance_ohm: resistance / 0"
+        "pull_resistance: resistance", "pull_resistance: resistance / 0"
     ).replace(
-        "            resistance: 3300\n",
-        """            resistance: 3300
+        "            resistance: 3.3k\n",
+        """            resistance: 3.3k
         metadata:
             pins:
                 1:
-                    pull_resistance_ohm: 2200
+                    pull_resistance: 2200
 """,
     )
     circuit = compile_source(tmp_path, source)
     pull = next(p for p in circuit["parts"] if p["identity"] == "pull")
-    assert pull["pins"]["1"]["metadata"]["pull_resistance_ohm"]["value"] == 2200
+    assert pull["pins"]["1"]["metadata"]["pull_resistance"]["value"] == 2200

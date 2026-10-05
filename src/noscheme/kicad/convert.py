@@ -29,6 +29,8 @@ ROLE_MAP = {
     "no_connect": "do_not_connect",
 }
 
+PASSIVE_QUANTITIES = {"R": "resistance", "C": "capacitance", "L": "inductance"}
+
 
 def failure(path, code, message):
     raise DiagnosticError([Diagnostic(code, "error", message, a.Span(str(path), 0, 0, 1, 1, 1, 1))])
@@ -232,10 +234,15 @@ def convert_library(source, output, symbols=(), footprint_roots=(), extra_footpr
                 }
             )
         props = data["properties"]
+        # A two-terminal R, C, or L symbol's value is a quantity; its KiCad Value is a
+        # placeholder such as "R", so each instance supplies the number, e.g. 4.7k.
+        quantity = PASSIVE_QUANTITIES.get(props.get("Reference")) if len(pins) == 2 else None
         lines = [
             f"component {name}:",
             "    params:",
-            f"        value: string = {json.dumps(props.get('Value', original))}",
+            f"        value: {quantity}"
+            if quantity
+            else f"        value: string = {json.dumps(props.get('Value', original))}",
         ]
         if pins:
             lines.append("    pins:")

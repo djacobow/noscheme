@@ -1,6 +1,6 @@
 // USB-C power/data, regulator, microSD, and SWD subsystems.
 
-from noscheme import role, nettype, bias
+from noscheme import role, nettype, bias, std
 from interfaces import SPI, USB2, SWD
 from components import Resistor0603, InputBias0603, Capacitor0603
 
@@ -75,7 +75,7 @@ block UsbC:
             1: cc
             2: ground
         params:
-            value: "5.1kOhm"
+            value: 5.1k
     )
 
 block Ldo3v3:
@@ -94,14 +94,14 @@ block Ldo3v3:
             1: input
             2: ground
         params:
-            value: "1uF"
+            value: 1u
     )
     inst output_cap: Capacitor0603(
         connections:
             1: output
             2: ground
         params:
-            value: "4.7uF"
+            value: 4.7u
     )
     // POC: direct rails, no reverse-feed isolation or automatic power selection.
 
@@ -150,8 +150,9 @@ block MicroSD:
             pins:
                 2:
                     bias: bias.pull_up
-                    pull_resistance_ohm: 10000
-                    bias_reference_pin: "1"
+                    pull_resistance: 10k
+                    checks:
+                        reference: std.bias_reference("1")
     )
     inst miso_pullup: InputBias0603(
         connections:
@@ -161,8 +162,9 @@ block MicroSD:
             pins:
                 2:
                     bias: bias.pull_up
-                    pull_resistance_ohm: 10000
-                    bias_reference_pin: "1"
+                    pull_resistance: 10k
+                    checks:
+                        reference: std.bias_reference("1")
     )
     inst detect_pullup: InputBias0603(
         connections:
@@ -172,15 +174,16 @@ block MicroSD:
             pins:
                 2:
                     bias: bias.pull_up
-                    pull_resistance_ohm: 10000
-                    bias_reference_pin: "1"
+                    pull_resistance: 10k
+                    checks:
+                        reference: std.bias_reference("1")
     )
     inst decouple: Capacitor0603(
         connections:
             1: supply
             2: ground
         params:
-            value: "100nF"
+            value: 100n
         metadata:
             custom:
                 placement: "Place adjacent to microSD VDD pad."
@@ -190,7 +193,7 @@ block MicroSD:
             1: supply
             2: ground
         params:
-            value: "4.7uF"
+            value: 4.7u
     )
 
 block CortexDebug:

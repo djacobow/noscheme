@@ -1,9 +1,9 @@
-from noscheme import nettype, f
+from noscheme import nettype
 from parts import Resistor, Led
 
 block Indicator:
     params:
-        resistance: string = f.kOhm(1)
+        resistance: resistance = 1k
     ports:
         supply: nettype.power
     net anode: nettype.passive

@@ -11,22 +11,16 @@ from noscheme.erc_registry import Application, load_registry
 from noscheme.erc_primitives import Interval, total, parallel
 from test_circuit import compile_source
 
-SOURCE = """component Endpoint:
+SOURCE = """from noscheme import std
+component Endpoint:
     pins:
         1:
             role: role.digital_output
 board B:
     net bus: nettype.digital
         checks:
-            contention:
-                checker: "std.count"
-                params:
-                    predicate: "std.active_digital_driver"
-                    max: 1
-            presence:
-                checker: "std.any"
-                params:
-                    predicate: "std.active_digital_driver"
+            contention: std.count(std.active_digital_driver, max=1)
+            presence: std.any(std.active_digital_driver)
     inst devices[2]: Endpoint(
         connections:
             1: bus
@@ -53,12 +47,7 @@ def test_defaults_replaceable_explicit_rules_remain_and_report_identity(tmp_path
 def test_waiver_targets_one_application_of_same_checker(tmp_path):
     source = SOURCE.replace(
         "            presence:",
-        """            another:
-                checker: "std.count"
-                params:
-                    predicate: "std.active_digital_driver"
-                    max: 0
-            presence:""",
+        "            another: std.count(std.active_digital_driver, max=0)\n            presence:",
     ).replace(
         "        checks:",
         """        waivers:
@@ -77,7 +66,7 @@ def test_waiver_targets_one_application_of_same_checker(tmp_path):
 )
 def test_unknown_role_policy(tmp_path, policy, severity):
     source = SOURCE.replace("role: role.digital_output", "role: role.unchecked").replace(
-        'checker: "std.count"', f'checker: "std.count"\n                missing: "{policy}"'
+        "max=1)", f'max=1, missing="{policy}")'
     )
     result = check_circuit(circuit(tmp_path, source))
     count = [d for d in result if d.application.endswith(":contention")]
@@ -101,13 +90,13 @@ def test_reductions_optional_members_and_empty_sets():
 
 def test_unknown_selector_does_not_turn_optional_resistor_into_short(tmp_path):
     source = (
-        """from noscheme import bias
+        """from noscheme import bias, std
 component Pull:
     pins:
         1:
             role: role.passive
             bias: bias.pull_up
-            pull_resistance_ohm: 4700
+            pull_resistance: 4700
 component Maybe extends Pull:
     pins:
         1:
@@ -115,14 +104,7 @@ component Maybe extends Pull:
 board B:
     net bus: nettype.passive
         checks:
-            strength:
-                checker: "std.reduce"
-                params:
-                    attribute: "pull_resistance_ohm"
-                    reducer: "std.parallel"
-                    where:
-                        bias: bias.pull_up
-                    min: 2000
+            strength: std.parallel(pull_resistance, where=bias.pull_up, min=2000)
     inst known: Pull(connections:
         1: bus
     )
@@ -165,9 +147,17 @@ def test_disconnected_pin_context_and_shared_immutable_graph(tmp_path):
 @pytest.mark.parametrize(
     "edit",
     [
-        ('predicate: "std.active_digital_driver"', 'predicate: "missing.predicate"'),
-        ("max: 1", 'max: "bad"'),
-        ('checker: "std.count"', 'checker: "missing.checker"'),
+        ("count(std.active_digital_driver", "count(missing.predicate"),
+        ("max=1", 'max="bad"'),
+        ("std.count(", "missing.checker("),
+        ("max=1", "maximum=1"),
+        ("max=1", "max=1, max=2"),
+        ("max=1", 'max=1, missing="never"'),
+        ("std.any(std.active_digital_driver)", "std.any(std.active_digital_driver, 1)"),
+        ("std.any(std.active_digital_driver)", "std.parallel(no_such_field, max=1)"),
+        ("std.any(std.active_digital_driver)", "std.sum(capacitance, net=bias, max=1)"),
+        ("std.any(std.active_digital_driver)", "std.bias_reference()"),
+        ("std.any(std.active_digital_driver)", "std.any"),
     ],
 )
 def test_invalid_application_is_blocking(tmp_path, edit):
@@ -176,11 +166,23 @@ def test_invalid_application_is_blocking(tmp_path, edit):
 
 
 def test_custom_reducer_and_predicate_use_same_execution_path(tmp_path):
-    c = circuit(tmp_path, SOURCE.replace("std.active_digital_driver", "test.driver"))
+    c = circuit(tmp_path)
+    c["nets"][0]["declarations"][0]["metadata"].pop("checks")
     registry = load_registry()
     registry.predicate(
         "test.driver", lambda pin, ctx: pin.attributes["role"] == ("digital_output",)
     )
+    registry.rule_set(
+        "test.count",
+        lambda ctx: []
+        if ctx.pin
+        else [
+            Application(
+                "contention", "std.count", {"what": (("predicate", "test.driver"),), "max": 1}
+            )
+        ],
+    )
+    c["erc_rule_sets"] = ["test.count"]
     result = check_circuit(c, registry=registry)
     assert [d.application for d in result] == ["net:bus:contention"]
     registry.reducer(
@@ -189,13 +191,7 @@ def test_custom_reducer_and_predicate_use_same_execution_path(tmp_path):
     )
     registry.rule_set(
         "test.defaults",
-        lambda ctx: [
-            Application(
-                "maximum",
-                "std.reduce",
-                {"attribute": "rating", "reducer": "test.maximum", "max": 5},
-            )
-        ]
+        lambda ctx: [Application("maximum", "test.maximum", {"field": "rating", "max": 5})]
         if not ctx.pin
         else [],
     )
@@ -220,7 +216,7 @@ def test_duplicate_registry_names_and_unknown_rulesets_are_errors(tmp_path):
 
 
 def test_retired_activation_metadata_has_migration_diagnostic(tmp_path):
-    with pytest.raises(DiagnosticError, match="std.reduce"):
+    with pytest.raises(DiagnosticError, match="std.parallel"):
         circuit(
             tmp_path,
             SOURCE.replace("        checks:", "        max_capacitance_pF: 20\n        checks:"),
@@ -228,24 +224,18 @@ def test_retired_activation_metadata_has_migration_diagnostic(tmp_path):
 
 
 def test_pin_application_specialization_and_instance_override(tmp_path):
-    source = """component Base:
+    source = """import test
+component Base:
     pins:
         1:
             role: role.passive
             checks:
-                limit:
-                    checker: "test.limit"
-                    params:
-                        maximum: 20
-                        label: "original"
+                limit: test.limit(maximum=20, label="original")
 component Child extends Base:
     pins:
         1:
             checks:
-                limit:
-                    checker: "test.limit"
-                    params:
-                        maximum: 10
+                limit: test.limit(maximum=10)
 board B:
     net bus: nettype.passive
     inst load: Child(
@@ -255,10 +245,7 @@ board B:
             pins:
                 1:
                     checks:
-                        limit:
-                            checker: "test.limit"
-                            params:
-                                maximum: 5
+                        limit: test.limit(maximum=5)
     )
 """
     from test_circuit import make
@@ -280,7 +267,7 @@ def check(ctx, *, maximum, label):
     result = check_circuit(c)
     assert [d.application for d in result] == ["pin:load.1:limit"]
     path = tmp_path / "main.nosch"
-    path.write_text(path.read_text().replace('checker: "test.limit"', 'checker: "test.other"', 1))
+    path.write_text(path.read_text().replace("test.limit(", "test.other(", 1))
     with pytest.raises(DiagnosticError, match="cannot change checker"):
         resolve_project(tmp_path)
 
@@ -291,10 +278,8 @@ def test_structural_errors_remain_with_no_rule_sets(tmp_path):
 
 
 def test_empty_any_all_and_count_are_defined(tmp_path):
-    source = (
-        SOURCE[: SOURCE.index("    inst devices")]
-        .replace('checker: "std.count"', 'checker: "std.all"')
-        .replace("                    max: 1\n", "")
+    source = SOURCE[: SOURCE.index("    inst devices")].replace(
+        "std.count(std.active_digital_driver, max=1)", "std.all(std.active_digital_driver)"
     )
     result = check_circuit(circuit(tmp_path, source))
     assert [d.application for d in result] == ["net:bus:presence"]
@@ -304,12 +289,10 @@ def test_empty_any_all_and_count_are_defined(tmp_path):
 def test_uncertain_all_with_optional_selection_is_unknown(tmp_path):
     c = circuit(
         tmp_path,
-        SOURCE.replace('checker: "std.count"', 'checker: "std.all"')
-        .replace(
-            "                    max: 1",
-            "                    where:\n                        optional: true",
-        )
-        .replace("role: role.digital_output", "role: role.digital_input"),
+        SOURCE.replace(
+            "std.count(std.active_digital_driver, max=1)",
+            "std.all(std.active_digital_driver, where=tristate_capable)",
+        ).replace("role: role.digital_output", "role: role.digital_input"),
     )
     result = check_circuit(c)
     assert next(d for d in result if d.application.endswith(":contention")).severity == "warning"
@@ -320,13 +303,7 @@ def test_invalid_reducer_result_blocks_publication(tmp_path):
     registry.reducer("test.nan", lambda samples: Interval(float("nan"), 1))
     registry.rule_set(
         "test.defaults",
-        lambda ctx: [
-            Application(
-                "bad",
-                "std.reduce",
-                {"attribute": "capacitance_pF", "reducer": "test.nan", "max": 1},
-            )
-        ]
+        lambda ctx: [Application("bad", "test.nan", {"field": "capacitance", "max": 1})]
         if not ctx.pin
         else [],
     )
@@ -340,27 +317,29 @@ def test_filter_enum_alias_and_missing_mapping_validation(tmp_path):
     source = SOURCE.replace(
         "component Endpoint:", "from noscheme import role as r\ncomponent Endpoint:"
     ).replace(
-        "                    max: 1",
-        "                    max: 1\n                    where:\n                        role: r.digital_output",
+        "std.count(std.active_digital_driver, max=1)",
+        "std.count([std.active_digital_driver, r.digital_output], max=1)",
     )
     result = check_circuit(circuit(tmp_path, source))
     assert [d.application for d in result] == ["net:bus:contention"]
-    with pytest.raises(DiagnosticError, match="indented mapping"):
+    with pytest.raises(DiagnosticError, match="selector"):
+        circuit(tmp_path, SOURCE.replace("std.any(std.active_digital_driver)", "std.any(true)"))
+    with pytest.raises(DiagnosticError, match="one rule call"):
         circuit(
             tmp_path,
             SOURCE.replace(
-                "                    max: 1",
-                "                    max: 1\n                    where: true",
+                "presence: std.any(std.active_digital_driver)",
+                'presence:\n                checker: "std.any"',
             ),
         )
 
 
 def test_unknown_predicate_rejected_on_empty_net(tmp_path):
     source = SOURCE[: SOURCE.index("    inst devices")].replace(
-        "std.active_digital_driver", "unknown.predicate"
+        "std.active_digital_driver", "std.unknown_predicate"
     )
-    with pytest.raises(DiagnosticError, match="registered predicate"):
-        check_circuit(circuit(tmp_path, source))
+    with pytest.raises(DiagnosticError, match="selector"):
+        circuit(tmp_path, source)
 
 
 def test_default_setup_reused_but_explicit_arguments_and_new_runs_are_validated(
@@ -373,23 +352,16 @@ def test_default_setup_reused_but_explicit_arguments_and_new_runs_are_validated(
     registry = load_registry()
     values, validations = [], []
 
-    def check(ctx, settings):
-        values.append(settings["limit"])
-        with pytest.raises(TypeError):
-            settings["limit"] = 100
+    def check(ctx, limit):
+        values.append(limit)
         return ()
 
-    registry.pin_rule(
-        "test.defaults",
-        check,
-        parameters={"settings": "attributes"},
-        defaults={"settings": {"limit": 3}},
-    )
+    registry.pin_rule("test.defaults", check, parameters={"limit": "number"}, defaults={"limit": 3})
     registry.rule_set(
         "test.defaults",
         lambda ctx: [
             Application("default", "test.defaults"),
-            Application("explicit", "test.defaults", {"settings": {"limit": 7}}),
+            Application("explicit", "test.defaults", {"limit": 7}),
         ]
         if ctx.pin
         else [],
@@ -397,15 +369,112 @@ def test_default_setup_reused_but_explicit_arguments_and_new_runs_are_validated(
     c["erc_rule_sets"] = ["test.defaults"]
     original = erc.validate_params
 
-    def validate(rule, supplied, span):
+    def validate(rule, supplied, span, registry):
         validations.append(supplied)
-        return original(rule, supplied, span)
+        return original(rule, supplied, span, registry)
 
     monkeypatch.setattr(erc, "validate_params", validate)
     assert apply_erc(c, registry=registry) == ()
     assert values == [3, 7, 3, 7]
     assert len(validations) == 3  # one default setup, two explicit applications
-    registry.rules["test.defaults"].defaults["settings"]["limit"] = 5
+    registry.rules["test.defaults"].defaults["limit"] = 5
     values.clear()
     assert apply_erc(c, registry=registry) == ()
     assert values == [5, 7, 5, 7]
+
+
+def test_project_rules_import_like_module_members(tmp_path):
+    from test_circuit import make
+    from noscheme.resolve import resolve_project
+
+    source = """from test import limit as bounded
+component Part:
+    pins:
+        1:
+            role: role.passive
+            checks:
+                limit: bounded(maximum=5)
+board B:
+    net bus: nettype.passive
+    inst load: Part(
+        connections:
+            1: bus
+    )
+"""
+    make(tmp_path, source)
+    (tmp_path / "checks.py").write_text(
+        'def register(r):\n    r.pin_rule("test.limit", lambda ctx, maximum: (), '
+        'parameters={"maximum": "number"})\n'
+    )
+    with (tmp_path / "noscheme.toml").open("a") as stream:
+        stream.write('erc_modules = ["checks.py"]\n')
+    _, definitions = resolve_project(tmp_path)
+    part = next(d for (module, name), d in definitions.items() if name == "Part")
+    checks = part.interface["1"].metadata["checks"].value
+    assert checks["limit"].value["checker"].value == "test.limit"
+    (tmp_path / "test.nosch").write_text("")
+    with pytest.raises(DiagnosticError, match="both an ERC namespace and a source module"):
+        resolve_project(tmp_path)
+    (tmp_path / "test.nosch").unlink()
+    path = tmp_path / "main.nosch"
+    path.write_text(path.read_text().replace("from test import limit as bounded\n", ""))
+    with pytest.raises(DiagnosticError, match="imported rule"):
+        resolve_project(tmp_path)
+
+
+INNER = """from noscheme import std
+component Endpoint:
+    pins:
+        1:
+            role: role.digital_output
+block Inner:
+    ports:
+        bus: nettype.digital
+            checks:
+                contention: std.count(std.active_digital_driver, max=0)
+    inst endpoint: Endpoint(
+        connections:
+            1: bus
+    )
+board B:
+    net bus: nettype.digital
+        waivers:
+            contention: "Reviewed: the inner limit is a test fixture."
+    inst inner: Inner(
+        connections:
+            bus: bus
+    )
+"""
+
+
+def test_waiver_names_applications_anywhere_on_its_net(tmp_path):
+    records = []
+    assert check_circuit(circuit(tmp_path, INNER), waiver_records=records) == ()
+    assert records[0]["diagnostics"][0]["application"] == "net:inner.bus:contention"
+    with pytest.raises(DiagnosticError, match="by its name"):
+        circuit(
+            tmp_path,
+            INNER.replace('contention: "Reviewed', '"net:inner.bus:contention": "Reviewed'),
+        )
+
+
+@pytest.mark.parametrize(
+    "field,message",
+    [
+        ('bias_reference_pin: "1"', "std.bias_reference"),
+        ("voltage_min_V: 0", "min_voltage"),
+        ("capacitance_pF: 2", "capacitance: 10p"),
+    ],
+)
+def test_retired_fields_explain_replacements(tmp_path, field, message):
+    source = INNER.replace(
+        "            role: role.digital_output",
+        "            role: role.digital_output\n            " + field,
+    )
+    if field.startswith("voltage"):
+        source = INNER.replace(
+            "    net bus: nettype.digital\n",
+            "    net bus: nettype.digital\n        " + field + "\n",
+        )
+    with pytest.raises(DiagnosticError, match=message):
+        circuit(tmp_path, source)

@@ -1110,3 +1110,107 @@ Ruff lint/format, reference-table drift, local documentation links, and diff
 whitespace checks pass. Tests exercise family isolation/caching, rename edits
 through the real LSP protocol, arrays and block descendants, repeated renames,
 waiver paths, and an export round trip with stable UUIDs/reference designators.
+
+### ERC language: concise, extensible checks
+
+Goal (user direction): ERC is a set of static assertions between nets and pins.
+It should be extensible with basic language support, and attaching an assertion
+should be concise, without growing the language. Planned in three steps.
+
+Step 1, implemented:
+
+- [x] Each `checks` entry is one call to an imported rule, using the existing
+  expression grammar: `load: std.sum(capacitance_pF, net=wiring_capacitance_pF, max=400)`.
+  The multi-line `checker`/`params`/`missing` form is removed; it now reports
+  a migration diagnostic.
+- [x] Rules are imported names. `from noscheme import std` exposes the standard
+  namespace; a project ERC namespace imports like a module (`import demo` or
+  `from demo import pin_count`). An ERC namespace that collides with a source
+  module is an ambiguous import.
+- [x] The rule's declared parameter types decide how each argument is read. New
+  argument kinds are `field` (a bare endpoint field name), `net_fields`, and
+  `selector`. Field names are checked against registered fields and are never
+  evaluated as expressions.
+- [x] A single selector argument replaces `where` and `predicate`. Each term is
+  a predicate, a `role` or `bias` value, or a boolean field name.
+- [x] Every reducer is also a net rule with the same name (`std.sum`,
+  `std.parallel`), which replaces `std.reduce`. `std.count`, `std.any`, and `std.all`
+  take selectors.
+- [x] Overlays merge arguments by name, and changing the rule under an
+  inherited name is still rejected.
+- [x] LSP: completion of rule names, `name=` keywords, and typed argument values
+  (including across lines); rule hover; field-name arguments are excluded from
+  references and rename.
+
+Step 2, implemented:
+
+- [x] `nettype Name extends base:` definitions whose bodies hold net metadata,
+  checks included. Every chain ends at a builtin `nettype` value, which keeps role
+  compatibility and the standard policies. Net types work on nets, ports, and
+  bundle fields; metadata merges like specialization, so a declaration can
+  override one argument of an inherited check.
+- [x] Identical applications that reach one flattened net through several
+  declarations of the same type (for example, a board net and a block port) run
+  once, on the outermost declaration.
+- [x] Decision on `unchecked`: an outer `nettype.unchecked` skips only the
+  standard policies, as before. Checks from inner port types still run, consistent
+  with the existing rule that explicit applications always run.
+- [x] LSP navigation, hover (base and electrical type), references, rename, and
+  completion of `extends`; Vim and VS Code highlighting.
+- [x] STM32 example: an `I2CLine` type checks both I2C buses' pull-ups. The MCU
+  and header I2C pins declare no pull of their own.
+- Not done, deliberately: re-expressing the builtin net types and the 23 standard
+  check names as library declarations. The standard policies are net-wide: they
+  combine the types of every declaration on a flattened net (role compatibility is
+  intersected, driver requirements are united) and run once per net. Attaching them
+  to each declaration would duplicate or change diagnostics and rename the
+  application names that existing waivers use. They remain the `std.default` rule
+  set, which is replaceable.
+
+Step 3, implemented:
+
+- [x] A waiver names applications by name anywhere on its flattened net,
+  including inner port, net type, and pin applications; `pins:` restricts it.
+  Quoted identity keys such as `"pin:pull.2:bias_reference"` are rejected with
+  guidance. A waiver that matches no waivable application reports
+  `erc.waiver_target` instead of failing as a plugin error.
+- [x] Nets and pins use one voltage field pair, `min_voltage_V`/`max_voltage_V`;
+  the former net names are rejected with guidance.
+- [x] No check is triggered by a field. `std.voltage_limits` runs on every checked
+  net; it is silent without data. The `bias_reference_pin` field became the
+  argument of an explicit pin check, `reference: std.bias_reference("1")`.
+
+### Numbers with units
+
+User direction: SI prefixes on literals, physical quantities for parameters and
+fields, no scale in field names, and no formatting helpers. Dimensional algebra
+was considered and declined as too much type machinery for now.
+
+- [x] Literals take SI prefixes `a f p n u m k M G T P`, or use the prefix (or `R`)
+  as the decimal mark: `4.7k`, `4k7`, `100n`, `4R7`. Values are exact in decimal;
+  integral results keep the integer tag. One decimal mark only, and no unit text.
+- [x] Quantity parameter types `voltage`, `current`, `resistance`, `capacitance`,
+  `inductance`, `frequency`, `time`, and `power` hold base SI values. A numeric
+  part value displays with an engineering prefix and unit, as `4.7kOhm`, in reports
+  and the netlist. A quantity also accepts a verbatim string (`"10k 1%"`, `""`),
+  which keeps the Rulos example's source values exact.
+- [x] The `f` helpers are removed; importing `f` names the replacement.
+- [x] Electrical fields hold base SI values and declare quantity kinds:
+  `capacitance`, `wiring_capacitance`, `pull_resistance`, `max_load_current`,
+  `max_source_current`, `min_voltage`, `max_voltage`. Every former unit-suffixed
+  name is rejected with its replacement. Extensions cannot register field names
+  ending in a unit. ERC messages show limits with units.
+- [x] The KiCad converter types two-terminal `R`, `C`, and `L` symbols' values as
+  quantities. The STM32 and Rulos `Device` snapshots were regenerated; only those
+  parameter lines changed, and all 58 STM32 netlist values are unchanged.
+
+### Review follow-up (numbers and net types)
+
+- [x] Per-net deduplication of identical applications is limited to rules
+  registered `net_only=True`. Owner-dependent custom rules keep one application per
+  declaration; a regression test reproduces the review's port-limit case.
+- [x] A displayed number has a unit only when its expression is a bare quantity
+  parameter, resolved in the scope where it is written (the caller, for instance and
+  element overrides). `value / 1k` now displays `4.7`, not `4.7Ohm`.
+- [ ] Open trade-off: a waiver name matches applications anywhere on its net, so
+  a common name such as `limit` can waive unrelated rules from different libraries.

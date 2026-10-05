@@ -5,7 +5,7 @@ from noscheme.lint import unused_parameters
 from noscheme.resolve import resolve_project
 from test_circuit import make
 
-SOURCE = """from noscheme import f
+SOURCE = """from noscheme import num
 component P:
     params:
         value: string = "10k"
@@ -15,7 +15,7 @@ component P:
     pins:
         1:
             role: role.passive
-            pull_resistance_ohm: resistance
+            pull_resistance: resistance
 component Specialized extends P:
     defaults:
         resistance: 4700
@@ -71,8 +71,8 @@ board B:""",
 
 
 def test_format_member_name_is_not_a_parameter_use(tmp_path):
-    source = SOURCE.replace("placeholder: number = 0", "kOhm: number = 0").replace(
-        'value: string = "10k"', "value: string = f.kOhm(10)"
+    source = SOURCE.replace("placeholder: number = 0", "round: number = 0").replace(
+        'value: string = "10k"', 'value: string = "{0}".format(num.round(10))'
     )
     make(tmp_path, source)
-    assert "kOhm" in unused_parameters(resolve_project(tmp_path)[1])[0].message
+    assert "round" in unused_parameters(resolve_project(tmp_path)[1])[0].message

@@ -85,7 +85,7 @@ Only modules reachable from the selected board module are loaded by the compiler
 
 ```nosch
 from parts.passives import Resistor, Capacitor
-from noscheme import role, nettype, unused, bias, f, num
+from noscheme import role, nettype, unused, bias, num, std
 ```
 
 Both module-qualified imports and local aliases are supported:
@@ -122,8 +122,8 @@ errors; distinct sibling module imports may share a namespace prefix.
 | `nettype` | Scalar net types |
 | `unused` | Connection policies |
 | `bias` | Explicit pull-up/pull-down assertions |
-| `f` | Part-value formatting helpers |
 | `num` | Numeric conversion and rounding helpers |
+| `std` | Standard ERC rules and predicates for `checks` (section 12) |
 
 Use qualified builtin values: `role.passive`, not bare `passive`. An attribute's
 context does not supply an implicit namespace. Builtins also support aliases,
@@ -146,7 +146,7 @@ parameter defaults and named formatting arguments; it is not a connection
 operator. Lists and helper calls use commas. Instance sections do not.
 
 The structural words are `from`, `import`, `as`, `component`, `block`, `board`,
-`bundle`, `extends`, `inst`, `net`, and `global`. Section names are `pins`,
+`bundle`, `nettype`, `extends`, `inst`, `net`, and `global`. Section names are `pins`,
 `ports`, `params`, `defaults`, `connections`, `metadata`, and `elements`. These words are
 recognized in their grammatical contexts. Metadata keys and builtin enum members
 are not additional general-purpose statements.
@@ -198,6 +198,23 @@ point, or exponent forms: `12`, `12.5`, `12e3`, `1.25e-3`. A leading sign is a
 unary operator. Hexadecimal, binary, underscore-separated, and `.5` literals are
 not supported.
 
+A number may end in an SI prefix, with no space: `4.7k`, `100n`, `10u`, `2.2M`.
+The prefix may instead replace the decimal point, as in IEC 60062 codes: `4k7`
+is `4.7k`, `1u5` is `1.5u`, and `R` marks a unity decimal point (`4R7` is 4.7,
+`47R` is 47).
+
+| Prefix | `a` | `f` | `p` | `n` | `u` | `m` | `R` | `k` | `M` | `G` | `T` | `P` |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Scale | 10⁻¹⁸ | 10⁻¹⁵ | 10⁻¹² | 10⁻⁹ | 10⁻⁶ | 10⁻³ | 1 | 10³ | 10⁶ | 10⁹ | 10¹² | 10¹⁵ |
+
+Prefixes are case-sensitive (`m` is milli, `M` is mega), and there is no `E` or
+`µ`. The value is computed exactly in decimal: `100n` is the double nearest
+10⁻⁷, not `100 * 1e-9`. An integral result has the integer tag (`4.7k` is
+4700); others are doubles. A literal has at most one decimal mark (`4.7k7` is an
+error), cannot combine a prefix with an exponent, and cannot be followed by a
+name character, so a unit such as `10kOhm` is a syntax error. Use a quoted pin key
+for a pin named like a scaled number, such as `"10k"`.
+
 In a physical pin key, integer spelling is preserved as text:
 
 | Spelling | Physical identity |
@@ -213,7 +230,8 @@ array indices use the numeric rules in section 4.
 ## 3. Declarations
 
 A module contains imports and definitions. Definitions are `component`, `block`,
-`board`, or `bundle`; their bodies must contain declarations or sections.
+`board`, `bundle`, or `nettype` (section 9.3); their bodies must contain
+declarations, sections, or (for net types) net metadata fields.
 Duplicate names, duplicate sections, and overlapping pin declarations are errors.
 
 ### 3.1 Physical components
@@ -263,7 +281,7 @@ fragment, assuming `Resistor` and the builtin namespaces have been imported:
 ```nosch
 block SeriesResistor:
     params:
-        resistance: string = "1kOhm"
+        resistance: resistance = 1k
     ports:
         input: nettype.passive
         output: nettype.passive
@@ -320,13 +338,32 @@ module scope. Internal definitions cannot be monkey-patched through a path.
 
 ### 4.1 Parameter declarations and binding
 
-Public parameter types are `number` and `string`. Definition-body fragment:
+Public parameter types are `number`, `string`, and the quantities below.
+Definition-body fragment:
 
 ```nosch
 params:
     count: number = 2
-    value: string
+    value: resistance = 4.7k
+    label: string
 ```
+
+| Quantity | Unit | Displayed as |
+|---|---|---|
+| `voltage` | volt | `3.3V` |
+| `current` | ampere | `100mA` |
+| `resistance` | ohm | `4.7kOhm` |
+| `capacitance` | farad | `100nF` |
+| `inductance` | henry | `2.2uH` |
+| `frequency` | hertz | `8MHz` |
+| `time` | second | `10us` |
+| `power` | watt | `250mW` |
+
+A quantity parameter holds a number in its base SI unit. It names the unit and
+how the value is displayed; arithmetic is ordinary numeric arithmetic, and there is
+no dimensional checking. A quantity parameter also accepts a string, such as
+`"10k 1%"` or `"DNP"`, which is displayed verbatim and has no numeric meaning; using
+it where a number is required is an error.
 
 A parameter without a default is required at instantiation. Instance arguments
 are named entries under `params:`. Unknown arguments and wrong types are errors.
@@ -339,8 +376,15 @@ footprints, electrical roles, or arbitrary metadata. ERC choices are a separate
 mechanism, described in section 11.
 
 A parameter named `value` supplies the conventional displayed part value.
-`metadata.value` can explicitly provide a value expression. Formatting strings
-are display values, not electrical quantities.
+`metadata.value` can explicitly provide a value expression, and an instance's
+`metadata.value` overrides both. A numeric displayed value has a unit only when it
+is a quantity parameter: the component's `value` parameter, or a bare parameter
+name in `metadata.value` or an instance override, looked up where the expression is
+written (the caller, for an override). It then renders with an engineering prefix,
+rounded to six significant digits (ties to even) without exponent notation or
+trailing zeros: `4700` as `4.7kOhm`, `1e-7` as `100nF`. Computed and literal numbers,
+such as `value / 1k` or `4.7k`, have no quantity and render plainly (`4.7`,
+`4700`). Strings are display values, not electrical quantities.
 
 ### 4.2 Operators and numeric tags
 
@@ -382,18 +426,16 @@ integer:
 For example, `num.round(-2.5)` is `-3`. Explicit conversion does not bypass
 bounds or resource checks.
 
-### 4.4 String formatting and unit helpers
+### 4.4 String formatting
 
-Supported string expressions are literals, parameter references, formatting, and
-unit-helper results. Formatting is inspired by Python, but does not evaluate
-Python. Expression examples:
+Supported string expressions are literals, parameter references, and formatting.
+Formatting is inspired by Python, but does not evaluate Python. Expression
+examples:
 
 ```text
 "{0}".format(value)
 "{resistance:.1f}kOhm".format(resistance=r)
 "{{{0}}}".format(value)
-f.nF(100)
-f.kOhm(4.7)
 ```
 
 Fields must use explicit numeric indices or named arguments. Positional arguments
@@ -407,17 +449,9 @@ Formatting width, precision, and output size are bounded.
 Without a format specification, integers render exactly and doubles use their
 shortest round-trip representation, with a trailing `.0` removed.
 
-Import `f` for `Ohm`, `kOhm`, `MOhm`, `pF`, `nF`, `uF`, `nH`, `uH`, and `mH`.
-Each takes one positional number and appends its fixed suffix: `f.nF(100)` yields
-`"100nF"`. There is no automatic rescaling, dimensional type, or unit conversion.
-Integers render exactly in decimal. Doubles round to six significant digits
-(nearest, ties to even), then render in decimal without exponent notation or
-unnecessary fractional trailing zeros. Negative zero renders as `0`.
-For example, `f.kOhm(4.7 * 3)` yields `"14.1kOhm"` and `f.kOhm(0.00001)`
-yields `"0.00001kOhm"`. Output length limits include the suffix. This rounding
-affects only the displayed string; arithmetic values and explicit `.format()`
-specifications retain their existing behavior. Use `.format()` when a different
-display precision is needed. ERC never derives a quantity from a displayed value.
+Quantity values format themselves (section 4.1). The former `f` helpers, such as
+`f.kOhm(4.7)`, are removed; importing `f` reports the replacement. ERC never
+derives a quantity from a displayed value.
 
 ## 5. Instances and connections
 
@@ -431,7 +465,7 @@ inst series: Resistor(
         1: source
         2: destination
     params:
-        value: f.Ohm(33)
+        value: 33R
     metadata:
         identity: "series-resistor"
         ref: "R7"
@@ -454,11 +488,11 @@ inst pulls[2]: Pullup(
         supply: supply
         signal: bus
     params:
-        resistance_ohm: 4700
+        value: 4.7k
     elements:
         [0]:
             params:
-                resistance_ohm: 2200
+                value: 2.2k
             metadata:
                 custom:
                     placement: "Beside the controller"
@@ -658,13 +692,14 @@ instance-array element, write `[0].[1, 3]`; `[0].1` retains its existing meaning
 
 ## 7. Specialization
 
-Components and blocks use `extends` for single inheritance. Boards and bundles
+Components and blocks use `extends` for single inheritance; net types always
+extend a builtin net type or another net type (section 9.3). Boards and bundles
 cannot specialize definitions. Definition fragment:
 
 ```nosch
 component Pullup extends Resistor:
     defaults:
-        value: "4.7kOhm"
+        value: 4.7k
     metadata:
         custom:
             purpose: "pull-up"
@@ -688,7 +723,9 @@ policies. Instances must obey the resulting definition.
 Unknown fields outside `custom` are errors. Recognized fields have explicit scopes
 and types. Most metadata is literal; `value` and numeric ERC quantities support
 restricted parameter expressions.
-Numeric electrical metadata uses units in field names, not formatted strings.
+Numeric electrical metadata is in base SI units, and fields declare their quantity
+(section 4.1); field names never carry a unit or scale. Write the scale in the
+literal instead: `capacitance: 10p`, `max_load_current: 100m`.
 
 ### 8.1 Core fields
 
@@ -696,12 +733,12 @@ Numeric electrical metadata uses units in field names, not formatted strings.
 | Scope | Fields |
 |---|---|
 | `component` | `current_loads`, `custom`, `footprint`, `ref_prefix`, `value` |
-| `current_load` | `max_load_current_mA`, `pins` |
+| `current_load` | `max_load_current`, `pins` |
 | `block` | `custom`, `erc_choices` |
 | `board` | `configurations`, `custom`, `erc_choices` |
 | `bundle` | `custom` |
-| `pin` | `aliases`, `checks`, `custom`, `max_load_current_mA`, `max_source_current_mA`, `role`, `tristate_capable`, `unused` |
-| `aggregate_load` | `max_load_current_mA` |
+| `pin` | `aliases`, `checks`, `custom`, `max_load_current`, `max_source_current`, `role`, `tristate_capable`, `unused` |
+| `aggregate_load` | `max_load_current` |
 | `port` | `aggregate_load`, `checks`, `custom`, `placeholder`, `role`, `unused`, `waivers` |
 | `net` | `checks`, `custom`, `net_class`, `placeholder`, `waivers` |
 | `instance` | `custom`, `erc_choices`, `footprint`, `identity`, `ref`, `value` |
@@ -738,24 +775,23 @@ These fields use the same registry available to project ERC extensions:
 | Scope | Field | Type |
 |---|---|---|
 | `instance_pin` | `bias` | `bias.none`, `bias.pull_down`, `bias.pull_up` |
-| `instance_pin` | `bias_reference_pin` | `string` |
-| `instance_pin` | `capacitance_pF` | `nonnegative` |
-| `instance_pin` | `max_voltage_V` | `number` |
-| `instance_pin` | `min_voltage_V` | `number` |
-| `instance_pin` | `pull_resistance_ohm` | `positive` |
-| `net` | `voltage_max_V` | `number` |
-| `net` | `voltage_min_V` | `number` |
-| `net` | `wiring_capacitance_pF` | `nonnegative` |
+| `instance_pin` | `capacitance` | `capacitance` |
+| `instance_pin` | `max_voltage` | `voltage` |
+| `instance_pin` | `min_voltage` | `voltage` |
+| `instance_pin` | `pull_resistance` | `resistance` |
+| `net` | `max_voltage` | `voltage` |
+| `net` | `min_voltage` | `voltage` |
+| `net` | `wiring_capacitance` | `capacitance` |
 | `pin` | `bias` | `bias.none`, `bias.pull_down`, `bias.pull_up` |
-| `pin` | `bias_reference_pin` | `string` |
-| `pin` | `capacitance_pF` | `nonnegative` |
-| `pin` | `max_voltage_V` | `number` |
-| `pin` | `min_voltage_V` | `number` |
-| `pin` | `pull_resistance_ohm` | `positive` |
+| `pin` | `capacitance` | `capacitance` |
+| `pin` | `max_voltage` | `voltage` |
+| `pin` | `min_voltage` | `voltage` |
+| `pin` | `pull_resistance` | `resistance` |
 <!-- /generated:extension-fields -->
 
 `number` accepts any finite signed number. `positive` and `nonnegative` add the
-stated bounds.
+stated bounds. A quantity kind holds a value in its base SI unit; `voltage` is
+signed, `resistance` is positive, and the other quantities are nonnegative.
 Numeric fields accept the restricted expressions in section 4. Definition fields
 evaluate using the component/block's bound parameters; instance fields use the
 caller. Inherited expressions retain their lexical module. Nested numeric fields
@@ -768,20 +804,18 @@ Use one numeric parameter for a displayed value and a physical quantity:
 ```nosch
 component Pullup:
     params:
-        resistance_ohm: number = 4700
+        value: resistance = 4.7k
     pins:
         1:
             role: role.passive
         2:
             role: role.passive
             bias: bias.pull_up
-            bias_reference_pin: "1"
-            pull_resistance_ohm: resistance_ohm
-    metadata:
-        value: f.kOhm(resistance_ohm / 1000)
+            pull_resistance: value
 ```
 
-Import `role`, `bias`, and `f` from `noscheme` for this fragment. Quantities are
+Import `role` and `bias` from `noscheme` for this fragment. The part displays
+`4.7kOhm`, and ERC sees 4700 ohms. Quantities are
 never inferred from display strings. Independent instance metadata overrides can
 still intentionally change the model; shared parameters eliminate duplicated
 constants in the ordinary case. See the complete
@@ -803,8 +837,8 @@ Import `role` and use one of:
 | `analog_input` | Receives an analog signal. |
 | `analog_output` | Actively drives an analog signal; participates in multiple-driver checks. |
 | `analog_bidirectional` | Can receive or drive analog signals. |
-| `power_input` | Consumes power. Connecting to a ground net requires an explicit incompatible_role waiver. Optional max_load_current_mA metadata contributes to current-budget checks. |
-| `power_output` | Supplies power. Optional max_source_current_mA metadata declares its current capacity. |
+| `power_input` | Consumes power. Connecting to a ground net requires an explicit incompatible_role waiver. Optional max_load_current metadata contributes to current-budget checks. |
+| `power_output` | Supplies power. Optional max_source_current metadata declares its current capacity. |
 | `ground` | Ground connection; connecting a power output to ground is an ERC error. |
 | `open_drain` | Can pull a signal low or release it. Multiple open-drain drivers may share a net; a pull-up provides the high level. |
 | `open_source` | Can pull a signal high or release it. Multiple open-source drivers may share a net; a pull-down provides the low level. |
@@ -842,10 +876,54 @@ An outermost `unchecked` declaration skips the standard driver, current-budget,
 and voltage-limit policies. With the default rule set it produces an
 `unchecked_net` warning. It does not
 suppress pin connection policies, inner compatibility constraints, or
-grouped/aggregate-load validity checks. Explicit `checks` applications and
-project rule-set callbacks still run; `unchecked` is not a general callback bypass.
+grouped/aggregate-load validity checks. Explicit `checks` applications, including
+those an inner port receives from its net type, and project rule-set callbacks
+still run; `unchecked` is not a general callback bypass.
 
-### 9.3 Public port roles
+### 9.3 Net type definitions
+
+A `nettype` definition names reusable net metadata, typically checks, on top of a
+builtin electrical type or another net type:
+
+```nosch
+from noscheme import nettype, bias, std
+
+nettype I2CLine extends nettype.open_drain:
+    wiring_capacitance: 5p
+    checks:
+        pull: std.parallel(pull_resistance, where=bias.pull_up, min=1.5k, max=10k)
+        load: std.sum(capacitance, net=wiring_capacitance, max=400p)
+
+nettype FastI2CLine extends I2CLine:
+    checks:
+        load: std.sum(max=200p)
+
+bundle I2C:
+    scl: I2CLine
+    sda: I2CLine
+```
+
+A net type is used wherever a net type is expected: nets, ports, and bundle
+fields, with or without array dimensions. Its body contains the fields a net
+declaration accepts (section 8), with no sections or parameters. `extends` is
+required, and every chain ends at a builtin `nettype` value, which determines
+role compatibility and the standard policies (section 9.2). Metadata merges like
+specialization (section 7): a derived type, and then each declaration using the
+type, merges its fields over the inherited ones. A declaration can therefore
+override one argument of an inherited check, such as `pull: std.parallel(min=2200)`.
+Calling a different rule under an inherited name is an error. Numeric fields are
+evaluated without parameters.
+
+Each declaration of the type contributes the type's checks to its flattened net.
+When the same application, with the same name, rule, arguments, and source, reaches
+one net through several declarations, such as a board net and the block port it
+connects to, it runs once on the outermost of them, provided its rule is
+registered `net_only` (section 12.1). The generic `std` rules are; a rule that may
+inspect its owning declaration is not, and runs once per declaration. A declaration that overrides
+an argument contributes a separate application. Reports record a declaration's
+type as `nettype: "module.Name"` beside its builtin `type`.
+
+### 9.4 Public port roles
 
 A port's `role` promises behavior implemented inside the block. It adds no driver
 or load. Internal physical or modeled endpoints must implement the promise;
@@ -863,7 +941,7 @@ bidirectional contract may be implemented by a bidirectional endpoint or separat
 input and output endpoints. Bias through passive components does not implement
 an output contract.
 
-### 9.4 Tri-state buses
+### 9.5 Tri-state buses
 
 On `nettype.tristate`, every digital output-capable endpoint must declare
 `tristate_capable: true`, including bidirectional and open-drain/open-source roles.
@@ -903,7 +981,7 @@ other checks. A placeholder alone cannot satisfy a required physical pin.
 
 ### 10.3 Current budgets
 
-Pin definitions may supply `max_source_current_mA` and `max_load_current_mA`.
+Pin definitions may supply `max_source_current` and `max_load_current`, in amperes.
 The checker compares known loads against one annotated source capacity. Missing
 loads or capacity produce incomplete-budget warnings when the net has budget
 annotations; known overloads still produce errors. Multiple source capacities
@@ -917,7 +995,7 @@ metadata:
     current_loads:
         core:
             pins: [vdd, "2", "3"]
-            max_load_current_mA: 100
+            max_load_current: 100m
 ```
 
 Members are aliases or quoted physical pin IDs. Groups must be nonempty, resolve
@@ -934,7 +1012,7 @@ ports:
     supply: nettype.power
         role: role.power_input
         aggregate_load:
-            max_load_current_mA: 100
+            max_load_current: 100m
 ```
 
 The parent counts this amount once instead of descendant loads on that net.
@@ -953,39 +1031,26 @@ checks cannot be waived and still run on unchecked nets.
 
 `bias` is an assertion about a signal-side endpoint. It does not verify a
 resistor's other terminal, rail, displayed resistance, or supply voltage by itself.
-Use `bias_reference_pin` for the optional terminal check described below.
+Use `std.bias_reference` for the optional terminal check described below.
 Open-drain default-level checks require pull-up bias; open-source default-level
 checks require pull-down bias. Bias cannot power a rail or satisfy an output-port
 contract.
 
-Nets and public ports opt into budgets with named rule applications. For example:
+Nets and public ports opt into budgets with named checks (section 12.2). For
+example, with `bias` and `std` imported:
 
 ```nosch
 net bus: nettype.open_drain
-    wiring_capacitance_pF: 2
+    wiring_capacitance: 2p
     checks:
-        pull_strength:
-            checker: "std.reduce"
-            params:
-                attribute: "pull_resistance_ohm"
-                where:
-                    bias: bias.pull_up
-                reducer: "std.parallel"
-                min: 1500
-                max: 10000
-        capacitance:
-            checker: "std.reduce"
-            params:
-                attribute: "capacitance_pF"
-                net_attributes: ["wiring_capacitance_pF"]
-                reducer: "std.sum"
-                max: 400
+        pull_strength: std.parallel(pull_resistance, where=bias.pull_up, min=1.5k, max=10k)
+        capacitance: std.sum(capacitance, net=wiring_capacitance, max=400p)
 ```
 
 Each physical endpoint counts once. Ordinary public ports contribute assertions,
 not extra physical loads. Explicit external endpoints do contribute. An inner
 port's assertions and its caller's assertions both run against the flattened net.
-`net_attributes` adds the named outermost-net quantities once per application.
+`net=` adds the named outermost-net quantities once per application.
 
 Matching pulls combine as `1/R = sum(1/R_i)`. `std.sum` adds capacitance or other
 numeric attributes. Numeric limits accept parameter expressions. Missing values
@@ -1000,27 +1065,38 @@ Nets without an application do not receive these budget diagnostics. Tolerance,
 mixed reference rails, and protocol-derived limits are not automatically modeled.
 The former `max_capacitance_pF` and `min/max_pull_up/down_resistance_ohm`
 activation fields are rejected with migration guidance; replace them with
-applications as above.
+checks as above.
 
 #### Pull reference terminals
 
-A physical signal-side pin can opt into `bias_reference_pin: "1"`, naming another
-pin ID or alias on the same component. With `bias.pull_up`, that reference terminal
-must reach a net declared `nettype.power`; with `bias.pull_down`, it must reach
-`nettype.ground`. Missing pins, disconnected references, conflicting rail types,
-and a reference tied to the signal net itself produce `erc.bias_reference`.
+A physical signal-side pin can check its pull's other terminal with the pin rule
+`std.bias_reference(pin)`, naming another pin ID or alias on the same component:
 
-The default rule set applies `std.bias_reference` to physical pins with this
-annotation, including disconnected signal pins. It traces no paths through other
-components and infers no voltages. To waive a particular application, use its
-qualified identity, for example `"pin:pull.2:bias_reference"`, on the outermost
-net. Disconnected pins have no net waiver. Explicit pin applications work too.
+```nosch
+pins:
+    2:
+        role: role.passive
+        bias: bias.pull_up
+        checks:
+            reference: std.bias_reference("1")
+```
+
+With `bias.pull_up`, the reference terminal must reach a net declared
+`nettype.power`; with `bias.pull_down`, it must reach `nettype.ground`. Missing
+pins, disconnected references, conflicting rail types, and a reference tied to the
+signal net itself produce `erc.bias_reference`. The check also runs on a
+disconnected signal pin. It traces no paths through other components and infers
+no voltages. To waive it for one pin, name the application with a `pins` target
+on the signal net (section 10.5); disconnected pins have no net waiver. The former
+`bias_reference_pin` field is rejected with this replacement.
 
 #### Explicit voltage ranges and pin limits
 
-A net can declare `voltage_min_V` and `voltage_max_V` together. A physical pin or
-instance pin can declare `min_voltage_V`, `max_voltage_V`, or both as absolute
-limits. These fields accept finite signed numeric expressions, in volts. Bounds
+A net declares its operating range with `min_voltage` and `max_voltage`
+together. A physical pin or instance pin uses the same fields, alone or together,
+for its absolute limits, in volts. The former fields `voltage_min_V`,
+`voltage_max_V`, `min_voltage_V`, and `max_voltage_V` are rejected with this
+replacement. These fields accept finite signed numeric expressions, in volts. Bounds
 are inclusive; minimum values cannot exceed maximum values.
 
 `erc.voltage_limits` compares each annotated pin against the declared net range.
@@ -1033,8 +1109,10 @@ also checks the pin against each declared range.
 This checks only explicit quantities. Ground is not implicitly zero volts, signal
 levels are not inferred from pull resistors, and no supply-domain, logic-threshold,
 transient, clamp-current, or operating-state model is assumed. Use explicit ranges
-for signal nets too when appropriate. Net and targeted pin waivers are supported;
-an outermost unchecked net skips the check.
+for signal nets too when appropriate. The default rule set applies
+`std.voltage_limits` to every net except an outermost unchecked one; nets and pins
+without these fields produce no diagnostics. Net and targeted pin waivers are
+supported.
 
 ### 10.5 Waivers and check names
 
@@ -1046,12 +1124,14 @@ net signal: nettype.digital
         missing_driver: "Driver is across the explicitly modeled series resistor."
 ```
 
-A waiver names one application and gives a nonempty literal reason. A short
-name refers to an application on that outermost declaration. To identify an
-inner-boundary or physical-pin application, use its report identity as a quoted
-key, such as `"net:receiver.bus:capacitance"` or `"pin:pull.2:bias_reference"`.
-Unknown applications and attempts to waive non-waivable rules are errors. Only
-the outermost declaration of the flattened net may waive its checks. Inner-port
+A waiver names an application and gives a nonempty literal reason. It applies to
+every application of that name on the flattened net: those of the outermost
+declaration, those an inner port or its net type contributes, and pin checks on
+the net's physical pins. Add a `pins` target (below) to restrict it. A waiver
+that matches no waivable application on its net produces `erc.waiver_target`;
+naming a non-waivable standard check is a source error, as is a quoted report
+identity such as `"net:receiver.bus:capacitance"`. Only the outermost declaration
+of the flattened net may waive its checks. Inner-port
 waivers produce `waiver_scope` and do not suppress diagnostics. Private-net
 waivers apply independently to each block instance. Reports retain reasons,
 locations, and waived diagnostics, including waivers with no matching diagnostic.
@@ -1102,9 +1182,9 @@ unused_port               bias_reference               voltage_limits
 ```
 
 Standard rules have qualified registry names such as `std.multiple_drivers` and
-`std.voltage_limits`; their default application names omit `std.`. Primitive
-applications report `erc.std.reduce`, `erc.std.count`, `erc.std.any`, or
-`erc.std.all`. Every result carries a separate application identity, so two
+`std.voltage_limits`; their default application names omit `std.`. Generic
+checks report their rule, such as `erc.std.sum`, `erc.std.parallel`,
+`erc.std.count`, `erc.std.any`, or `erc.std.all`. Every result carries a separate application identity, so two
 applications of the same rule can be diagnosed and waived independently.
 `waiver_scope` and `waiver_target` are engine diagnostics.
 
@@ -1202,27 +1282,50 @@ electrical policies, or name project rule sets to replace or augment them.
 Explicit source applications always run, including on unchecked nets. Disabling
 defaults does not disable parsing, resolution, connection-shape validation, or
 other structural compiler checks. The standard rule set preserves the documented
-role, nettype, current, voltage, and pull-reference policies.
+role, nettype, current, and voltage policies; pull-reference checks are explicit
+`std.bias_reference` applications.
 
 Each module defines `register(registry)`. Registration names are qualified strings
 such as `myboard.pin_count`. Duplicates in a registry category are errors.
+Everything before the last dot is the name's namespace. Source files import a
+project namespace like a module, either `import myboard` (then
+`myboard.pin_count(...)`) or `from myboard import pin_count`, and its rules and
+predicates are its members. A namespace that also names a source module is an
+ambiguous import error. The standard namespace is the builtin `std`, imported
+with `from noscheme import std`.
 
 | API | Purpose |
 |---|---|
 | `fields(scope, schema)` | Add descriptive metadata fields |
-| `net_rule(name, callback, parameters={}, defaults={}, waivable=True)` | Register a net assertion |
+| `net_rule(name, callback, parameters={}, defaults={}, waivable=True, net_only=False)` | Register a net assertion; `net_only=True` promises results depend only on the flattened net and the arguments, never `ctx.owner` |
 | `pin_rule(name, callback, parameters={}, defaults={}, waivable=True)` | Register a physical-pin assertion |
 | `predicate(name, callback)` | Register `(pin, ctx) -> True / False / None` |
-| `reducer(name, callback)` | Register a function from a tuple of intervals to an interval |
+| `reducer(name, callback)` | Register a function from a tuple of intervals to an interval, and a net rule of the same name that applies it (section 12.4) |
 | `rule_set(name, callback)` | Register `(ctx) -> iterable[Application]` |
 
-The table's rule options are keyword arguments. Schemas accept `number`,
-`positive`, `nonnegative`, `string`, `bool`, `literal`, `attributes` (an arbitrary
-literal mapping), nested dictionaries, or `(namespace, choices)` enums. Enum
+The table's rule options are keyword arguments. Field schemas accept `number`,
+`positive`, `nonnegative`, a quantity kind such as `capacitance` (section 4.1),
+`string`, `bool`, `literal`, `attributes` (an arbitrary literal mapping), nested
+dictionaries, or `(namespace, choices)` enums. A field name cannot end in a unit,
+scaled or not, such as `_uA`, `_V`, or `_kOhm`; declare a quantity kind and use
+base SI values. Enum
 values can be literal strings; built-in namespaces also accept explicitly
 imported enum values. Numeric values are finite and can use parameter expressions.
-Parameters without defaults are required after specialization and overlays merge.
-Unknown arguments and invalid evaluated values are blocking errors.
+
+Rule parameters accept the same scalar kinds, but not mappings, plus three kinds
+that name source entities rather than values:
+
+| Kind | Source argument | Callback receives |
+|---|---|---|
+| `field` | A bare endpoint metadata field name, such as `capacitance` | The name as a string |
+| `net_fields` | A net field name or a list of them | A tuple of names |
+| `selector` | A predicate, `role` or `bias` value, boolean field name, or a list of them | A tuple of terms for `noscheme.erc_primitives.selected` |
+
+Field names are checked against core and registered fields; they are never
+evaluated as parameter expressions. `missing` is reserved for the missing-data
+policy and cannot name a rule parameter. Parameters without defaults are required
+after specialization and overlays merge. Unknown arguments and invalid evaluated
+values are blocking errors.
 
 `fields` accepts existing metadata scopes, including `pin`, `instance_pin`, `net`,
 and `port`. It cannot replace core fields or previously registered fields.
@@ -1233,31 +1336,33 @@ select applications based on their presence.
 
 Use `checks` in pin, net, or public-port metadata, or in an instance's pin
 metadata overlay. Pins accept pin rules; nets and public ports accept net rules.
-Each application has a local name, a required string `checker`, optional `params`,
-and optional `missing: "warning"`, `"error"`, or `"ignore"`.
+Each entry names one application and calls an imported rule:
 
 ```nosch
-net signal: nettype.digital
-    checks:
-        driver_present:
-            checker: "std.any"
-            params:
-                predicate: "std.active_digital_driver"
-        no_contention:
-            checker: "std.count"
-            params:
-                predicate: "std.active_digital_driver"
-                max: 1
+from noscheme import nettype, std
+
+board B:
+    net signal: nettype.digital
+        checks:
+            driver_present: std.any(std.active_digital_driver)
+            no_contention: std.count(std.active_digital_driver, max=1)
 ```
+
+Positional arguments fill the rule's parameters in registration order; the rest
+are named. A call may span lines inside its parentheses. The reserved keyword
+`missing="warning"`, `"error"`, or `"ignore"` sets the missing-data policy. A
+rule must be imported, there are no implicit namespaces, and a pin rule cannot
+be applied to a net or the reverse.
 
 These illustrate generic presence and count assertions. Full standard drive
 policy also accounts for selectable roles, open-drain/source bias, tri-state
 capability, and public-boundary contracts; replacing it requires choosing those
 policies explicitly.
 
-A specialization or instance overlay merges same-name applications recursively.
-Repeat the same `checker` and override only the parameters that change. Changing
-the checker under an inherited name is an error; use a new application name.
+A specialization or instance overlay merges same-name applications by argument.
+Call the same rule and pass only the arguments that change, for example
+`pull_strength: std.parallel(min=2200)`. Calling a different rule under an
+inherited name is an error; use a new application name.
 Applications from multiple selected rule sets must have distinct names on an
 object, as must automatic and explicit applications. There is no implicit removal
 or replacement of a default application.
@@ -1283,6 +1388,8 @@ def check(ctx, *, max_pins):
     if len(ctx.pins) > max_pins:
         yield ctx.error("too many attached endpoints")
 ```
+
+After `import demo`, a net applies it with `pin_count: demo.pin_count(max_pins=3)`.
 
 Contexts expose:
 
@@ -1326,18 +1433,36 @@ configuration names, including for waived diagnostics.
 
 ### 12.4 Generic predicates and reductions
 
-`std.reduce` requires `attribute` and `reducer`, plus `min` and/or `max`. Optional
-`where` compares endpoint attributes; missing attributes and unselected role
-alternatives make selection unknown. An optional `predicate` further filters
-contributors. `net_attributes` optionally includes outermost-net quantities.
+### Selectors
 
-`std.count` requires `predicate` and at least one bound. `std.any` and `std.all`
-require `predicate` and assert at least one or every selected endpoint. All three
-accept `where`. Empty count is zero, empty any is false, and empty all is true.
-Available predicates include `std.active_digital_driver`, `std.power_source`,
-`std.digital_compatible`, `std.open_drain_compatible`,
-`std.open_source_compatible`, and `std.tristate_capable`. Active drive and the
-capability to tri-state are separate facts; runtime enable states are not inferred.
+A selector chooses endpoints. Each term is one of:
+
+- a registered predicate, such as `std.active_digital_driver`;
+- a `role` value, which tests the endpoint's effective role, including a
+  connector's `external_role`;
+- a `bias` value, which compares the endpoint's `bias` field;
+- the name of a boolean field, such as `tristate_capable`, which must be `true`.
+
+A list such as `[bias.pull_up, std.digital_compatible]` requires every term.
+Selection is three-valued: missing attributes, unselected role alternatives, and
+predicates returning `None` make it unknown. An empty list selects every endpoint.
+
+### Rules
+
+Every registered reducer is also a net rule with parameters
+`(field, where=(), net=(), min, max)`. It reduces `field` over the endpoints
+selected by `where`, adds the outermost-net quantities named by `net`, and asserts
+`min` and/or `max`. For example, `std.sum(capacitance, max=400p)` and
+`std.parallel(pull_resistance, where=bias.pull_up, min=1.5k)`.
+
+`std.count(what, min, max)` requires at least one bound and counts endpoints
+matching `what`. `std.any(what)` asserts at least one match. `std.all(what,
+where=())` asserts that every endpoint selected by `where` matches `what`. Empty
+count is zero, empty any is false, and empty all is true. Available predicates
+include `std.active_digital_driver`, `std.power_source`, `std.digital_compatible`,
+`std.open_drain_compatible`, `std.open_source_compatible`, and
+`std.tristate_capable`. Active drive and the capability to tri-state are separate
+facts; runtime enable states are not inferred.
 
 Reducers receive `Interval(lower, upper, optional=False, unknown=False)` values
 from `noscheme.erc_primitives`. Bounds describe possible contributions;
@@ -1377,7 +1502,11 @@ not language restrictions or guarantees of mechanical compatibility.
 The compiler consumes NoScheme definitions; it does not import KiCad symbols
 implicitly. `convert-library` writes explicit components and footprint snapshots
 into a new directory. It preserves physical pin text, follows symbol inheritance,
-folds duplicate representations, and keeps unambiguous aliases. Ambiguous aliases
+folds duplicate representations, and keeps unambiguous aliases. A two-terminal
+symbol whose reference prefix is `R`, `C`, or `L` gets a required `value`
+parameter of type `resistance`, `capacitance`, or `inductance`, since its KiCad
+`Value` is only a placeholder; other symbols keep `value: string` with KiCad's
+`Value` as the default. Ambiguous aliases
 and unsupported electrical types are reported rather than guessed.
 
 KiCad `no_connect` maps to `role.do_not_connect`. An explicit KiCad `tri_state`
@@ -1564,11 +1693,11 @@ This two-part test board connects a resistor between an external digital signal
 and ground. `main.nosch`:
 
 ```nosch
-from noscheme import role, nettype, unused, f
+from noscheme import role, nettype, unused
 
 component Resistor:
     params:
-        value: string
+        value: resistance
     pins:
         1..2:
             role: role.passive
@@ -1605,7 +1734,7 @@ board Demo:
             1: signal
             2: global.gnd
         params:
-            value: f.kOhm(10)
+            value: 10k
     )
 ```
 
@@ -1643,7 +1772,8 @@ Not implemented:
 - Macros, general Python expressions, loops, conditionals, and automatic part generation.
 - Multiple inheritance or structural specialization.
 - Implicit nets, positional instance arguments, private-instance access, or net merging.
-- Physical quantity types or automatic electrical inference from part-value strings.
+- Dimensional analysis of arithmetic (quantities name units but do not check them)
+  or automatic electrical inference from part-value strings.
 - Tri-state output-enable simulation or arbitration proofs.
 - Resistance/capacitance tolerance models and automatic protocol-limit derivation.
 - Language-level differential-pair declarations.

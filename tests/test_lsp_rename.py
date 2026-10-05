@@ -275,23 +275,18 @@ def test_board_rename_preserves_newlines_and_nonstandard_indentation(tmp_path):
     assert result.replace("\r\n", "").count("\n") == 0
 
 
-def test_board_rename_updates_waiver_targets_and_application_paths(tmp_path):
+def test_board_rename_updates_waiver_targets(tmp_path):
     source = """from noscheme import role, nettype
 component Part:
     pins:
         1:
             role: role.power_input
-            checks:
-                test:
-                    checker: "std.bias_reference"
 board B:
     net gnd: nettype.ground
         waivers:
             incompatible_role:
                 reason: "old is intentionally grounded"
                 pins: ["old[0].1", "old[1].1"]
-            "net:gnd:missing_driver": "Unrelated key"
-            "pin:old[0].1:test": "Specific application"
     inst old[2]: Part(
         connections:
             1: gnd
@@ -306,8 +301,6 @@ board B:
     assert 'pins: ["new[0].1", "new[1].1"]' in result
     assert 'reason: "old is intentionally grounded"' in result
     assert 'note: "old"' in result
-    assert '"net:gnd:missing_driver"' in result
-    assert '"pin:new[0].1:test"' in result
     from noscheme.erc import apply_erc
 
     _, renamed = compile_buffers(tmp_path, {**s.sources, path: result})
@@ -347,3 +340,16 @@ board B:
     for identity in first:
         assert first[identity]["uuid"] == second[identity]["uuid"]
         assert first[identity]["reference"] == second[identity]["reference"]
+
+
+def test_net_type_rename_updates_extends_and_uses(tmp_path):
+    from test_nettypes import SOURCE as nettypes
+
+    source = "from noscheme import role, unused, nettype\n" + nettypes
+    s = session(tmp_path, source)
+    path = tmp_path / "main.nosch"
+    result = apply(s.rename(path, source.index("I2CLine extends"), "BusLine"), s.sources)[path]
+    assert "nettype BusLine extends nettype.open_drain:" in result
+    assert "nettype FastI2CLine extends BusLine:" in result
+    assert "scl: BusLine" in result and "net extra: BusLine" in result
+    assert "I2CLine" not in result.replace("FastI2CLine", "")

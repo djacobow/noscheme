@@ -9,7 +9,7 @@ from noscheme.resolve import Resolver, resolve_project
 from noscheme.cli import main
 
 
-PRELUDE = "from noscheme import role, unused, nettype, f, num\n"
+PRELUDE = "from noscheme import role, unused, nettype, num\n"
 BOARD = "\nboard B:\n    net n: nettype.passive\n"
 
 
@@ -32,7 +32,7 @@ def test_inheritance_merge_alias_replacement_and_defaults(tmp_path):
         tmp_path,
         """component Child extends Base:
     defaults:
-        value: f.kOhm(2)
+        value: "2kOhm"
     pins:
         01:
             aliases: [new]
@@ -66,7 +66,7 @@ component Base:
     assert nested["retained"].value == 1
     assert nested["changed"].value == "child"
     assert parent.metadata["custom"].value["nested"].value["changed"].value == "base"
-    assert child.parameters["value"].default.value.callee.name.text == "kOhm"
+    assert child.parameters["value"].default.value.value == "2kOhm"
 
 
 def test_inherited_body_and_default_keep_original_module(tmp_path):
@@ -85,7 +85,7 @@ def test_inherited_body_and_default_keep_original_module(tmp_path):
             role: role.passive
 block Base:
     params:
-        value: string = f.Ohm(10)
+        value: string = "10Ohm"
     ports:
         a: nettype.passive
     inst r: R(
@@ -137,7 +137,7 @@ block Base:
         ("component C:\n    pins:\n        1:\n            role: passive\n", "metadata.enum"),
         ("component C:\n    pins:\n        1:\n            role: role.typo\n", "metadata.enum"),
         (
-            "component C:\n    pins:\n        1:\n            max_load_current_mA: -1\n",
+            "component C:\n    pins:\n        1:\n            max_load_current: -1m\n",
             "metadata.value",
         ),
         ("block C:\n    ports:\n        a: Missing\n", "resolve.missing-definition"),
@@ -147,7 +147,7 @@ block Base:
             "metadata.unknown",
         ),
         ("component C:\n    params:\n        value: string = missing\n", "resolve.expression-name"),
-        ("component C:\n    params:\n        value: string = f.typo(10)\n", "resolve.helper"),
+        ("component C:\n    params:\n        value: string = num.typo(10)\n", "resolve.helper"),
         (
             'component C:\n    params:\n        value: string = "x".__class__\n',
             "resolve.expression",

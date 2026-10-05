@@ -73,19 +73,8 @@ def register(registry):
             for code in sorted(pin_codes):
                 yield Application(code, "std.pin_" + code)
             yield Application("current_load_group", "std.current_groups")
-            if "bias_reference_pin" in ctx.pin.attributes:
-                yield Application("bias_reference", "std.bias_reference")
         else:
-            if ctx.owner["type"] != "unchecked" and (
-                any(
-                    "voltage_min_V" in d.attributes or "voltage_max_V" in d.attributes
-                    for d in ctx.net.declarations
-                )
-                or any(
-                    "min_voltage_V" in p.attributes or "max_voltage_V" in p.attributes
-                    for p in ctx.pins
-                )
-            ):
+            if ctx.owner["type"] != "unchecked":
                 yield Application("voltage_limits", "std.voltage_limits")
             for code in CHECKS:
                 if code not in {"waiver_scope", "waiver_target", "current_load_group"}:

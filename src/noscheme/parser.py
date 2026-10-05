@@ -9,6 +9,7 @@ from lark import Token, Tree
 from . import ast as a
 from .diagnostics import Diagnostic, DiagnosticError, Related
 from .syntax import SyntaxDiagnostic, parse as syntax_parse
+from .units import scaled_value
 
 RESERVED_NAMES = frozenset({"no_connect", "global", "true", "false", "number", "string"})
 
@@ -113,6 +114,21 @@ class Builder:
         if isinstance(node, Token):
             return self.name(node)
         kind, c, span = str(node.data), node.children, self.span(node)
+        if kind == "scaled":
+            try:
+                value = scaled_value(str(c[0]))
+            except ValueError:
+                raise DiagnosticError(
+                    [
+                        Diagnostic(
+                            "syntax.number",
+                            "error",
+                            "a scaled number has one decimal mark: 4.7k or 4k7, not 4.7k7",
+                            span,
+                        )
+                    ]
+                ) from None
+            return a.Number(span, str(c[0]), "integer" if type(value) is int else "double")
         if kind in {"integer", "number"}:
             return a.Number(span, str(c[0]), "integer" if kind == "integer" else "double")
         if kind == "string":
@@ -365,17 +381,26 @@ def validate_structure(module):
         "block": {"params", "ports", "metadata"},
         "board": {"metadata"},
         "bundle": {"metadata"},
+        "nettype": set(),
     }
     for d in definitions:
         declaration_name(d.name)
-        if d.base and d.kind not in {"component", "block"}:
+        if d.base and d.kind not in {"component", "block", "nettype"}:
             error(
                 "syntax.inheritance-context",
-                "only components and blocks may specialize definitions",
+                "only components, blocks, and net types may specialize definitions",
+                d,
+            )
+        if d.kind == "nettype" and not d.base:
+            error(
+                "syntax.nettype-base",
+                "a net type extends a builtin nettype value or another net type",
                 d,
             )
         sections = [n for n in d.body if isinstance(n, a.Section)]
         unique(sections, lambda n: n.name)
+        if d.kind == "nettype":
+            fields(tuple(n for n in d.body if isinstance(n, a.Field)))
         unique([n for n in d.body if isinstance(n, (a.Net, a.Instance))], lambda n: n.name.text)
         for n in d.body:
             if isinstance(n, a.Section):
@@ -396,11 +421,13 @@ def validate_structure(module):
                     )
                 fields(n.entries, n.name == "params", pin_keys=n.name == "pins")
             elif isinstance(n, a.Field):
+                if d.kind == "nettype":
+                    continue  # Net metadata fields, validated together below.
                 declaration_name(n.key.first)
                 if d.kind != "bundle" or d.base:
                     error(
                         "syntax.declaration-context",
-                        "bare fields are only allowed in bundle definitions",
+                        "bare fields are only allowed in bundle and net type definitions",
                         n,
                     )
             elif isinstance(n, (a.Net, a.Instance)):
