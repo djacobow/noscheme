@@ -69,13 +69,20 @@ def test_source_connectivity_values_and_export(tmp_path):
         for identity, p in state["entries"].items()
         if identity in mapping
     }
-    exported_nets = {
-        frozenset(
+    exported_nets = set()
+    exported_disconnected = set()
+    for net in children(children(exported, "nets")[0], "net"):
+        nodes = children(net, "node")
+        endpoints = frozenset(
             f"{refs[scalar(node, 'ref')]}.{scalar(node, 'pin')}" for node in children(net, "node")
         )
-        for net in children(children(exported, "nets")[0], "net")
-    }
+        if any(scalar(node, "pintype") == "no_connect" for node in nodes):
+            assert len(nodes) == 1
+            exported_disconnected.update(endpoints)
+        else:
+            exported_nets.add(endpoints)
     assert exported_nets == expected_nets
+    assert exported_disconnected == disconnected
 
 
 def test_local_footprints_match_snapshot():

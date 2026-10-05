@@ -16,6 +16,7 @@ import tempfile
 from uuid import uuid4, uuid5, UUID
 
 from .. import ast as a
+from ..circuit import path_text
 from ..diagnostics import Diagnostic, DiagnosticError
 from ..erc import apply_erc, report_files
 from .sexpr import form, dump
@@ -230,6 +231,7 @@ def libpart_pins(parts):
 def render(circuit, state):
     names = KiCadNames()
     net_names = {net["name"]: names.encode(net) for net in circuit["nets"]}
+    reserved_net_names = set(net_names.values())
     components, libparts, nets, membership = [], {}, {}, {}
     for net in circuit["nets"]:
         classes = {
@@ -252,6 +254,10 @@ def render(circuit, state):
         entry = state["entries"][part["identity"]]
         ref = entry["reference"]
         kind = part["definition"]
+        source_fields = {
+            "noscheme_identity": part["identity"],
+            "noscheme_path": path_text(part["path"]),
+        }
         components.append(
             form(
                 "comp",
@@ -259,8 +265,17 @@ def render(circuit, state):
                 form("value", part_value(part)),
                 form("footprint", footprint),
                 form("libsource", form("lib", "NoScheme"), form("part", kind)),
+                *[
+                    form("property", form("name", name), form("value", value))
+                    for name, value in source_fields.items()
+                ],
+                # KiCad imports visible footprint fields separately from properties.
                 form(
-                    "property", form("name", "noscheme_identity"), form("value", part["identity"])
+                    "fields",
+                    *[
+                        form("field", form("name", name), value)
+                        for name, value in source_fields.items()
+                    ],
                 ),
                 form("sheetpath", form("names", "/"), form("tstamps", "/")),
                 form("tstamps", entry["uuid"]),
@@ -277,6 +292,20 @@ def render(circuit, state):
             if data["net"] is not None:
                 net = net_names[data["net"]]
                 nets.setdefault(net, []).append(form("node", form("ref", ref), form("pin", pin)))
+            elif data["binding"] == "no_connect" or "do_not_connect" in attribute(data, "role", []):
+                # KiCad discovers component pins from net nodes, not libparts.
+                # Give each deliberate NC its own net and mark the node so even
+                # duplicate-number footprint pads stay isolated in PCB Editor.
+                base = f"unconnected-({entry['uuid']}-Pad{pin})"
+                net = base
+                suffix = 1
+                while net in reserved_net_names:
+                    net = f"{base}_{suffix}"
+                    suffix += 1
+                reserved_net_names.add(net)
+                nets[net] = [
+                    form("node", form("ref", ref), form("pin", pin), form("pintype", "no_connect"))
+                ]
     netlist = dump(
         form(
             "export",

@@ -1508,6 +1508,31 @@ references, or placement; added and removed identities remain distinct. To retai
 identity across a planned source rename, set explicit `identity` metadata before
 exporting the renamed design (section 13).
 
+Every exported physical component has two netlist properties, also exported as
+fields so KiCad can copy them into footprint properties:
+
+- `noscheme_path`: its current full source instance path, relative to the board,
+  including nested block names and array indices, such as `indicators[0].resistor`.
+- `noscheme_identity`: its stable identity used to allocate UUIDs and references.
+  Explicit identity metadata can keep this different from the current source
+  path after a rename.
+
+Connectivity remains flattened. These properties describe the source hierarchy;
+they do not create KiCad sheets or alter footprint placement. After updating
+the PCB from the netlist, select a footprint and press `E` to inspect its fields
+in Footprint Properties. The user verified both fields after importing the
+STM32 example into KiCad.
+
+Explicit `no_connect` bindings and unconnected `role.do_not_connect` pins are
+exported on individual synthetic nets with node `pintype: no_connect`. This
+lets KiCad distinguish intentionally unused pads from pins missing in the
+netlist, including footprints with duplicate mounting-pad numbers. Names use
+the stable component UUID and pin number, with a suffix if needed to avoid a
+real net name. They exist only in `board.net`; they do not add source nets,
+ERC connections, or entries to `names.json` and the source-net reports.
+Other omitted pins retain their existing diagnostics and are not automatically
+marked no-connect.
+
 KiCad `libparts` retains the first declared pin alias (or physical pad ID when
 there is no alias). A single known role maps to the corresponding KiCad pin type;
 analog and digital inputs/outputs share KiCad's input/output types, ground maps

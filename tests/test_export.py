@@ -50,6 +50,20 @@ def test_export_and_repeatability(setup):
     components = children(children(netlist, "components")[0], "comp")
     assert len(components) == 5
     assert {scalar(c, "ref") for c in components} == {"J1", "D1", "D2", "R1", "R2"}
+    properties = [
+        {scalar(p, "name"): scalar(p, "value") for p in children(c, "property")} for c in components
+    ]
+    assert {p["noscheme_path"] for p in properties} == {
+        "input",
+        "indicators[0].resistor",
+        "indicators[0].led",
+        "indicators[1].resistor",
+        "indicators[1].led",
+    }
+    assert all(p["noscheme_identity"] == p["noscheme_path"] for p in properties)
+    for component, expected in zip(components, properties, strict=True):
+        fields = children(children(component, "fields")[0], "field")
+        assert {scalar(f, "name"): f[2] for f in fields} == expected
     assert len(children(children(netlist, "nets")[0], "net")) == 4
     again = export_project(*setup)
     assert again["changes"] == {"added": [], "removed": [], "changed": []}
@@ -107,6 +121,31 @@ def test_leading_hash_warning_on_cli_stderr_and_json_report(setup, capsys):
     assert len(report["warnings"]) == 2
     diagnostics = json.loads(output.err)["diagnostics"]
     assert [d for d in diagnostics if d["code"] == "reference.leading-hash"] == report["warnings"]
+
+
+def test_source_path_updates_without_changing_identity_or_connectivity(setup):
+    project, circuit, records = setup
+    export_project(*setup)
+    original_state = state(project)["entries"]
+    original_netlist = load(project.config.output_dir / "board.net")
+    moved = deepcopy(circuit)
+    part = next(p for p in moved["parts"] if p["identity"] == "indicators[0].resistor")
+    part["path"] = ["channels#", 1, 2, "renamed", "resistor"]
+    export_project(project, moved, records)
+    netlist = load(project.config.output_dir / "board.net")
+    components = children(children(netlist, "components")[0], "comp")
+    original = original_state[part["identity"]]
+    component = next(c for c in components if scalar(c, "ref") == original["reference"])
+    properties = {scalar(p, "name"): scalar(p, "value") for p in children(component, "property")}
+    assert properties == {
+        "noscheme_identity": "indicators[0].resistor",
+        "noscheme_path": "channels#[1][2].renamed.resistor",
+    }
+    assert scalar(component, "tstamps") == original["uuid"]
+    fields = children(children(component, "fields")[0], "field")
+    assert {scalar(f, "name"): f[2] for f in fields} == properties
+    assert state(project)["entries"] == original_state
+    assert children(netlist, "nets") == children(original_netlist, "nets")
 
 
 def test_stable_identity_and_reference_override(setup):
@@ -323,3 +362,65 @@ def test_probable_rename_requires_unique_exact_match():
     assert probable_renames({"old": part, "other": part}, {"new": part}) == []
     for changed in ({"footprint": "Test:C"}, {"value": None}, {"pins": {"1": "gnd", "2": "bus"}}):
         assert probable_renames({"old": part}, {"new": part | changed}) == []
+
+
+def test_no_connect_nodes_are_isolated_stable_and_collision_safe(setup):
+    import sexpdata
+    from noscheme.kicad.export import render
+
+    project, circuit, records = setup
+    export_project(*setup)
+    allocated = state(project)
+    part = circuit["parts"][0]
+    pins = list(part["pins"])
+    assert len(pins) >= 2
+    for pin in pins[:2]:
+        part["pins"][pin]["net"] = None
+    part["pins"][pins[0]]["binding"] = "no_connect"
+    part["pins"][pins[1]]["binding"] = "omitted"
+    part["pins"][pins[1]]["metadata"]["role"] = {"value": ["do_not_connect"]}
+    original = deepcopy(circuit)
+
+    def exported_nets():
+        text, _, _ = render(circuit, allocated)
+        return children(children(sexpdata.loads(text), "nets")[0], "net")
+
+    nets = exported_nets()
+    nc = [n for n in nets if any(scalar(p, "pintype") == "no_connect" for p in children(n, "node"))]
+    assert len(nc) == 2
+    assert len({scalar(n, "name") for n in nc}) == 2
+    assert all(len(children(n, "node")) == 1 for n in nc)
+    assert {scalar(children(n, "node")[0], "pin") for n in nc} == set(pins[:2])
+    assert circuit == original  # Export-only nets must not leak into the circuit/ERC model.
+    part["path"] = ["renamed"]
+    assert exported_nets() == nets
+
+    # A real source net can use the generated name: never merge it with an NC.
+    collision = scalar(nc[0], "name")
+    circuit["nets"][0]["name"] = collision
+    circuit["nets"][0]["path"] = [collision]
+    old_name = original["nets"][0]["name"]
+    for p in circuit["parts"]:
+        for data in p["pins"].values():
+            if data["net"] == old_name:
+                data["net"] = collision
+    collision_nets = exported_nets()
+    assert len({scalar(n, "name") for n in collision_nets}) == len(collision_nets)
+    assert any(scalar(n, "name") == collision + "_1" for n in collision_nets)
+
+
+def test_unbound_pin_is_not_silently_marked_no_connect(setup):
+    import sexpdata
+    from noscheme.kicad.export import render
+
+    project, circuit, records = setup
+    export_project(*setup)
+    part = circuit["parts"][0]
+    pin = next(iter(part["pins"].values()))
+    pin["net"] = None
+    pin["binding"] = "omitted"
+    text, _, _ = render(circuit, state(project))
+    nets = children(children(sexpdata.loads(text), "nets")[0], "net")
+    assert not any(
+        scalar(node, "pintype") == "no_connect" for net in nets for node in children(net, "node")
+    )

@@ -10,7 +10,7 @@ Requested October 5, 2026. These are separate from the deferred review backlog.
   `10.0.6~ubuntu26.04.1` for `resolute`. Python matrix, library integration,
   and installed-wheel checks passed in
   [CI run 37248148487](https://github.com/djacobow/noscheme/actions/runs/37248148487).
-- [ ] **Test the LSP in Neovim and VS Code.** Help the user find and install a
+- [x] **Test the LSP in Neovim and VS Code.** Help the user find and install a
   recent stable Neovim release, checking official release information rather
   than assuming Ubuntu's apt package is current. Document the tested editor and
   client versions and setup instructions. Exercise diagnostics on unsaved edits,
@@ -27,15 +27,35 @@ Requested October 5, 2026. These are separate from the deferred review backlog.
   highlighting, hover, definition, completion, identity metadata preservation
   on rename, and unsaved diagnostics appearing and clearing in VS Code.
   Restricted Mode initially disabled the extension; trusting the project
-  resolved it and this is documented. VS Code references and a post-rename
-  export comparison remain pending.
-- [ ] **Export full source hierarchy as instance attributes.** Add a property
+  resolved it and this is documented. The user also confirmed VS Code
+  references and the post-rename export comparison, completing these checks.
+- [x] **Export full source hierarchy as instance attributes.** Add a property
   such as `noscheme_path` to every exported physical component, containing its
   full current hierarchical source name, including array indices. Retain the
   existing `noscheme_identity` property: an explicit stable identity can differ
   from the current source path after a rename. Keep connectivity flattened and
   preserve UUID/reference allocation. Test nested blocks, arrays, and renamed
   instances, and verify how the property appears after KiCad import.
+  Implemented `noscheme_path` alongside `noscheme_identity` on every exported
+  physical component, including KiCad `fields` entries for footprint display
+  (generic netlist properties alone are not copied into footprint fields).
+  Export tests cover nested block arrays, multidimensional
+  indices, source names containing `#`, and path changes while preserving
+  identity, UUIDs, references, and connectivity. The user confirmed that both
+  fields appear in KiCad Footprint Properties after reimport.
+
+- [x] **Represent intentionally unconnected pins in KiCad export.** The STM32
+  import previously reported 49 warnings for 41 unused MCU pads, two SWD pads, two USB-C
+  pads, and four JST mounting pads. Check KiCad's expected representation and
+  preserve no-connect semantics without introducing electrical connections.
+  Verify the resulting import and repeated updates in PCB Editor.
+  Implemented isolated synthetic net nodes with KiCad's `no_connect` pin type
+  for explicit no-connect bindings and disconnected do-not-connect pins.
+  Tests cover stable names, collisions with real nets, accidental omissions,
+  and all 47 unused logical pins (49 footprint pads) on the STM32 example.
+  The user verified the PCB update with zero warnings/errors, including
+  separate nets for duplicate JST mounting pads. Reimporting the same netlist
+  reported no changes and zero warnings/errors.
 
 ## Current milestone: physical STM32 proof-of-concept and KiCad handoff
 

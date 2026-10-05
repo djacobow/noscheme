@@ -232,8 +232,8 @@ Trust**, then reload the window.
 With VS Code 1.140.0 and the local NoScheme extension 0.1.0, the user confirmed
 highlighting, hover, definition navigation, completion, board-instance rename
 retaining `metadata.identity`, and unsaved diagnostics appearing and clearing
-after undo. References and a post-rename export comparison remain to be checked
-in this client.
+after undo. The user also confirmed references and a post-rename export
+comparison preserving UUIDs and reference designators.
 
 ### Footprint completion
 

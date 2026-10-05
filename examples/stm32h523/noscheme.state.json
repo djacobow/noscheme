@@ -466,7 +466,7 @@
     }
   },
   "namespace": "f598cac1-7806-4caa-aba1-72aa3c518bf9",
-  "netlist_sha256": "15cdf5cd88fbec7cc239b9d7a854e3011b2364e8e52c968b92c1a15c3c9fa01f",
+  "netlist_sha256": "ae5fb9269b3868b787cc893c090e3d098feab7f9b2351049367cd1b7980a7584",
   "previous_parts": {
     "boot_header": {
       "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical_SMD_Pin1Left",

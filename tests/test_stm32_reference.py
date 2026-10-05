@@ -173,6 +173,19 @@ def test_reference_exports_every_part_and_repeats_without_changes(board, tmp_pat
     )
     assert len(components) == 58
     assert all(scalar(comp, "footprint") for comp in components)
+    nets = children(children(netlist, "nets")[0], "net")
+    nc_nets = [
+        net
+        for net in nets
+        if any(scalar(node, "pintype") == "no_connect" for node in children(net, "node"))
+    ]
+    assert len(nc_nets) == 47  # 49 physical pads; each JST MP pin has two pads.
+    assert all(len(children(net, "node")) == 1 for net in nc_nets)
+    assert len(nets) - len(nc_nets) == 52
+    nodes = [node for net in nets for node in children(net, "node")]
+    assert len({(scalar(n, "ref"), scalar(n, "pin")) for n in nodes}) == sum(
+        len(part["pins"]) for part in c["parts"]
+    )
     export_project(project, c, PROJECT / "kicad_lib/footprints.json")
     assert path.read_bytes() == before
     report = json.loads((tmp_path / "out" / "export.json").read_text())
