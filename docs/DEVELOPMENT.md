@@ -241,3 +241,13 @@ uv run --locked noscheme lint --project examples/parameterized_erc --diagnostics
 ```
 
 It reports unreferenced public parameters without assuming they should be removed.
+
+## Standard ERC check families
+
+`erc_standard.py` registers standard names and default applications. Policies live
+in `erc_connections.py`, `erc_ports.py`, `erc_compatibility.py`, `erc_drivers.py`,
+and `erc_current.py`; `erc_facts.py` supplies shared immutable facts and diagnostic
+construction. A selected family is evaluated once per net/configuration, and
+unselected families do not execute. Grouped current facts are shared between net
+budget checks and the component's group-validation application. Tests cover both
+behavior and execution isolation.

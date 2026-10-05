@@ -9,6 +9,8 @@ from .diagnostics import DiagnosticError
 from .lsp_analysis import Analysis, reference_index
 from .project import IDENTIFIER, load_project, source_text
 from .parser import RESERVED_NAMES
+from .lsp_identity import identity_edit, waiver_edits, physical_signature
+from .circuit import elaborate_project
 from .resolve import Resolver
 
 
@@ -21,6 +23,8 @@ class RenameTarget:
     span: a.Span
     name: str
     occurrences: tuple[a.Span, ...]
+    instance: a.Instance | None = None
+    owner: a.Definition | None = None
 
 
 class RenameSession:
@@ -83,6 +87,7 @@ class RenameSession:
         if ref is None:
             raise ValueError("No renameable symbol at this position.")
         allowed, named = set(), set()
+        instances = {}
         for module in self.project.modules.values():
             for item in module.ast.items:
                 if not isinstance(item, a.Definition):
@@ -90,7 +95,11 @@ class RenameSession:
                 if item.kind in {"component", "block", "bundle"}:
                     named.add(span_key(item.name.span))
                 for node in item.body:
-                    if isinstance(node, a.Net):
+                    if isinstance(node, a.Instance) and item.kind == "board":
+                        key = span_key(node.name.span)
+                        allowed.add(key)
+                        instances[key] = (item, node)
+                    elif isinstance(node, a.Net):
                         allowed.add(span_key(node.name.span))
                     elif isinstance(node, a.Field) and item.kind == "bundle":
                         allowed.add(span_key(node.span))
@@ -105,7 +114,7 @@ class RenameSession:
             allowed.add(ref.identity)
         if ref.identity not in allowed | named:
             raise ValueError(
-                "Rename supports nets, parameters, components, blocks, bundles, ports, and bundle fields; board, instance, and module names are not supported."
+                "Rename supports nets, parameters, components, blocks, bundles, ports, bundle fields, and board-level instances; board names, internal instances, and module names are not supported."
             )
         occurrences = [r for r in self.index.references if r.identity == ref.identity]
         if ref.identity in named:
@@ -127,7 +136,8 @@ class RenameSession:
         if selected is None or not selected.start_pos <= offset < selected.end_pos:
             raise ValueError("Place the cursor on the symbol name, not its module qualifier.")
         name = self.sources[path][selected.start_pos : selected.end_pos]
-        return RenameTarget(selected, name, tuple(sorted(spans, key=span_key)))
+        owner, instance = instances.get(ref.identity, (None, None))
+        return RenameTarget(selected, name, tuple(sorted(spans, key=span_key)), instance, owner)
 
     def rename(self, path, offset, new_name):
         target = self.prepare(path, offset)
@@ -135,16 +145,30 @@ class RenameSession:
             raise ValueError("The new name must be a NoScheme identifier, not a reserved value.")
         if new_name == target.name:
             return []
+        edits = [(span, new_name) for span in target.occurrences]
+        if target.instance:
+            insertion = identity_edit(
+                target.instance, self.sources[Path(target.instance.span.filename)]
+            )
+            if insertion:
+                edits.append(insertion)
+            edits.extend(waiver_edits(self.project, target.owner, target.name, new_name))
         edited = dict(self.sources)
-        for span in sorted(target.occurrences, key=span_key, reverse=True):
+        for span, text in sorted(edits, key=lambda edit: span_key(edit[0]), reverse=True):
             file = Path(span.filename)
-            text = edited[file]
-            edited[file] = text[: span.start_pos] + new_name + text[span.end_pos :]
-        # Parse and resolve the proposed workspace in memory. Duplicate names,
-        # import collisions, shadowed helpers, and broken bindings reject the edit.
+            source = edited[file]
+            edited[file] = source[: span.start_pos] + text + source[span.end_pos :]
+        # Validate the proposed workspace without publishing or changing export state.
         try:
             project = load_project(self.project.config.path, sources=edited)
-            Resolver(project).resolve_all()
+            definitions = Resolver(project).resolve_all()
+            if target.instance:
+                before, _ = elaborate_project(self.project, self.definitions)
+                after, _ = elaborate_project(project, definitions)
+                if physical_signature(before) != physical_signature(after):
+                    raise ValueError(
+                        "Rename would change physical identities, parts, or connectivity."
+                    )
         except DiagnosticError as exc:
             raise ValueError(f"Rename rejected: {exc.diagnostics[0].message}") from exc
-        return [(span, new_name) for span in target.occurrences]
+        return edits

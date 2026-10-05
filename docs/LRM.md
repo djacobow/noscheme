@@ -1389,6 +1389,12 @@ provides an explicit stable string. On arrays it gains element-index suffixes;
 on blocks it anchors descendant identities across block renames. Duplicate
 physical identities are errors.
 
+LSP rename of a board-level instance inserts its old name as explicit `identity`
+when needed. This preserves array-element and descendant identities using the
+same rules as handwritten metadata. Existing explicit identities are retained.
+This does not extend to moving instances or renaming internals of reusable blocks;
+see [Editor support](EDITOR_SUPPORT.md) for the editor workflow.
+
 `metadata.ref` requests an explicit physical reference. Otherwise the exporter
 allocates references using the component prefix (default `"U"`) and persistent reservations.
 KiCad reference names must match `[A-Za-z_#][A-Za-z0-9_#]*`, and case-insensitive
@@ -1601,10 +1607,11 @@ Not implemented:
 - Tri-state output-enable simulation or arbitration proofs.
 - Resistance/capacitance tolerance models and automatic protocol-limit derivation.
 - Language-level differential-pair declarations.
-- A compiler formatter, incremental compiler analysis, or automatic preservation
-  of CAD identity during source refactoring. LSP rename and public bundle-member
-  navigation are implemented; supported cases and limitations are documented in
-  [Editor support](EDITOR_SUPPORT.md).
+- A compiler formatter, incremental compiler analysis, or identity-preserving
+  moves and internal instance renames. LSP rename preserves CAD identities for
+  board-level component/block instances using existing `identity` metadata;
+  public bundle-member navigation is also implemented. See
+  [Editor support](EDITOR_SUPPORT.md) for supported cases and limitations.
 - CAD-to-source circuit synchronization or automatic placement/routing.
 
 The parser grammar is maintained in

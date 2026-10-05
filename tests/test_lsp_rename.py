@@ -95,7 +95,7 @@ def test_invalid_names_and_collisions_are_rejected(tmp_path, file, needle, new):
         ("library", "1:"),
         ("library", "signal]"),
         ("main", "B:"),
-        ("main", "a: library"),
+        ("library", "p[count]:"),
         ("main", "library.Unit"),
     ],
 )
@@ -207,3 +207,143 @@ block Unit:
     result = apply(s.rename(path, source.index("supply:"), "rail"), s.sources)
     assert "global net rail:" in result[path]
     assert "global.rail" in result[tmp_path / "child.nosch"]
+
+
+def compile_buffers(root, sources):
+    from noscheme.circuit import elaborate_project
+
+    project = load_project(root, sources=sources)
+    return project, elaborate_project(project, Resolver(project).resolve_all())[0]
+
+
+@pytest.mark.parametrize("name", ["a", "b", "c"])
+def test_board_block_rename_preserves_descendants_and_array_identities(tmp_path, name):
+    s = session(tmp_path)
+    path = tmp_path / "main.nosch"
+    _, before = compile_buffers(tmp_path, s.sources)
+    result = apply(s.rename(path, SOURCE.index(f"{name}: "), "assembly"), s.sources)
+    assert f'identity: "{name}"' in result[path]
+    _, after = compile_buffers(tmp_path, result)
+    assert {p["identity"] for p in before["parts"]} == {p["identity"] for p in after["parts"]}
+    assert any(p["path"][0] == "assembly" for p in after["parts"])
+    assert path.read_text() == SOURCE
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        "    inst old: Part() // keep trailing ) comment\n",
+        "    inst old: Part(\n    )\n",
+        '    inst old[2][3]: Part(\n        params:\n            value: "keep ) string"\n    )\n',
+        '    inst old: Part(\n        metadata:\n            // Keep this comment.\n            value: "keep me"\n    )\n',
+        '    inst old: Part(\n        metadata:\n            identity: "already_stable"\n    )\n',
+        '    inst old[2]: Part(\n        elements:\n            [1]:\n                params:\n                    value: "2k"\n    )\n',
+    ],
+)
+def test_board_instance_identity_insertion_formats_and_existing_identity(tmp_path, body):
+    source = "from library import Part\nboard B:\n" + body
+    s = session(tmp_path, source)
+    path = tmp_path / "main.nosch"
+    result = apply(s.rename(path, source.index("old"), "new"), s.sources)
+    _, before = compile_buffers(tmp_path, s.sources)
+    _, after = compile_buffers(tmp_path, result)
+    assert {p["identity"] for p in before["parts"]} == {p["identity"] for p in after["parts"]}
+    assert result[path].count("identity:") == 1
+    if "already_stable" in body:
+        assert 'identity: "already_stable"' in result[path]
+    else:
+        assert 'identity: "old"' in result[path]
+    if "// keep trailing ) comment" in body:
+        assert ") // keep trailing ) comment" in result[path]
+    if "keep ) string" in body:
+        assert 'value: "keep ) string"' in result[path]
+    # A second rename retains the original identity, rather than the previous name.
+    second = RenameSession(tmp_path, result)
+    twice = apply(second.rename(path, result[path].index("new"), "third"), result)
+    assert twice[path].count("identity:") == 1
+    _, again = compile_buffers(tmp_path, twice)
+    assert {p["identity"] for p in before["parts"]} == {p["identity"] for p in again["parts"]}
+
+
+def test_board_rename_preserves_newlines_and_nonstandard_indentation(tmp_path):
+    source = 'from library import Part\r\nboard B:\r\n  inst old: Part(\r\n    params:\r\n      value: "a"\r\n  )\r\n'
+    session(tmp_path, source)
+    path = tmp_path / "main.nosch"
+    s = RenameSession(tmp_path, {path: source})
+    result = apply(s.rename(path, source.index("old"), "new"), s.sources)[path]
+    assert '\r\n    metadata:\r\n      identity: "old"\r\n  )' in result
+    assert result.replace("\r\n", "").count("\n") == 0
+
+
+def test_board_rename_updates_waiver_targets_and_application_paths(tmp_path):
+    source = """from noscheme import role, nettype
+component Part:
+    pins:
+        1:
+            role: role.power_input
+            checks:
+                test:
+                    checker: "std.bias_reference"
+board B:
+    net gnd: nettype.ground
+        waivers:
+            incompatible_role:
+                reason: "old is intentionally grounded"
+                pins: ["old[0].1", "old[1].1"]
+            "net:gnd:missing_driver": "Unrelated key"
+            "pin:old[0].1:test": "Specific application"
+    inst old[2]: Part(
+        connections:
+            1: gnd
+        metadata:
+            custom:
+                note: "old"
+    )
+"""
+    s = session(tmp_path, source)
+    path = tmp_path / "main.nosch"
+    result = apply(s.rename(path, source.index("old[2]"), "new"), s.sources)[path]
+    assert 'pins: ["new[0].1", "new[1].1"]' in result
+    assert 'reason: "old is intentionally grounded"' in result
+    assert 'note: "old"' in result
+    assert '"net:gnd:missing_driver"' in result
+    assert '"pin:new[0].1:test"' in result
+    from noscheme.erc import apply_erc
+
+    _, renamed = compile_buffers(tmp_path, {**s.sources, path: result})
+    assert apply_erc(renamed) == ()
+
+
+def test_board_rename_keeps_export_uuid_and_reference_without_writing_state(tmp_path):
+    import json
+    from noscheme.kicad.export import export_project
+
+    source = """from library import Part
+board B:
+    inst old[2]: Part(
+        metadata:
+            footprint: "Test:OnePad"
+    )
+"""
+    s = session(tmp_path, source)
+    path = tmp_path / "main.nosch"
+    footprints = tmp_path / "footprints.json"
+    footprints.write_text(
+        json.dumps(
+            {"schema_version": 1, "footprints": {"Test:OnePad": {"exists": True, "pads": ["1"]}}}
+        )
+    )
+    project, before = compile_buffers(tmp_path, s.sources)
+    export_project(project, before, footprints)
+    state = tmp_path / "noscheme.state.json"
+    saved = state.read_bytes()
+    result = apply(s.rename(path, source.index("old"), "new"), s.sources)
+    assert state.read_bytes() == saved
+    project, after = compile_buffers(tmp_path, result)
+    report = export_project(project, after, footprints)
+    assert report["changes"]["added"] == report["changes"]["removed"] == []
+    first, second = json.loads(saved)["entries"], json.loads(state.read_bytes())["entries"]
+    assert first.keys() == second.keys()
+    for identity in first:
+        assert first[identity]["uuid"] == second[identity]["uuid"]
+        assert first[identity]["reference"] == second[identity]["reference"]

@@ -674,8 +674,9 @@ identities, including re-exports; qualified references retain their prefixes.
 The proposed source snapshot must parse and resolve before edits are returned.
 Tests cover collisions, lexical scope, alias semantics, inherited ports,
 unsaved buffers, UTF-16 ranges, and versioned workspace edits. Physical pin
-IDs/aliases, instance names, board entry points, and module/file names are
-excluded pending handling of their external mappings and persistent identities.
+IDs/aliases, internal instance names, board entry points, and module/file names
+remain excluded. Board-level instance rename now preserves identities as described
+in the follow-up below.
 The server performs no file or artifact writes.
 
 
@@ -812,9 +813,9 @@ proposals should not be treated as implementation commitments.
   references, and paths.
 - [x] Add advisory probable-rename hints for unique exact footprint/value/net
   matches. Never transfer identities or PCB placement based on a heuristic.
-- [x] Defer identity-preserving instance refactoring (user decision). Settle
-  the broader model before implementing board-only or reusable-block renames;
-  no `local_identity` field has been added.
+- [x] Implement identity-preserving board-level instance rename (revised user
+  decision). Keep the broader reusable-block identity model deferred; no
+  `local_identity` field has been added.
 
 ### Further ERC capabilities and example clarity
 
@@ -925,7 +926,7 @@ architecture for built-in and project rules. Implemented:
 
 Earlier copy/isolation timing notes above describe the superseded implementation.
 The shared-view engine removes per-callback copies for both built-in and project
-rules. Differential pairs and identity refactoring remain deferred. Manual PCB
+rules. Differential pairs and internal instance refactoring remain deferred. Manual PCB
 Editor inspection of exported pin names/types is still outstanding.
 
 Validation of the unified ERC implementation: **799 tests passed, 1 skipped**;
@@ -945,3 +946,27 @@ These are observations, not CI thresholds. Rich views and individually scheduled
 applications add overhead versus the earlier core-only implementation; sharing
 subgraphs reduced the first migrated STM32 measurement from about 195 ms to
 106 ms. Each configuration still has its own circuit snapshot.
+
+
+### Standard ERC organization and board-level identity refactoring
+
+- Split standard ERC into connection policies, public port contracts, endpoint
+  compatibility, driver rules, and current budgets. Each family runs lazily when
+  selected; shared immutable facts and grouped-load calculations are cached per
+  configuration. Registry names, application names, diagnostics, and waivers remain
+  unchanged. Selecting a driver rule no longer computes unrelated current/port checks.
+- Implement board-level component/block instance rename using existing absolute
+  `identity` metadata. Insert the old name only when needed; preserve existing
+  explicit identities, array suffixes, and descendant identities.
+- Update semantic waiver paths during rename. Validate proposed source and
+  physical identities/properties/net membership in memory, without changing files,
+  export state, or artifacts. Export regression coverage verifies stable UUIDs and
+  reference designators.
+- Keep internal instance rename and moves between scopes deferred, as requested.
+  The proposed `local_identity` model was not adopted.
+
+Validation: **814 tests passed, 1 skipped**, with 90% branch-aware coverage.
+Ruff lint/format, reference-table drift, local documentation links, and diff
+whitespace checks pass. Tests exercise family isolation/caching, rename edits
+through the real LSP protocol, arrays and block descendants, repeated renames,
+waiver paths, and an export round trip with stable UUIDs/reference designators.

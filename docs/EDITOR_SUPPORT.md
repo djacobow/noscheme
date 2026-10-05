@@ -234,12 +234,38 @@ it. Open files use their current unsaved contents. Clients supporting versioned
 workspace edits receive buffer versions; the server itself never writes files
 or regenerates circuit artifacts.
 
-Physical pin IDs and aliases, instance names, module/file names, and the board
-entry point are not supported in this first version. These need separate handling
-for pad mappings, persistent identities, or project configuration. Comments and
-literal strings are not rewritten. Only modules reachable from the selected
-board are included; outside consumers of a reusable library require separate
-updates.
+Board-level component and block instances can also be renamed. The server adds
+`metadata.identity` with the old instance name unless an explicit identity already
+exists. Arrays keep their index suffixes; renaming a board-level block preserves
+its descendants' identities, including explicitly identified children. Repeated
+renames retain the first preserved identity.
+
+For example, renaming `inst sensor: Sensor()` to `probe` produces:
+
+```nosch
+inst probe: Sensor(
+    metadata:
+        identity: "sensor"
+)
+```
+
+The server elaborates the original and proposed board in memory and checks that
+physical identities, part properties, and physical net membership are unchanged.
+This operation therefore requires successful elaboration as well as resolution;
+electrical ERC errors still do not block it. No export state is needed or modified.
+After accepting the edit, compile/export and reimport normally. Footprint UUIDs
+and reference designators remain stable; source paths and private net names may
+change with the instance spelling.
+
+Targeted waiver pin paths on the containing board and qualified application-path
+waiver keys are updated too. Comments, custom text, reasons, and existing identity
+strings stay unchanged. The identity insertion preserves comments and indentation.
+
+Physical pin IDs and aliases, internal instance names in reusable blocks,
+module/file names, and the board entry point remain unsupported. Moving instances
+between scopes and identity-preserving internal renames need a broader model;
+no `local_identity` field is introduced. Only modules reachable from the selected
+board are included; outside consumers of a reusable library require separate updates.
 
 
 ### Hover details

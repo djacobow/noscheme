@@ -62,3 +62,10 @@ Runnable designs are in [examples/](examples/), including the
 [STM32 board](examples/stm32h523/stm32h523.nosch) and the
 [Rulos six-line display matrix](examples/rulos_6matrix/README.md), transcribed
 from an existing schematic using nested block and component arrays.
+
+## License
+
+NoScheme is free software, licensed under the
+[GNU General Public License v3.0 or later](LICENSE.md). Designs you write in
+NoScheme and the files it generates from them are your own; the GPL does not
+apply to them.

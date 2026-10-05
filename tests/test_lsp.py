@@ -663,3 +663,20 @@ def test_builtin_hover_format_negotiation(project, formats):
         assert c.request("textDocument/definition", params) is None
     finally:
         c.close()
+
+
+def test_board_instance_rename_returns_identity_insertion(client, project):
+    path = project / "main.nosch"
+    open_document(client, path, SOURCE)
+    line = next(i for i, text in enumerate(SOURCE.splitlines()) if "inst receivers" in text)
+    params = {"textDocument": {"uri": path.as_uri()}, "position": {"line": line, "character": 10}}
+    prepared = client.request("textDocument/prepareRename", params)
+    assert prepared["placeholder"] == "receivers"
+    result = client.request("textDocument/rename", {**params, "newName": "inputs"})
+    edits = result["changes"][path.as_uri()]
+    assert any(edit["newText"] == "inputs" for edit in edits)
+    insertion = next(edit for edit in edits if "identity:" in edit["newText"])
+    assert 'identity: "receivers"' in insertion["newText"]
+    assert insertion["range"]["start"] == insertion["range"]["end"]
+    assert path.read_text() == SOURCE
+    assert not (project / "noscheme.state.json").exists()
