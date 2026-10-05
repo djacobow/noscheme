@@ -209,7 +209,13 @@ def module_path(config, name, span, sources=None):
     return matches[0]
 
 
-def load_project(path: Path | str = ".", *, sources=None) -> Project:
+def load_project(path: Path | str = ".", *, sources=None, parsed_sources=None) -> Project:
+    """Load a project, optionally reusing ASTs from the same analysis.
+
+    parsed_sources maps resolved paths to (source text, AST). Check the text
+    before reuse so changed disk files or unsaved buffers never use stale ASTs.
+    This mapping is caller-owned and is not a persistent cache.
+    """
     config = read_config(path, sources=sources)
     parsed = {}
     dependencies = {}
@@ -230,7 +236,9 @@ def load_project(path: Path | str = ".", *, sources=None) -> Project:
             continue
         file = module_path(config, name, origin, sources)
         try:
-            tree = parse(source_text(file, sources), str(file))
+            text = source_text(file, sources)
+            cached = parsed_sources.get(file) if parsed_sources is not None else None
+            tree = cached[1] if cached is not None and cached[0] == text else parse(text, str(file))
         except (OSError, UnicodeError) as exc:
             fail("project.io", f"cannot read module {name!r}: {exc}", origin, config=True)
         parsed[name] = (file, tree)

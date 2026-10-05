@@ -4,6 +4,42 @@
 
 Requested October 5, 2026. These are separate from the deferred review backlog.
 
+- [x] **Build a larger real-design benchmark from VME-WREN.**
+  [examples/wren](../examples/wren/README.md) includes a readable 189-part
+  subsystem and a generated full-board project with 1,507 parts, 1,309 connected
+  nets, and 491 intentional no-connect pins. Tests compare every value,
+  footprint, physical pin, and connection against independently extracted KiCad
+  reference data. Source hashes, metadata, reference mappings, and attribution
+  are recorded. No upstream schematic or geometry is bundled. Electrical
+  policies remain unchecked: zero errors and 1,309 explicit warnings.
+  Full-board five-run medians on October 5: resolve/elaborate 2.86 s, ERC 1.90 s,
+  full LSP analysis 6.65 s. These are local observations, not CI thresholds.
+- [x] **Profile full-board LSP analysis using WREN.** Baseline collected after
+  test completion; tool records samples, input hashes, and environment versions.
+  A separate cProfile run attributes 12.36 s of 20.06 s instrumented analysis
+  to parsing and 5.03 s to ERC. The main file is parsed twice; comment masking
+  costs 5.90 s across the three parse calls. These include instrumentation
+  overhead and are distinct from the 6.65-second uninstrumented median.
+- [x] **Reduce full-board parsing overhead.** Comment lexing now consumes
+  ordinary text in chunks, and project loading reuses the current file's AST
+  when its source text matches. Five-run WREN LSP medians: 6.65 s baseline,
+  5.29 s after chunking, 4.44 s with both changes (about 33% less time).
+  Resolve/elaborate: 2.86 s to 2.04 s. All 831 tests pass, with regression
+  coverage for positions, comments, stale ASTs, and unimported editor buffers.
+  The new profile has two parse calls rather than three; ERC is now the largest
+  cumulative stage. Reuse is limited to one analysis; persistent AST caching
+  and incremental parsing remain unimplemented.
+
+- [x] **Reduce ERC copying and default setup.** Configuration views copy only
+  changed role records and share immutable conversion work within one ERC run.
+  Default parameters are validated/frozen once per checker per configuration;
+  explicit parameters retain individual validation. Five alternating before/
+  after runs produced identical diagnostics and reports: WREN ERC 2.01 s to
+  1.32 s; 768-part active power-mode workload with two configurations 1.11 s to
+  0.60 s. All 833 tests pass, including nested plugin immutability and edits
+  between ERC runs. Rule scheduling is unchanged. Full WREN LSP analysis
+  measured 3.93 s after these changes, down from 4.44 s.
+
 - [x] **Move CI to Ubuntu 26.04.** Both jobs now use the explicit
   `ubuntu-26.04` label, generally available since September 17, 2026. Verified
   that the KiCad 10 PPA publishes symbols, footprints, and demos at version

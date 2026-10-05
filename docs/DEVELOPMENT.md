@@ -20,6 +20,58 @@ configured output directory. Electrical errors allow compilation/export;
 `noscheme check` returns a failing status when it finds electrical errors.
 Structural errors block compilation.
 
+### LSP tests in restricted sandboxes
+
+The stdio LSP uses pygls' worker thread to read stdin. Python's asyncio loop
+wakes after that read through a local socket pair. Some sandboxes permit
+`socket.socketpair()` but reject `send()` with `EPERM`. In that environment,
+initialization stalls even though the server does not contact a network service.
+The protocol test client checks this capability before starting the server and
+reports the restriction immediately. It does not skip these tests.
+
+Run the full suite in a normal terminal or with sandbox approval. Increasing
+the response timeout does not solve this restriction. A minimal probe is:
+
+```sh
+python3 -c 'import socket; a,b=socket.socketpair(); print(a.send(b"x")); a.close(); b.close()'
+```
+
+Success prints `1`. On the affected sandbox this raises `PermissionError`.
+
+### WREN performance workload
+
+The [WREN example](../examples/wren/README.md#full-board-benchmark) includes a
+1,507-component project and independent connectivity regression tests. Before
+measuring changes, run `uv run --locked pytest -q tests/test_wren.py`. Run timings
+without simultaneous tests or other benchmark processes:
+
+```sh
+uv run --locked python -m tools.benchmark_analysis examples/wren/full --repeat 5 \
+  --profile examples/wren/full/build/analysis.prof > /tmp/wren-baseline.json
+python3 -c 'import pstats; pstats.Stats("examples/wren/full/build/analysis.prof").strip_dirs().sort_stats("cumulative").print_stats(30)'
+```
+
+The JSON includes individual timing samples, Python/dependency versions, and
+input hashes. The optional profile is a separate analysis after the timed runs;
+its instrumentation overhead is excluded from the medians. Analysis errors
+abort the benchmark. Unchecked-net warnings are expected for this fixture.
+No export state is changed, and profile files under `build/` are ignored.
+
+Comment masking consumes ordinary text in chunks while preserving source
+offsets and newlines. During LSP analysis, the open file's parsed AST is passed
+to the project loader for reuse when the filename and source text match.
+This reuse lasts for one analysis only. Every edit still reparses the whole
+changed file; no AST cache persists across editor updates.
+
+ERC configuration views share unchanged circuit records and copy the paths to
+records whose selected roles change. A freeze memo local to each `apply_erc`
+call reuses immutable subgraphs across configurations; plugins still receive
+recursively immutable views. Default rule arguments are validated and frozen
+once per checker per configuration. Explicit arguments are validated at each
+application. Neither cache survives a new ERC run, so source and registry edits
+are observed on the next call. Rule scheduling and electrical policies are
+unchanged by these optimizations.
+
 Named ERC configurations check alternative role assumptions on one unchanged
 board. All configurations run by default; select a subset when needed:
 

@@ -1,6 +1,8 @@
-"""Resolve lexical ERC choices on isolated views of one unchanged circuit."""
+"""Resolve lexical ERC choices with copies only along changed record paths.
 
-from copy import deepcopy
+Unchanged data is shared with the source circuit. These internal views must be
+treated as read-only; the scheduler freezes them before exposing them to rules.
+"""
 
 from .ast import Span
 from .diagnostics import Diagnostic, DiagnosticError
@@ -40,18 +42,38 @@ def configuration_views(circuit, requested=None):
                 key: select(bindings[key], parent) if key in bindings else None
                 for key in scope["choices"]
             }
-        view = deepcopy(circuit)
-        for record in [
-            *(pin for part in view["parts"] for pin in part["pins"].values()),
-            *(d for net in view["nets"] for d in net["declarations"]),
-        ]:
+
+        def selected_record(record):
             metadata = record["metadata"]
+            changes = {}
             for role, selection in metadata.get("_erc_selections", {}).get("value", {}).items():
                 specification = selection["value"]
                 environment = environments[tuple(specification["scope"]["value"])]
                 chosen = select(selection, environment)
                 if chosen is not None:
-                    metadata[role]["value"] = [chosen]
+                    changes[role] = dict(metadata[role], value=[chosen])
+            return dict(record, metadata=dict(metadata, **changes)) if changes else record
+
+        def selected_records(records):
+            updated = [selected_record(record) for record in records]
+            return records if all(a is b for a, b in zip(records, updated)) else updated
+
+        parts = []
+        for part in circuit["parts"]:
+            pins = part["pins"]
+            updated = selected_records(list(pins.values()))
+            parts.append(
+                part
+                if all(a is b for a, b in zip(pins.values(), updated))
+                else dict(part, pins=dict(zip(pins, updated)))
+            )
+        nets = []
+        for net in circuit["nets"]:
+            declarations = selected_records(net["declarations"])
+            nets.append(
+                net if declarations is net["declarations"] else dict(net, declarations=declarations)
+            )
+        view = dict(circuit, parts=parts, nets=nets)
         yield (
             name,
             view,

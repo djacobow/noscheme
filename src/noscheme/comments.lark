@@ -4,4 +4,6 @@ STRING.4: /"(?:[^"\\\r\n]|\\[^\r\n])*"/
 BLOCK_COMMENT.3: /\/\*(?s:.*?)\*\//
 LINE_COMMENT.3: /\/\/[^\r\n]*/
 UNCLOSED_BLOCK.2: /\/\*(?s:.*)/
-OTHER: /[\s\S]/
+// Only quotes and slashes can begin a string/comment. Keep their fallback
+// single-character so the next token can still recognize a delimiter.
+OTHER: /[^"\/]+|["\/]/

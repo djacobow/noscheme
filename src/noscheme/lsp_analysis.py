@@ -368,10 +368,13 @@ def analyze(path, config, sources):
     circuit = None
     try:
         # Parse the current file even if it is not reachable from the board.
-        parse(source_text(path, sources), str(path))
+        text = source_text(path, sources)
+        tree = parse(text, str(path.resolve()))
         if config is None:
             return result
-        project = load_project(config, sources=sources)
+        project = load_project(
+            config, sources=sources, parsed_sources={path.resolve(): (text, tree)}
+        )
         result.files.update(m.path for m in project.modules.values())
         definitions = Resolver(project).resolve_all()
         circuit, warnings = elaborate_project(project, definitions)

@@ -213,3 +213,26 @@ def test_blink_example():
     assert list(loaded.modules) == ["indicator", "main", "parts"]
     assert loaded.board.name == "Blink"
     assert loaded.modules["indicator"].symbols["Resistor"].declaration.kind == "component"
+
+
+@pytest.mark.parametrize("change", [None, "disk", "buffer"])
+def test_preparsed_source_requires_matching_content(tmp_path, change):
+    from noscheme.parser import parse
+
+    config = project(tmp_path)
+    path = tmp_path / "src/main.nosch"
+    original = path.read_text()
+    tree = parse(original, str(path))
+    sources = None
+    changed = original.replace("net a:", "net b:")
+    if change == "disk":
+        path.write_text(changed)
+    elif change == "buffer":
+        sources = {path: changed}
+    loaded = load_project(config, sources=sources, parsed_sources={path: (original, tree)})
+    actual = loaded.modules["main"].ast
+    if change is None:
+        assert actual is tree
+    else:
+        assert actual == parse(changed, str(path))
+        assert actual is not tree

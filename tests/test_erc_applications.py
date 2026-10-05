@@ -361,3 +361,51 @@ def test_unknown_predicate_rejected_on_empty_net(tmp_path):
     )
     with pytest.raises(DiagnosticError, match="registered predicate"):
         check_circuit(circuit(tmp_path, source))
+
+
+def test_default_setup_reused_but_explicit_arguments_and_new_runs_are_validated(
+    tmp_path, monkeypatch
+):
+    import noscheme.erc as erc
+
+    c = circuit(tmp_path)
+    c["nets"][0]["declarations"][0]["metadata"].pop("checks")
+    registry = load_registry()
+    values, validations = [], []
+
+    def check(ctx, settings):
+        values.append(settings["limit"])
+        with pytest.raises(TypeError):
+            settings["limit"] = 100
+        return ()
+
+    registry.pin_rule(
+        "test.defaults",
+        check,
+        parameters={"settings": "attributes"},
+        defaults={"settings": {"limit": 3}},
+    )
+    registry.rule_set(
+        "test.defaults",
+        lambda ctx: [
+            Application("default", "test.defaults"),
+            Application("explicit", "test.defaults", {"settings": {"limit": 7}}),
+        ]
+        if ctx.pin
+        else [],
+    )
+    c["erc_rule_sets"] = ["test.defaults"]
+    original = erc.validate_params
+
+    def validate(rule, supplied, span):
+        validations.append(supplied)
+        return original(rule, supplied, span)
+
+    monkeypatch.setattr(erc, "validate_params", validate)
+    assert apply_erc(c, registry=registry) == ()
+    assert values == [3, 7, 3, 7]
+    assert len(validations) == 3  # one default setup, two explicit applications
+    registry.rules["test.defaults"].defaults["settings"]["limit"] = 5
+    values.clear()
+    assert apply_erc(c, registry=registry) == ()
+    assert values == [5, 7, 5, 7]

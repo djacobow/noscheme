@@ -334,3 +334,37 @@ board B:""",
     ).replace("inst usb: Supply(", "inst usb: SpecializedSupply(")
     _, circuit = project(tmp_path, source)
     assert apply_erc(circuit) == ()
+
+
+def test_configuration_plugins_cannot_change_shared_data_and_next_run_sees_edits(tmp_path):
+    from noscheme.erc_registry import Application, load_registry
+
+    _, circuit = project(tmp_path)
+    registry = load_registry()
+    seen = []
+
+    def inspect(ctx):
+        if ctx.pin.label == "usb.connector.1":
+            seen.append((ctx.circuit["erc_configuration"], ctx.pin.attributes["external_role"]))
+        # Test nested records, including unchanged records shared by configurations.
+        with pytest.raises(TypeError):
+            ctx.pin["metadata"]["role"]["value"][0] = "power_output"
+        with pytest.raises(TypeError):
+            ctx.pin["metadata"]["extra"] = {}
+        return ()
+
+    registry.pin_rule("test.inspect", inspect)
+    registry.rule_set(
+        "test.inspect", lambda ctx: [Application("inspect", "test.inspect")] if ctx.pin else []
+    )
+    circuit["erc_rule_sets"].append("test.inspect")
+    before = deepcopy(circuit)
+    assert apply_erc(circuit, registry=registry) == ()
+    assert seen == [("header_powered", ("passive",)), ("usb_powered", ("power_output",))]
+    assert circuit["parts"] == before["parts"]
+    # Changing the source after ERC must not hit an old freeze memo.
+    source = circuit["erc_configurations"]["usb_powered"]["value"]["power_source"]
+    source["value"] = "header"
+    seen.clear()
+    assert apply_erc(circuit, registry=registry) == ()
+    assert seen == [("header_powered", ("passive",)), ("usb_powered", ("passive",))]

@@ -3,6 +3,7 @@
 import json
 from pathlib import Path
 import queue
+import socket
 import subprocess
 import sys
 import threading
@@ -36,6 +37,19 @@ def project(tmp_path):
 
 class Client:
     def __init__(self, project):
+        # asyncio uses a socket pair to wake the loop after pygls' stdin worker
+        # finishes. Some sandboxes allow creating the pair but forbid send().
+        # Detect that restriction before waiting for an impossible response.
+        try:
+            sender, receiver = socket.socketpair()
+            with sender, receiver:
+                sender.send(b"x")
+        except PermissionError as exc:
+            pytest.fail(
+                "LSP protocol tests require local socket-pair communication for asyncio; "
+                f"the sandbox denied it ({exc}). Run these tests outside this sandbox.",
+                pytrace=False,
+            )
         self.process = subprocess.Popen(
             [sys.executable, "-m", "noscheme.lsp", "--project", str(project)],
             stdin=subprocess.PIPE,
@@ -680,3 +694,28 @@ def test_board_instance_rename_returns_identity_insertion(client, project):
     assert insertion["range"]["start"] == insertion["range"]["end"]
     assert path.read_text() == SOURCE
     assert not (project / "noscheme.state.json").exists()
+
+
+def test_analysis_reuses_open_file_parse_and_still_checks_unimported_files(project, monkeypatch):
+    import noscheme.lsp_analysis as analysis_module
+    import noscheme.project as project_module
+    from noscheme.parser import parse
+
+    calls = []
+
+    def counted_parse(text, filename):
+        calls.append(filename)
+        return parse(text, filename)
+
+    monkeypatch.setattr(analysis_module, "parse", counted_parse)
+    monkeypatch.setattr(project_module, "parse", counted_parse)
+    path = project / "main.nosch"
+    result = analyze(path, project, {path: SOURCE})
+    assert not any(d.severity == "error" for d in result.diagnostics)
+    assert calls == [str(path)]
+
+    calls.clear()
+    draft = project / "draft.nosch"
+    result = analyze(draft, project, {draft: "board Broken:\n    inst ???\n"})
+    assert any(d.severity == "error" and d.span.filename == str(draft) for d in result.diagnostics)
+    assert calls == [str(draft)]

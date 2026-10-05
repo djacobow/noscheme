@@ -1,0 +1,5150 @@
+// Generated from KiCad's XML netlist; see ../README.md.
+from noscheme import role, unused
+
+component Part_00f812a8749c2f46:
+    pins:
+        "1":
+            role: role.digital_input
+        "2":
+            role: role.power_input
+        "3":
+            role: role.digital_bidirectional
+        "4":
+            role: role.digital_input
+        "5":
+            role: role.digital_input
+        "6":
+            role: role.power_input
+    metadata:
+        value: "24AA025E48T-I_OT"
+        footprint: "ICs And Semiconductors SMD:SOT95P280X145-6N"
+
+component Part_0439920e0e76fa98:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_240R_1%_0.0625W_100PPM"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_0516cb23722596c4:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_2R2_1%_0.0625W_200PPM"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_065fd6eece3791aa:
+    pins:
+        "1":
+            role: role.digital_input
+        "10":
+            role: role.power_input
+        "11":
+            role: role.digital_input
+        "12":
+            role: role.digital_bidirectional
+        "13":
+            role: role.digital_bidirectional
+        "14":
+            role: role.digital_input
+        "15":
+            role: role.power_input
+        "16":
+            role: role.digital_bidirectional
+        "17":
+            role: role.digital_input
+        "18":
+            role: role.power_input
+        "19":
+            role: role.digital_bidirectional
+        "2":
+            role: role.digital_input
+        "20":
+            role: role.digital_bidirectional
+        "21":
+            role: role.power_input
+        "22":
+            role: role.digital_bidirectional
+        "23":
+            role: role.digital_bidirectional
+        "24":
+            role: role.digital_input
+        "25":
+            role: role.power_input
+        "26":
+            role: role.digital_bidirectional
+        "27":
+            role: role.digital_bidirectional
+        "28":
+            role: role.power_input
+        "29":
+            role: role.digital_bidirectional
+        "3":
+            role: role.digital_output
+        "30":
+            role: role.digital_bidirectional
+        "31":
+            role: role.power_input
+        "32":
+            role: role.digital_input
+        "33":
+            role: role.digital_bidirectional
+        "34":
+            role: role.power_input
+        "35":
+            role: role.power_input
+        "36":
+            role: role.digital_bidirectional
+        "37":
+            role: role.digital_bidirectional
+        "38":
+            role: role.power_input
+        "39":
+            role: role.power_input
+        "4":
+            role: role.power_input
+        "40":
+            role: role.digital_bidirectional
+        "41":
+            role: role.digital_input
+        "42":
+            role: role.power_input
+        "43":
+            role: role.digital_bidirectional
+        "44":
+            role: role.power_input
+        "45":
+            role: role.power_input
+        "46":
+            role: role.digital_bidirectional
+        "47":
+            role: role.power_input
+        "48":
+            role: role.digital_input
+        "5":
+            role: role.digital_input
+        "6":
+            role: role.digital_output
+        "7":
+            role: role.power_input
+        "8":
+            role: role.digital_input
+        "9":
+            role: role.digital_bidirectional
+    metadata:
+        value: "SN74VMEH22501DGGR"
+        footprint: "ICs And Semiconductors SMD:SOP50P810X120-48N"
+
+component Part_073321736033f646:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.digital_input
+        "3":
+            role: role.passive
+        "4":
+            role: role.power_input
+        "5":
+            role: role.passive
+        "6":
+            role: role.power_output
+        "7":
+            role: role.passive
+        "8":
+            role: role.passive
+    metadata:
+        value: "REF5030AID"
+        footprint: "ICs And Semiconductors SMD:SOIC127P600X175-8N"
+
+component Part_095c641c3b4e4f6a:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R1206_91R_1%_0.25W_100PPM"
+        footprint: "Resistors SMD:RESC3216X65N"
+
+component Part_09fc7daae788e8e5:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_0R_JUMPER"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_0a3ef2dceedc94e9:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+        "3":
+            role: role.passive
+    metadata:
+        value: "SM712.TCT"
+        footprint: "ICs And Semiconductors SMD:SOT95P237X112-3N"
+
+component Part_0b063d4f31f99885:
+    pins:
+        "1":
+            role: role.digital_output
+            tristate_capable: true
+        "10":
+            role: role.digital_input
+        "11":
+            role: role.digital_input
+        "12":
+            role: role.digital_input
+        "13":
+            role: role.digital_input
+        "14":
+            role: role.digital_input
+        "15":
+            role: role.digital_output
+            tristate_capable: true
+        "16":
+            role: role.power_input
+        "17":
+            role: role.power_input
+        "2":
+            role: role.digital_output
+            tristate_capable: true
+        "3":
+            role: role.digital_output
+            tristate_capable: true
+        "4":
+            role: role.digital_output
+            tristate_capable: true
+        "5":
+            role: role.digital_output
+            tristate_capable: true
+        "6":
+            role: role.digital_output
+            tristate_capable: true
+        "7":
+            role: role.digital_output
+            tristate_capable: true
+        "8":
+            role: role.power_input
+        "9":
+            role: role.digital_output
+    metadata:
+        value: "SN74LV595ARGYR"
+        footprint: "ICs And Semiconductors SMD:TEXAS_RGY (R-PVQFN-N16)"
+
+component Part_0b8237692d3a1064:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CAEM7343-20_470UF_2V_20%_LESR0003_PANASONIC_EEFGX0D471R"
+        footprint: "Capacitors SMD:CAPMP7343X200N"
+
+component Part_0bd1c53d1ddf6f71:
+    pins:
+        "1":
+            role: role.power_input
+        "10":
+            role: role.power_input
+        "11":
+            role: role.power_input
+        "12":
+            role: role.power_input
+        "13":
+            role: role.power_input
+        "14":
+            role: role.power_input
+        "15":
+            role: role.power_input
+        "16":
+            role: role.power_input
+        "17":
+            role: role.power_input
+        "18":
+            role: role.power_input
+        "19":
+            role: role.power_input
+        "2":
+            role: role.power_input
+        "20":
+            role: role.power_input
+        "21":
+            role: role.power_input
+        "22":
+            role: role.power_input
+        "23":
+            role: role.power_input
+        "24":
+            role: role.power_input
+        "25":
+            role: role.power_input
+        "26":
+            role: role.power_input
+        "27":
+            role: role.power_input
+        "28":
+            role: role.power_input
+        "29":
+            role: role.power_input
+        "3":
+            role: role.power_input
+        "30":
+            role: role.power_input
+        "4":
+            role: role.power_input
+        "5":
+            role: role.power_input
+        "6":
+            role: role.power_input
+        "7":
+            role: role.power_input
+        "8":
+            role: role.power_input
+        "9":
+            role: role.power_input
+    metadata:
+        value: "TYCO_1761014-3"
+        footprint: "TYCO THD:TYCO_1761014-3"
+
+component Part_0d49e8b22079a912:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CC0402_27PF_50V_5%_C0G"
+        footprint: "Capacitors SMD:CAPC1005X55N"
+
+component Part_0d8a8f0ff68d7ccb:
+    pins:
+        "1":
+            role: role.digital_input
+        "2":
+            role: role.digital_input
+        "3":
+            role: role.digital_output
+            tristate_capable: true
+        "4":
+            role: role.power_input
+        "5":
+            role: role.digital_input
+        "6":
+            role: role.digital_output
+            tristate_capable: true
+        "7":
+            role: role.digital_input
+        "8":
+            role: role.power_input
+    metadata:
+        value: "SN74LVC2G126DCT"
+        footprint: "ICs And Semiconductors SMD:SOP65P400X130-8N"
+
+component Part_11439de977d17f5d:
+    pins:
+        "1":
+            role: role.digital_input
+        "2":
+            role: role.digital_input
+        "3":
+            role: role.digital_input
+        "4":
+            role: role.power_input
+        "5":
+            role: role.digital_bidirectional
+        "6":
+            role: role.digital_input
+        "7":
+            role: role.digital_input
+        "8":
+            role: role.power_input
+    metadata:
+        value: "24AA64T-I_MS"
+        footprint: "ICs And Semiconductors SMD:SOP65P490X110-8N"
+
+component Part_1175846c1ff369bb:
+    pins:
+        "1":
+            role: role.digital_bidirectional
+        "10":
+            role: role.digital_bidirectional
+        "11":
+            role: role.digital_bidirectional
+        "12":
+            role: role.digital_bidirectional
+        "13":
+            role: role.digital_bidirectional
+        "14":
+            role: role.digital_bidirectional
+        "15":
+            role: role.digital_bidirectional
+        "16":
+            role: role.digital_bidirectional
+        "17":
+            role: role.digital_bidirectional
+        "18":
+            role: role.digital_bidirectional
+        "19":
+            role: role.digital_bidirectional
+        "2":
+            role: role.digital_bidirectional
+        "20":
+            role: role.digital_bidirectional
+        "21":
+            role: role.digital_bidirectional
+        "22":
+            role: role.digital_bidirectional
+        "23":
+            role: role.digital_bidirectional
+        "24":
+            role: role.digital_bidirectional
+        "25":
+            role: role.digital_bidirectional
+        "26":
+            role: role.digital_bidirectional
+        "27":
+            role: role.digital_bidirectional
+        "28":
+            role: role.digital_bidirectional
+        "29":
+            role: role.digital_bidirectional
+        "3":
+            role: role.digital_bidirectional
+        "30":
+            role: role.digital_bidirectional
+        "31":
+            role: role.digital_bidirectional
+        "32":
+            role: role.digital_bidirectional
+        "33":
+            role: role.digital_bidirectional
+        "34":
+            role: role.digital_bidirectional
+        "35":
+            role: role.digital_bidirectional
+        "36":
+            role: role.digital_bidirectional
+        "37":
+            role: role.digital_bidirectional
+        "38":
+            role: role.digital_bidirectional
+        "39":
+            role: role.digital_bidirectional
+        "4":
+            role: role.digital_bidirectional
+        "40":
+            role: role.digital_bidirectional
+        "41":
+            role: role.power_input
+        "5":
+            role: role.digital_bidirectional
+        "6":
+            role: role.digital_bidirectional
+        "7":
+            role: role.digital_bidirectional
+        "8":
+            role: role.digital_bidirectional
+        "9":
+            role: role.digital_bidirectional
+    metadata:
+        value: "SAMTEC_LSHM-120-02.5-L-DV-A-S"
+        footprint: "SAMTEC SMD:SAMTEC_LSHM-120-02.5-X-DV-A-S"
+
+component Part_13eaf2e4fcd8dcfc:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CC0402_100NF_16V_10%_X7R"
+        footprint: "Capacitors SMD:CAPC1005X55N"
+
+component Part_1466e8a6b8c3ce97:
+    pins:
+        "1":
+            role: role.digital_bidirectional
+        "2":
+            role: role.digital_bidirectional
+    metadata:
+        value: "HIROSE_U.FL-R-SMT-1(10)"
+        footprint: "Miscellaneous SMD:HIROSE_U.FL-R-SMT-1(10)"
+
+component Part_168fe68aed3d2b71:
+    pins:
+        "1":
+            role: role.digital_output
+        "10":
+            role: role.digital_output
+        "11":
+            role: role.digital_output
+        "12":
+            role: role.digital_output
+        "13":
+            role: role.power_input
+        "14":
+            role: role.power_input
+        "15":
+            role: role.power_input
+        "16":
+            role: role.digital_input
+        "17":
+            role: role.digital_input
+        "18":
+            role: role.digital_input
+        "19":
+            role: role.digital_input
+        "2":
+            role: role.power_input
+        "20":
+            role: role.digital_input
+        "21":
+            role: role.digital_bidirectional
+        "22":
+            role: role.digital_input
+        "23":
+            role: role.power_input
+        "24":
+            role: role.digital_bidirectional
+        "25":
+            role: role.digital_output
+        "26":
+            role: role.power_input
+        "27":
+            role: role.digital_bidirectional
+        "3":
+            role: role.passive
+        "4":
+            role: role.power_input
+        "5":
+            role: role.digital_bidirectional
+        "7":
+            role: role.power_input
+        "8":
+            role: role.digital_output
+        "9":
+            role: role.digital_output
+    metadata:
+        value: "TDA21535AUMA1"
+        footprint: "ICs And Semiconductors SMD:INFINEON_TDA21535"
+
+component Part_1a2e4b56d6f1d8a8:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "IND0603_MURATA_BLM18PG121SN1D"
+        footprint: "Inductors SMD:INDC1608X95N"
+
+component Part_1afe4aaf25b1bda8:
+    pins:
+        "1":
+            role: role.digital_bidirectional
+    metadata:
+        value: "SMD_PAD_1.27X1.27MM"
+        footprint: "Pads:TPS127"
+
+component Part_1bb07afcf93592e4:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+        "3":
+            role: role.passive
+    metadata:
+        value: "BAR66"
+        footprint: "ICs And Semiconductors SMD:SOT95P240X110-3N"
+
+component Part_1ee281693363d3dd:
+    pins:
+        "1":
+            role: role.digital_input
+        "10":
+            role: role.digital_output
+        "11":
+            role: role.digital_input
+        "12":
+            role: role.digital_input
+        "13":
+            role: role.digital_output
+        "14":
+            role: role.digital_output
+        "15":
+            role: role.digital_output
+        "16":
+            role: role.digital_output
+        "17":
+            role: role.digital_output
+        "18":
+            role: role.digital_output
+        "19":
+            role: role.digital_output
+        "2":
+            role: role.power_input
+        "20":
+            role: role.power_input
+        "21":
+            role: role.power_input
+        "22":
+            role: role.open_drain
+        "23":
+            role: role.power_input
+        "24":
+            role: role.passive
+        "25":
+            role: role.digital_input
+        "26":
+            role: role.digital_input
+        "27":
+            role: role.digital_input
+        "28":
+            role: role.digital_input
+        "29":
+            role: role.digital_input
+        "3":
+            role: role.digital_input
+        "30":
+            role: role.digital_input
+        "31":
+            role: role.power_input
+        "32":
+            role: role.power_input
+        "33":
+            role: role.power_input
+        "34":
+            role: role.power_output
+        "35":
+            role: role.power_output
+        "36":
+            role: role.power_output
+        "37":
+            role: role.power_output
+        "38":
+            role: role.power_output
+        "39":
+            role: role.digital_input
+        "4":
+            role: role.digital_input
+        "40":
+            role: role.digital_input
+        "41":
+            role: role.power_output
+        "42":
+            role: role.digital_output
+        "5":
+            role: role.passive
+        "6":
+            role: role.digital_input
+        "7":
+            role: role.digital_output
+        "8":
+            role: role.digital_output
+        "9":
+            role: role.passive
+    metadata:
+        value: "LMZ31704RVQT"
+        footprint: "ICs And Semiconductors SMD:TEXAS_RVQ (S-PB3QFN-N42)"
+
+component Part_1ef9ba2d901e1efe:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CC0805_100UF_4V_20%_X6S_MURATA_GRM21BC80G107ME15"
+        footprint: "Capacitors SMD:CAPC2013X145N"
+
+component Part_2087bba1beb2a1c1:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CC0402_10NF_16V_10%_X7R"
+        footprint: "Capacitors SMD:CAPC1005X55N"
+
+component Part_2f31cf7cb3f588a3:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_10R_1%_0.0625W_200PPM"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_2f4e3bd734ae70f0:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CC0402_470NF_6.3V_10%_X5R"
+        footprint: "Capacitors SMD:CAPC1005X55N"
+
+component Part_30982e4816588ab1:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CC0402_4.7UF_6.3V_20%_X5R"
+        footprint: "Capacitors SMD:CAPC1005X55N"
+
+component Part_32ce9dc3984aadb8:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_1M1_1%_0.0625W_100PPM"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_34d3031216686311:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0805_2M2_1%_0.125W_100PPM"
+        footprint: "Resistors SMD:RESC2012X60N"
+
+component Part_351aa1858693f827:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_39R2_1%_0.063W_100PPM"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_3b83f361dcd21fda:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0603_442R_0.1%_0.063W_10PPM"
+        footprint: "Resistors SMD:RESC1608X55N"
+
+component Part_3c764e4d84d593f6:
+    pins:
+        "1":
+            role: role.digital_output
+        "10":
+            role: role.digital_bidirectional
+        "11":
+            role: role.power_input
+        "2":
+            role: role.digital_output
+        "3":
+            role: role.power_input
+        "4":
+            role: role.digital_input
+        "5":
+            role: role.digital_input
+        "6":
+            role: role.digital_input
+        "7":
+            role: role.digital_input
+        "8":
+            role: role.digital_input
+        "9":
+            role: role.digital_input
+    metadata:
+        value: "DAC8562SDSC"
+        footprint: "ICs And Semiconductors SMD:TEXAS_DSC (S-PWSON-N10)"
+
+component Part_422d6616ef75b83d:
+    pins:
+        "1":
+            role: role.digital_input
+        "10":
+            role: role.digital_input
+        "11":
+            role: role.digital_input
+        "12":
+            role: role.digital_input
+        "13":
+            role: role.digital_input
+        "14":
+            role: role.digital_input
+        "15":
+            role: role.digital_input
+        "16":
+            role: role.digital_output
+        "17":
+            role: role.digital_output
+        "18":
+            role: role.digital_output
+        "19":
+            role: role.digital_output
+        "2":
+            role: role.digital_input
+        "20":
+            role: role.digital_input
+        "21":
+            role: role.digital_output
+        "22":
+            role: role.digital_input
+        "23":
+            role: role.power_input
+        "24":
+            role: role.digital_input
+        "25":
+            role: role.digital_output
+        "26":
+            role: role.digital_output
+        "27":
+            role: role.digital_output
+        "28":
+            role: role.digital_input
+        "29":
+            role: role.digital_input
+        "3":
+            role: role.digital_input
+        "30":
+            role: role.digital_output
+        "31":
+            role: role.digital_input
+        "32":
+            role: role.power_input
+        "33":
+            role: role.digital_input
+        "34":
+            role: role.digital_input
+        "35":
+            role: role.digital_input
+        "36":
+            role: role.digital_input
+        "37":
+            role: role.digital_input
+        "38":
+            role: role.digital_input
+        "39":
+            role: role.digital_input
+        "4":
+            role: role.digital_input
+        "40":
+            role: role.digital_input
+        "41":
+            role: role.digital_input
+        "42":
+            role: role.digital_input
+        "43":
+            role: role.digital_output
+        "44":
+            role: role.digital_input
+        "45":
+            role: role.digital_output
+        "46":
+            role: role.digital_output
+        "47":
+            role: role.digital_output
+        "48":
+            role: role.digital_output
+        "49":
+            role: role.digital_input
+        "5":
+            role: role.digital_input
+        "50":
+            role: role.power_input
+        "51":
+            role: role.digital_input
+        "52":
+            role: role.digital_input
+        "53":
+            role: role.digital_input
+        "54":
+            role: role.digital_input
+        "55":
+            role: role.digital_input
+        "56":
+            role: role.digital_input
+        "57":
+            role: role.power_input
+        "6":
+            role: role.digital_input
+        "7":
+            role: role.digital_input
+        "8":
+            role: role.digital_input
+        "9":
+            role: role.digital_input
+    metadata:
+        value: "IRPS5401MTRPBF"
+        footprint: "ICs And Semiconductors SMD:INFINEON_PG-VQFN-56-900 (IRPS5401M)"
+
+component Part_44e5995244a01670:
+    pins:
+        "A1":
+            role: role.power_input
+        "A2":
+            role: role.power_input
+        "A3":
+            role: role.digital_bidirectional
+        "A7":
+            role: role.digital_bidirectional
+        "A8":
+            role: role.power_input
+        "A9":
+            role: role.power_input
+        "B1":
+            role: role.power_input
+        "B2":
+            role: role.power_input
+        "B3":
+            role: role.power_input
+        "B7":
+            role: role.digital_bidirectional
+        "B8":
+            role: role.digital_bidirectional
+        "B9":
+            role: role.power_input
+        "C1":
+            role: role.power_input
+        "C2":
+            role: role.digital_bidirectional
+        "C3":
+            role: role.digital_bidirectional
+        "C7":
+            role: role.digital_bidirectional
+        "C8":
+            role: role.digital_bidirectional
+        "C9":
+            role: role.power_input
+        "D1":
+            role: role.power_input
+        "D2":
+            role: role.power_input
+        "D3":
+            role: role.digital_bidirectional
+        "D7":
+            role: role.digital_bidirectional
+        "D8":
+            role: role.power_input
+        "D9":
+            role: role.power_input
+        "E1":
+            role: role.power_input
+        "E2":
+            role: role.digital_input
+        "E3":
+            role: role.power_input
+        "E7":
+            role: role.digital_input
+        "E8":
+            role: role.power_input
+        "E9":
+            role: role.power_input
+        "F1":
+            role: role.power_input
+        "F2":
+            role: role.power_input
+        "F3":
+            role: role.digital_bidirectional
+        "F7":
+            role: role.digital_bidirectional
+        "F8":
+            role: role.power_input
+        "F9":
+            role: role.power_input
+        "G1":
+            role: role.power_input
+        "G2":
+            role: role.digital_bidirectional
+        "G3":
+            role: role.digital_bidirectional
+        "G7":
+            role: role.power_input
+        "G8":
+            role: role.power_input
+        "G9":
+            role: role.power_input
+        "H1":
+            role: role.power_input
+        "H2":
+            role: role.digital_bidirectional
+        "H3":
+            role: role.digital_bidirectional
+        "H7":
+            role: role.digital_bidirectional
+        "H8":
+            role: role.digital_bidirectional
+        "H9":
+            role: role.power_input
+        "J1":
+            role: role.power_input
+        "J2":
+            role: role.power_input
+        "J3":
+            role: role.digital_bidirectional
+        "J7":
+            role: role.digital_bidirectional
+        "J8":
+            role: role.power_input
+        "J9":
+            role: role.power_input
+        "K1":
+            role: role.power_input
+        "K2":
+            role: role.digital_input
+        "K3":
+            role: role.digital_input
+        "K7":
+            role: role.digital_input
+        "K8":
+            role: role.digital_input
+        "K9":
+            role: role.power_input
+        "L1":
+            role: role.power_input
+        "L2":
+            role: role.digital_input
+        "L3":
+            role: role.digital_input
+        "L7":
+            role: role.digital_input
+        "L8":
+            role: role.digital_input
+        "L9":
+            role: role.power_input
+        "M1":
+            role: role.power_input
+        "M2":
+            role: role.digital_input
+        "M3":
+            role: role.digital_input
+        "M7":
+            role: role.digital_input
+        "M8":
+            role: role.digital_input
+        "M9":
+            role: role.power_input
+        "N1":
+            role: role.power_input
+        "N2":
+            role: role.digital_input
+        "N3":
+            role: role.digital_input
+        "N7":
+            role: role.digital_input
+        "N8":
+            role: role.digital_input
+        "N9":
+            role: role.digital_input
+        "P1":
+            role: role.digital_input
+        "P2":
+            role: role.digital_input
+        "P3":
+            role: role.digital_input
+        "P7":
+            role: role.digital_input
+        "P8":
+            role: role.digital_input
+        "P9":
+            role: role.digital_output
+        "R1":
+            role: role.power_input
+        "R2":
+            role: role.digital_input
+        "R3":
+            role: role.digital_input
+        "R7":
+            role: role.digital_input
+        "R8":
+            role: role.digital_input
+        "R9":
+            role: role.power_input
+        "T1":
+            role: role.power_input
+        "T2":
+            role: role.digital_input
+        "T3":
+            role: role.digital_input
+        "T7":
+            role: role.power_input
+        "T8":
+            role: role.digital_input
+        "T9":
+            role: role.power_input
+    metadata:
+        value: "MT40A512M16LY-075-E"
+        footprint: "ICs And Semiconductors SMD_BGA:BGA96C80P9X16_750X1350X120"
+
+component Part_45671e622e86c8ee:
+    pins:
+        "1":
+            role: role.power_input
+        "2":
+            role: role.digital_bidirectional
+        "3":
+            role: role.digital_bidirectional
+        "4":
+            role: role.passive
+        "5":
+            role: role.power_input
+        "6":
+            role: role.power_input
+    metadata:
+        value: "MOLEX_500075-1517"
+        footprint: "MOLEX THD:MOLEX_500075-1517"
+
+component Part_47aafe88781dfd1d:
+    pins:
+        "1":
+            role: role.digital_bidirectional
+        "2":
+            role: role.digital_bidirectional
+    metadata:
+        value: "SAMTEC_MTLW-102-07-L-S-250"
+        footprint: "SAMTEC THD:SAMTEC_MTLW-102-07-L-S-250"
+
+component Part_492c64e6f1cbd681:
+    pins:
+        "1":
+            role: role.power_input
+        "2":
+            role: role.digital_input
+        "3":
+            role: role.digital_input
+        "4":
+            role: role.power_input
+        "5":
+            role: role.digital_output
+        "6":
+            role: role.digital_output
+        "7":
+            role: role.digital_output
+        "8":
+            role: role.digital_output
+    metadata:
+        value: "DS90LV027AQMA_NOPB"
+        footprint: "ICs And Semiconductors SMD:SOIC127P600X175-8N"
+
+component Part_4a07a4c8407eef01:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_4K7_1%_0.0625W_100PPM"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_4acae32b3eb1dd87:
+    pins:
+        "A1":
+            role: role.digital_bidirectional
+        "A10":
+            role: role.digital_bidirectional
+        "A11":
+            role: role.digital_bidirectional
+        "A12":
+            role: role.digital_bidirectional
+        "A13":
+            role: role.digital_bidirectional
+        "A14":
+            role: role.digital_bidirectional
+        "A15":
+            role: role.digital_bidirectional
+        "A16":
+            role: role.digital_bidirectional
+        "A17":
+            role: role.digital_bidirectional
+        "A18":
+            role: role.digital_bidirectional
+        "A19":
+            role: role.digital_bidirectional
+        "A2":
+            role: role.digital_bidirectional
+        "A20":
+            role: role.digital_bidirectional
+        "A21":
+            role: role.digital_bidirectional
+        "A22":
+            role: role.digital_bidirectional
+        "A23":
+            role: role.digital_bidirectional
+        "A24":
+            role: role.digital_bidirectional
+        "A25":
+            role: role.digital_bidirectional
+        "A26":
+            role: role.digital_bidirectional
+        "A27":
+            role: role.digital_bidirectional
+        "A28":
+            role: role.digital_bidirectional
+        "A29":
+            role: role.digital_bidirectional
+        "A3":
+            role: role.digital_bidirectional
+        "A30":
+            role: role.digital_bidirectional
+        "A31":
+            role: role.digital_bidirectional
+        "A32":
+            role: role.digital_bidirectional
+        "A4":
+            role: role.digital_bidirectional
+        "A5":
+            role: role.digital_bidirectional
+        "A6":
+            role: role.digital_bidirectional
+        "A7":
+            role: role.digital_bidirectional
+        "A8":
+            role: role.digital_bidirectional
+        "A9":
+            role: role.digital_bidirectional
+        "B1":
+            role: role.digital_bidirectional
+        "B10":
+            role: role.digital_bidirectional
+        "B11":
+            role: role.digital_bidirectional
+        "B12":
+            role: role.digital_bidirectional
+        "B13":
+            role: role.digital_bidirectional
+        "B14":
+            role: role.digital_bidirectional
+        "B15":
+            role: role.digital_bidirectional
+        "B16":
+            role: role.digital_bidirectional
+        "B17":
+            role: role.digital_bidirectional
+        "B18":
+            role: role.digital_bidirectional
+        "B19":
+            role: role.digital_bidirectional
+        "B2":
+            role: role.digital_bidirectional
+        "B20":
+            role: role.digital_bidirectional
+        "B21":
+            role: role.digital_bidirectional
+        "B22":
+            role: role.digital_bidirectional
+        "B23":
+            role: role.digital_bidirectional
+        "B24":
+            role: role.digital_bidirectional
+        "B25":
+            role: role.digital_bidirectional
+        "B26":
+            role: role.digital_bidirectional
+        "B27":
+            role: role.digital_bidirectional
+        "B28":
+            role: role.digital_bidirectional
+        "B29":
+            role: role.digital_bidirectional
+        "B3":
+            role: role.digital_bidirectional
+        "B30":
+            role: role.digital_bidirectional
+        "B31":
+            role: role.digital_bidirectional
+        "B32":
+            role: role.digital_bidirectional
+        "B4":
+            role: role.digital_bidirectional
+        "B5":
+            role: role.digital_bidirectional
+        "B6":
+            role: role.digital_bidirectional
+        "B7":
+            role: role.digital_bidirectional
+        "B8":
+            role: role.digital_bidirectional
+        "B9":
+            role: role.digital_bidirectional
+        "C1":
+            role: role.digital_bidirectional
+        "C10":
+            role: role.digital_bidirectional
+        "C11":
+            role: role.digital_bidirectional
+        "C12":
+            role: role.digital_bidirectional
+        "C13":
+            role: role.digital_bidirectional
+        "C14":
+            role: role.digital_bidirectional
+        "C15":
+            role: role.digital_bidirectional
+        "C16":
+            role: role.digital_bidirectional
+        "C17":
+            role: role.digital_bidirectional
+        "C18":
+            role: role.digital_bidirectional
+        "C19":
+            role: role.digital_bidirectional
+        "C2":
+            role: role.digital_bidirectional
+        "C20":
+            role: role.digital_bidirectional
+        "C21":
+            role: role.digital_bidirectional
+        "C22":
+            role: role.digital_bidirectional
+        "C23":
+            role: role.digital_bidirectional
+        "C24":
+            role: role.digital_bidirectional
+        "C25":
+            role: role.digital_bidirectional
+        "C26":
+            role: role.digital_bidirectional
+        "C27":
+            role: role.digital_bidirectional
+        "C28":
+            role: role.digital_bidirectional
+        "C29":
+            role: role.digital_bidirectional
+        "C3":
+            role: role.digital_bidirectional
+        "C30":
+            role: role.digital_bidirectional
+        "C31":
+            role: role.digital_bidirectional
+        "C32":
+            role: role.digital_bidirectional
+        "C4":
+            role: role.digital_bidirectional
+        "C5":
+            role: role.digital_bidirectional
+        "C6":
+            role: role.digital_bidirectional
+        "C7":
+            role: role.digital_bidirectional
+        "C8":
+            role: role.digital_bidirectional
+        "C9":
+            role: role.digital_bidirectional
+        "D1":
+            role: role.digital_bidirectional
+        "D10":
+            role: role.digital_bidirectional
+        "D11":
+            role: role.digital_bidirectional
+        "D12":
+            role: role.digital_bidirectional
+        "D13":
+            role: role.digital_bidirectional
+        "D14":
+            role: role.digital_bidirectional
+        "D15":
+            role: role.digital_bidirectional
+        "D16":
+            role: role.digital_bidirectional
+        "D17":
+            role: role.digital_bidirectional
+        "D18":
+            role: role.digital_bidirectional
+        "D19":
+            role: role.digital_bidirectional
+        "D2":
+            role: role.digital_bidirectional
+        "D20":
+            role: role.digital_bidirectional
+        "D21":
+            role: role.digital_bidirectional
+        "D22":
+            role: role.digital_bidirectional
+        "D23":
+            role: role.digital_bidirectional
+        "D24":
+            role: role.digital_bidirectional
+        "D25":
+            role: role.digital_bidirectional
+        "D26":
+            role: role.digital_bidirectional
+        "D27":
+            role: role.digital_bidirectional
+        "D28":
+            role: role.digital_bidirectional
+        "D29":
+            role: role.digital_bidirectional
+        "D3":
+            role: role.digital_bidirectional
+        "D30":
+            role: role.digital_bidirectional
+        "D31":
+            role: role.digital_bidirectional
+        "D32":
+            role: role.digital_bidirectional
+        "D4":
+            role: role.digital_bidirectional
+        "D5":
+            role: role.digital_bidirectional
+        "D6":
+            role: role.digital_bidirectional
+        "D7":
+            role: role.digital_bidirectional
+        "D8":
+            role: role.digital_bidirectional
+        "D9":
+            role: role.digital_bidirectional
+        "MTG1":
+            role: role.passive
+        "MTG2":
+            role: role.passive
+        "Z1":
+            role: role.digital_bidirectional
+        "Z10":
+            role: role.digital_bidirectional
+        "Z11":
+            role: role.digital_bidirectional
+        "Z12":
+            role: role.digital_bidirectional
+        "Z13":
+            role: role.digital_bidirectional
+        "Z14":
+            role: role.digital_bidirectional
+        "Z15":
+            role: role.digital_bidirectional
+        "Z16":
+            role: role.digital_bidirectional
+        "Z17":
+            role: role.digital_bidirectional
+        "Z18":
+            role: role.digital_bidirectional
+        "Z19":
+            role: role.digital_bidirectional
+        "Z2":
+            role: role.digital_bidirectional
+        "Z20":
+            role: role.digital_bidirectional
+        "Z21":
+            role: role.digital_bidirectional
+        "Z22":
+            role: role.digital_bidirectional
+        "Z23":
+            role: role.digital_bidirectional
+        "Z24":
+            role: role.digital_bidirectional
+        "Z25":
+            role: role.digital_bidirectional
+        "Z26":
+            role: role.digital_bidirectional
+        "Z27":
+            role: role.digital_bidirectional
+        "Z28":
+            role: role.digital_bidirectional
+        "Z29":
+            role: role.digital_bidirectional
+        "Z3":
+            role: role.digital_bidirectional
+        "Z30":
+            role: role.digital_bidirectional
+        "Z31":
+            role: role.digital_bidirectional
+        "Z32":
+            role: role.digital_bidirectional
+        "Z4":
+            role: role.digital_bidirectional
+        "Z5":
+            role: role.digital_bidirectional
+        "Z6":
+            role: role.digital_bidirectional
+        "Z7":
+            role: role.digital_bidirectional
+        "Z8":
+            role: role.digital_bidirectional
+        "Z9":
+            role: role.digital_bidirectional
+    metadata:
+        value: "HARTING_02_01_160_2101"
+        footprint: "HARTING THD:HARTING_02 01 160 2101"
+
+component Part_4d6a2d1ea626e092:
+    pins:
+        "1":
+            role: role.passive
+        "3":
+            role: role.passive
+    metadata:
+        value: "BZX84C3V3"
+        footprint: "ICs And Semiconductors SMD:SOT95P240X130-3N"
+
+component Part_5150a7b722cf91a3:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_698R_1%_0.063W_100PPM"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_5940e1aa689faca0:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_90K9_1%_0.063W_100PPM"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_59b3028a6e3898d3:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CC1206_22UF_25V_20%_X5R"
+        footprint: "Capacitors SMD:CAPC3216X180N"
+
+component Part_5a10aac218ff7739:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CC0402_1UF_25V_10%_X5R"
+        footprint: "Capacitors SMD:CAPC1005X55N"
+
+component Part_5ba6fe1412ee5616:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_500R_0.1%_0.05W_25PPM_VISHAY_PNM"
+        footprint: "Resistors SMD:RESC1106X84N"
+
+component Part_5be6c077e001fed2:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+        "3":
+            role: role.passive
+    metadata:
+        value: "BSS138LT1G"
+        footprint: "ICs And Semiconductors SMD:SOT95P240X110-3N"
+
+component Part_5efab228b6994abc:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CC1210_220UF_6.3V_20%_X5R"
+        footprint: "Capacitors SMD:CAPC3225X280N"
+
+component Part_633bcdd49b38b66d:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "0402ESDA-MLP"
+        footprint: "ICs And Semiconductors SMD:EATON_0402ESDA-MLP"
+
+component Part_662690f13c06def6:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_402R_1%_0.063W_100PPM"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_697f5f2b5a7d7024:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0603_120R_1%_0.2W_200PPM"
+        footprint: "Resistors SMD:RESC1608X55N"
+
+component Part_69c5fcfd73a4c1e9:
+    pins:
+        "A1":
+            role: role.digital_bidirectional
+        "A10":
+            role: role.digital_bidirectional
+        "A11":
+            role: role.digital_bidirectional
+        "A12":
+            role: role.digital_bidirectional
+        "A13":
+            role: role.digital_bidirectional
+        "A14":
+            role: role.digital_bidirectional
+        "A15":
+            role: role.digital_bidirectional
+        "A16":
+            role: role.digital_bidirectional
+        "A17":
+            role: role.digital_bidirectional
+        "A18":
+            role: role.digital_bidirectional
+        "A19":
+            role: role.digital_bidirectional
+        "A2":
+            role: role.digital_bidirectional
+        "A20":
+            role: role.power_input
+        "A21":
+            role: role.digital_input
+        "A22":
+            role: role.digital_input
+        "A23":
+            role: role.power_input
+        "A24":
+            role: role.power_input
+        "A25":
+            role: role.digital_input
+        "A26":
+            role: role.digital_input
+        "A27":
+            role: role.power_input
+        "A28":
+            role: role.power_input
+        "A3":
+            role: role.digital_bidirectional
+        "A4":
+            role: role.digital_bidirectional
+        "A5":
+            role: role.digital_bidirectional
+        "A6":
+            role: role.digital_bidirectional
+        "A7":
+            role: role.digital_bidirectional
+        "A8":
+            role: role.digital_bidirectional
+        "A9":
+            role: role.digital_bidirectional
+        "AA1":
+            role: role.power_input
+        "AA10":
+            role: role.digital_bidirectional
+        "AA11":
+            role: role.digital_bidirectional
+        "AA12":
+            role: role.digital_bidirectional
+        "AA13":
+            role: role.digital_bidirectional
+        "AA14":
+            role: role.power_input
+        "AA15":
+            role: role.power_input
+        "AA16":
+            role: role.power_input
+        "AA17":
+            role: role.power_input
+        "AA18":
+            role: role.power_input
+        "AA19":
+            role: role.power_input
+        "AA2":
+            role: role.power_input
+        "AA20":
+            role: role.power_input
+        "AA21":
+            role: role.power_input
+        "AA22":
+            role: role.digital_output
+        "AA23":
+            role: role.digital_output
+        "AA24":
+            role: role.power_input
+        "AA25":
+            role: role.digital_output
+        "AA26":
+            role: role.digital_output
+        "AA27":
+            role: role.digital_output
+        "AA28":
+            role: role.digital_output
+        "AA3":
+            role: role.power_input
+        "AA4":
+            role: role.power_input
+        "AA5":
+            role: role.power_input
+        "AA6":
+            role: role.power_input
+        "AA7":
+            role: role.digital_input
+        "AA8":
+            role: role.digital_bidirectional
+        "AA9":
+            role: role.power_input
+        "AB1":
+            role: role.digital_bidirectional
+        "AB10":
+            role: role.digital_bidirectional
+        "AB11":
+            role: role.digital_bidirectional
+        "AB12":
+            role: role.power_input
+        "AB13":
+            role: role.digital_bidirectional
+        "AB14":
+            role: role.digital_bidirectional
+        "AB15":
+            role: role.digital_bidirectional
+        "AB16":
+            role: role.power_input
+        "AB17":
+            role: role.power_input
+        "AB18":
+            role: role.digital_bidirectional
+        "AB19":
+            role: role.digital_bidirectional
+        "AB2":
+            role: role.digital_bidirectional
+        "AB20":
+            role: role.digital_bidirectional
+        "AB21":
+            role: role.digital_bidirectional
+        "AB22":
+            role: role.power_input
+        "AB23":
+            role: role.digital_output
+        "AB24":
+            role: role.digital_output
+        "AB25":
+            role: role.digital_output
+        "AB26":
+            role: role.digital_output
+        "AB27":
+            role: role.power_input
+        "AB28":
+            role: role.digital_output
+        "AB3":
+            role: role.digital_bidirectional
+        "AB4":
+            role: role.digital_bidirectional
+        "AB5":
+            role: role.digital_bidirectional
+        "AB6":
+            role: role.digital_bidirectional
+        "AB7":
+            role: role.digital_bidirectional
+        "AB8":
+            role: role.digital_bidirectional
+        "AB9":
+            role: role.digital_bidirectional
+        "AC1":
+            role: role.digital_bidirectional
+        "AC10":
+            role: role.power_input
+        "AC11":
+            role: role.digital_bidirectional
+        "AC12":
+            role: role.digital_bidirectional
+        "AC13":
+            role: role.digital_bidirectional
+        "AC14":
+            role: role.digital_bidirectional
+        "AC15":
+            role: role.power_input
+        "AC16":
+            role: role.digital_bidirectional
+        "AC17":
+            role: role.digital_bidirectional
+        "AC18":
+            role: role.digital_bidirectional
+        "AC19":
+            role: role.digital_bidirectional
+        "AC2":
+            role: role.digital_bidirectional
+        "AC20":
+            role: role.power_input
+        "AC21":
+            role: role.digital_bidirectional
+        "AC22":
+            role: role.digital_output
+        "AC23":
+            role: role.digital_output
+        "AC24":
+            role: role.digital_output
+        "AC25":
+            role: role.power_input
+        "AC26":
+            role: role.digital_bidirectional
+        "AC27":
+            role: role.digital_bidirectional
+        "AC28":
+            role: role.digital_bidirectional
+        "AC3":
+            role: role.digital_bidirectional
+        "AC4":
+            role: role.digital_bidirectional
+        "AC5":
+            role: role.power_input
+        "AC6":
+            role: role.digital_bidirectional
+        "AC7":
+            role: role.digital_bidirectional
+        "AC8":
+            role: role.digital_bidirectional
+        "AC9":
+            role: role.digital_bidirectional
+        "AD1":
+            role: role.digital_bidirectional
+        "AD10":
+            role: role.digital_bidirectional
+        "AD11":
+            role: role.digital_bidirectional
+        "AD12":
+            role: role.digital_bidirectional
+        "AD13":
+            role: role.power_input
+        "AD14":
+            role: role.digital_bidirectional
+        "AD15":
+            role: role.digital_bidirectional
+        "AD16":
+            role: role.digital_bidirectional
+        "AD17":
+            role: role.digital_bidirectional
+        "AD18":
+            role: role.power_input
+        "AD19":
+            role: role.digital_bidirectional
+        "AD2":
+            role: role.digital_bidirectional
+        "AD20":
+            role: role.digital_bidirectional
+        "AD21":
+            role: role.digital_bidirectional
+        "AD22":
+            role: role.digital_bidirectional
+        "AD23":
+            role: role.power_input
+        "AD24":
+            role: role.digital_bidirectional
+        "AD25":
+            role: role.digital_bidirectional
+        "AD26":
+            role: role.digital_bidirectional
+        "AD27":
+            role: role.digital_bidirectional
+        "AD28":
+            role: role.digital_bidirectional
+        "AD3":
+            role: role.power_input
+        "AD4":
+            role: role.digital_bidirectional
+        "AD5":
+            role: role.digital_bidirectional
+        "AD6":
+            role: role.digital_bidirectional
+        "AD7":
+            role: role.digital_bidirectional
+        "AD8":
+            role: role.power_input
+        "AD9":
+            role: role.digital_bidirectional
+        "AE1":
+            role: role.power_input
+        "AE10":
+            role: role.digital_bidirectional
+        "AE11":
+            role: role.power_input
+        "AE12":
+            role: role.digital_bidirectional
+        "AE13":
+            role: role.digital_bidirectional
+        "AE14":
+            role: role.digital_bidirectional
+        "AE15":
+            role: role.digital_bidirectional
+        "AE16":
+            role: role.power_input
+        "AE17":
+            role: role.digital_bidirectional
+        "AE18":
+            role: role.digital_bidirectional
+        "AE19":
+            role: role.digital_bidirectional
+        "AE2":
+            role: role.digital_bidirectional
+        "AE20":
+            role: role.digital_bidirectional
+        "AE21":
+            role: role.power_input
+        "AE22":
+            role: role.digital_bidirectional
+        "AE23":
+            role: role.digital_output
+        "AE24":
+            role: role.digital_bidirectional
+        "AE25":
+            role: role.digital_output
+        "AE26":
+            role: role.power_input
+        "AE27":
+            role: role.digital_bidirectional
+        "AE28":
+            role: role.digital_output
+        "AE3":
+            role: role.digital_bidirectional
+        "AE4":
+            role: role.digital_bidirectional
+        "AE5":
+            role: role.digital_bidirectional
+        "AE6":
+            role: role.power_input
+        "AE7":
+            role: role.digital_bidirectional
+        "AE8":
+            role: role.digital_bidirectional
+        "AE9":
+            role: role.digital_bidirectional
+        "AF1":
+            role: role.digital_bidirectional
+        "AF10":
+            role: role.digital_bidirectional
+        "AF11":
+            role: role.digital_bidirectional
+        "AF12":
+            role: role.digital_bidirectional
+        "AF13":
+            role: role.digital_bidirectional
+        "AF14":
+            role: role.power_input
+        "AF15":
+            role: role.digital_bidirectional
+        "AF16":
+            role: role.digital_bidirectional
+        "AF17":
+            role: role.digital_bidirectional
+        "AF18":
+            role: role.digital_bidirectional
+        "AF19":
+            role: role.power_input
+        "AF2":
+            role: role.digital_bidirectional
+        "AF20":
+            role: role.digital_bidirectional
+        "AF21":
+            role: role.digital_bidirectional
+        "AF22":
+            role: role.digital_bidirectional
+        "AF23":
+            role: role.digital_bidirectional
+        "AF24":
+            role: role.power_input
+        "AF25":
+            role: role.digital_bidirectional
+        "AF26":
+            role: role.digital_bidirectional
+        "AF27":
+            role: role.digital_bidirectional
+        "AF28":
+            role: role.digital_bidirectional
+        "AF3":
+            role: role.digital_bidirectional
+        "AF4":
+            role: role.power_input
+        "AF5":
+            role: role.digital_bidirectional
+        "AF6":
+            role: role.digital_bidirectional
+        "AF7":
+            role: role.digital_bidirectional
+        "AF8":
+            role: role.digital_bidirectional
+        "AF9":
+            role: role.power_input
+        "AG1":
+            role: role.digital_bidirectional
+        "AG10":
+            role: role.digital_bidirectional
+        "AG11":
+            role: role.digital_bidirectional
+        "AG12":
+            role: role.power_input
+        "AG13":
+            role: role.digital_bidirectional
+        "AG14":
+            role: role.digital_bidirectional
+        "AG15":
+            role: role.digital_bidirectional
+        "AG16":
+            role: role.digital_bidirectional
+        "AG17":
+            role: role.power_input
+        "AG18":
+            role: role.digital_bidirectional
+        "AG19":
+            role: role.digital_bidirectional
+        "AG2":
+            role: role.power_input
+        "AG20":
+            role: role.digital_output
+        "AG21":
+            role: role.digital_bidirectional
+        "AG22":
+            role: role.power_input
+        "AG23":
+            role: role.digital_bidirectional
+        "AG24":
+            role: role.digital_bidirectional
+        "AG25":
+            role: role.digital_bidirectional
+        "AG26":
+            role: role.digital_bidirectional
+        "AG27":
+            role: role.power_input
+        "AG28":
+            role: role.digital_bidirectional
+        "AG3":
+            role: role.digital_bidirectional
+        "AG4":
+            role: role.digital_bidirectional
+        "AG5":
+            role: role.digital_bidirectional
+        "AG6":
+            role: role.digital_bidirectional
+        "AG7":
+            role: role.power_input
+        "AG8":
+            role: role.digital_bidirectional
+        "AG9":
+            role: role.digital_bidirectional
+        "AH1":
+            role: role.digital_bidirectional
+        "AH10":
+            role: role.digital_bidirectional
+        "AH11":
+            role: role.digital_bidirectional
+        "AH12":
+            role: role.digital_bidirectional
+        "AH13":
+            role: role.digital_bidirectional
+        "AH14":
+            role: role.digital_bidirectional
+        "AH15":
+            role: role.digital_bidirectional
+        "AH16":
+            role: role.digital_bidirectional
+        "AH17":
+            role: role.digital_bidirectional
+        "AH18":
+            role: role.digital_bidirectional
+        "AH19":
+            role: role.digital_bidirectional
+        "AH2":
+            role: role.digital_bidirectional
+        "AH20":
+            role: role.digital_bidirectional
+        "AH21":
+            role: role.digital_bidirectional
+        "AH22":
+            role: role.digital_bidirectional
+        "AH23":
+            role: role.digital_bidirectional
+        "AH24":
+            role: role.digital_bidirectional
+        "AH25":
+            role: role.digital_bidirectional
+        "AH26":
+            role: role.digital_bidirectional
+        "AH27":
+            role: role.digital_bidirectional
+        "AH28":
+            role: role.digital_bidirectional
+        "AH3":
+            role: role.digital_bidirectional
+        "AH4":
+            role: role.digital_bidirectional
+        "AH5":
+            role: role.power_input
+        "AH6":
+            role: role.digital_bidirectional
+        "AH7":
+            role: role.digital_bidirectional
+        "AH8":
+            role: role.digital_bidirectional
+        "AH9":
+            role: role.digital_bidirectional
+        "B1":
+            role: role.digital_bidirectional
+        "B10":
+            role: role.digital_bidirectional
+        "B11":
+            role: role.digital_bidirectional
+        "B12":
+            role: role.power_input
+        "B13":
+            role: role.digital_bidirectional
+        "B14":
+            role: role.digital_bidirectional
+        "B15":
+            role: role.digital_bidirectional
+        "B16":
+            role: role.digital_bidirectional
+        "B17":
+            role: role.power_input
+        "B18":
+            role: role.digital_bidirectional
+        "B19":
+            role: role.digital_bidirectional
+        "B2":
+            role: role.power_input
+        "B20":
+            role: role.digital_bidirectional
+        "B21":
+            role: role.power_input
+        "B22":
+            role: role.power_input
+        "B23":
+            role: role.digital_output
+        "B24":
+            role: role.digital_output
+        "B25":
+            role: role.power_input
+        "B26":
+            role: role.power_input
+        "B27":
+            role: role.digital_input
+        "B28":
+            role: role.digital_input
+        "B3":
+            role: role.digital_bidirectional
+        "B4":
+            role: role.digital_bidirectional
+        "B5":
+            role: role.digital_bidirectional
+        "B6":
+            role: role.digital_bidirectional
+        "B7":
+            role: role.power_input
+        "B8":
+            role: role.digital_bidirectional
+        "B9":
+            role: role.digital_bidirectional
+        "C1":
+            role: role.digital_bidirectional
+        "C10":
+            role: role.power_input
+        "C11":
+            role: role.digital_bidirectional
+        "C12":
+            role: role.digital_bidirectional
+        "C13":
+            role: role.digital_bidirectional
+        "C14":
+            role: role.digital_bidirectional
+        "C15":
+            role: role.power_input
+        "C16":
+            role: role.digital_bidirectional
+        "C17":
+            role: role.digital_bidirectional
+        "C18":
+            role: role.digital_bidirectional
+        "C19":
+            role: role.digital_bidirectional
+        "C2":
+            role: role.digital_bidirectional
+        "C20":
+            role: role.power_input
+        "C21":
+            role: role.digital_input
+        "C22":
+            role: role.digital_input
+        "C23":
+            role: role.power_input
+        "C24":
+            role: role.power_input
+        "C25":
+            role: role.digital_output
+        "C26":
+            role: role.digital_output
+        "C27":
+            role: role.power_input
+        "C28":
+            role: role.power_input
+        "C3":
+            role: role.digital_bidirectional
+        "C4":
+            role: role.digital_bidirectional
+        "C5":
+            role: role.power_input
+        "C6":
+            role: role.digital_bidirectional
+        "C7":
+            role: role.digital_bidirectional
+        "C8":
+            role: role.digital_bidirectional
+        "C9":
+            role: role.digital_bidirectional
+        "D1":
+            role: role.digital_bidirectional
+        "D10":
+            role: role.digital_bidirectional
+        "D11":
+            role: role.digital_bidirectional
+        "D12":
+            role: role.digital_bidirectional
+        "D13":
+            role: role.power_input
+        "D14":
+            role: role.digital_bidirectional
+        "D15":
+            role: role.digital_bidirectional
+        "D16":
+            role: role.digital_bidirectional
+        "D17":
+            role: role.digital_bidirectional
+        "D18":
+            role: role.power_input
+        "D19":
+            role: role.digital_bidirectional
+        "D2":
+            role: role.digital_bidirectional
+        "D20":
+            role: role.digital_bidirectional
+        "D21":
+            role: role.power_input
+        "D22":
+            role: role.power_input
+        "D23":
+            role: role.digital_output
+        "D24":
+            role: role.digital_output
+        "D25":
+            role: role.power_input
+        "D26":
+            role: role.power_input
+        "D27":
+            role: role.digital_input
+        "D28":
+            role: role.digital_input
+        "D3":
+            role: role.power_input
+        "D4":
+            role: role.digital_bidirectional
+        "D5":
+            role: role.digital_bidirectional
+        "D6":
+            role: role.digital_bidirectional
+        "D7":
+            role: role.digital_bidirectional
+        "D8":
+            role: role.power_input
+        "D9":
+            role: role.digital_bidirectional
+        "E1":
+            role: role.digital_bidirectional
+        "E10":
+            role: role.digital_bidirectional
+        "E11":
+            role: role.power_input
+        "E12":
+            role: role.digital_bidirectional
+        "E13":
+            role: role.digital_bidirectional
+        "E14":
+            role: role.digital_bidirectional
+        "E15":
+            role: role.digital_bidirectional
+        "E16":
+            role: role.power_input
+        "E17":
+            role: role.digital_bidirectional
+        "E18":
+            role: role.digital_bidirectional
+        "E19":
+            role: role.digital_bidirectional
+        "E2":
+            role: role.digital_bidirectional
+        "E20":
+            role: role.power_input
+        "E21":
+            role: role.digital_input
+        "E22":
+            role: role.digital_input
+        "E23":
+            role: role.power_input
+        "E24":
+            role: role.power_input
+        "E25":
+            role: role.digital_output
+        "E26":
+            role: role.digital_output
+        "E27":
+            role: role.power_input
+        "E28":
+            role: role.power_input
+        "E3":
+            role: role.digital_bidirectional
+        "E4":
+            role: role.digital_bidirectional
+        "E5":
+            role: role.digital_bidirectional
+        "E6":
+            role: role.power_input
+        "E7":
+            role: role.digital_bidirectional
+        "E8":
+            role: role.digital_bidirectional
+        "E9":
+            role: role.digital_bidirectional
+        "F1":
+            role: role.digital_bidirectional
+        "F10":
+            role: role.digital_bidirectional
+        "F11":
+            role: role.digital_bidirectional
+        "F12":
+            role: role.digital_bidirectional
+        "F13":
+            role: role.digital_bidirectional
+        "F14":
+            role: role.power_input
+        "F15":
+            role: role.digital_bidirectional
+        "F16":
+            role: role.digital_bidirectional
+        "F17":
+            role: role.digital_bidirectional
+        "F18":
+            role: role.digital_bidirectional
+        "F19":
+            role: role.power_input
+        "F2":
+            role: role.digital_bidirectional
+        "F20":
+            role: role.digital_bidirectional
+        "F21":
+            role: role.power_input
+        "F22":
+            role: role.digital_input
+        "F23":
+            role: role.digital_input
+        "F24":
+            role: role.digital_input
+        "F25":
+            role: role.power_input
+        "F26":
+            role: role.power_input
+        "F27":
+            role: role.digital_input
+        "F28":
+            role: role.digital_input
+        "F3":
+            role: role.digital_bidirectional
+        "F4":
+            role: role.power_input
+        "F5":
+            role: role.digital_bidirectional
+        "F6":
+            role: role.digital_bidirectional
+        "F7":
+            role: role.digital_bidirectional
+        "F8":
+            role: role.digital_bidirectional
+        "F9":
+            role: role.power_input
+        "G1":
+            role: role.digital_bidirectional
+        "G10":
+            role: role.digital_bidirectional
+        "G11":
+            role: role.digital_bidirectional
+        "G12":
+            role: role.power_input
+        "G13":
+            role: role.digital_bidirectional
+        "G14":
+            role: role.digital_bidirectional
+        "G15":
+            role: role.digital_bidirectional
+        "G16":
+            role: role.digital_bidirectional
+        "G17":
+            role: role.power_input
+        "G18":
+            role: role.digital_bidirectional
+        "G19":
+            role: role.digital_bidirectional
+        "G2":
+            role: role.power_input
+        "G20":
+            role: role.digital_bidirectional
+        "G21":
+            role: role.digital_bidirectional
+        "G22":
+            role: role.power_input
+        "G23":
+            role: role.power_input
+        "G24":
+            role: role.power_input
+        "G25":
+            role: role.digital_bidirectional
+        "G26":
+            role: role.digital_bidirectional
+        "G27":
+            role: role.power_input
+        "G28":
+            role: role.power_input
+        "G3":
+            role: role.digital_bidirectional
+        "G4":
+            role: role.digital_bidirectional
+        "G5":
+            role: role.digital_bidirectional
+        "G6":
+            role: role.digital_bidirectional
+        "G7":
+            role: role.power_input
+        "G8":
+            role: role.digital_bidirectional
+        "G9":
+            role: role.digital_input
+        "H1":
+            role: role.digital_bidirectional
+        "H10":
+            role: role.power_input
+        "H11":
+            role: role.digital_bidirectional
+        "H12":
+            role: role.digital_bidirectional
+        "H13":
+            role: role.digital_bidirectional
+        "H14":
+            role: role.digital_bidirectional
+        "H15":
+            role: role.power_input
+        "H16":
+            role: role.digital_bidirectional
+        "H17":
+            role: role.digital_bidirectional
+        "H18":
+            role: role.digital_bidirectional
+        "H19":
+            role: role.digital_bidirectional
+        "H2":
+            role: role.digital_bidirectional
+        "H20":
+            role: role.power_input
+        "H21":
+            role: role.digital_bidirectional
+        "H22":
+            role: role.digital_bidirectional
+        "H23":
+            role: role.digital_output
+        "H24":
+            role: role.digital_bidirectional
+        "H25":
+            role: role.power_input
+        "H26":
+            role: role.digital_output
+        "H27":
+            role: role.digital_bidirectional
+        "H28":
+            role: role.digital_bidirectional
+        "H3":
+            role: role.digital_bidirectional
+        "H4":
+            role: role.digital_bidirectional
+        "H5":
+            role: role.power_input
+        "H6":
+            role: role.digital_bidirectional
+        "H7":
+            role: role.digital_bidirectional
+        "H8":
+            role: role.digital_bidirectional
+        "H9":
+            role: role.digital_bidirectional
+        "J1":
+            role: role.digital_bidirectional
+        "J10":
+            role: role.digital_bidirectional
+        "J11":
+            role: role.digital_bidirectional
+        "J12":
+            role: role.digital_bidirectional
+        "J13":
+            role: role.power_input
+        "J14":
+            role: role.digital_bidirectional
+        "J15":
+            role: role.digital_bidirectional
+        "J16":
+            role: role.digital_bidirectional
+        "J17":
+            role: role.digital_bidirectional
+        "J18":
+            role: role.power_input
+        "J19":
+            role: role.digital_bidirectional
+        "J2":
+            role: role.digital_bidirectional
+        "J20":
+            role: role.digital_bidirectional
+        "J21":
+            role: role.digital_bidirectional
+        "J22":
+            role: role.digital_bidirectional
+        "J23":
+            role: role.power_input
+        "J24":
+            role: role.digital_bidirectional
+        "J25":
+            role: role.digital_bidirectional
+        "J26":
+            role: role.digital_bidirectional
+        "J27":
+            role: role.digital_bidirectional
+        "J28":
+            role: role.digital_bidirectional
+        "J3":
+            role: role.power_input
+        "J4":
+            role: role.digital_bidirectional
+        "J5":
+            role: role.digital_bidirectional
+        "J6":
+            role: role.digital_bidirectional
+        "J7":
+            role: role.digital_bidirectional
+        "J8":
+            role: role.power_input
+        "J9":
+            role: role.digital_bidirectional
+        "K1":
+            role: role.digital_bidirectional
+        "K10":
+            role: role.power_input
+        "K11":
+            role: role.power_input
+        "K12":
+            role: role.digital_bidirectional
+        "K13":
+            role: role.digital_bidirectional
+        "K14":
+            role: role.digital_bidirectional
+        "K15":
+            role: role.digital_bidirectional
+        "K16":
+            role: role.power_input
+        "K17":
+            role: role.digital_bidirectional
+        "K18":
+            role: role.digital_bidirectional
+        "K19":
+            role: role.digital_bidirectional
+        "K2":
+            role: role.digital_bidirectional
+        "K20":
+            role: role.digital_bidirectional
+        "K21":
+            role: role.power_input
+        "K22":
+            role: role.digital_bidirectional
+        "K23":
+            role: role.digital_bidirectional
+        "K24":
+            role: role.digital_bidirectional
+        "K25":
+            role: role.digital_bidirectional
+        "K26":
+            role: role.power_input
+        "K27":
+            role: role.digital_bidirectional
+        "K28":
+            role: role.digital_bidirectional
+        "K3":
+            role: role.digital_bidirectional
+        "K4":
+            role: role.digital_bidirectional
+        "K5":
+            role: role.digital_bidirectional
+        "K6":
+            role: role.power_input
+        "K7":
+            role: role.digital_bidirectional
+        "K8":
+            role: role.digital_bidirectional
+        "K9":
+            role: role.digital_bidirectional
+        "L1":
+            role: role.digital_bidirectional
+        "L10":
+            role: role.power_input
+        "L11":
+            role: role.power_input
+        "L12":
+            role: role.power_input
+        "L13":
+            role: role.digital_bidirectional
+        "L14":
+            role: role.digital_bidirectional
+        "L15":
+            role: role.digital_bidirectional
+        "L16":
+            role: role.digital_bidirectional
+        "L17":
+            role: role.digital_bidirectional
+        "L18":
+            role: role.digital_bidirectional
+        "L19":
+            role: role.power_input
+        "L2":
+            role: role.digital_bidirectional
+        "L20":
+            role: role.digital_bidirectional
+        "L21":
+            role: role.digital_bidirectional
+        "L22":
+            role: role.digital_bidirectional
+        "L23":
+            role: role.digital_bidirectional
+        "L24":
+            role: role.power_input
+        "L25":
+            role: role.digital_bidirectional
+        "L26":
+            role: role.digital_bidirectional
+        "L27":
+            role: role.digital_output
+        "L28":
+            role: role.digital_bidirectional
+        "L3":
+            role: role.digital_bidirectional
+        "L4":
+            role: role.power_input
+        "L5":
+            role: role.digital_bidirectional
+        "L6":
+            role: role.digital_bidirectional
+        "L7":
+            role: role.digital_bidirectional
+        "L8":
+            role: role.digital_bidirectional
+        "L9":
+            role: role.power_input
+        "M1":
+            role: role.power_input
+        "M10":
+            role: role.power_input
+        "M11":
+            role: role.power_input
+        "M12":
+            role: role.power_input
+        "M13":
+            role: role.power_input
+        "M14":
+            role: role.power_input
+        "M15":
+            role: role.power_input
+        "M16":
+            role: role.power_input
+        "M17":
+            role: role.power_input
+        "M18":
+            role: role.digital_bidirectional
+        "M19":
+            role: role.digital_bidirectional
+        "M2":
+            role: role.power_input
+        "M20":
+            role: role.digital_output
+        "M21":
+            role: role.digital_output
+        "M22":
+            role: role.power_input
+        "M23":
+            role: role.digital_bidirectional
+        "M24":
+            role: role.digital_bidirectional
+        "M25":
+            role: role.digital_bidirectional
+        "M26":
+            role: role.digital_bidirectional
+        "M27":
+            role: role.power_input
+        "M28":
+            role: role.digital_bidirectional
+        "M3":
+            role: role.power_input
+        "M4":
+            role: role.power_input
+        "M5":
+            role: role.power_input
+        "M6":
+            role: role.digital_bidirectional
+        "M7":
+            role: role.power_input
+        "M8":
+            role: role.digital_bidirectional
+        "M9":
+            role: role.power_input
+        "N1":
+            role: role.passive
+        "N10":
+            role: role.power_input
+        "N11":
+            role: role.power_input
+        "N12":
+            role: role.power_input
+        "N13":
+            role: role.power_input
+        "N14":
+            role: role.power_input
+        "N15":
+            role: role.power_input
+        "N16":
+            role: role.power_input
+        "N17":
+            role: role.digital_input
+        "N18":
+            role: role.digital_output
+        "N19":
+            role: role.digital_input
+        "N2":
+            role: role.digital_input
+        "N20":
+            role: role.power_input
+        "N21":
+            role: role.digital_input
+        "N22":
+            role: role.digital_bidirectional
+        "N23":
+            role: role.digital_bidirectional
+        "N24":
+            role: role.digital_bidirectional
+        "N25":
+            role: role.power_input
+        "N26":
+            role: role.digital_bidirectional
+        "N27":
+            role: role.digital_bidirectional
+        "N28":
+            role: role.digital_bidirectional
+        "N3":
+            role: role.digital_output
+        "N4":
+            role: role.digital_output
+        "N5":
+            role: role.power_input
+        "N6":
+            role: role.digital_bidirectional
+        "N7":
+            role: role.digital_bidirectional
+        "N8":
+            role: role.digital_bidirectional
+        "N9":
+            role: role.digital_bidirectional
+        "P1":
+            role: role.digital_input
+        "P10":
+            role: role.power_input
+        "P11":
+            role: role.power_input
+        "P12":
+            role: role.power_input
+        "P13":
+            role: role.power_input
+        "P14":
+            role: role.power_input
+        "P15":
+            role: role.power_input
+        "P16":
+            role: role.digital_input
+        "P17":
+            role: role.digital_output
+        "P18":
+            role: role.power_input
+        "P19":
+            role: role.digital_bidirectional
+        "P2":
+            role: role.digital_input
+        "P20":
+            role: role.digital_bidirectional
+        "P21":
+            role: role.digital_bidirectional
+        "P22":
+            role: role.digital_bidirectional
+        "P23":
+            role: role.power_input
+        "P24":
+            role: role.digital_bidirectional
+        "P25":
+            role: role.digital_bidirectional
+        "P26":
+            role: role.digital_bidirectional
+        "P27":
+            role: role.digital_bidirectional
+        "P28":
+            role: role.digital_bidirectional
+        "P3":
+            role: role.power_input
+        "P4":
+            role: role.power_input
+        "P5":
+            role: role.power_input
+        "P6":
+            role: role.digital_bidirectional
+        "P7":
+            role: role.digital_bidirectional
+        "P8":
+            role: role.power_input
+        "P9":
+            role: role.digital_bidirectional
+        "R1":
+            role: role.power_input
+        "R10":
+            role: role.power_input
+        "R11":
+            role: role.power_input
+        "R12":
+            role: role.digital_input
+        "R13":
+            role: role.power_input
+        "R14":
+            role: role.power_input
+        "R15":
+            role: role.power_input
+        "R16":
+            role: role.digital_input
+        "R17":
+            role: role.digital_input
+        "R18":
+            role: role.digital_input
+        "R19":
+            role: role.digital_input
+        "R2":
+            role: role.power_input
+        "R20":
+            role: role.digital_bidirectional
+        "R21":
+            role: role.power_input
+        "R22":
+            role: role.digital_bidirectional
+        "R23":
+            role: role.digital_output
+        "R24":
+            role: role.digital_bidirectional
+        "R25":
+            role: role.digital_bidirectional
+        "R26":
+            role: role.power_input
+        "R27":
+            role: role.digital_bidirectional
+        "R28":
+            role: role.digital_bidirectional
+        "R3":
+            role: role.digital_output
+        "R4":
+            role: role.digital_output
+        "R5":
+            role: role.power_input
+        "R6":
+            role: role.digital_bidirectional
+        "R7":
+            role: role.digital_bidirectional
+        "R8":
+            role: role.digital_bidirectional
+        "R9":
+            role: role.digital_input
+        "T1":
+            role: role.digital_input
+        "T10":
+            role: role.power_input
+        "T11":
+            role: role.power_input
+        "T12":
+            role: role.power_input
+        "T13":
+            role: role.digital_input
+        "T14":
+            role: role.power_input
+        "T15":
+            role: role.power_input
+        "T16":
+            role: role.power_input
+        "T17":
+            role: role.power_input
+        "T18":
+            role: role.power_input
+        "T19":
+            role: role.power_input
+        "T2":
+            role: role.digital_input
+        "T20":
+            role: role.digital_bidirectional
+        "T21":
+            role: role.digital_output
+        "T22":
+            role: role.digital_bidirectional
+        "T23":
+            role: role.digital_bidirectional
+        "T24":
+            role: role.power_input
+        "T25":
+            role: role.digital_bidirectional
+        "T26":
+            role: role.digital_output
+        "T27":
+            role: role.digital_bidirectional
+        "T28":
+            role: role.digital_bidirectional
+        "T3":
+            role: role.power_input
+        "T4":
+            role: role.power_input
+        "T5":
+            role: role.power_input
+        "T6":
+            role: role.digital_bidirectional
+        "T7":
+            role: role.digital_bidirectional
+        "T8":
+            role: role.digital_bidirectional
+        "T9":
+            role: role.power_input
+        "U1":
+            role: role.power_input
+        "U10":
+            role: role.power_input
+        "U11":
+            role: role.power_input
+        "U12":
+            role: role.digital_input
+        "U13":
+            role: role.digital_input
+        "U14":
+            role: role.power_input
+        "U15":
+            role: role.power_input
+        "U16":
+            role: role.power_input
+        "U17":
+            role: role.power_input
+        "U18":
+            role: role.power_input
+        "U19":
+            role: role.power_input
+        "U2":
+            role: role.power_input
+        "U20":
+            role: role.power_input
+        "U21":
+            role: role.power_input
+        "U22":
+            role: role.power_input
+        "U23":
+            role: role.digital_output
+        "U24":
+            role: role.digital_bidirectional
+        "U25":
+            role: role.digital_input
+        "U26":
+            role: role.digital_output
+        "U27":
+            role: role.power_input
+        "U28":
+            role: role.digital_output
+        "U3":
+            role: role.digital_output
+        "U4":
+            role: role.digital_output
+        "U5":
+            role: role.power_input
+        "U6":
+            role: role.power_input
+        "U7":
+            role: role.digital_input
+        "U8":
+            role: role.digital_bidirectional
+        "U9":
+            role: role.digital_bidirectional
+        "V1":
+            role: role.digital_input
+        "V10":
+            role: role.power_input
+        "V11":
+            role: role.power_input
+        "V12":
+            role: role.power_input
+        "V13":
+            role: role.power_input
+        "V14":
+            role: role.power_input
+        "V15":
+            role: role.power_input
+        "V16":
+            role: role.power_input
+        "V17":
+            role: role.power_input
+        "V18":
+            role: role.power_input
+        "V19":
+            role: role.power_input
+        "V2":
+            role: role.digital_input
+        "V20":
+            role: role.power_input
+        "V21":
+            role: role.power_input
+        "V22":
+            role: role.digital_output
+        "V23":
+            role: role.digital_output
+        "V24":
+            role: role.digital_output
+        "V25":
+            role: role.power_input
+        "V26":
+            role: role.digital_output
+        "V27":
+            role: role.digital_output
+        "V28":
+            role: role.digital_output
+        "V3":
+            role: role.power_input
+        "V4":
+            role: role.power_input
+        "V5":
+            role: role.digital_bidirectional
+        "V6":
+            role: role.digital_bidirectional
+        "V7":
+            role: role.power_input
+        "V8":
+            role: role.digital_bidirectional
+        "V9":
+            role: role.digital_bidirectional
+        "W1":
+            role: role.power_input
+        "W10":
+            role: role.digital_bidirectional
+        "W11":
+            role: role.digital_bidirectional
+        "W12":
+            role: role.digital_bidirectional
+        "W13":
+            role: role.digital_bidirectional
+        "W14":
+            role: role.digital_bidirectional
+        "W15":
+            role: role.power_input
+        "W16":
+            role: role.power_input
+        "W17":
+            role: role.power_input
+        "W18":
+            role: role.power_input
+        "W19":
+            role: role.power_input
+        "W2":
+            role: role.power_input
+        "W20":
+            role: role.power_input
+        "W21":
+            role: role.power_input
+        "W22":
+            role: role.digital_output
+        "W23":
+            role: role.power_input
+        "W24":
+            role: role.digital_output
+        "W25":
+            role: role.digital_output
+        "W26":
+            role: role.digital_output
+        "W27":
+            role: role.digital_output
+        "W28":
+            role: role.digital_output
+        "W3":
+            role: role.digital_output
+        "W4":
+            role: role.digital_output
+        "W5":
+            role: role.power_input
+        "W6":
+            role: role.power_input
+        "W7":
+            role: role.digital_input
+        "W8":
+            role: role.digital_bidirectional
+        "W9":
+            role: role.digital_bidirectional
+        "Y1":
+            role: role.digital_input
+        "Y10":
+            role: role.digital_bidirectional
+        "Y11":
+            role: role.power_input
+        "Y12":
+            role: role.digital_bidirectional
+        "Y13":
+            role: role.digital_bidirectional
+        "Y14":
+            role: role.digital_bidirectional
+        "Y15":
+            role: role.power_input
+        "Y16":
+            role: role.power_input
+        "Y17":
+            role: role.power_input
+        "Y18":
+            role: role.power_input
+        "Y19":
+            role: role.power_input
+        "Y2":
+            role: role.digital_input
+        "Y20":
+            role: role.power_input
+        "Y21":
+            role: role.power_input
+        "Y22":
+            role: role.digital_output
+        "Y23":
+            role: role.digital_output
+        "Y24":
+            role: role.digital_output
+        "Y25":
+            role: role.digital_output
+        "Y26":
+            role: role.power_input
+        "Y27":
+            role: role.digital_output
+        "Y28":
+            role: role.digital_output
+        "Y3":
+            role: role.power_input
+        "Y4":
+            role: role.power_input
+        "Y5":
+            role: role.digital_bidirectional
+        "Y6":
+            role: role.digital_bidirectional
+        "Y7":
+            role: role.power_input
+        "Y8":
+            role: role.digital_bidirectional
+        "Y9":
+            role: role.digital_bidirectional
+    metadata:
+        value: "XCZU4CG-1SFVC784E"
+        footprint: "ICs And Semiconductors SMD_BGA:BGA784C80P28X28_2300X2300X332"
+
+component Part_6ea1a874fc30e514:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CC0402_10UF_6.3V_20%_X5R"
+        footprint: "Capacitors SMD:CAPC1005X70N"
+
+component Part_7046178a5e5b896f:
+    pins:
+        "1":
+            role: role.digital_bidirectional
+        "10":
+            role: role.digital_bidirectional
+        "2":
+            role: role.digital_bidirectional
+        "3":
+            role: role.digital_bidirectional
+        "4":
+            role: role.digital_bidirectional
+        "5":
+            role: role.digital_bidirectional
+        "6":
+            role: role.digital_bidirectional
+        "7":
+            role: role.digital_bidirectional
+        "8":
+            role: role.digital_bidirectional
+        "9":
+            role: role.digital_bidirectional
+    metadata:
+        value: "HARWIN_M22-6541042R"
+        footprint: "HARWIN SMD:HARWIN_M22-6541042R"
+
+component Part_7164d784d24517a3:
+    metadata:
+        value: "BOSSARD_BN628-1241427_v"
+        footprint: "Fasteners & Fixings:BOSSARD_BN628-1241427_v"
+
+component Part_73115d0fbf63110a:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "LED_KINGBRIGHT_KPH-1608CGCK"
+        footprint: "ICs And Semiconductors SMD:LED_KINGBRIGHT_KPH-1608CGCK"
+
+component Part_791404574f7166f2:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CC0603_22UF_10V_20%_X5R"
+        footprint: "Capacitors SMD:CAPC1608X90N"
+
+component Part_7971d589cd1c84c0:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "IND_3.3UH_20%_COILCRAFT_XAL4030"
+        footprint: "Inductors SMD:IND_COILCRAFT_XAL4030"
+
+component Part_7c4adeea17c0aa03:
+    pins:
+        "1":
+            role: role.digital_input
+        "10":
+            role: role.power_output
+        "11":
+            role: role.power_input
+        "2":
+            role: role.digital_input
+        "3":
+            role: role.digital_output
+        "4":
+            role: role.digital_input
+        "5":
+            role: role.digital_input
+        "6":
+            role: role.power_input
+        "7":
+            role: role.passive
+        "8":
+            role: role.digital_input
+        "9":
+            role: role.power_output
+    metadata:
+        value: "TPS74801DRCT"
+        footprint: "ICs And Semiconductors SMD:TEXAS_DRC (S-PVSON-N10)"
+
+component Part_7cc747135c8c30ef:
+    pins:
+        "1":
+            role: role.digital_input
+        "2":
+            role: role.digital_input
+        "3":
+            role: role.power_input
+        "4":
+            role: role.digital_output
+        "5":
+            role: role.passive
+        "6":
+            role: role.power_input
+    metadata:
+        value: "OSC_25MHZ_KYOCERA_KV7050B25.0000C3GD00"
+        footprint: "ICs And Semiconductors SMD:OSC_KYOCERA_KV7050B-C3"
+
+component Part_7d9ebd0af30e5f43:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0603_15R_1%_0.1W_100PPM"
+        footprint: "Resistors SMD:RESC1608X55N"
+
+component Part_7f1f5d903574cd40:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CC0402_15PF_50V_5%_C0G"
+        footprint: "Capacitors SMD:CAPC1005X55N"
+
+component Part_8103a27293ca4b45:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_210K_1%_0.063W_100PPM"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_847f74bb3c195e6e:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CC0402_100PF_50V_5%_C0G"
+        footprint: "Capacitors SMD:CAPC1005X55N"
+
+component Part_86a170aa7c8ebb8a:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_36R_1%_0.0625W_100PPM"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_913618de94353e29:
+    pins:
+        "1":
+            role: role.power_input
+        "10":
+            role: role.power_input
+        "11":
+            role: role.power_input
+        "12":
+            role: role.power_input
+        "13":
+            role: role.power_input
+        "14":
+            role: role.power_input
+        "15":
+            role: role.power_input
+        "16":
+            role: role.power_input
+        "17":
+            role: role.power_input
+        "18":
+            role: role.power_input
+        "19":
+            role: role.power_input
+        "2":
+            role: role.power_input
+        "20":
+            role: role.power_input
+        "3":
+            role: role.power_input
+        "4":
+            role: role.power_input
+        "5":
+            role: role.power_input
+        "6":
+            role: role.power_input
+        "7":
+            role: role.power_input
+        "8":
+            role: role.power_input
+        "9":
+            role: role.power_input
+    metadata:
+        value: "MOLEX_74737-0009"
+        footprint: "MOLEX THD:MOLEX_74737-0009"
+
+component Part_921324fa66ca0064:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "PESD3V3S1UB"
+        footprint: "ICs And Semiconductors SMD:SODFL1608X65N"
+
+component Part_9254a2d28e073ca4:
+    pins:
+        "1":
+            role: role.digital_bidirectional
+        "2":
+            role: role.digital_bidirectional
+        "3":
+            role: role.digital_bidirectional
+    metadata:
+        value: "SAMTEC_MTLW-103-07-L-S-250"
+        footprint: "SAMTEC THD:SAMTEC_MTLW-103-07-L-S-250"
+
+component Part_9906dca997f8c18b:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+        "3":
+            role: role.passive
+        "4":
+            role: role.passive
+        "5":
+            role: role.passive
+        "6":
+            role: role.passive
+    metadata:
+        value: "XFMR_MINI-CIRCUITS_ADT2-1T+"
+        footprint: "Transformers:XFMR_MINI-CIRCUITS_CD542"
+
+component Part_99793edc56170941:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CC0402_2.2UF_16V_10%_X5R"
+        footprint: "Capacitors SMD:CAPC1005X55N"
+
+component Part_99848fd5988574b7:
+    metadata:
+        value: "BOSSARD_BN5687-3061600_v"
+        footprint: "Fasteners & Fixings:BOSSARD_BN5687-3061600_v"
+
+component Part_9999e8fa5ba944f9:
+    pins:
+        "1":
+            role: role.power_input
+        "2":
+            role: role.power_input
+        "3":
+            role: role.digital_bidirectional
+        "4":
+            role: role.digital_bidirectional
+        "5":
+            role: role.digital_input
+        "6":
+            role: role.power_input
+    metadata:
+        value: "SN74LVC1T45DCKT"
+        footprint: "ICs And Semiconductors SMD:SOT65P210X110-6N"
+
+component Part_9a588512ddfa8501:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "IND0805_MURATA_BLM21PG221SN1D"
+        footprint: "Inductors SMD:INDC2012X105N"
+
+component Part_9e7655e7181ee42e:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_4R7_1%_0.0625W_200PPM"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_9f7d6b40a81f0be6:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "IND0805_WURTH_742792040"
+        footprint: "Inductors SMD:INDC2012X110N"
+
+component Part_a1164d92361ef13f:
+    pins:
+        "1":
+            role: role.power_input
+        "10":
+            role: role.digital_bidirectional
+        "11":
+            role: role.power_input
+        "12":
+            role: role.power_input
+        "13":
+            role: role.power_input
+        "14":
+            role: role.digital_bidirectional
+        "15":
+            role: role.digital_bidirectional
+        "16":
+            role: role.digital_bidirectional
+        "17":
+            role: role.digital_bidirectional
+        "18":
+            role: role.digital_bidirectional
+        "19":
+            role: role.digital_bidirectional
+        "2":
+            role: role.digital_input
+        "20":
+            role: role.digital_bidirectional
+        "21":
+            role: role.digital_bidirectional
+        "22":
+            role: role.digital_input
+        "23":
+            role: role.power_input
+        "24":
+            role: role.power_input
+        "3":
+            role: role.digital_bidirectional
+        "4":
+            role: role.digital_bidirectional
+        "5":
+            role: role.digital_bidirectional
+        "6":
+            role: role.digital_bidirectional
+        "7":
+            role: role.digital_bidirectional
+        "8":
+            role: role.digital_bidirectional
+        "9":
+            role: role.digital_bidirectional
+    metadata:
+        value: "SN74LXCH8T245PWR"
+        footprint: "ICs And Semiconductors SMD:SOP65P640X120-24N"
+
+component Part_a1ca94919b927083:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CAER_220UF_16V_20%_PANASONIC_16SEPC220MD"
+        footprint: "Capacitors THD:CAPPR350-850X700_A"
+
+component Part_a52979fe25eb350f:
+    pins:
+        "1":
+            role: role.digital_input
+        "3":
+            role: role.power_input
+        "4":
+            role: role.digital_output
+        "6":
+            role: role.power_input
+    metadata:
+        value: "OSC_10MHZ_CONNOR-WINFIELD_DOT050V-010.0M"
+        footprint: "ICs And Semiconductors SMD:OSC_CONNOR-WINFIELD_DOT050V"
+
+component Part_a57a0c9e63d3b220:
+    pins:
+        "1":
+            role: role.digital_input
+        "2":
+            role: role.power_input
+        "3":
+            role: role.digital_output
+        "4":
+            role: role.power_input
+    metadata:
+        value: "OSC_50MHZ_EPSON_SG-8018CE"
+        footprint: "ICs And Semiconductors SMD:OSC_EPSON_SG-8018CE"
+
+component Part_a68cdabbbdcf144d:
+    pins:
+        "A1":
+            role: role.digital_bidirectional
+        "A2":
+            role: role.digital_bidirectional
+        "A3":
+            role: role.digital_bidirectional
+        "A4":
+            role: role.digital_bidirectional
+        "A5":
+            role: role.digital_bidirectional
+        "A6":
+            role: role.digital_bidirectional
+        "A7":
+            role: role.digital_bidirectional
+        "A8":
+            role: role.digital_bidirectional
+        "A9":
+            role: role.digital_bidirectional
+        "B1":
+            role: role.digital_bidirectional
+        "B2":
+            role: role.digital_bidirectional
+        "B3":
+            role: role.digital_bidirectional
+        "B4":
+            role: role.digital_bidirectional
+        "B5":
+            role: role.digital_bidirectional
+        "B6":
+            role: role.digital_bidirectional
+        "B7":
+            role: role.digital_bidirectional
+        "B8":
+            role: role.digital_bidirectional
+        "B9":
+            role: role.digital_bidirectional
+        "C1":
+            role: role.digital_bidirectional
+        "C2":
+            role: role.digital_bidirectional
+        "C3":
+            role: role.digital_bidirectional
+        "C4":
+            role: role.digital_bidirectional
+        "C5":
+            role: role.digital_bidirectional
+        "C6":
+            role: role.digital_bidirectional
+        "C7":
+            role: role.digital_bidirectional
+        "C8":
+            role: role.digital_bidirectional
+        "C9":
+            role: role.digital_bidirectional
+        "D1":
+            role: role.digital_bidirectional
+        "D2":
+            role: role.digital_bidirectional
+        "D3":
+            role: role.digital_bidirectional
+        "D4":
+            role: role.digital_bidirectional
+        "D5":
+            role: role.digital_bidirectional
+        "D6":
+            role: role.digital_bidirectional
+        "D7":
+            role: role.digital_bidirectional
+        "D8":
+            role: role.digital_bidirectional
+        "D9":
+            role: role.digital_bidirectional
+        "SHIELD":
+            role: role.digital_bidirectional
+    metadata:
+        value: "TYCO_2149027-1"
+        footprint: "TYCO THD:TYCO_2149027-1"
+
+component Part_a78a5b36d78eb1ab:
+    pins:
+        "1":
+            role: role.digital_bidirectional
+        "10":
+            role: role.digital_bidirectional
+        "11":
+            role: role.digital_bidirectional
+        "12":
+            role: role.digital_bidirectional
+        "13":
+            role: role.digital_bidirectional
+        "14":
+            role: role.digital_bidirectional
+        "15":
+            role: role.digital_bidirectional
+        "16":
+            role: role.digital_bidirectional
+        "2":
+            role: role.digital_bidirectional
+        "3":
+            role: role.digital_bidirectional
+        "4":
+            role: role.digital_bidirectional
+        "5":
+            role: role.digital_bidirectional
+        "6":
+            role: role.digital_bidirectional
+        "7":
+            role: role.digital_bidirectional
+        "8":
+            role: role.digital_bidirectional
+        "9":
+            role: role.digital_bidirectional
+    metadata:
+        value: "SW_TYCO_1-1571983-0"
+        footprint: "Switches:SW_TYCO_1-1571983-0"
+
+component Part_a889572501b72846:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CC0402_220NF_16V_10%_X7R"
+        footprint: "Capacitors SMD:CAPC1005X55N"
+
+component Part_ad4f7eaaa454e7f0:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_3K48_1%_0.063W_100PPM"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_ad88739b62611ac9:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_33R_1%_0.0625W_100PPM"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_ae43f930869cff95:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_300R_1%_0.0625W_100PPM"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_b138724c3c5b0615:
+    metadata:
+        value: "BOSSARD_BN678-8303525_v"
+        footprint: "Fasteners & Fixings:BOSSARD_BN678-8303525_v"
+
+component Part_b2c18ec6a5526ad6:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0603_523R_0.1%_0.063W_10PPM"
+        footprint: "Resistors SMD:RESC1608X55N"
+
+component Part_b2c4ae2be6c4fe54:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_2K87_1%_0.063W_100PPM"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_b43bb8d6d213d3ab:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_100R_1%_0.0625W_100PPM"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_b53b39a327fb280b:
+    pins:
+        "1":
+            role: role.digital_bidirectional
+        "2":
+            role: role.digital_bidirectional
+        "3":
+            role: role.digital_bidirectional
+        "4":
+            role: role.digital_bidirectional
+        "5":
+            role: role.digital_bidirectional
+        "6":
+            role: role.digital_bidirectional
+        "7":
+            role: role.digital_bidirectional
+        "8":
+            role: role.digital_bidirectional
+    metadata:
+        value: "SW_TYCO_1571983-4"
+        footprint: "Switches:SW_TYCO_1571983-4"
+
+component Part_b71a0cac668012ca:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R1206_0R_JUMPER"
+        footprint: "Resistors SMD:RESC3216X65N"
+
+component Part_ba925ca09275dc0d:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CC0402_100NF_25V_10%_X7R_YUDEN_TMK105B7104KVHF"
+        footprint: "Capacitors SMD:CAPC1005X55N"
+
+component Part_baca32acb2d4f5f6:
+    pins:
+        "1":
+            role: role.digital_input
+        "10":
+            role: role.digital_input
+        "11":
+            role: role.power_input
+        "2":
+            role: role.digital_input
+        "3":
+            role: role.power_input
+        "4":
+            role: role.power_input
+        "5":
+            role: role.digital_input
+        "6":
+            role: role.digital_output
+        "7":
+            role: role.digital_input
+        "8":
+            role: role.power_input
+        "9":
+            role: role.digital_output
+    metadata:
+        value: "TPS51200DRCT"
+        footprint: "ICs And Semiconductors SMD:TEXAS_DRC (S-PVSON-N10)"
+
+component Part_bbf8928ae7689f98:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CC0603_47UF_6.3V_20%_X5R"
+        footprint: "Capacitors SMD:CAPC1608X100N"
+
+component Part_c005a53b101815f3:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "IND_1.5UH_20%_COILCRAFT_XAL4020"
+        footprint: "Inductors SMD:IND_COILCRAFT_XAL4020"
+
+component Part_c17f164debb5390b:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0603_820R_1%_0.1W_100PPM"
+        footprint: "Resistors SMD:RESC1608X55N"
+
+component Part_c6473ec04d5a1540:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+        "3":
+            role: role.passive
+    metadata:
+        value: "FDV301N"
+        footprint: "ICs And Semiconductors SMD:SOT95P240X110-3N"
+
+component Part_c7a438f06260b2f3:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0805_4R7_1%_0.125W_200PPM"
+        footprint: "Resistors SMD:RESC2012X60N"
+
+component Part_c873a1fcb9ddaba5:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_10K_1%_0.0625W_100PPM"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_c98ab8bd38164c35:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "IND_175NH_15%_PULSE_PA2607.181NL"
+        footprint: "Inductors SMD:IND_PULSE_PA2607"
+
+component Part_cc4ecc6cb394cf6d:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_22R_1%_0.0625W_100PPM"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_cd9d9cd9a611bae7:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_75K_1%_0.0625W_100PPM"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_d12e9c58b691079d:
+    pins:
+        "1":
+            role: role.power_input
+        "2":
+            role: role.digital_input
+        "3":
+            role: role.digital_input
+        "4":
+            role: role.digital_input
+        "5":
+            role: role.digital_input
+        "6":
+            role: role.digital_input
+        "7":
+            role: role.digital_input
+        "8":
+            role: role.digital_output
+        "9":
+            role: role.passive
+    metadata:
+        value: "TPS62125DSG"
+        footprint: "ICs And Semiconductors SMD:SON50P200X200X80-9N-R100X170"
+
+component Part_d4d48155b69372f3:
+    pins:
+        "1":
+            role: role.digital_input
+        "10":
+            role: role.digital_input
+        "11":
+            role: role.digital_input
+        "12":
+            role: role.digital_input
+        "13":
+            role: role.digital_output
+        "14":
+            role: role.digital_input
+        "15":
+            role: role.digital_input
+        "16":
+            role: role.power_input
+        "2":
+            role: role.digital_input
+        "3":
+            role: role.digital_input
+        "4":
+            role: role.digital_input
+        "5":
+            role: role.digital_input
+        "6":
+            role: role.digital_input
+        "7":
+            role: role.digital_input
+        "8":
+            role: role.power_input
+        "9":
+            role: role.digital_input
+    metadata:
+        value: "SN74LV166ANS"
+        footprint: "ICs And Semiconductors SMD:SOIC127P780X200-16N"
+
+component Part_d69605cbc7dfc9c5:
+    pins:
+        "1":
+            role: role.digital_input
+        "10":
+            role: role.digital_output
+        "11":
+            role: role.digital_output
+        "12":
+            role: role.digital_input
+        "13":
+            role: role.power_input
+        "2":
+            role: role.power_input
+        "3":
+            role: role.digital_input
+        "4":
+            role: role.digital_input
+        "5":
+            role: role.power_input
+        "6":
+            role: role.digital_input
+        "7":
+            role: role.digital_input
+        "8":
+            role: role.digital_output
+        "9":
+            role: role.digital_output
+    metadata:
+        value: "LTC6957IDD-2#PBF"
+        footprint: "ICs And Semiconductors SMD:SON45P300X300X80-13N-R175X248"
+
+component Part_dd4a3c8bed171455:
+    pins:
+        "1":
+            role: role.digital_bidirectional
+    metadata:
+        value: "PLATED_HOLE2.7_PAD5.0"
+        footprint: "Pads:MTG270_500"
+
+component Part_dd94017c2914707e:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CC0402_68NF_16V_10%_X7R"
+        footprint: "Capacitors SMD:CAPC1005X55N"
+
+component Part_ddb1c70824077ae6:
+    pins:
+        "1":
+            role: role.digital_bidirectional
+        "10":
+            role: role.power_input
+        "11":
+            role: role.passive
+        "12":
+            role: role.passive
+        "13":
+            role: role.passive
+        "14":
+            role: role.passive
+        "15":
+            role: role.digital_bidirectional
+        "16":
+            role: role.digital_input
+        "2":
+            role: role.power_input
+        "3":
+            role: role.digital_input
+        "4":
+            role: role.passive
+        "5":
+            role: role.passive
+        "6":
+            role: role.passive
+        "7":
+            role: role.digital_input
+        "8":
+            role: role.digital_bidirectional
+        "9":
+            role: role.digital_bidirectional
+    metadata:
+        value: "MT25QU512ABB8ESF-0SIT"
+        footprint: "ICs And Semiconductors SMD:SOIC127P1030X265-16N"
+
+component Part_e1cba54d8b57dc6e:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CC1206_10UF_25V_10%_X7R"
+        footprint: "Capacitors SMD:CAPC3216X180N"
+
+component Part_e1e3ae68e8e364a3:
+    pins:
+        "1":
+            role: role.digital_output
+        "2":
+            role: role.digital_input
+        "3":
+            role: role.digital_input
+        "4":
+            role: role.digital_input
+        "5":
+            role: role.power_input
+        "6":
+            role: role.digital_input
+        "7":
+            role: role.digital_input
+        "8":
+            role: role.power_input
+    metadata:
+        value: "MAX3430ESA"
+        footprint: "ICs And Semiconductors SMD:SOIC127P600X175-8N"
+
+component Part_e2dcabf097ada228:
+    metadata:
+        value: "FIDUCIAL_TARGET_C100-200"
+        footprint: "Pads:FIDUCIAL_TOP_C100-200"
+
+component Part_e4afe4683ef80861:
+    pins:
+        "1":
+            role: role.digital_input
+        "10":
+            role: role.digital_input
+        "11":
+            role: role.digital_output
+        "12":
+            role: role.digital_input
+        "13":
+            role: role.digital_output
+        "14":
+            role: role.digital_bidirectional
+        "15":
+            role: role.digital_bidirectional
+        "16":
+            role: role.digital_input
+        "17":
+            role: role.digital_input
+        "18":
+            role: role.digital_input
+        "19":
+            role: role.digital_output
+        "2":
+            role: role.power_input
+        "20":
+            role: role.digital_input
+        "21":
+            role: role.digital_output
+        "22":
+            role: role.digital_bidirectional
+        "23":
+            role: role.digital_bidirectional
+        "24":
+            role: role.digital_bidirectional
+        "25":
+            role: role.power_input
+        "3":
+            role: role.digital_bidirectional
+        "4":
+            role: role.digital_bidirectional
+        "5":
+            role: role.power_input
+        "6":
+            role: role.power_input
+        "7":
+            role: role.power_input
+        "8":
+            role: role.digital_input
+        "9":
+            role: role.digital_bidirectional
+    metadata:
+        value: "CP2105-F01-GM"
+        footprint: "ICs And Semiconductors SMD:QFN50P400X400X80-25N-S280"
+
+component Part_e61f839494a1cb13:
+    pins:
+        "A1":
+            role: role.digital_bidirectional
+        "A10":
+            role: role.digital_bidirectional
+        "A11":
+            role: role.digital_bidirectional
+        "A12":
+            role: role.digital_bidirectional
+        "A13":
+            role: role.digital_bidirectional
+        "A14":
+            role: role.digital_bidirectional
+        "A15":
+            role: role.digital_bidirectional
+        "A16":
+            role: role.digital_bidirectional
+        "A17":
+            role: role.digital_bidirectional
+        "A18":
+            role: role.digital_bidirectional
+        "A19":
+            role: role.digital_bidirectional
+        "A2":
+            role: role.digital_bidirectional
+        "A20":
+            role: role.digital_bidirectional
+        "A21":
+            role: role.digital_bidirectional
+        "A22":
+            role: role.digital_bidirectional
+        "A23":
+            role: role.digital_bidirectional
+        "A24":
+            role: role.digital_bidirectional
+        "A25":
+            role: role.digital_bidirectional
+        "A26":
+            role: role.digital_bidirectional
+        "A27":
+            role: role.digital_bidirectional
+        "A28":
+            role: role.digital_bidirectional
+        "A29":
+            role: role.digital_bidirectional
+        "A3":
+            role: role.digital_bidirectional
+        "A30":
+            role: role.digital_bidirectional
+        "A31":
+            role: role.digital_bidirectional
+            unused: unused.always
+        "A32":
+            role: role.digital_bidirectional
+        "A4":
+            role: role.digital_bidirectional
+        "A5":
+            role: role.digital_bidirectional
+        "A6":
+            role: role.digital_bidirectional
+        "A7":
+            role: role.digital_bidirectional
+        "A8":
+            role: role.digital_bidirectional
+        "A9":
+            role: role.digital_bidirectional
+        "B1":
+            role: role.digital_bidirectional
+        "B10":
+            role: role.digital_bidirectional
+        "B11":
+            role: role.digital_bidirectional
+        "B12":
+            role: role.digital_bidirectional
+        "B13":
+            role: role.digital_bidirectional
+        "B14":
+            role: role.digital_bidirectional
+        "B15":
+            role: role.digital_bidirectional
+        "B16":
+            role: role.digital_bidirectional
+        "B17":
+            role: role.digital_bidirectional
+        "B18":
+            role: role.digital_bidirectional
+        "B19":
+            role: role.digital_bidirectional
+        "B2":
+            role: role.digital_bidirectional
+        "B20":
+            role: role.digital_bidirectional
+        "B21":
+            role: role.digital_bidirectional
+        "B22":
+            role: role.digital_bidirectional
+        "B23":
+            role: role.digital_bidirectional
+        "B24":
+            role: role.digital_bidirectional
+        "B25":
+            role: role.digital_bidirectional
+        "B26":
+            role: role.digital_bidirectional
+        "B27":
+            role: role.digital_bidirectional
+        "B28":
+            role: role.digital_bidirectional
+        "B29":
+            role: role.digital_bidirectional
+        "B3":
+            role: role.digital_bidirectional
+        "B30":
+            role: role.digital_bidirectional
+        "B31":
+            role: role.digital_bidirectional
+            unused: unused.always
+        "B32":
+            role: role.digital_bidirectional
+        "B4":
+            role: role.digital_bidirectional
+        "B5":
+            role: role.digital_bidirectional
+        "B6":
+            role: role.digital_bidirectional
+        "B7":
+            role: role.digital_bidirectional
+        "B8":
+            role: role.digital_bidirectional
+        "B9":
+            role: role.digital_bidirectional
+        "C1":
+            role: role.digital_bidirectional
+        "C10":
+            role: role.digital_bidirectional
+        "C11":
+            role: role.digital_bidirectional
+        "C12":
+            role: role.digital_bidirectional
+        "C13":
+            role: role.digital_bidirectional
+        "C14":
+            role: role.digital_bidirectional
+        "C15":
+            role: role.digital_bidirectional
+        "C16":
+            role: role.digital_bidirectional
+        "C17":
+            role: role.digital_bidirectional
+        "C18":
+            role: role.digital_bidirectional
+        "C19":
+            role: role.digital_bidirectional
+        "C2":
+            role: role.digital_bidirectional
+        "C20":
+            role: role.digital_bidirectional
+        "C21":
+            role: role.digital_bidirectional
+        "C22":
+            role: role.digital_bidirectional
+        "C23":
+            role: role.digital_bidirectional
+        "C24":
+            role: role.digital_bidirectional
+        "C25":
+            role: role.digital_bidirectional
+        "C26":
+            role: role.digital_bidirectional
+        "C27":
+            role: role.digital_bidirectional
+        "C28":
+            role: role.digital_bidirectional
+        "C29":
+            role: role.digital_bidirectional
+        "C3":
+            role: role.digital_bidirectional
+        "C30":
+            role: role.digital_bidirectional
+        "C31":
+            role: role.digital_bidirectional
+        "C32":
+            role: role.digital_bidirectional
+        "C4":
+            role: role.digital_bidirectional
+        "C5":
+            role: role.digital_bidirectional
+        "C6":
+            role: role.digital_bidirectional
+        "C7":
+            role: role.digital_bidirectional
+        "C8":
+            role: role.digital_bidirectional
+        "C9":
+            role: role.digital_bidirectional
+        "D1":
+            role: role.digital_bidirectional
+        "D10":
+            role: role.digital_bidirectional
+        "D11":
+            role: role.digital_bidirectional
+        "D12":
+            role: role.digital_bidirectional
+        "D13":
+            role: role.digital_bidirectional
+        "D14":
+            role: role.digital_bidirectional
+        "D15":
+            role: role.digital_bidirectional
+        "D16":
+            role: role.digital_bidirectional
+        "D17":
+            role: role.digital_bidirectional
+        "D18":
+            role: role.digital_bidirectional
+        "D19":
+            role: role.digital_bidirectional
+        "D2":
+            role: role.digital_bidirectional
+        "D20":
+            role: role.digital_bidirectional
+        "D21":
+            role: role.digital_bidirectional
+        "D22":
+            role: role.digital_bidirectional
+        "D23":
+            role: role.digital_bidirectional
+        "D24":
+            role: role.digital_bidirectional
+        "D25":
+            role: role.digital_bidirectional
+        "D26":
+            role: role.digital_bidirectional
+        "D27":
+            role: role.digital_bidirectional
+        "D28":
+            role: role.digital_bidirectional
+        "D29":
+            role: role.digital_bidirectional
+        "D3":
+            role: role.digital_bidirectional
+        "D30":
+            role: role.digital_bidirectional
+        "D31":
+            role: role.digital_bidirectional
+        "D32":
+            role: role.digital_bidirectional
+        "D4":
+            role: role.digital_bidirectional
+        "D5":
+            role: role.digital_bidirectional
+        "D6":
+            role: role.digital_bidirectional
+        "D7":
+            role: role.digital_bidirectional
+        "D8":
+            role: role.digital_bidirectional
+        "D9":
+            role: role.digital_bidirectional
+        "MTG1":
+            role: role.passive
+        "MTG2":
+            role: role.passive
+        "Z1":
+            role: role.digital_bidirectional
+        "Z10":
+            role: role.digital_bidirectional
+        "Z11":
+            role: role.digital_bidirectional
+        "Z12":
+            role: role.digital_bidirectional
+        "Z13":
+            role: role.digital_bidirectional
+        "Z14":
+            role: role.digital_bidirectional
+        "Z15":
+            role: role.digital_bidirectional
+        "Z16":
+            role: role.digital_bidirectional
+        "Z17":
+            role: role.digital_bidirectional
+        "Z18":
+            role: role.digital_bidirectional
+        "Z19":
+            role: role.digital_bidirectional
+        "Z2":
+            role: role.digital_bidirectional
+        "Z20":
+            role: role.digital_bidirectional
+        "Z21":
+            role: role.digital_bidirectional
+        "Z22":
+            role: role.digital_bidirectional
+        "Z23":
+            role: role.digital_bidirectional
+        "Z24":
+            role: role.digital_bidirectional
+        "Z25":
+            role: role.digital_bidirectional
+        "Z26":
+            role: role.digital_bidirectional
+        "Z27":
+            role: role.digital_bidirectional
+        "Z28":
+            role: role.digital_bidirectional
+        "Z29":
+            role: role.digital_bidirectional
+        "Z3":
+            role: role.digital_bidirectional
+        "Z30":
+            role: role.digital_bidirectional
+        "Z31":
+            role: role.digital_bidirectional
+        "Z32":
+            role: role.digital_bidirectional
+        "Z4":
+            role: role.digital_bidirectional
+        "Z5":
+            role: role.digital_bidirectional
+        "Z6":
+            role: role.digital_bidirectional
+        "Z7":
+            role: role.digital_bidirectional
+        "Z8":
+            role: role.digital_bidirectional
+        "Z9":
+            role: role.digital_bidirectional
+    metadata:
+        value: "HARTING_02_01_160_2101"
+        footprint: "HARTING THD:HARTING_02 01 160 2101"
+
+component Part_e672138531ba7468:
+    pins:
+        "1":
+            role: role.digital_input
+        "10":
+            role: role.power_input
+        "11":
+            role: role.digital_bidirectional
+        "12":
+            role: role.digital_bidirectional
+        "13":
+            role: role.digital_bidirectional
+        "14":
+            role: role.digital_bidirectional
+        "15":
+            role: role.power_input
+        "16":
+            role: role.digital_bidirectional
+        "17":
+            role: role.digital_bidirectional
+        "18":
+            role: role.power_input
+        "19":
+            role: role.digital_bidirectional
+        "2":
+            role: role.digital_bidirectional
+        "20":
+            role: role.digital_bidirectional
+        "21":
+            role: role.power_input
+        "22":
+            role: role.digital_bidirectional
+        "23":
+            role: role.digital_bidirectional
+        "24":
+            role: role.digital_input
+        "25":
+            role: role.digital_input
+        "26":
+            role: role.digital_bidirectional
+        "27":
+            role: role.digital_bidirectional
+        "28":
+            role: role.power_input
+        "29":
+            role: role.digital_bidirectional
+        "3":
+            role: role.digital_bidirectional
+        "30":
+            role: role.digital_bidirectional
+        "31":
+            role: role.power_input
+        "32":
+            role: role.digital_bidirectional
+        "33":
+            role: role.digital_bidirectional
+        "34":
+            role: role.power_input
+        "35":
+            role: role.digital_bidirectional
+        "36":
+            role: role.digital_bidirectional
+        "37":
+            role: role.digital_bidirectional
+        "38":
+            role: role.digital_bidirectional
+        "39":
+            role: role.power_input
+        "4":
+            role: role.power_input
+        "40":
+            role: role.digital_bidirectional
+        "41":
+            role: role.digital_bidirectional
+        "42":
+            role: role.power_input
+        "43":
+            role: role.digital_bidirectional
+        "44":
+            role: role.digital_bidirectional
+        "45":
+            role: role.power_input
+        "46":
+            role: role.digital_bidirectional
+        "47":
+            role: role.digital_bidirectional
+        "48":
+            role: role.digital_input
+        "5":
+            role: role.digital_bidirectional
+        "6":
+            role: role.digital_bidirectional
+        "7":
+            role: role.power_input
+        "8":
+            role: role.digital_bidirectional
+        "9":
+            role: role.digital_bidirectional
+    metadata:
+        value: "SN74LVCH16T245DGG"
+        footprint: "ICs And Semiconductors SMD:SOP50P810X120-48N"
+
+component Part_e96ac0a3891bc5a7:
+    pins:
+        "1":
+            role: role.digital_input
+        "10":
+            role: role.digital_input
+        "11":
+            role: role.digital_output
+            tristate_capable: true
+        "12":
+            role: role.digital_input
+        "13":
+            role: role.digital_input
+        "14":
+            role: role.power_input
+        "2":
+            role: role.digital_input
+        "3":
+            role: role.digital_output
+            tristate_capable: true
+        "4":
+            role: role.digital_input
+        "5":
+            role: role.digital_input
+        "6":
+            role: role.digital_output
+            tristate_capable: true
+        "7":
+            role: role.power_input
+        "8":
+            role: role.digital_output
+            tristate_capable: true
+        "9":
+            role: role.digital_input
+    metadata:
+        value: "SN74LVTH125RGY"
+        footprint: "ICs And Semiconductors SMD:TEXAS_RGY (S-PVQFN-N14)"
+
+component Part_ed825c23a77ac311:
+    pins:
+        "1":
+            role: role.digital_bidirectional
+        "10":
+            role: role.digital_bidirectional
+        "11":
+            role: role.digital_bidirectional
+        "12":
+            role: role.digital_bidirectional
+        "13":
+            role: role.digital_bidirectional
+        "14":
+            role: role.digital_bidirectional
+        "2":
+            role: role.digital_bidirectional
+        "3":
+            role: role.digital_bidirectional
+        "4":
+            role: role.digital_bidirectional
+        "5":
+            role: role.digital_bidirectional
+        "6":
+            role: role.digital_bidirectional
+        "7":
+            role: role.digital_bidirectional
+        "8":
+            role: role.digital_bidirectional
+        "9":
+            role: role.digital_bidirectional
+    metadata:
+        value: "MOLEX_87832-1420"
+        footprint: "MOLEX SMD:MOLEX_87832-1420"
+
+component Part_ee3db045bd3e705a:
+    pins:
+        "A1":
+            role: role.digital_bidirectional
+        "A10":
+            role: role.digital_bidirectional
+        "A11":
+            role: role.digital_bidirectional
+        "A12":
+            role: role.digital_bidirectional
+        "A13":
+            role: role.digital_bidirectional
+        "A14":
+            role: role.digital_bidirectional
+        "A15":
+            role: role.digital_bidirectional
+        "A16":
+            role: role.digital_bidirectional
+        "A17":
+            role: role.digital_bidirectional
+        "A18":
+            role: role.digital_bidirectional
+        "A19":
+            role: role.digital_bidirectional
+        "A2":
+            role: role.digital_bidirectional
+        "A3":
+            role: role.digital_bidirectional
+        "A4":
+            role: role.digital_bidirectional
+        "A5":
+            role: role.digital_bidirectional
+        "A6":
+            role: role.digital_bidirectional
+        "A7":
+            role: role.digital_bidirectional
+        "A8":
+            role: role.digital_bidirectional
+        "A9":
+            role: role.digital_bidirectional
+        "B1":
+            role: role.digital_bidirectional
+        "B10":
+            role: role.digital_bidirectional
+        "B11":
+            role: role.digital_bidirectional
+        "B12":
+            role: role.digital_bidirectional
+        "B13":
+            role: role.digital_bidirectional
+        "B14":
+            role: role.digital_bidirectional
+        "B15":
+            role: role.digital_bidirectional
+        "B16":
+            role: role.digital_bidirectional
+        "B17":
+            role: role.digital_bidirectional
+        "B18":
+            role: role.digital_bidirectional
+        "B19":
+            role: role.digital_bidirectional
+        "B2":
+            role: role.digital_bidirectional
+        "B3":
+            role: role.digital_bidirectional
+        "B4":
+            role: role.digital_bidirectional
+        "B5":
+            role: role.digital_bidirectional
+        "B6":
+            role: role.digital_bidirectional
+        "B7":
+            role: role.digital_bidirectional
+        "B8":
+            role: role.digital_bidirectional
+        "B9":
+            role: role.digital_bidirectional
+        "C1":
+            role: role.digital_bidirectional
+        "C10":
+            role: role.digital_bidirectional
+        "C11":
+            role: role.digital_bidirectional
+        "C12":
+            role: role.digital_bidirectional
+        "C13":
+            role: role.digital_bidirectional
+        "C14":
+            role: role.digital_bidirectional
+        "C15":
+            role: role.digital_bidirectional
+        "C16":
+            role: role.digital_bidirectional
+        "C17":
+            role: role.digital_bidirectional
+        "C18":
+            role: role.digital_bidirectional
+        "C19":
+            role: role.digital_bidirectional
+        "C2":
+            role: role.digital_bidirectional
+        "C3":
+            role: role.digital_bidirectional
+        "C4":
+            role: role.digital_bidirectional
+        "C5":
+            role: role.digital_bidirectional
+        "C6":
+            role: role.digital_bidirectional
+        "C7":
+            role: role.digital_bidirectional
+        "C8":
+            role: role.digital_bidirectional
+        "C9":
+            role: role.digital_bidirectional
+        "D1":
+            role: role.digital_bidirectional
+        "D10":
+            role: role.digital_bidirectional
+        "D11":
+            role: role.digital_bidirectional
+        "D12":
+            role: role.digital_bidirectional
+        "D13":
+            role: role.digital_bidirectional
+        "D14":
+            role: role.digital_bidirectional
+        "D15":
+            role: role.digital_bidirectional
+        "D16":
+            role: role.digital_bidirectional
+        "D17":
+            role: role.digital_bidirectional
+        "D18":
+            role: role.digital_bidirectional
+        "D19":
+            role: role.digital_bidirectional
+        "D2":
+            role: role.digital_bidirectional
+        "D3":
+            role: role.digital_bidirectional
+        "D4":
+            role: role.digital_bidirectional
+        "D5":
+            role: role.digital_bidirectional
+        "D6":
+            role: role.digital_bidirectional
+        "D7":
+            role: role.digital_bidirectional
+        "D8":
+            role: role.digital_bidirectional
+        "D9":
+            role: role.digital_bidirectional
+        "E1":
+            role: role.digital_bidirectional
+        "E10":
+            role: role.digital_bidirectional
+        "E11":
+            role: role.digital_bidirectional
+        "E12":
+            role: role.digital_bidirectional
+        "E13":
+            role: role.digital_bidirectional
+        "E14":
+            role: role.digital_bidirectional
+        "E15":
+            role: role.digital_bidirectional
+        "E16":
+            role: role.digital_bidirectional
+        "E17":
+            role: role.digital_bidirectional
+        "E18":
+            role: role.digital_bidirectional
+        "E19":
+            role: role.digital_bidirectional
+        "E2":
+            role: role.digital_bidirectional
+        "E3":
+            role: role.digital_bidirectional
+        "E4":
+            role: role.digital_bidirectional
+        "E5":
+            role: role.digital_bidirectional
+        "E6":
+            role: role.digital_bidirectional
+        "E7":
+            role: role.digital_bidirectional
+        "E8":
+            role: role.digital_bidirectional
+        "E9":
+            role: role.digital_bidirectional
+        "F1":
+            role: role.digital_bidirectional
+        "F11":
+            role: role.digital_bidirectional
+        "F13":
+            role: role.digital_bidirectional
+        "F15":
+            role: role.digital_bidirectional
+        "F17":
+            role: role.digital_bidirectional
+        "F19":
+            role: role.digital_bidirectional
+        "F3":
+            role: role.digital_bidirectional
+        "F5":
+            role: role.digital_bidirectional
+        "F7":
+            role: role.digital_bidirectional
+        "F9":
+            role: role.digital_bidirectional
+    metadata:
+        value: "HARTING_17_25_095_2102"
+        footprint: "HARTING THD:HARTING_17 25 095 2102"
+
+component Part_f1445f282dbcd9e8:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_1K_1%_0.0625W_100PPM"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_f393ce32db47c837:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "IND_2.2UH_20%_COILCRAFT_XAL4020"
+        footprint: "Inductors SMD:IND_COILCRAFT_XAL4020"
+
+component Part_f45b2a9e8c316c6f:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "IND1206_MURATA_BLM31PG500SN1"
+        footprint: "Inductors SMD:IND_MURATA_BLM31PG"
+
+component Part_f4ba5f898223794d:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "IND_10UH_20%_TDK_VLCF5020-1"
+        footprint: "Inductors SMD:IND_TDK_VLCF5020-1"
+
+component Part_f5310bbdafecb1af:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "R0402_1K4_1%_0.063W_100PPM"
+        footprint: "Resistors SMD:RESC1005X40N"
+
+component Part_f57d90e8e549d22c:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CC1206_47UF_25V_20%_X5R"
+        footprint: "Capacitors SMD:CAPC3216X180N"
+
+component Part_f731ad7e9d78328b:
+    pins:
+        "1":
+            role: role.power_input
+        "10":
+            role: role.power_input
+        "11":
+            role: role.power_input
+        "12":
+            role: role.digital_output
+        "13":
+            role: role.digital_output
+        "14":
+            role: role.power_input
+        "15":
+            role: role.power_input
+        "16":
+            role: role.power_input
+        "17":
+            role: role.power_input
+        "18":
+            role: role.digital_input
+        "19":
+            role: role.digital_input
+        "2":
+            role: role.digital_output
+        "20":
+            role: role.power_input
+        "3":
+            role: role.digital_input
+        "4":
+            role: role.digital_bidirectional
+        "5":
+            role: role.digital_input
+        "6":
+            role: role.digital_output
+        "7":
+            role: role.digital_input
+        "8":
+            role: role.digital_output
+        "9":
+            role: role.digital_input
+    metadata:
+        value: "SFP2 (bottom)"
+        footprint: "TYCO SMD:TYCO_1888247-1"
+
+component Part_f8a63967495aa276:
+    pins:
+        "1":
+            role: role.digital_bidirectional
+        "2":
+            role: role.digital_bidirectional
+        "3":
+            role: role.passive
+    metadata:
+        value: "PB_OMRON_B3U-1100P"
+        footprint: "Switches:PB_OMRON_B3U-1100P"
+
+component Part_f954fe6104bfa36b:
+    pins:
+        "1":
+            role: role.digital_input
+        "10":
+            role: role.digital_input
+        "11":
+            role: role.digital_input
+        "12":
+            role: role.digital_input
+        "13":
+            role: role.digital_bidirectional
+        "14":
+            role: role.digital_input
+        "15":
+            role: role.digital_bidirectional
+        "16":
+            role: role.digital_input
+        "17":
+            role: role.digital_input
+        "18":
+            role: role.power_input
+        "19":
+            role: role.digital_output
+        "2":
+            role: role.digital_input
+        "20":
+            role: role.digital_output
+        "21":
+            role: role.power_input
+        "22":
+            role: role.passive
+        "23":
+            role: role.power_input
+        "24":
+            role: role.digital_output
+        "25":
+            role: role.digital_output
+        "26":
+            role: role.power_input
+        "27":
+            role: role.digital_output
+        "28":
+            role: role.digital_output
+        "29":
+            role: role.power_input
+        "3":
+            role: role.digital_input
+        "30":
+            role: role.digital_output
+        "31":
+            role: role.digital_output
+        "32":
+            role: role.power_input
+        "33":
+            role: role.digital_output
+        "34":
+            role: role.power_input
+        "35":
+            role: role.digital_output
+        "36":
+            role: role.digital_output
+        "37":
+            role: role.digital_input
+        "38":
+            role: role.digital_input
+        "39":
+            role: role.power_input
+        "4":
+            role: role.digital_input
+        "40":
+            role: role.power_input
+        "41":
+            role: role.digital_input
+        "42":
+            role: role.digital_input
+        "43":
+            role: role.digital_input
+        "44":
+            role: role.open_drain
+        "45":
+            role: role.power_input
+        "5":
+            role: role.digital_input
+        "6":
+            role: role.digital_input
+        "7":
+            role: role.digital_input
+        "8":
+            role: role.power_input
+        "9":
+            role: role.power_input
+    metadata:
+        value: "SI5340B-D-GM"
+        footprint: "ICs And Semiconductors SMD:QFN50P700X700X90-45N-S530"
+
+component Part_fa02ad3c79e5933a:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "FUSR_LITTELFUSE_0603L075SL"
+        footprint: "Fuses:FUSR_LITTELFUSE_0603L"
+
+component Part_ff4bfae02b00eb94:
+    pins:
+        "1":
+            role: role.passive
+        "2":
+            role: role.passive
+    metadata:
+        value: "CC1210_330UF_4V_20%_X5R"
+        footprint: "Capacitors SMD:CAPC3225X280N"
+
+component Part_ffbf0d0c733cc617:
+    pins:
+        "1":
+            role: role.power_input
+        "2":
+            role: role.digital_bidirectional
+        "3":
+            role: role.digital_bidirectional
+        "4":
+            role: role.power_input
+    metadata:
+        value: "PRTR5V0U2X"
+        footprint: "ICs And Semiconductors SMD:SOT190P230X110-4N"

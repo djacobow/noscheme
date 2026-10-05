@@ -229,3 +229,28 @@ def test_syntax_diagnostics_use_source_spellings():
     assert "COLON" not in str(error.value)
     assert error.value.filename == "broken.nosch"
     assert error.value.line == 1
+
+
+@pytest.mark.parametrize(
+    "source, expected",
+    [
+        ('abc / 2 "http://x/*y*/" xyz', 'abc / 2 "http://x/*y*/" xyz'),
+        ('"escaped \\" // still a string"//end', '"escaped \\" // still a string"     '),
+        ("αβ\r\n/*x\r\ny*/z", "αβ\r\n   \r\n   z"),
+        ("/* a /* b */ c */", "             c */"),
+        ('"broken\n// comment\nnext', '"broken\n          \nnext'),
+        ("one/**//**/two//end\nthree", "one        two     \nthree"),
+    ],
+)
+def test_comment_chunks_preserve_text_and_positions(source, expected):
+    from noscheme.syntax import mask_comments
+
+    assert mask_comments(source, "comments.nosch") == expected
+
+
+def test_unterminated_comment_after_multiline_chunk_has_original_position():
+    from noscheme.syntax import SyntaxDiagnostic, mask_comments
+
+    with pytest.raises(SyntaxDiagnostic) as error:
+        mask_comments("ordinary text\r\nmore text\n  /* unfinished", "comments.nosch")
+    assert (error.value.line, error.value.column) == (3, 3)

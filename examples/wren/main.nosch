@@ -1,0 +1,63 @@
+// A disconnected subsystem benchmark, not a standalone functional board.
+from noscheme import nettype, role
+from components import Resistor
+from drivers import OutputBank
+
+// Explicit boundary endpoints stand in for the remainder of WREN.
+block SurroundingWren:
+    ports:
+        supply: nettype.unchecked
+        logic_supply: nettype.unchecked
+        ground: nettype.unchecked
+        enable#: nettype.unchecked
+        input: nettype.unchecked[4][4][2]
+        output: nettype.unchecked[4][4][2]
+
+board WrenOutputs:
+    // Boundary nets represent power and signals provided by the rest of WREN.
+    // Electrical policies are deliberately unchecked in this connectivity pilot.
+    net supply: nettype.unchecked
+    net logic_supply: nettype.unchecked
+    net ground: nettype.unchecked
+    net enable#: nettype.unchecked
+    net input: nettype.unchecked[4][4][2]
+    net output: nettype.unchecked[4][4][2]
+    inst banks[4]: OutputBank(
+        connections:
+            supply: supply
+            logic_supply: logic_supply
+            ground: ground
+            enable#: enable#
+            input: input
+            output: output
+    )
+    inst enable_pullup: Resistor(
+        connections:
+            1: enable#
+            2: supply
+        params:
+            value: "R0402_10K_1%_0.0625W_100PPM"
+    )
+    inst surrounding: SurroundingWren(
+        connections:
+            supply: supply
+            logic_supply: logic_supply
+            ground: ground
+            enable#: enable#
+            input: input
+            output: output
+        metadata:
+            pins:
+                supply:
+                    external_role: role.unchecked
+                logic_supply:
+                    external_role: role.unchecked
+                ground:
+                    external_role: role.unchecked
+                enable#:
+                    external_role: role.unchecked
+                input:
+                    external_role: role.unchecked
+                output:
+                    external_role: role.unchecked
+    )

@@ -58,9 +58,9 @@ def validate_params(rule, supplied, span):
     return freeze(params)
 
 
-def check_circuit(circuit, *, waiver_records=None, registry=None):
+def check_circuit(circuit, *, waiver_records=None, registry=None, _freeze_memo=None):
     registry = registry or load_registry(circuit.get("erc_modules", ()), Span(**circuit["source"]))
-    view = Circuit(freeze(circuit))
+    view = Circuit(freeze(circuit, _freeze_memo))
     diagnostics = []
     waiver_records = waiver_records if waiver_records is not None else []
     memo = {}
@@ -165,6 +165,7 @@ def check_circuit(circuit, *, waiver_records=None, registry=None):
             )
 
     schedules = {}
+    default_params = {}
     for net in view.nets.values():
         for declaration in net.declarations:
             schedules[("net", declaration.label)] = tuple(
@@ -177,7 +178,15 @@ def check_circuit(circuit, *, waiver_records=None, registry=None):
 
     def run(ctx, defaults=True, waivers=None):
         for app, rule, active in schedules[("pin" if ctx.pin else "net", ctx.owner.label)]:
-            params = validate_params(rule, app.params, active.span)
+            if isinstance(app.params, Mapping) and not app.params:
+                # Cache only successful default validation, preserving the first
+                # application span for errors. Explicit arguments still validate
+                # independently, and callbacks receive immutable parameters.
+                if app.checker not in default_params:
+                    default_params[app.checker] = validate_params(rule, app.params, active.span)
+                params = default_params[app.checker]
+            else:
+                params = validate_params(rule, app.params, active.span)
             try:
                 results = tuple(rule.callback(active, **params))
                 for diagnostic in results:
@@ -306,13 +315,18 @@ def apply_erc(circuit, configurations=None, *, registry=None):
     if registry is None:
         registry = load_registry(circuit.get("erc_modules", ()), Span(**circuit["source"]))
     waivers, diagnostics, reports = [], [], []
+    # Configuration views share unchanged source records. Keep this memo local
+    # to one run: later ERC calls must see edits to the mutable input circuit.
+    freeze_memo = {}
     for name, view, selections in configuration_views(circuit, configurations):
         view["erc_configuration"] = name
         view["erc_effective_choices"] = selections
         local_waivers = []
         local = tuple(
             replace(d, configuration=name)
-            for d in check_circuit(view, waiver_records=local_waivers, registry=registry)
+            for d in check_circuit(
+                view, waiver_records=local_waivers, registry=registry, _freeze_memo=freeze_memo
+            )
         )
         for waiver in local_waivers:
             waiver["configuration"] = name
