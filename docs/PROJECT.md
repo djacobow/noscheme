@@ -16,6 +16,9 @@ evaluation, circuit expansion, ERC, library conversion, and KiCad netlist export
 The STM32 reference board's exported netlist has populated PCB Editor successfully;
 it has not been routed or hardware-qualified. The Rulos example reconstructs an
 existing design and verifies its connectivity against Eagle source data.
+The WREN example adds a 1,507-component workload checked against a KiCad netlist.
+Its net policies are explicitly unchecked; it exercises translation and analysis
+performance, rather than establishing electrical correctness.
 
 This document records goals, design rationale, and reference-hardware decisions.
 The [Language Reference Manual](LRM.md) is the normative description of the
@@ -53,8 +56,9 @@ The design uses package-specific physical pins. Wrapper blocks provide logical
 interfaces without a separate logical-pin/package abstraction. Named pin groups
 and component-wide pin defaults remain deferred pending a stronger use case.
 
-Vim/Neovim highlighting and the LSP are implemented. Canonical source formatting
-and incremental compiler analysis remain future work. The complete supported and
+Vim/Neovim highlighting, the local VS Code extension, and the LSP are implemented.
+Canonical source formatting and incremental compiler analysis remain future work.
+The complete supported and
 unsupported feature lists belong in [LRM §16](LRM.md#16-limits-and-unsupported-features)
 and [Editor support](EDITOR_SUPPORT.md).
 
@@ -175,6 +179,15 @@ value, and netlist connection with that evidence. Its nets deliberately use
 passive checking while the original connectivity is transcribed; its ERC result
 is not a claim of complete electrical validation. Package questions and KiCad
 matches are recorded beside the example rather than duplicated here.
+
+## WREN benchmark
+
+The [WREN examples](../examples/wren/README.md) include a readable 189-component
+output subsystem and a generated full-board project. The latter preserves 1,507
+components, 1,309 connected nets, and 491 intentional no-connect pins from the
+KiCad demo. It has independent connectivity regression data and reproducible
+performance commands. It does not bundle footprint geometry or export snapshots
+for a PCB handoff. Current performance measurements are recorded in its README.
 
 ## Language design decisions
 
@@ -315,9 +328,12 @@ limitations are documented in [EDITOR_SUPPORT.md](EDITOR_SUPPORT.md).
 
 ## Unresolved design and implementation work
 
-The maintained backlog is the [review TODO section in PLAN.md](PLAN.md#todo-remaining-implementation-review-follow-up).
-All remaining review follow-up items are deferred by user decision; see the
-[deferred work list](PLAN.md#deferred-work). Board-level instance rename preserves
+The [current plan status](PLAN.md#current-status) summarizes recent work and
+proposed next steps. The original review backlog is retained in the
+[review TODO section](PLAN.md#todo-remaining-implementation-review-follow-up).
+Larger-design performance work was subsequently resumed; other review proposals
+remain in the [deferred work list](PLAN.md#deferred-work).
+Board-level instance rename preserves
 identities through existing metadata. Deferred proposals are not language
 features or approval to change existing behavior.
 

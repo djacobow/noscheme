@@ -72,6 +72,8 @@ application. Neither cache survives a new ERC run, so source and registry edits
 are observed on the next call. Rule scheduling and electrical policies are
 unchanged by these optimizations.
 
+## Electrical checking
+
 Named ERC configurations check alternative role assumptions on one unchanged
 board. All configurations run by default; select a subset when needed:
 
@@ -276,11 +278,14 @@ To measure resolve/elaborate, circuit copying, ERC, and complete LSP analysis:
 ```sh
 uv run --locked python -m tools.benchmark_analysis examples/stm32h523 --repeat 5
 uv run --locked python -m tools.benchmark_analysis examples/rulos_6matrix --repeat 5
+uv run --locked python -m tools.benchmark_analysis examples/wren/full --repeat 5
 ```
 
 The benchmark writes no export state. It reports cold initialization separately
 from repeated operations. Timings are machine-dependent observations, not CI
 thresholds; extension-heavy projects can behave differently from these examples.
+The [WREN performance notes](../examples/wren/README.md#performance) separate
+the current measurements from earlier optimization checkpoints.
 
 ## Parameterized ERC example
 

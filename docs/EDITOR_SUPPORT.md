@@ -1,7 +1,8 @@
 # Editor support
 
-NoScheme provides Vim/Neovim syntax highlighting and an independent language
-server for diagnostics, navigation, hover, and completion. Follow
+NoScheme provides Vim/Neovim syntax highlighting, a local VS Code extension, and
+an independent language server for diagnostics, navigation, references, rename,
+hover, and completion. Follow
 [Development setup](DEVELOPMENT.md#environment-and-checks) to install the tools.
 
 ## Vim and Neovim
@@ -83,10 +84,18 @@ semantic navigation until the code parses again. Analysis currently performs
 serialized full checks; incremental compilation and background cancellation are
 future improvements.
 
+The current file's AST is reused during project loading within one analysis,
+provided its source text matches. Every edit still reparses whole files; ASTs
+are not cached across updates. The 200 ms delay is a debounce, not a response-time
+guarantee. The latest recorded full WREN analysis is 3.93 seconds; see the
+[benchmark notes](../examples/wren/README.md#performance) for workload and limits.
+
 The resolver can report several independent mistakes in one update, such as
 misspelled nets in separate bindings and an unknown component in another
 instance. Checks that depend on a failed result stop to avoid cascading errors.
-Parsing, interface construction, and elaboration still stop at their first error.
+Grammar parsing, interface construction, and elaboration still stop at their
+first error. Structural validation after a successful parse can report multiple
+independent errors.
 
 ### Vim client setup
 

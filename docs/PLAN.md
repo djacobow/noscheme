@@ -1,6 +1,23 @@
 # NoScheme implementation plan
 
-## New work items
+## Current status
+
+As of `f38c836` (October 5, 2026), the compiler, extensible ERC, KiCad export,
+and Vim/Neovim/VS Code integrations are implemented. The last full validation
+reported 833 passing tests. The WREN benchmark is complete, and parser/ERC
+optimizations reduced local full LSP analysis from 6.65 s to 3.93 s.
+
+Caching unchanged ASTs across edits is a proposed next performance step, not an
+implemented feature. Background cancellation and incremental parsing are also
+unimplemented. The [deferred review list](#deferred-work) records the remaining
+review proposals; it does not undo the performance work resumed below.
+
+This file retains milestone history. Old test counts, benchmark timings, and
+implementation-stage plans describe those checkpoints. Use the
+[LRM](LRM.md) for current behavior and [Development](DEVELOPMENT.md) for current
+commands; recent work and measurements are listed first.
+
+## Recent completed work
 
 Requested October 5, 2026. These are separate from the deferred review backlog.
 
@@ -12,13 +29,14 @@ Requested October 5, 2026. These are separate from the deferred review backlog.
   reference data. Source hashes, metadata, reference mappings, and attribution
   are recorded. No upstream schematic or geometry is bundled. Electrical
   policies remain unchecked: zero errors and 1,309 explicit warnings.
-  Full-board five-run medians on October 5: resolve/elaborate 2.86 s, ERC 1.90 s,
+  Initial full-board five-run medians on October 5, before optimization:
+  resolve/elaborate 2.86 s, ERC 1.90 s,
   full LSP analysis 6.65 s. These are local observations, not CI thresholds.
 - [x] **Profile full-board LSP analysis using WREN.** Baseline collected after
   test completion; tool records samples, input hashes, and environment versions.
   A separate cProfile run attributes 12.36 s of 20.06 s instrumented analysis
-  to parsing and 5.03 s to ERC. The main file is parsed twice; comment masking
-  costs 5.90 s across the three parse calls. These include instrumentation
+  to parsing and 5.03 s to ERC. At that checkpoint the main file was parsed
+  twice; comment masking cost 5.90 s across the three parse calls. These include instrumentation
   overhead and are distinct from the 6.65-second uninstrumented median.
 - [x] **Reduce full-board parsing overhead.** Comment lexing now consumes
   ordinary text in chunks, and project loading reuses the current file's AST
@@ -93,7 +111,7 @@ Requested October 5, 2026. These are separate from the deferred review backlog.
   separate nets for duplicate JST mounting pads. Reimporting the same netlist
   reported no changes and zero warnings/errors.
 
-## Current milestone: physical STM32 proof-of-concept and KiCad handoff
+## Completed reference-board milestone: physical STM32 and KiCad handoff
 
 Compiler-core steps 1–5, explicit library conversion, persistent KiCad export,
 role/configuration ERC, grouped and aggregate currents, and opt-in extensible
@@ -131,7 +149,7 @@ the rule; tests cover arrays, ports, inheritance, overrides, configurations,
 invalid domains, diagnostics, and conversion. The ERC pending-check list is empty;
 this does not imply hardware validation.
 
-### Language server: first version implemented
+### Language server: implemented
 
 `noscheme-lsp` uses pygls over stdio and reuses compiler loading, parsing,
 resolution, elaboration, and ERC. The loader accepts in-memory source overlays;
@@ -146,10 +164,11 @@ ambiguous workspace ownership is reported. [EDITOR_SUPPORT.md](EDITOR_SUPPORT.md
 Stdio integration tests cover initialization/shutdown, unsaved changes, syntax
 recovery, imports, dependency close/revert, and Unicode incremental edits.
 
-Completion now covers visible component/block names, public connection pins and
-ports (including inherited aliases), and explicitly imported role/nettype values.
-It recovers incomplete statements in a private source snapshot and uses current
-unsaved imports; strings/comments are excluded. Stdio tests exercise completion.
+Completion covers visible component/block names, public connection pins and
+ports (including inherited aliases), explicitly imported role/nettype values,
+footprint strings, and registered ERC application names/parameters. It recovers
+incomplete statements in a private source snapshot and uses current unsaved
+imports. Comments and unrelated strings are excluded. Stdio tests exercise completion.
 The user confirmed diagnostics, navigation, hover, and completion work through
 their Vim setup.
 
@@ -163,7 +182,9 @@ and supplies buffer-local indentation/comment/identifier settings. Tests use
 headless Vim and, when installed, Neovim. With vim-plug, register the runtime as
 a local `Plug` entry; do not prepend it before a no-argument `plug#begin()`.
 
-The following compiler-core sequence records the original milestone and its
+## Historical compiler-core milestones
+
+The following sequence records the original milestone and its
 historical implementation steps. Current behavior is specified in [LRM.md](LRM.md);
 [PROJECT.md](PROJECT.md) records goals and design rationale.
 
@@ -222,7 +243,8 @@ the five-part circuit split across source and library modules for later stages.
 Original compiler-core command scope (ERC additions are documented below):
 
 - `noscheme check --project PATH`: parse, resolve, elaborate, and validate
-  structure. Say explicitly that electrical checking is not yet implemented.
+  structure. ERC was not part of this initial milestone; current `check`
+  includes electrical checking.
 - `noscheme compile --project PATH`: do the same and write `circuit.json` on
   success. This is an inspectable compiler artifact, not a KiCad export.
 - Both support text or JSON diagnostics, with exit 0 on success, 1 for blocking
@@ -433,13 +455,12 @@ hardware or electrical validation; MCU and connector choices remain pending.
 - Document the CLI, artifact schema version, implemented subset, and remaining
   checks. Run the compiler tests and existing experiment regressions.
 
-### Proposed policies for currently open language details
+### Original policy proposals (historical)
 
-Use these as the starting decisions for review before implementing the affected
-steps. Spaces-only indentation is implemented in step 1. String literals use
-double quotes and JSON-style escapes; invalid or unpaired surrogate escapes
-produce diagnostics. Numeric and formatting policies are implemented in step 3;
-the remaining array-shape policies belong to elaboration.
+These were the starting decisions before implementation. The LRM now specifies
+the adopted policies, including array shapes, metadata, numeric tags, JSON-style
+string escapes, formatting, and resource limits. This table preserves the
+original proposal rather than listing open decisions.
 
 | Area | Proposal |
 |---|---|
@@ -452,9 +473,9 @@ the remaining array-shape policies belong to elaboration.
 | Shadowing | Reject duplicates in one scope; allow ordinary nested lexical shadowing. Reserve builtin module identity and grammatical tokens; imports remain explicit. |
 | Resource limits | Apply configurable compiler limits to expansion, nesting, shifts, and format sizes, with source diagnostics. Limits are tooling safeguards rather than silent language truncation. |
 
-The implementation must settle exact metadata keys, formatting bounds/rendering,
-and diagnostic identifiers in the corresponding step, with examples and tests.
-Do not claim the draft grammar's generic field acceptance implements those schemas.
+The resulting metadata keys, formatting bounds/rendering, and diagnostics are
+implemented and documented in the LRM. The historical draft grammar's generic
+field acceptance is not the production metadata schema.
 
 ### Following milestone
 
@@ -513,7 +534,8 @@ modeling before support can be broadened.
 
 Outputs include `board.net`, reversible `names.json`, `netclasses.json`,
 `nets.txt`/`nets.json`, `changes.txt`, and `export.json` (structured changes and
-omitted parts). Export now reports `erc_performed: true` with an explicit list of pending checks.
+omitted parts). Export reports `erc_performed: true`; the current `pending`
+list is empty, without implying complete electrical or hardware validation.
 All files are staged before publication; the atomic state replacement is last.
 Ordinary replacement failures roll back earlier outputs, covered by an injected
 I/O-failure test. Abrupt process/machine failure is not an all-files transaction.
@@ -606,7 +628,10 @@ and preservation of previous artifacts on failure.
 uv run --locked noscheme check --project examples/erc_extensions
 ```
 
-Tolerance/range handling and parameter-derived electrical metadata remain future work. The example uses simplified physical pin models.
+Tolerance modeling remains deferred. Numeric parameter expressions and explicit
+voltage ranges are now implemented, and named `checks` applications supersede
+the original budget activation fields; see LRM sections 8, 10, and 12. The example
+uses simplified physical pin models.
 
 ### ERC: implemented first pass
 
@@ -639,7 +664,7 @@ mapping, and boot configuration still need verification.
 
 ---
 
-# Completed feasibility milestone
+## Historical feasibility milestone (completed)
 
 ## Objective and boundaries
 
@@ -846,7 +871,8 @@ a stronger use case. Unknown electrical roles remain unspecified.
 
 Recorded from the October 2026 implementation review and subsequent discussion.
 The agreed review fixes are implemented. All remaining follow-up items are
-deferred by user decision as of October 5, 2026; none is an active next task.
+deferred by user decision as of October 5, 2026, except the larger-design
+performance work explicitly resumed in the recent completed work above.
 Deferred proposals should not be treated as implementation commitments.
 
 ### Deferred work
@@ -855,8 +881,10 @@ Revisit these only when the user chooses to resume them:
 
 - Further diagnostic collection and recovery during parsing, evaluation, and
   elaboration.
-- Larger-design performance tests covering configurations, plugins, and LSP
-  responsiveness; incremental analysis and further optimization.
+- Further plugin-heavy performance workloads and interactive LSP latency checks.
+  WREN and a scaled active two-configuration workload have now been measured;
+  caching across edits is a proposed follow-up, while incremental parsing remains
+  unimplemented.
 - Footprint candidate sidecars and their storage/discovery convention.
 - Manual KiCad inspection of the practical benefit of exported pin names/types.
 - Voltage-domain and logic-level compatibility checks beyond existing explicit
@@ -972,18 +1000,19 @@ header footprint. The original source evidence and an explicit substitution map
 verify unchanged connectivity, values, and identities. Unresolved package
 choices are documented in the example's `KICAD_MATCHES.md`.
 
-### Review maintenance assessment (October 2026)
+### Historical review maintenance assessment (before unified ERC)
 
-Initial five-repeat medians on the current machine, before the new reference checks:
+Initial five-repeat medians on the machine used at that checkpoint, before
+the new reference checks:
 
 | Example | Resolve/elaborate | Circuit deepcopy | ERC | Full LSP analysis |
 |---|---:|---:|---:|---:|
 | STM32, 58 parts / 52 nets | 172 ms | 17 ms | 38 ms | 255 ms |
 | Rulos, 93 parts / 107 nets | 187 ms | 30 ms | 36 ms | 262 ms |
 
-These examples do not stress many active extension callbacks; a callback copies
-its full context to protect later checks from mutation. Keep that isolation for project plugins until
-a larger extension-heavy workload demonstrates a bottleneck. The benchmark in
+These examples did not stress many active extension callbacks. At that time,
+callbacks copied their contexts for isolation. The unified ERC engine below
+superseded that design with shared recursively immutable views. The benchmark in
 `tools/benchmark_analysis.py` makes follow-up measurements repeatable.
 
 Footprint candidate lines account for 24,243 of 41,992 generated source bytes in
@@ -1055,7 +1084,8 @@ Five-repeat local medians after sharing frozen subgraphs and contexts:
 These are observations, not CI thresholds. Rich views and individually scheduled
 applications add overhead versus the earlier core-only implementation; sharing
 subgraphs reduced the first migrated STM32 measurement from about 195 ms to
-106 ms. Each configuration still has its own circuit snapshot.
+106 ms. Each configuration has its own effective view. Subsequent WREN work removed
+full configuration copies and shares unchanged frozen data across configurations.
 
 
 ### Standard ERC organization and board-level identity refactoring

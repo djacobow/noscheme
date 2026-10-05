@@ -85,10 +85,7 @@ extractor regenerates the reference JSON and `components.nosch`; handwritten
 changing upstream versions. The full board export is needed to retain boundary
 connectivity through the parent sheets.
 
-Initial measurements on this machine (five-run medians, October 5, 2026):
-resolve/elaborate 60 ms, ERC 126 ms, full LSP analysis 204 ms. Cold
-resolve/elaborate took 133 ms. These are local observations, not performance
-guarantees or CI thresholds. Repeat with:
+The subsystem can also be measured with:
 
 ```sh
 uv run --locked python -m tools.benchmark_analysis examples/wren --repeat 5
@@ -135,75 +132,67 @@ Both extractors accept `--source`; the full importer also accepts `--output`.
 The checked-in fixtures need no installed KiCad libraries for tests. Full-board
 regeneration with the same source was verified byte-for-byte identical.
 
-Initial full-board measurements (five-run medians, October 5, 2026):
+## Performance
 
-| Stage | Time |
-| --- | ---: |
-| Resolve and elaborate | 2.86 s |
-| Circuit deep copy | 279 ms |
-| ERC | 1.90 s |
-| Full LSP analysis | 6.65 s |
+Latest recorded full-board results at `f38c836`, October 5, 2026: **3.93 s full
+LSP analysis** and **1.37 s isolated ERC**, using five-run medians after parser
+and ERC optimizations. Environment: Python 3.13.9, Lark 1.3.1, pygls 2.1.1,
+Linux x86-64. Timings were collected separately from tests. They are local
+observations, not CI thresholds or editor request-latency guarantees.
 
-Cold resolve/elaborate took 2.50 s. These are local observations, not CI
-thresholds. This run followed test completion, with no concurrent test workload.
-Environment: Python 3.13.9, Lark 1.3.1, pygls 2.1.1, Linux x86-64.
-The LSP result identifies the next profiling workload: several seconds per
-analysis is too slow for routine editing. This benchmark measures analysis,
-not individual completion/hover request latency or UI responsiveness.
+[Development](../../docs/DEVELOPMENT.md#wren-performance-workload) documents
+repeatable commands, per-sample timings, source hashes, and optional cProfile
+output. This benchmark measures complete analysis; it does not directly measure
+completion/hover requests or typing responsiveness. Several seconds per analysis
+still warrants further work.
 
-A separate cProfile run identified parsing as the largest cumulative cost
-(12.36 s of 20.06 s instrumented analysis), followed by ERC (5.03 s). These
-instrumented timings are not comparable to the baseline table. The original implementation parsed the main file both for current-buffer diagnostics and when loading the project;
-comment masking alone accounts for 5.90 s across all three parse calls.
-Analysis produced 20,725 references, 5,231 builtin hover entries, and the expected
-1,309 unchecked-net warnings, with no errors. See
-[Development](../../docs/DEVELOPMENT.md#wren-performance-workload) for repeatable
-measurement and profiling commands. The first optimizations and their results are recorded below.
+### Optimization history
 
-### Parsing improvements
+Five-run medians on the same machine and unchanged WREN source:
 
-Five-run medians on the same machine and unchanged WREN sources, with each run
-performed separately from tests:
-
-| Implementation | Full LSP analysis |
+| Implementation checkpoint | Full LSP analysis |
 | --- | ---: |
 | Original baseline | 6.65 s |
 | Chunk ordinary text in the comment lexer | 5.29 s |
 | Also reuse the current file's AST during project loading | 4.44 s |
+| Also reduce ERC copying and default parameter setup | 3.93 s |
 
-Together these reduce analysis time by about 33%. Resolve/elaborate fell from
-2.86 s to 2.04 s. A separate profile now has two parse calls instead of three;
-ERC is the largest cumulative stage (5.03 s instrumented), followed by parsing
-(3.88 s instrumented). Reference, hover, and diagnostic counts are unchanged.
-All 831 tests pass, including WREN connectivity and new comment-position and
-AST-reuse regressions. AST reuse checks exact source text and lasts for one
-analysis; edits still cause whole-file parsing. Caching across edits remains
-unimplemented. Full analysis at 4.44 s still warrants further performance work.
+The initial baseline measured 2.86 s resolve/elaborate, 279 ms circuit deep copy,
+and 1.90 s ERC. Resolve/elaborate fell to 2.04 s after comment chunking. The
+subsystem's initial measurements, before these optimizations, were 60 ms
+resolve/elaborate, 126 ms ERC, and 204 ms full LSP analysis.
 
-### ERC copying and setup improvements
+The original cProfile run attributed 12.36 s of 20.06 s instrumented analysis to
+parsing, including 5.90 s in comment masking. After parsing improvements, it
+measured 3.88 s parsing and 5.03 s ERC. These profiled timings include
+instrumentation overhead and must not be compared directly with the table.
+The main file is now parsed once per analysis instead of twice. AST reuse checks
+exact source text and lasts for one analysis; caching across edits remains
+unimplemented. Analysis still produces 20,725 references, 5,231 builtin hover
+entries, and 1,309 unchecked-net warnings, with no errors.
 
-Configuration selection now copies only changed role records and their parent
+### ERC comparison
+
+Configuration selection copies only changed role records and their parent
 containers. One freeze memo per ERC run shares immutable subgraphs across
 configurations, while plugins retain recursively immutable circuit views.
 Successful default-parameter validation is reused per checker per configuration;
-explicit arguments still validate individually. These caches do not survive
-between ERC runs. Rule scheduling and electrical policies are unchanged.
+explicit arguments validate individually. These caches do not survive between
+ERC runs. Rule scheduling and electrical policies are unchanged.
 
 Five alternating old/new runs, using the previous ERC implementation from
-`cd6d96c` and the same current parser, produced these median ERC times:
+`cd6d96c` and the same optimized parser, produced these median ERC times:
 
 | Workload | Before | After |
 | --- | ---: | ---: |
 | WREN: 1,507 parts, unchecked nets | 2.01 s | 1.32 s |
 | Scaled power modes: 768 parts, 257 nets, two active configurations | 1.11 s | 0.60 s |
 
-The second workload expands the existing `examples/power_modes` example to
-256 independent supply rails, with USB, expansion, and load connector arrays.
-It checks both configurations with zero errors or warnings. WREN retains its
-1,309 unchecked-net warnings. Before/after diagnostics and complete reports
-were compared for equality, including repeated runs. All 833 tests pass.
-
-A separate five-run end-to-end benchmark measured full WREN LSP analysis at
-3.93 s, down from 4.44 s after the parsing changes (about 12% less time).
-Its isolated ERC median was 1.37 s; the alternating comparison above measured
-1.32 s. These are separate runs, illustrating normal timing variation.
+The second workload expanded `examples/power_modes` to 256 independent supply
+rails, with USB, expansion, and load connector arrays. It checked both
+configurations with zero errors or warnings. It was a local measurement fixture,
+not an additional committed example. WREN retained its 1,309 unchecked-net
+warnings. Before/after diagnostics and complete reports were compared for
+equality, including repeated runs. The full suite at `f38c836` passed 833 tests.
+The 1.32 s ERC result and the later 1.37 s result above are separate runs,
+illustrating normal timing variation.

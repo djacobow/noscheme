@@ -2,7 +2,8 @@
 
 The retained harness lives under `tools/experiments/`. It contains manual
 KiCad reproduction tools and regression fixtures; production code lives under
-`src/noscheme/`. Saved local trial boards and reports move with the harness.
+`src/noscheme/`. Saved local trial boards and reports live under the harness's
+ignored `output/` directory and are not included in a fresh clone.
 Use the project virtual environment below; an old private experiment environment
 may contain absolute paths from its original location.
 
@@ -33,11 +34,11 @@ regression cases to the production parser and `tests/test_frontend.py`; use
 `noscheme parse` for current examples. The KiCad import experiments remain useful
 for reproducing editor behavior independently of the compiler.
 
-The parser has no evaluator or compiler side effects. It writes a JSON syntax
-tree containing original token spelling and filename/line/column/offset spans.
-Its field syntax is deliberately schema-neutral; it does not yet validate legal
-metadata, electrical roles, or definitions. The historical grammar does not define the current language; see the
-[LRM](../LRM.md) for implemented syntax and semantics.
+The historical parser in `tools/experiments/parser/` writes a generic syntax
+tree and uses deliberately schema-neutral fields. The `noscheme parse` command
+above instead runs the production parser: it emits a typed AST and validates
+declaration structure. Neither performs resolution or ERC. See the
+[LRM](../LRM.md) for current syntax and semantics.
 
 ## KiCad inputs
 
@@ -73,8 +74,9 @@ proof that PCBNew will import them correctly.
 
 ### A. Establish a routed baseline
 
-An empty board with an outline has been created at
-`tools/experiments/output/kicad/import-test.kicad_pcb`. To recreate it on another checkout:
+The original trials used a board at
+`tools/experiments/output/kicad/import-test.kicad_pcb`. On a fresh checkout,
+create an empty board with an outline at that path:
 
 ```sh
 /usr/bin/python3 tools/experiments/kicad/prepare_board.py tools/experiments/output/kicad/import-test.kicad_pcb
@@ -190,6 +192,6 @@ zero while logging that it could not obtain a schematic; an empty parity result
 must not be treated as a successful parity check.
 
 Keep netlists/manifests, board/project snapshots, import reports, comparison JSON,
-and tool versions together. Manual result status stays **pending** until these
-operations have actually been performed. [FINDINGS.md](FINDINGS.md) separates
-current automated evidence from editor-dependent checks.
+and tool versions together. Manual result status for a new trial stays **pending** until these
+operations have actually been performed. [FINDINGS.md](FINDINGS.md) records the
+completed original trials; generation alone does not reproduce that validation.

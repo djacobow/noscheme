@@ -1,5 +1,11 @@
 # NoScheme — Design Review
 
+> Historical review of the October 3, 2026 pre-implementation design. Preserve
+> the findings and proposals below as written; they do not describe the current
+> compiler. Use the [LRM](LRM.md) for implemented behavior and the
+> [plan](PLAN.md) for adopted decisions and deferred work. Paths and line counts
+> in the review refer to the source snapshot available to its author.
+
 **Reviewer:** Claude (Opus 5)
 **Date:** 2026-10-03
 **Inputs:** `PROJECT.md` (480 lines), `examples/stm32h523.nosch` (433 lines)

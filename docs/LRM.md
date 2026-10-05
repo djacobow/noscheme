@@ -69,6 +69,7 @@ output_dir = "build"
 | `library_paths` | Additional module search directories; may be empty |
 | `output_dir` | Directory for generated artifacts |
 | `erc_modules` | Optional list of Python ERC extension files |
+| `erc_rule_sets` | Optional list of automatic ERC rule sets; defaults to `["std.default"]`, or `[]` to disable automatic policies |
 
 Paths resolve relative to the configuration file. Search directories must exist,
 be distinct, and collectively provide at least one search root. Both path lists
@@ -146,7 +147,7 @@ operator. Lists and helper calls use commas. Instance sections do not.
 
 The structural words are `from`, `import`, `as`, `component`, `block`, `board`,
 `bundle`, `extends`, `inst`, `net`, and `global`. Section names are `pins`,
-`ports`, `params`, `defaults`, `connections`, and `metadata`. These words are
+`ports`, `params`, `defaults`, `connections`, `metadata`, and `elements`. These words are
 recognized in their grammatical contexts. Metadata keys and builtin enum members
 are not additional general-purpose statements.
 
@@ -837,9 +838,12 @@ on a flattened net contributes constraints; a caller does not erase an inner
 port's constraints. An explicit digital-input port may connect to power/ground
 as a fixed logic level while retaining its internal input contract.
 
-Only an outermost `unchecked` declaration skips net driver/current checks and
-registered net callbacks. It does not suppress pin connection policies, inner
-compatibility constraints, or grouped/aggregate-load validity checks.
+An outermost `unchecked` declaration skips the standard driver, current-budget,
+and voltage-limit policies. With the default rule set it produces an
+`unchecked_net` warning. It does not
+suppress pin connection policies, inner compatibility constraints, or
+grouped/aggregate-load validity checks. Explicit `checks` applications and
+project rule-set callbacks still run; `unchecked` is not a general callback bypass.
 
 ### 9.3 Public port roles
 
@@ -1094,7 +1098,7 @@ aggregate_load_boundary    aggregate_current_overload   incomplete_aggregate_loa
 current_load_group         current_overload             incomplete_budget
 waiver_scope               waiver_target                incompatible_role            tristate_capability
 port_role                  incomplete_port_role         required_port_connection
-unused_port
+unused_port               bias_reference               voltage_limits
 ```
 
 Standard rules have qualified registry names such as `std.multiple_drivers` and
@@ -1107,7 +1111,8 @@ applications of the same rule can be diagnosed and waived independently.
 `do_not_connect`, `required_connection`, `unused_pin`, `required_port_connection`,
 `unused_port`, `waiver_scope`, `waiver_target`, `current_load_group`, `aggregate_load_boundary`,
 `aggregate_current_overload`, and `incomplete_aggregate_load` cannot be waived.
-Other implemented net checks and registered checks support scoped waivers.
+Other implemented net checks support scoped waivers. Project rules may disable
+waivers by registering with `waivable=False`.
 
 ## 11. ERC choices and configurations
 
@@ -1304,6 +1309,11 @@ copy per rule. Mutation attempts fail. Rules should be deterministic and free of
 side effects. Python extensions still execute in the compiler/editor process;
 read-only views are not a Python sandbox.
 
+Unchanged immutable data can be shared between configurations. Selected roles
+and configuration-local derived facts remain separate. Default parameter setup
+may be reused within a configuration; callbacks must not depend on receiving
+fresh parameter objects. A new ERC run observes current circuit and registry data.
+
 `ctx.error(message, related=())` and `ctx.unknown(message, related=())` attach the
 application's location and identity. Unknown results become warnings by default;
 `missing` changes only those results, never definite violations. For additional
@@ -1483,8 +1493,10 @@ statements. It stops a dependent check when its prerequisite is invalid: an
 unknown component type, for example, prevents checking that instance's pins.
 Namespace/type setup failures stop the affected body. Identical errors in shared
 inherited bodies are reported once. Structural errors still block subsequent
-evaluation, elaboration, and export. Parsing, interface construction, and
-elaboration remain fail-fast; this is not general error recovery.
+evaluation, elaboration, and export. Grammar parsing, interface construction,
+and elaboration remain fail-fast. Once a file parses, AST structural validation
+can report multiple duplicate sections, fields, or invalid declaration contexts.
+This is not general syntax-error recovery.
 
 - `check` returns 1 for electrical errors.
 - `compile` and `export-kicad` may publish with electrical errors and return 0.
@@ -1613,6 +1625,9 @@ requires explicit footprint records. Larger runnable examples are
 [tristate](../examples/tristate), [erc_extensions](../examples/erc_extensions), the
 [STM32 reference board](../examples/stm32h523), and the
 [Rulos six-line matrix](../examples/rulos_6matrix/README.md).
+The [parameterized ERC example](../examples/parameterized_erc/README.md) demonstrates
+shared value/quantity parameters, and [WREN](../examples/wren/README.md) provides
+a 1,507-component compilation/LSP benchmark with explicitly unchecked net policies.
 
 ## 16. Limits and unsupported features
 

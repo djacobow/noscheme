@@ -1,5 +1,17 @@
 # Feasibility findings
 
+These are historical results from the first feasibility milestone, not a current
+feature list. The compiler, converter, and netlist adapter described as next
+steps below are now implemented; see the [LRM](../LRM.md) and
+[development guide](../DEVELOPMENT.md). Relative evidence paths such as
+`output/` and `requirements.txt` refer to `tools/experiments/` at the repository
+root. Generated evidence is local and is not included in a fresh clone.
+
+The original netlists used generic custom properties, which the tested editor
+did not copy into footprint fields. Production export now also emits KiCad
+`fields`; the user verified `noscheme_path` and `noscheme_identity` after import.
+See [current export behavior](../LRM.md#142-output-files).
+
 Recorded 2026-10-03. The feasibility experiments are complete: the grammar parses
 the reference draft, and manual KiCad import/update trials have been checked
 against saved boards. The results support proceeding with the compiler and
