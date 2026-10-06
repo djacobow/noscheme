@@ -3,3 +3,4 @@ board = "main.SixLineMatrix"
 source_paths = ["."]
 output_dir = "build"
 library_paths = ["kicad_lib/Device", "kicad_lib/MCU_ST_STM32F3", "kicad_lib/Interface", "kicad_lib/Regulator_Switching", "kicad_lib/Transistor_FET", "kicad_lib/Connector_Generic", "kicad_lib/Connector"]
+erc_modules = ["checks.py"]

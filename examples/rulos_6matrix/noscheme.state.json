@@ -746,7 +746,7 @@
     }
   },
   "namespace": "30180cb3-aacf-44cd-b1c3-457c449cdfdf",
-  "netlist_sha256": "e200ac3ad76731d75078837efca430b98d057291dd6932ae3a69906bebf6045a",
+  "netlist_sha256": "b9c62ec2b41bdc36ea8bc13951ac81d348a3323b6a729a035240d5afe6fd3d28",
   "previous_parts": {
     "banks[0].bypass": {
       "footprint": "Capacitor_SMD:C_0603_1608Metric",
@@ -779,11 +779,11 @@
       "reference": "R1",
       "value": {
         "type": "string",
-        "value": ""
+        "value": "1kOhm"
       }
     },
     "banks[0].driver": {
-      "footprint": "Rulos_RevB:SOP65P640X120-24",
+      "footprint": "Package_SO:HTSSOP-24-1EP_4.4x7.8mm_P0.65mm_EP3.2x5mm",
       "path": [
         "banks",
         0,
@@ -807,6 +807,7 @@
         "22": "serial_data[1]",
         "23": "banks[0].current_set",
         "24": "vcc",
+        "25": "gnd",
         "3": "clock",
         "4": "latch",
         "5": "banks[0].left_segments.a",
@@ -822,7 +823,7 @@
       }
     },
     "banks[0].left.digits[0]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         0,
@@ -849,7 +850,7 @@
       }
     },
     "banks[0].left.digits[1]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         0,
@@ -876,7 +877,7 @@
       }
     },
     "banks[0].left.digits[2]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         0,
@@ -903,7 +904,7 @@
       }
     },
     "banks[0].left.digits[3]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         0,
@@ -930,7 +931,7 @@
       }
     },
     "banks[0].left.digits[4]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         0,
@@ -957,7 +958,7 @@
       }
     },
     "banks[0].left.digits[5]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         0,
@@ -984,7 +985,7 @@
       }
     },
     "banks[0].right.digits[0]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         0,
@@ -1011,7 +1012,7 @@
       }
     },
     "banks[0].right.digits[1]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         0,
@@ -1038,7 +1039,7 @@
       }
     },
     "banks[0].right.digits[2]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         0,
@@ -1065,7 +1066,7 @@
       }
     },
     "banks[0].right.digits[3]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         0,
@@ -1092,7 +1093,7 @@
       }
     },
     "banks[0].right.digits[4]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         0,
@@ -1119,7 +1120,7 @@
       }
     },
     "banks[0].right.digits[5]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         0,
@@ -1176,11 +1177,11 @@
       "reference": "R2",
       "value": {
         "type": "string",
-        "value": ""
+        "value": "1kOhm"
       }
     },
     "banks[1].driver": {
-      "footprint": "Rulos_RevB:SOP65P640X120-24",
+      "footprint": "Package_SO:HTSSOP-24-1EP_4.4x7.8mm_P0.65mm_EP3.2x5mm",
       "path": [
         "banks",
         1,
@@ -1204,6 +1205,7 @@
         "22": "serial_data[2]",
         "23": "banks[1].current_set",
         "24": "vcc",
+        "25": "gnd",
         "3": "clock",
         "4": "latch",
         "5": "banks[1].left_segments.a",
@@ -1219,7 +1221,7 @@
       }
     },
     "banks[1].left.digits[0]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         1,
@@ -1246,7 +1248,7 @@
       }
     },
     "banks[1].left.digits[1]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         1,
@@ -1273,7 +1275,7 @@
       }
     },
     "banks[1].left.digits[2]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         1,
@@ -1300,7 +1302,7 @@
       }
     },
     "banks[1].left.digits[3]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         1,
@@ -1327,7 +1329,7 @@
       }
     },
     "banks[1].left.digits[4]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         1,
@@ -1354,7 +1356,7 @@
       }
     },
     "banks[1].left.digits[5]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         1,
@@ -1381,7 +1383,7 @@
       }
     },
     "banks[1].right.digits[0]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         1,
@@ -1408,7 +1410,7 @@
       }
     },
     "banks[1].right.digits[1]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         1,
@@ -1435,7 +1437,7 @@
       }
     },
     "banks[1].right.digits[2]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         1,
@@ -1462,7 +1464,7 @@
       }
     },
     "banks[1].right.digits[3]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         1,
@@ -1489,7 +1491,7 @@
       }
     },
     "banks[1].right.digits[4]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         1,
@@ -1516,7 +1518,7 @@
       }
     },
     "banks[1].right.digits[5]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         1,
@@ -1573,11 +1575,11 @@
       "reference": "R3",
       "value": {
         "type": "string",
-        "value": ""
+        "value": "1kOhm"
       }
     },
     "banks[2].driver": {
-      "footprint": "Rulos_RevB:SOP65P640X120-24",
+      "footprint": "Package_SO:HTSSOP-24-1EP_4.4x7.8mm_P0.65mm_EP3.2x5mm",
       "path": [
         "banks",
         2,
@@ -1601,6 +1603,7 @@
         "22": "serial_data[3]",
         "23": "banks[2].current_set",
         "24": "vcc",
+        "25": "gnd",
         "3": "clock",
         "4": "latch",
         "5": "banks[2].left_segments.a",
@@ -1616,7 +1619,7 @@
       }
     },
     "banks[2].left.digits[0]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         2,
@@ -1643,7 +1646,7 @@
       }
     },
     "banks[2].left.digits[1]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         2,
@@ -1670,7 +1673,7 @@
       }
     },
     "banks[2].left.digits[2]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         2,
@@ -1697,7 +1700,7 @@
       }
     },
     "banks[2].left.digits[3]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         2,
@@ -1724,7 +1727,7 @@
       }
     },
     "banks[2].left.digits[4]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         2,
@@ -1751,7 +1754,7 @@
       }
     },
     "banks[2].left.digits[5]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         2,
@@ -1778,7 +1781,7 @@
       }
     },
     "banks[2].right.digits[0]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         2,
@@ -1805,7 +1808,7 @@
       }
     },
     "banks[2].right.digits[1]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         2,
@@ -1832,7 +1835,7 @@
       }
     },
     "banks[2].right.digits[2]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         2,
@@ -1859,7 +1862,7 @@
       }
     },
     "banks[2].right.digits[3]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         2,
@@ -1886,7 +1889,7 @@
       }
     },
     "banks[2].right.digits[4]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         2,
@@ -1913,7 +1916,7 @@
       }
     },
     "banks[2].right.digits[5]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         2,
@@ -1970,11 +1973,11 @@
       "reference": "R4",
       "value": {
         "type": "string",
-        "value": ""
+        "value": "1kOhm"
       }
     },
     "banks[3].driver": {
-      "footprint": "Rulos_RevB:SOP65P640X120-24",
+      "footprint": "Package_SO:HTSSOP-24-1EP_4.4x7.8mm_P0.65mm_EP3.2x5mm",
       "path": [
         "banks",
         3,
@@ -1998,6 +2001,7 @@
         "22": "serial_data[4]",
         "23": "banks[3].current_set",
         "24": "vcc",
+        "25": "gnd",
         "3": "clock",
         "4": "latch",
         "5": "banks[3].left_segments.a",
@@ -2013,7 +2017,7 @@
       }
     },
     "banks[3].left.digits[0]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         3,
@@ -2040,7 +2044,7 @@
       }
     },
     "banks[3].left.digits[1]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         3,
@@ -2067,7 +2071,7 @@
       }
     },
     "banks[3].left.digits[2]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         3,
@@ -2094,7 +2098,7 @@
       }
     },
     "banks[3].left.digits[3]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         3,
@@ -2121,7 +2125,7 @@
       }
     },
     "banks[3].left.digits[4]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         3,
@@ -2148,7 +2152,7 @@
       }
     },
     "banks[3].left.digits[5]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         3,
@@ -2175,7 +2179,7 @@
       }
     },
     "banks[3].right.digits[0]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         3,
@@ -2202,7 +2206,7 @@
       }
     },
     "banks[3].right.digits[1]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         3,
@@ -2229,7 +2233,7 @@
       }
     },
     "banks[3].right.digits[2]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         3,
@@ -2256,7 +2260,7 @@
       }
     },
     "banks[3].right.digits[3]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         3,
@@ -2283,7 +2287,7 @@
       }
     },
     "banks[3].right.digits[4]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         3,
@@ -2310,7 +2314,7 @@
       }
     },
     "banks[3].right.digits[5]": {
-      "footprint": "Rulos_RevB:SA56-11",
+      "footprint": "Display_7Segment:7SegmentLED_LTS6760_LTS6780",
       "path": [
         "banks",
         3,
@@ -2475,19 +2479,19 @@
       }
     },
     "bus_regulator": {
-      "footprint": "Rulos_RevB:TO92",
+      "footprint": "Package_TO_SOT_SMD:SOT-223-3_TabPin2",
       "path": [
         "bus_regulator"
       ],
       "pins": {
-        "1": "v10",
+        "1": "v12",
         "2": "gnd",
-        "3": "v12"
+        "3": "v10"
       },
       "reference": "U7",
       "value": {
         "type": "string",
-        "value": "7810"
+        "value": "LM2937IMP-10/NOPB"
       }
     },
     "cap_1": {
@@ -2517,11 +2521,11 @@
       "reference": "C8",
       "value": {
         "type": "string",
-        "value": "0.1uF"
+        "value": "100nF"
       }
     },
     "cap_2": {
-      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "footprint": "Capacitor_SMD:C_0805_2012Metric",
       "path": [
         "cap_2"
       ],
@@ -2532,7 +2536,7 @@
       "reference": "C9",
       "value": {
         "type": "string",
-        "value": "1uF"
+        "value": "4.7uF"
       }
     },
     "cap_3": {
@@ -2551,7 +2555,7 @@
       }
     },
     "cap_4": {
-      "footprint": "Capacitor_SMD:C_0805_2012Metric",
+      "footprint": "Capacitor_SMD:CP_Elec_5x5.8",
       "path": [
         "cap_4"
       ],
@@ -2562,7 +2566,7 @@
       "reference": "C11",
       "value": {
         "type": "string",
-        "value": "10uF"
+        "value": "22uF"
       }
     },
     "cap_5": {
@@ -2581,7 +2585,7 @@
       }
     },
     "cap_8": {
-      "footprint": "Rulos_RevB:C1210",
+      "footprint": "Capacitor_SMD:CP_Elec_6.3x5.8",
       "path": [
         "cap_8"
       ],
@@ -2596,7 +2600,7 @@
       }
     },
     "cap_9": {
-      "footprint": "Rulos_RevB:C0603",
+      "footprint": "Capacitor_SMD:CP_Elec_6.3x5.8",
       "path": [
         "cap_9"
       ],
@@ -2607,7 +2611,7 @@
       "reference": "C14",
       "value": {
         "type": "string",
-        "value": ""
+        "value": "47uF"
       }
     },
     "debug": {
@@ -2622,7 +2626,7 @@
         "3": "gnd",
         "4": "swclk",
         "5": "gnd",
-        "6": "swo",
+        "6": null,
         "7": null,
         "8": null,
         "9": "gnd"
@@ -2645,7 +2649,7 @@
       "reference": "R5",
       "value": {
         "type": "string",
-        "value": "10k"
+        "value": "10kOhm"
       }
     },
     "feedback_top": {
@@ -2660,7 +2664,7 @@
       "reference": "R6",
       "value": {
         "type": "string",
-        "value": "22.6k"
+        "value": "22.6kOhm"
       }
     },
     "i2c_pullups[0]": {
@@ -2676,7 +2680,7 @@
       "reference": "R7",
       "value": {
         "type": "string",
-        "value": "2k"
+        "value": "2kOhm"
       }
     },
     "i2c_pullups[1]": {
@@ -2692,17 +2696,17 @@
       "reference": "R8",
       "value": {
         "type": "string",
-        "value": "2k"
+        "value": "2kOhm"
       }
     },
     "inductor": {
-      "footprint": "Rulos_RevB:DEM804XC",
+      "footprint": "Inductor_SMD:L_Bourns_SRN8040TA",
       "path": [
         "inductor"
       ],
       "pins": {
-        "P$1": "switch_node",
-        "P$2": "led_power"
+        "1": "switch_node",
+        "2": "led_power"
       },
       "reference": "L1",
       "value": {
@@ -2711,19 +2715,19 @@
       }
     },
     "logic_regulator": {
-      "footprint": "Rulos_RevB:TO92",
+      "footprint": "Package_TO_SOT_SMD:SOT-223-3_TabPin2",
       "path": [
         "logic_regulator"
       ],
       "pins": {
-        "1": "vcc",
-        "2": "gnd",
+        "1": "gnd",
+        "2": "vcc",
         "3": "v5"
       },
       "reference": "U8",
       "value": {
         "type": "string",
-        "value": "7803"
+        "value": "TLV1117LV33DCYR"
       }
     },
     "mcu": {
@@ -2787,21 +2791,19 @@
       }
     },
     "power_jack": {
-      "footprint": "Rulos_RevB:CUI-PJ-051",
+      "footprint": "Connector_BarrelJack:BarrelJack_CUI_PJ-036AH-SMT_Horizontal",
       "path": [
         "power_jack"
       ],
       "pins": {
-        "P$1": "v5",
-        "P$2": "gnd",
-        "P$3": null,
-        "P$G1": null,
-        "P$G2": null
+        "1": "v5",
+        "2": "gnd",
+        "3": null
       },
       "reference": "J6",
       "value": {
         "type": "string",
-        "value": "CUI-PJ-051"
+        "value": "PJ-036AH-SMT-TR"
       }
     },
     "row_switch[0]": {

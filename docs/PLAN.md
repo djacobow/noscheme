@@ -1019,20 +1019,20 @@ Revisit these only when the user chooses to resume them:
 `examples/rulos_6matrix/` transcribes Jeremy Elson's Rev B schematic and Eagle
 board with attribution and pinned source evidence. Four two-column block
 instances contain arrays of six digits; bundles share row buses and sliced
-connections form the driver chain. All 93 parts and 107 nets are compared
-against independently extracted Eagle connectivity, including the exported
-KiCad netlist. Eighteen original packages are imported into a local footprint
-library. Missing source values and the deliberately limited passive-net ERC
-model are documented in the example README. Manual PCB Editor validation and
-stronger electrical modeling remain future work.
+connections form the driver chain. All 93 parts and 106 nets are compared
+against independently extracted Eagle connectivity plus documented substitutions,
+including the exported KiCad netlist. All parts now use standard KiCad footprints;
+the imported Eagle footprint library has been removed.
 
-The matrix example now derives compatible parts from selected KiCad snapshots
-and changes 35 instances to standard footprints. Resistors use 0603; capacitors
-through 1 µF use 0603 and above 1 µF through 10 µF use 0805. Larger/unspecified
-capacitors retain their source packages. SWD uses the STM32 example's SMT Cortex
-header footprint. The original source evidence and an explicit substitution map
-verify unchanged connectivity, values, and identities. Unresolved package
-choices are documented in the example's `KICAD_MATCHES.md`.
+The example models six external power configurations, explicit connector roles,
+pull-up reference and strength checks, rail voltage ranges, and current and
+capacitance budgets. A project-local checker accounts for the shared display
+sink load without multiplying it by the number of multiplexed rows. All six
+configurations pass without errors, warnings, or waivers under documented demo
+allocations. The unused SWO contact is explicitly unconnected. Regression tests
+inject overloads and missing data. Physical package, thermal, startup, and bus
+timing validation remain documented limitations in the example README and
+`KICAD_MATCHES.md`.
 
 ### Historical review maintenance assessment (before unified ERC)
 

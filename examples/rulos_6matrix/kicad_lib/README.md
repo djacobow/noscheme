@@ -21,14 +21,11 @@ and physical pad assignments are preserved by the example's regression tests.
 
 Each directory contains the generated `.nosch` module, `conversion.json` with
 source hashes and conversion issues, and a footprint snapshot including library
-selection candidates. This directory's `footprints.json` records the **11
-standard footprints actually selected** by the board. These records are merged
-with the imported Eagle footprint records in `../footprints/footprints.json`,
-which is the file supplied to `export-kicad`.
+selection candidates. This directory's `footprints.json` records the **18
+standard footprints actually selected** by the board. Supply this file directly to `export-kicad`.
 
 Snapshot paths record provenance; compilation does not read those installed
-library paths. PCB Editor needs the standard KiCad footprint libraries and the
-local `Rulos_RevB` library to instantiate the geometry. KiCad library sources are
+library paths. PCB Editor needs the standard KiCad footprint libraries to instantiate the geometry. KiCad library sources are
 available from the official [symbol](https://gitlab.com/kicad/libraries/kicad-symbols)
 and [footprint](https://gitlab.com/kicad/libraries/kicad-footprints) repositories.
 The converted snapshots remain under the KiCad libraries license (CC-BY-SA 4.0
@@ -46,6 +43,6 @@ uv run --locked pytest -q tests/test_rulos_6matrix.py
 
 The script converts the explicit symbol list into temporary directories before
 copying the generated files here. It then snapshots the design's selected KiCad
-footprints and updates the combined export snapshot. Review the diff before
+footprints. Review the diff before
 accepting library changes. It does not change the original Eagle evidence,
 `footprint_overrides.json`, or `noscheme.state.json`.

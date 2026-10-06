@@ -1,36 +1,91 @@
 // Adapted from Jeremy Elson / rulos, 6-Line Matrix Rev B. See README.md.
 // Preserve source connectivity, including unused nets and unspecified values.
-from noscheme import nettype
-from interfaces import Rows
+from noscheme import nettype, role
+import matrix
+from interfaces import Rows, LocalI2C, BufferedI2C
 from display import TwoColumns
-from components import Buck, Cap0603, Cap0805, Cap1210, CapUnspecified, CortexHeader, Header2, Header3, I2CBuffer, Inductor, MCU, PChannel, PowerJack, RJ45, Regulator, Resistor
+from components import Buck, Cap0603, Cap0805, BuckOutputCap, CortexHeader, Header2, Header3, I2CBuffer, I2CPullup, BuckOutputInductor, MCU, PChannel, PowerJack, RJ45, LogicRegulator, BusRegulator, BusOutputCap, Resistor
 
 board SixLineMatrix:
-    net blank#: nettype.passive
+    metadata:
+        erc_choices:
+            supply_5v: ["jack", "header"]
+            supply_12v: ["port0", "port1", "port2"]
+        configurations:
+            jack_port0:
+                supply_5v: "jack"
+                supply_12v: "port0"
+            jack_port1:
+                supply_5v: "jack"
+                supply_12v: "port1"
+            jack_port2:
+                supply_5v: "jack"
+                supply_12v: "port2"
+            header_port0:
+                supply_5v: "header"
+                supply_12v: "port0"
+            header_port1:
+                supply_5v: "header"
+                supply_12v: "port1"
+            header_port2:
+                supply_5v: "header"
+                supply_12v: "port2"
+    net blank#: nettype.digital
+    // Switching/feedback nodes retain passive compatibility for this first pass.
     net bootstrap: nettype.passive
-    net clock: nettype.passive
+    net clock: nettype.digital
     net feedback: nettype.passive
-    net gnd: nettype.passive
-    net latch: nettype.passive
-    net led_power: nettype.passive
-    net reset#: nettype.passive
-    net rx: nettype.passive
-    net scl: nettype.passive
-    net scl_hv: nettype.passive
-    net sda: nettype.passive
-    net sda_hv: nettype.passive
-    net swclk: nettype.passive
-    net swdio: nettype.passive
+    net gnd: nettype.ground
+        min_voltage: 0
+        max_voltage: 0
+    net latch: nettype.digital
+    // BuckOutputInductor explicitly models the converter output at pad 2.
+    net led_power: nettype.power
+        checks:
+            // 64 shared sinks, not 6 independent full-row loads.
+            // 20mA matches the 1k R_EXT selection; 10% is a design allowance.
+            // Extra 1mA covers feedback-divider current and steady leakage.
+            display_load: matrix.shared_sink_budget(load=64 * 20m * 1.10 + 1m)
+        // Assumed steady-state envelope; not a regulator simulation.
+        min_voltage: 2.5 * 0.95
+        max_voltage: 2.5 * 1.05
+    net reset#: nettype.open_drain
+    net rx: nettype.digital
+    net scl: LocalI2C
+        wiring_capacitance: 50p
+        min_voltage: 0
+        max_voltage: 3.465
+    net scl_hv: BufferedI2C
+        wiring_capacitance: 100p
+    net sda: LocalI2C
+        wiring_capacitance: 50p
+        min_voltage: 0
+        max_voltage: 3.465
+    net sda_hv: BufferedI2C
+        wiring_capacitance: 100p
+    net swclk: nettype.digital
+    net swdio: nettype.bidirectional
     net switch_node: nettype.passive
-    net swo: nettype.passive
-    net tx: nettype.passive
-    net v10: nettype.passive
-    net v12: nettype.passive
-    net v5: nettype.passive
-    net vcc: nettype.passive
+    net tx: nettype.digital
+    net v10: nettype.power
+        // Assumed steady-state envelope; not a regulator simulation.
+        min_voltage: 10 * 0.95
+        max_voltage: 10 * 1.05
+    net v12: nettype.power
+        // Assumed steady-state envelope; not a regulator simulation.
+        min_voltage: 12 * 0.95
+        max_voltage: 12 * 1.05
+    net v5: nettype.power
+        // Assumed steady-state envelope; not a regulator simulation.
+        min_voltage: 5 * 0.95
+        max_voltage: 5 * 1.05
+    net vcc: nettype.power
+        // Assumed steady-state envelope; not a regulator simulation.
+        min_voltage: 3.3 * 0.95
+        max_voltage: 3.3 * 1.05
     net rows: Rows
-    net row_enable: nettype.passive[6]
-    net serial_data: nettype.passive[5]
+    net row_enable: nettype.digital[6]
+    net serial_data: nettype.digital[5]
 
     // Four modules share controls and row buses. Slices form the serial chain.
     inst banks[4]: TwoColumns(rows: rows, supply: vcc, ground: gnd, clock: clock, latch: latch,
@@ -62,11 +117,26 @@ board SixLineMatrix:
             value: "STM32F303K8T6"
     )
 
-    inst power_header: Header2("1": v5, "2": gnd, value="22-23-2021")
+    inst power_header: Header2(
+        connections:
+            1: v5
+            2: gnd
+        params:
+            value: "22-23-2021"
+        metadata:
+            pins:
+                1:
+                    role:
+                        choice: "supply_5v"
+                        cases:
+                            jack: role.power_input
+                            header: role.power_output
+                2: role.ground
+    )
 
-    inst logic_regulator: Regulator("1": vcc, "2": gnd, "3": v5, value="7803")
+    inst logic_regulator: LogicRegulator(1: gnd, 2: vcc, 3: v5)
 
-    inst bus_regulator: Regulator("1": v10, "2": gnd, "3": v12, value="7810")
+    inst bus_regulator: BusRegulator(1: v12, 2: gnd, 3: v10)
 
     inst debug: CortexHeader(
         connections:
@@ -75,10 +145,19 @@ board SixLineMatrix:
             "2": swdio
             ["3", "5", "9"]: gnd
             "4": swclk
-            "6": swo
-            ["7", "8"]: no_connect
+            // PB3 is used for the LED clock, so trace output is unavailable.
+            ["6", "7", "8"]: no_connect
         params:
             value: "CORTEX_HEADERJ"
+        metadata:
+            // Roles describe the attached debug probe, not the MCU.
+            pins:
+                1: role.power_input
+                [3, 5, 9]: role.ground
+                2: role.digital_bidirectional
+                4: role.digital_output
+                6: role.digital_input
+                10: role.open_drain
     )
 
     inst bus_buffer: I2CBuffer(
@@ -93,13 +172,26 @@ board SixLineMatrix:
             value: "PCA9600SO8"
     )
 
-    inst uart: Header3("1": tx, "2": rx, "3": gnd, value="22-23-2031")
+    inst uart: Header3(
+        connections:
+            1: tx
+            2: rx
+            3: gnd
+        params:
+            value: "22-23-2031"
+        metadata:
+            // External UART adapter receives TX and drives RX.
+            pins:
+                1: role.digital_input
+                2: role.digital_output
+                3: role.ground
+    )
 
-    inst inductor: Inductor(switch_node, led_power, value="2.2uH")
+    inst inductor: BuckOutputInductor(1: switch_node, 2: led_power, value=2.2u)
 
-    inst feedback_top: Resistor(feedback, led_power, value="22.6k")
+    inst feedback_top: Resistor(feedback, led_power, value=22.6k)
 
-    inst feedback_bottom: Resistor(gnd, feedback, value="10k")
+    inst feedback_bottom: Resistor(gnd, feedback, value=10k)
 
     inst buck: Buck(
         connections:
@@ -114,28 +206,37 @@ board SixLineMatrix:
 
     inst power_jack: PowerJack(
         connections:
-            "P$1": v5
-            "P$2": gnd
-            ["P$3", "P$G1", "P$G2"]: no_connect
+            PWR: v5
+            GND: gnd
+            GNDBREAK: no_connect
         params:
-            value: "CUI-PJ-051"
+            value: "PJ-036AH-SMT-TR"
+        metadata:
+            pins:
+                PWR:
+                    role:
+                        choice: "supply_5v"
+                        cases:
+                            jack: role.power_output
+                            header: role.power_input
+                GND: role.ground
     )
 
-    inst cap_1: Cap0805(v5, gnd, value="10uF")
+    inst cap_1: Cap0805(v5, gnd, value=10u)
 
-    inst cap_2: Cap0603(vcc, gnd, value="1uF")
+    inst cap_2: Cap0805(vcc, gnd, value=4.7u)
 
-    inst cap_3: Cap0603(v12, gnd, value="1uF")
+    inst cap_3: Cap0603(v12, gnd, value=1u)
 
-    inst cap_4: Cap0805(v10, gnd, value="10uF")
+    inst cap_4: BusOutputCap(1: v10, 2: gnd)
 
-    inst cap_5: Cap0603(vcc, gnd, value="1uF")
+    inst cap_5: Cap0603(vcc, gnd, value=1u)
 
-    inst cap_8: Cap1210(led_power, gnd, value="47uF")
+    inst cap_8: BuckOutputCap(1: led_power, 2: gnd)
 
-    inst cap_9: CapUnspecified(led_power, gnd, value="")
+    inst cap_9: BuckOutputCap(1: led_power, 2: gnd)
 
-    inst cap_10: Cap0603(switch_node, bootstrap, value="0.1uF")
+    inst cap_10: Cap0603(switch_node, bootstrap, value=100n)
 
     inst row_switch[6]: PChannel(
         connections:
@@ -151,16 +252,85 @@ board SixLineMatrix:
             value: "MOSFET-PCHANNEL"
     )
 
-    inst bus_ports[3]: RJ45("1": sda_hv, "2": gnd, "3": scl_hv, "4": v12, "5": gnd, "6": gnd,
-        "7": v12, "8": gnd, value="54602-908LF")
+    inst bus_ports[3]: RJ45(
+        connections:
+            1: sda_hv
+            [2, 5, 6, 8]: gnd
+            3: scl_hv
+            [4, 7]: v12
+        params:
+            value: "54602-908LF"
+        metadata:
+            pins:
+                [1, 3]:
+                    role: role.open_drain
+                    // Per port, per signal: connector + cable + downstream devices.
+                    // All three branches count simultaneously; see README.
+                    capacitance: 1n
+                [2, 5, 6, 8]: role.ground
+        // Pins 4 and 7 carry the same external supply. Count it once, at pin 4;
+        // the selected source's pin 7 is a passive parallel contact.
+        elements:
+            [0]:
+                metadata:
+                    pins:
+                        4:
+                            role:
+                                choice: "supply_12v"
+                                cases:
+                                    port0: role.power_output
+                                    port1: role.power_input
+                                    port2: role.power_input
+                        7:
+                            role:
+                                choice: "supply_12v"
+                                cases:
+                                    port0: role.passive
+                                    port1: role.power_input
+                                    port2: role.power_input
+            [1]:
+                metadata:
+                    pins:
+                        4:
+                            role:
+                                choice: "supply_12v"
+                                cases:
+                                    port0: role.power_input
+                                    port1: role.power_output
+                                    port2: role.power_input
+                        7:
+                            role:
+                                choice: "supply_12v"
+                                cases:
+                                    port0: role.power_input
+                                    port1: role.passive
+                                    port2: role.power_input
+            [2]:
+                metadata:
+                    pins:
+                        4:
+                            role:
+                                choice: "supply_12v"
+                                cases:
+                                    port0: role.power_input
+                                    port1: role.power_input
+                                    port2: role.power_output
+                        7:
+                            role:
+                                choice: "supply_12v"
+                                cases:
+                                    port0: role.power_input
+                                    port1: role.power_input
+                                    port2: role.passive
+    )
 
-    inst i2c_pullups[2]: Resistor(
+    inst i2c_pullups[2]: I2CPullup(
         connections:
             [0]."1": sda
             [1]."1": scl
             "2": vcc
         params:
-            value: "2k"
+            value: 2k
     )
 
-    inst buck_input_caps[2]: Cap0805(v5, gnd, value="10uF")
+    inst buck_input_caps[2]: Cap0805(v5, gnd, value=10u)

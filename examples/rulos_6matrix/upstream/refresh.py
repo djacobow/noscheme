@@ -1,41 +1,15 @@
-"""Refresh source evidence and footprints from a downloaded Rev B directory.
+"""Refresh original connectivity and source hashes from a downloaded Rev B directory.
 
-Run with the NoScheme environment. Footprint import also requires KiCad 10's
-pcbnew module available to /usr/bin/python3. This does not rewrite .nosch files.
+Uses Python's standard library; does not rewrite designs or KiCad footprints.
 """
 
 import argparse
 import hashlib
 import json
 from pathlib import Path
-import subprocess
-import tempfile
 import xml.etree.ElementTree as ET
 
-from noscheme.kicad.convert import footprint_record
-from noscheme.kicad.sexpr import children, dump, form, load, tag
-
 ROOT = Path(__file__).resolve().parents[1]
-
-
-def clean_footprint(node, name, *, root=False):
-    """Remove board associations; retain package geometry in local coordinates."""
-    if not isinstance(node, list):
-        return node
-    result = []
-    for item in node:
-        if tag(item) in {"uuid", "net", "path", "sheetname", "sheetfile"}:
-            continue
-        if root and tag(item) == "at":
-            continue
-        if tag(item) == "property":
-            item = item.copy()
-            if item[1] == "Reference":
-                item[2] = "REF**"
-            elif item[1] == "Value":
-                item[2] = name
-        result.append(clean_footprint(item, name))
-    return result
 
 
 def main():
@@ -73,59 +47,6 @@ def main():
             for n in board.findall("signals/signal")
         },
     }
-    packages = {e.get("package") for e in elements.values()}
-    # Import with KiCad, then normalize back-side and rotated placements before
-    # extracting library footprints. No board routing/placement is retained.
-    with tempfile.TemporaryDirectory() as temporary:
-        normalized = Path(temporary) / "normalized.kicad_pcb"
-        subprocess.run(
-            [
-                "/usr/bin/python3",
-                "-c",
-                """import sys, pcbnew
-board = pcbnew.LoadBoard(sys.argv[1], pcbnew.PCB_IO_MGR.EAGLE)
-for fp in board.GetFootprints():
-    if fp.IsFlipped():
-        fp.Flip(fp.GetPosition(), pcbnew.FLIP_DIRECTION_LEFT_RIGHT)
-    fp.SetOrientationDegrees(0)
-    fp.SetPosition(pcbnew.VECTOR2I(0, 0))
-pcbnew.SaveBoard(sys.argv[2], board)
-""",
-                str(board_path),
-                str(normalized),
-            ],
-            check=True,
-        )
-        footprints = {}
-        for fp in children(load(normalized), "footprint"):
-            name = fp[1]
-            # The importer adds board mounting holes as dummy footprints; they
-            # are mechanical board features, not schematic components.
-            if name not in packages or name in footprints:
-                continue
-            clean = clean_footprint(fp, name, root=True)
-            clean.insert(2, form("version", 20260206))
-            clean.insert(3, form("generator", "pcbnew"))
-            footprints[name] = dump(clean)
-        if set(footprints) != packages:
-            raise RuntimeError("Eagle import did not produce every expected package")
-    destination = ROOT / "footprints/Rulos_RevB.pretty"
-    destination.mkdir(parents=True, exist_ok=True)
-    for name, text in footprints.items():
-        (destination / f"{name}.kicad_mod").write_text(text)
-    records = {}
-    for name in sorted(packages):
-        key = "Rulos_RevB:" + name
-        record = footprint_record(key, [ROOT / "footprints"])
-        record["path"] = f"footprints/Rulos_RevB.pretty/{name}.kicad_mod"
-        records[key] = record
-    # Keep reviewed KiCad substitutions when refreshing the original packages.
-    standard = ROOT / "kicad_lib/footprints.json"
-    if standard.exists():
-        records.update(json.loads(standard.read_text())["footprints"])
-    (ROOT / "footprints/footprints.json").write_text(
-        json.dumps({"schema_version": 1, "footprints": records}, indent=2) + "\n"
-    )
     (ROOT / "upstream/connectivity.json").write_text(
         json.dumps(snapshot, indent=2, sort_keys=True) + "\n"
     )

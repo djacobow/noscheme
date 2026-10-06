@@ -112,16 +112,16 @@ The example intentionally has no footprints; those warnings are expected.
 
 The [matrix example](../examples/rulos_6matrix/README.md) transcribes Jeremy
 Elson's Rev B schematic using nested arrays. Its README includes attribution,
-source verification, package substitutions, and local footprint-library setup.
+source verification, package substitutions, and KiCad library snapshots.
 
 ```sh
 uv run --locked noscheme check --project examples/rulos_6matrix
-uv run --locked noscheme export-kicad --project examples/rulos_6matrix --footprints examples/rulos_6matrix/footprints/footprints.json
+uv run --locked noscheme export-kicad --project examples/rulos_6matrix --footprints examples/rulos_6matrix/kicad_lib/footprints.json
 ```
 
-The export contains 93 parts and 107 nets. Its passive-net checking model focuses
-on preserving source connectivity; stronger electrical modeling and manual PCB
-Editor validation remain outstanding.
+The export contains 93 parts and 106 nets, all using standard KiCad footprints.
+All six power configurations pass ERC with the documented demo current, voltage,
+pull-up, and capacitance assumptions. Physical validation remains outstanding.
 
 ## STM32 proof-of-concept board
 

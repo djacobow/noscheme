@@ -1,6 +1,6 @@
 // Adapted from Jeremy Elson / rulos, 6-Line Matrix Rev B. See README.md.
 // KiCad specializations preserve the source pin numbers. See KICAD_MATCHES.md.
-from noscheme import role, unused
+from noscheme import role, unused, bias, std
 import Device
 import MCU_ST_STM32F3
 import Interface
@@ -45,7 +45,8 @@ component Display:
             role: role.passive
     metadata:
         ref_prefix: "D"
-        footprint: "Rulos_RevB:SA56-11"
+        // Hole pattern matches the Inolux target; see KICAD_MATCHES.md.
+        footprint: "Display_7Segment:7SegmentLED_LTS6760_LTS6780"
         custom:
             eagle_deviceset: "7-SEG_"
             eagle_package: "SA56-11"
@@ -106,6 +107,14 @@ component SinkDriver:
         "24":
             aliases: [VCC]
             role: role.power_input
+            // Demo allocation for logic supply, not LED sink current.
+            max_load_current: 20m
+            min_voltage: 0
+            max_voltage: 7
+        // XTR exposed pad: deliberately added to the original 24-pin interface.
+        "25":
+            aliases: [EP]
+            role: role.ground
         "3":
             aliases: [CLK]
             role: role.digital_input
@@ -129,7 +138,7 @@ component SinkDriver:
             role: role.analog_output
     metadata:
         ref_prefix: "U"
-        footprint: "Rulos_RevB:SOP65P640X120-24"
+        footprint: "Package_SO:HTSSOP-24-1EP_4.4x7.8mm_P0.65mm_EP3.2x5mm"
         custom:
             eagle_deviceset: "ALLEGRO-A6282"
             eagle_package: "SOP65P640X120-24"
@@ -137,6 +146,23 @@ component SinkDriver:
 component Resistor extends Device.R:
     metadata:
         footprint: "Resistor_SMD:R_0603_1608Metric"
+
+// Pin 1 faces the signal; pin 2 must reach a declared power rail.
+component I2CPullup extends Resistor:
+    pins:
+        1:
+            // Demo allowance for resistor parasitic loading.
+            capacitance: 2p
+            bias: bias.pull_up
+            pull_resistance: value
+            checks:
+                reference: std.bias_reference("2")
+        2:
+            role: role.power_input
+            // Both buses low, upper rail bound, 1% resistance tolerance.
+            max_load_current: 3.465 / (value * 0.99)
+    metadata:
+        interchangeable: []
 
 // User policy: known capacitor values up to and including 1uF use 0603.
 component Cap0603 extends Device.C:
@@ -148,15 +174,27 @@ component Cap0805 extends Device.C:
     metadata:
         footprint: "Capacitor_SMD:C_0805_2012Metric"
 
-// Preserve the original 47uF footprint (values above 10uF are unchanged).
-component Cap1210 extends Device.C:
+// Polarized aluminum electrolytics: pad 1 positive, pad 2 negative.
+// Pins must not be interchangeable.
+component AluminumCap:
+    params:
+        value: capacitance
+    pins:
+        1: role.passive
+        2: role.passive
     metadata:
-        footprint: "Rulos_RevB:C1210"
+        ref_prefix: "C"
+        custom:
+            voltage_rating: "25V"
+            dielectric: "aluminum electrolytic"
 
-// C9 has no value in the source; keep its original package explicitly.
-component CapUnspecified extends Device.C:
+component BuckOutputCap extends AluminumCap:
+    defaults:
+        value: 47u
     metadata:
-        footprint: "Rulos_RevB:C0603"
+        footprint: "Capacitor_SMD:CP_Elec_6.3x5.8"
+        custom:
+            manufacturer_part_number: "EEEFK1E470P"
 
 component MCU extends MCU_ST_STM32F3.STM32F303K8Tx:
     pins:
@@ -164,33 +202,76 @@ component MCU extends MCU_ST_STM32F3.STM32F303K8Tx:
         [16, 32]: role.ground
         [6..13, 19, 26, 28]: role.digital_output
         [20, 24, 31]: role.digital_input
-        [4, 29..30]: role.open_drain
-
-component Regulator:
-    params:
-        value: string = "7803"
-    pins:
-        "1":
-            aliases: [VO]
-            role: role.power_output
-        "2":
-            aliases: [GND]
-            role: role.ground
-        "3":
-            aliases: [VI]
-            role: role.power_input
+        4: role.open_drain
+        [29..30]:
+            role: role.open_drain
+            // Demo bound, not the datasheet's typical 5pF figure.
+            capacitance: 10p
     metadata:
+        current_loads:
+            supply:
+                pins: [1, 5, 17]
+                // Demo allocation including analog and GPIO demand; counted once.
+                max_load_current: 100m
+
+// SOT-223 tabs share pad 2: output on TLV1117LV, ground on LM2937.
+component LogicRegulator:
+    pins:
+        1: role.ground
+        2:
+            role: role.power_output
+            // Device rating less 1mA steady leakage reserve; before thermal derating.
+            max_source_current: 1 - 1m
+            min_voltage: -0.3
+            max_voltage: 6
+        3:
+            role: role.power_input
+            min_voltage: -0.3
+            max_voltage: 6
+    metadata:
+        value: "TLV1117LV33DCYR"
         ref_prefix: "U"
-        footprint: "Rulos_RevB:TO92"
+        footprint: "Package_TO_SOT_SMD:SOT-223-3_TabPin2"
+
+component BusRegulator:
+    pins:
+        1:
+            role: role.power_input
+            max_voltage: 26
+        2: role.ground
+        3:
+            role: role.power_output
+            // Device rating less 1mA steady leakage reserve; before thermal derating.
+            max_source_current: 500m - 1m
+    metadata:
+        value: "LM2937IMP-10/NOPB"
+        ref_prefix: "U"
+        footprint: "Package_TO_SOT_SMD:SOT-223-3_TabPin2"
+
+component BusOutputCap extends AluminumCap:
+    defaults:
+        value: 22u
+    metadata:
+        footprint: "Capacitor_SMD:CP_Elec_5x5.8"
         custom:
-            eagle_deviceset: "78*"
-            eagle_package: "TO92"
+            manufacturer_part_number: "EEEFK1E220R"
 
 component I2CBuffer extends Interface.PCA9600D:
     pins:
-        [1, 3, 5, 7]: role.open_drain
+        // Datasheet maximum effective input capacitance per signal pad.
+        // RX/TX and RY/TY are separate pads and both count on the joined nets.
+        [1, 3, 5, 7]:
+            role: role.open_drain
+            capacitance: 10p
+        [2, 6]:
+            capacitance: 10p
         4: role.ground
-        8: role.power_input
+        8:
+            role: role.power_input
+            // Demo allowance at 10V, including bus activity; see README.
+            max_load_current: 20m
+            min_voltage: -0.3
+            max_voltage: 18
 
 component PChannel extends Transistor_FET.Q_PMOS_GSD:
     pins:
@@ -200,47 +281,64 @@ component PChannel extends Transistor_FET.Q_PMOS_GSD:
 
 component Inductor:
     params:
-        value: string = "2.2uH"
+        value: inductance = 2.2u
     pins:
-        "P$1":
+        "1":
             aliases: [pin1]
             role: role.passive
-        "P$2":
+        "2":
             aliases: [pin2]
             role: role.passive
     metadata:
         ref_prefix: "L"
         interchangeable: [pin1, pin2]
-        footprint: "Rulos_RevB:DEM804XC"
+        footprint: "Inductor_SMD:L_Bourns_SRN8040TA"
         custom:
+            manufacturer_part_number: "SRN8040TA-2R2Y"
             eagle_deviceset: "DEM804XC"
             eagle_package: "DEM804XC"
+
+// Application-specific assertion: the assembled buck supplies power at pad 2.
+// This does not infer conversion through arbitrary inductors or check regulation.
+component BuckOutputInductor extends Inductor:
+    pins:
+        2:
+            role: role.power_output
+            // TPS563200 device ceiling, conditional on thermal/layout validation.
+            max_source_current: 3
+    metadata:
+        // Electrical roles differ even though the physical coil is reversible.
+        interchangeable: []
 
 component Buck extends Regulator_Switching.TPS563200:
     pins:
         1: role.ground
         2: role.analog_output
-        3: role.power_input
+        3:
+            role: role.power_input
+            min_voltage: -0.3
+            max_voltage: 19
+        5:
+            min_voltage: -0.3
+            max_voltage: 19
         4: role.analog_input
 
 component PowerJack:
     params:
-        value: string = "CUI-PJ-051"
+        value: string = "PJ-036AH-SMT-TR"
     pins:
-        "P$1":
+        "1":
             aliases: [PWR]
             role: role.passive
-        "P$2":
+        "2":
             aliases: [GND]
             role: role.passive
-        "P$3":
+        "3":
             aliases: [GNDBREAK]
             role: role.passive
-        "P$G1": role.passive
-        "P$G2": role.passive
     metadata:
         ref_prefix: "J"
-        footprint: "Rulos_RevB:CUI-PJ-051"
+        footprint: "Connector_BarrelJack:BarrelJack_CUI_PJ-036AH-SMT_Horizontal"
         custom:
             eagle_deviceset: "CUI-PJ-051"
             eagle_package: "CUI-PJ-051"
@@ -256,6 +354,9 @@ component Header3 extends Connector_Generic.Conn_01x03:
 // Same 10-pin 1.27mm SMT Cortex header footprint as the STM32 example.
 component CortexHeader extends Connector_Generic.Conn_02x05_Odd_Even:
     pins:
+        1:
+            // Probe senses target voltage; it does not power itself from here.
+            max_load_current: 1m
         6: unused.always
     metadata:
         footprint: "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD"

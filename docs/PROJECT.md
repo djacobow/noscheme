@@ -173,15 +173,15 @@ board still need a manual check.
 
 The [six-line matrix example](../examples/rulos_6matrix/README.md) adapts Jeremy
 Elson's Rulos Rev B schematic into four two-column blocks, each containing arrays
-of six seven-segment displays. It contains 93 physical parts and 107 nets.
+of six seven-segment displays. It contains 93 physical parts and 106 nets.
 Bundles share the row buses and sliced array connections form the driver chain.
 
 The example retains attribution, pinned source hashes, Eagle connectivity, and
 an explicit map of deliberate footprint substitutions. Tests compare every pad,
-value, and netlist connection with that evidence. Its nets deliberately use
-passive checking while the original connectivity is transcribed; its ERC result
-is not a claim of complete electrical validation. Package questions and KiCad
-matches are recorded beside the example rather than duplicated here.
+value, and netlist connection with that evidence plus documented substitutions.
+All parts use standard KiCad footprints. Six power configurations pass ERC with
+explicit current, voltage, pull-up, and capacitance budgets; assumptions and
+physical validation limits are recorded beside the example.
 
 ## WREN benchmark
 

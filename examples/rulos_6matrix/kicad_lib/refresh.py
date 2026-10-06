@@ -34,7 +34,6 @@ def refresh_footprints():
     records = {
         name: footprint_record(name, [Path("/usr/share/kicad/footprints")])
         for name in sorted(names)
-        if not name.startswith("Rulos_RevB:")
     }
     missing = [name for name, record in records.items() if not record["exists"]]
     if missing:
@@ -42,14 +41,6 @@ def refresh_footprints():
     (ROOT / "kicad_lib/footprints.json").write_text(
         json.dumps({"schema_version": 1, "footprints": records}, indent=2, sort_keys=True) + "\n"
     )
-    path = ROOT / "footprints/footprints.json"
-    combined = json.loads(path.read_text())
-    combined["footprints"] = {
-        name: record
-        for name, record in combined["footprints"].items()
-        if name.startswith("Rulos_RevB:")
-    } | records
-    path.write_text(json.dumps(combined, indent=2, sort_keys=True) + "\n")
 
 
 def main():
