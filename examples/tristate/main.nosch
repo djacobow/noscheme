@@ -10,9 +10,7 @@ component Transceiver:
 
 component Receiver:
     pins:
-        data:
-            role: role.digital_input
-            unused: unused.never
+        data: [role.digital_input, unused.never]
 
 board SharedBus:
     net data: nettype.tristate

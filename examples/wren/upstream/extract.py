@@ -126,7 +126,7 @@ for ref, name in [
     for p in lp.findall("./pins/pin"):
         role = roles[p.get("type")]
         role = "ground" if p.get("name") == "GND" else role
-        text += ["        " + p.get("num") + ":", "            role: role." + role]
+        text += ["        " + p.get("num") + ": role." + role]
         if p.get("type") == "tri_state":
             text += ["            tristate_capable: true"]
     text += [

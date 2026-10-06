@@ -1,6 +1,7 @@
 import json
 import pytest
 
+from noscheme.diagnostics import DiagnosticError
 from noscheme.erc import check_circuit
 from noscheme.cli import main
 from test_circuit import compile_source, make, ROOT
@@ -30,21 +31,21 @@ def test_forbidden_pin_allows_omission_or_explicit_disconnect(tmp_path, binding)
 
 
 def test_forbidden_pin_rejects_even_empty_net_and_unchecked_type(tmp_path):
-    c = compile_source(
-        tmp_path,
-        component("do_not_connect")
-        + """board B:
+    board = """board B:
     net n: nettype.unchecked
     inst p: P(
         connections:
             1: n
-        metadata:
-            pins:
-                1:
-                    external_role: role.passive
     )
-""",
+"""
+    # An instance cannot relabel a forbidden pin as a passive contact.
+    overlay = board.replace(
+        "            1: n\n",
+        "            1: n\n        metadata:\n            pins:\n                1: role.passive\n",
     )
+    with pytest.raises(DiagnosticError, match="permitted roles"):
+        compile_source(tmp_path, component("do_not_connect") + overlay)
+    c = compile_source(tmp_path, component("do_not_connect") + board)
     diagnostics = check_circuit(c)
     d = next(d for d in diagnostics if d.code == "erc.do_not_connect")
     assert d.instance_path == "p.1"

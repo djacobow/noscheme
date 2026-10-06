@@ -128,12 +128,15 @@ def test_group_requires_capacity_even_without_pin_annotations(tmp_path):
 
 def test_effective_role_override_does_not_silently_drop_group(tmp_path):
     source = SOURCE.replace(
+        "        2:\n            role: role.power_input\n",
+        "        2:\n            role: [role.power_input, role.passive]\n",
+    ).replace(
         "            2: rail\n    )",
         """            2: rail
         metadata:
             pins:
                 2:
-                    external_role: role.passive
+                    role: role.passive
     )""",
     )
     errors = diagnostics(tmp_path, source)

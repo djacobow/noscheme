@@ -1214,3 +1214,20 @@ was considered and declined as too much type machinery for now.
   element overrides). `value / 1k` now displays `4.7`, not `4.7Ohm`.
 - [ ] Open trade-off: a waiver name matches applications anywhere on its net, so
   a common name such as `limit` can waive unrelated rules from different libraries.
+
+### Pin metadata shorthand and instance roles
+
+- [x] A pin entry may list builtin values whose namespace names the field:
+  `3: [role.open_drain, bias.none]`, `1..2: [role.passive, unused.never]`, combined
+  with indented fields when needed. Works in definitions, specializations, and
+  instance overlays; follows import aliases.
+- [x] One instance-level `role`: on a component pin declaring no role or only
+  `passive` (a contact), it describes the attached equipment and elaborates to
+  the `external_role` attribute; elsewhere it selects a declared role.
+  `external_role` remains only for block ports' modeled external endpoints (a
+  block port's `role` is its contract, so the two meanings stay distinct there).
+- [x] Example sources migrated mechanically; elaborated pin and port roles, biases,
+  and unused policies are identical to the previous commit for every example.
+- [x] Removed migration diagnostics for retired fields and the `f` import (private
+  single-developer repository: breaking changes need no compatibility messages).
+  Old names are now ordinary unknown-field or unknown-import errors.

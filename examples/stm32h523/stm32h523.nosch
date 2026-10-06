@@ -130,17 +130,11 @@ board STM32H523Reference:
             4: oled.sda
         metadata:
             pins:
-                1:
-                    external_role: role.power_input
-                2:
-                    external_role: role.ground
+                1: role.power_input
+                2: role.ground
                 // Assumes the display module adds no pull-ups; model them here if it does.
-                3:
-                    external_role: role.open_drain
-                    bias: bias.none
-                4:
-                    external_role: role.open_drain
-                    bias: bias.none
+                3: [role.open_drain, bias.none]
+                4: [role.open_drain, bias.none]
     )
 
     inst oled_scl_pullup: I2CPullup(
@@ -173,35 +167,23 @@ board STM32H523Reference:
             11..20: expansion_gpio[0:10]
         metadata:
             pins:
-                1:
-                    external_role: role.ground
-                2:
-                    external_role: role.ground
+                1: role.ground
+                2: role.ground
                 3:
-                    external_role:
+                    role:
                         choice: "power_source"
                         cases:
                             usb: role.power_input
                             header5v: role.power_output
-                4:
-                    external_role: role.power_input
+                4: role.power_input
                 // Assumes expansion devices add no I2C pull-ups of their own.
-                5:
-                    external_role: role.open_drain
-                    bias: bias.none
-                6:
-                    external_role: role.open_drain
-                    bias: bias.none
-                7:
-                    external_role: role.digital_input
-                8:
-                    external_role: role.digital_input
-                9:
-                    external_role: role.digital_output
-                10:
-                    external_role: role.digital_input
-                11..20:
-                    external_role: role.digital_bidirectional
+                5: [role.open_drain, bias.none]
+                6: [role.open_drain, bias.none]
+                7: role.digital_input
+                8: role.digital_input
+                9: role.digital_output
+                10: role.digital_input
+                11..20: role.digital_bidirectional
     )
     // Connector roles above describe the external equipment's endpoints.
     // Example SPI roles assume the board is controller; other uses need ERC configurations.
@@ -224,12 +206,9 @@ board STM32H523Reference:
             rx: uart_rx
         metadata:
             pins:
-                1:
-                    external_role: role.ground
-                2:
-                    external_role: role.digital_input
-                3:
-                    external_role: role.digital_output
+                1: role.ground
+                2: role.digital_input
+                3: role.digital_output
     )
 
     // Two active-low buttons with independent pull-ups and common ground.

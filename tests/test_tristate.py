@@ -59,7 +59,7 @@ board B:
         metadata:
             pins:
                 1:
-                    external_role: role.digital_output
+                    role: role.digital_output
                     tristate_capable: true
     )
 """
@@ -130,8 +130,8 @@ board B:""",
     )
     assert codes(compile_source(tmp_path, source)) == []
     source = source.replace(
-        "external_role: role.digital_output",
-        "external_role: role.digital_output\n                    tristate_capable: false",
+        "role: role.digital_output",
+        "role: role.digital_output\n                    tristate_capable: false",
     )
     assert codes(compile_source(tmp_path, source)).count("tristate_capability") == 2
 
@@ -166,8 +166,8 @@ def test_named_configurations_use_selected_roles(tmp_path):
                 mode: "output"''',
         )
         .replace(
-            "external_role: role.digital_output",
-            """external_role:
+            "role: role.digital_output",
+            """role:
                         choice: "mode"
                         cases:
                             input: role.digital_input

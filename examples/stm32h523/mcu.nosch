@@ -9,38 +9,17 @@ component STM32H523Board extends STM32H523VCTx:
     defaults:
         value: "STM32H523VCT6"
     pins:
-        [1..5, 38..41, 46, 70..72]:
-            role: role.digital_bidirectional
-            unused: unused.never
-        [6, 11, 21..22, 28, 50, 73, 75, 100]:
-            role: role.power_input
-            unused: unused.never
-        [10, 19..20, 27, 49, 74, 99]:
-            role: role.ground
-            unused: unused.never
-        12:
-            role: role.analog_input
-            unused: unused.never
-        13:
-            role: role.analog_output
-            unused: unused.never
-        14:
-            role: role.open_drain
-            unused: unused.never
+        [1..5, 38..41, 46, 70..72]: [role.digital_bidirectional, unused.never]
+        [6, 11, 21..22, 28, 50, 73, 75, 100]: [role.power_input, unused.never]
+        [10, 19..20, 27, 49, 74, 99]: [role.ground, unused.never]
+        12: [role.analog_input, unused.never]
+        13: [role.analog_output, unused.never]
+        14: [role.open_drain, unused.never]
         // I2C pins: firmware leaves the internal pull-ups off; board resistors set the level.
-        [66..67, 92..93]:
-            role: role.open_drain
-            unused: unused.never
-            bias: bias.none
-        [15..17, 25, 29..30, 32, 42..43, 45, 55, 89]:
-            role: role.digital_output
-            unused: unused.never
-        [18, 26, 31, 33..34, 44, 56, 76, 94]:
-            role: role.digital_input
-            unused: unused.never
-        [48, 98]:
-            role: role.power_output
-            unused: unused.never
+        [66..67, 92..93]: [role.open_drain, unused.never, bias.none]
+        [15..17, 25, 29..30, 32, 42..43, 45, 55, 89]: [role.digital_output, unused.never]
+        [18, 26, 31, 33..34, 44, 56, 76, 94]: [role.digital_input, unused.never]
+        [48, 98]: [role.power_output, unused.never]
 
 // Concrete reference-board implementations.
 // Sources and pin allocation are recorded in docs/PROJECT.md.

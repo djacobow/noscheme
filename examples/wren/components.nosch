@@ -3,10 +3,8 @@ from noscheme import role
 
 component Bypass:
     pins:
-        1:
-            role: role.passive
-        2:
-            role: role.passive
+        1: role.passive
+        2: role.passive
     metadata:
         footprint: "Capacitors SMD:CAPC1005X55N"
         ref_prefix: "C"
@@ -14,10 +12,8 @@ component Bypass:
 
 component Bulk:
     pins:
-        1:
-            role: role.passive
-        2:
-            role: role.passive
+        1: role.passive
+        2: role.passive
     metadata:
         footprint: "Capacitors SMD:CAPC1005X55N"
         ref_prefix: "C"
@@ -25,10 +21,8 @@ component Bulk:
 
 component Protection:
     pins:
-        1:
-            role: role.passive
-        2:
-            role: role.passive
+        1: role.passive
+        2: role.passive
     metadata:
         footprint: "ICs And Semiconductors SMD:SODFL1608X65N"
         ref_prefix: "D"
@@ -36,38 +30,24 @@ component Protection:
 
 component Driver:
     pins:
-        1:
-            role: role.digital_input
-        2:
-            role: role.digital_input
-        3:
-            role: role.digital_output
+        1: role.digital_input
+        2: role.digital_input
+        3: role.digital_output
             tristate_capable: true
-        4:
-            role: role.digital_input
-        5:
-            role: role.digital_input
-        6:
-            role: role.digital_output
+        4: role.digital_input
+        5: role.digital_input
+        6: role.digital_output
             tristate_capable: true
-        7:
-            role: role.ground
-        8:
-            role: role.digital_output
+        7: role.ground
+        8: role.digital_output
             tristate_capable: true
-        9:
-            role: role.digital_input
-        10:
-            role: role.digital_input
-        11:
-            role: role.digital_output
+        9: role.digital_input
+        10: role.digital_input
+        11: role.digital_output
             tristate_capable: true
-        12:
-            role: role.digital_input
-        13:
-            role: role.digital_input
-        14:
-            role: role.power_input
+        12: role.digital_input
+        13: role.digital_input
+        14: role.power_input
     metadata:
         footprint: "ICs And Semiconductors SMD:TEXAS_RGY (S-PVQFN-N14)"
         ref_prefix: "IC"
@@ -77,64 +57,38 @@ component Resistor:
     params:
         value: string
     pins:
-        1:
-            role: role.passive
-        2:
-            role: role.passive
+        1: role.passive
+        2: role.passive
     metadata:
         footprint: "Resistors SMD:RESC1005X40N"
         ref_prefix: "R"
 
 component Translator:
     pins:
-        1:
-            role: role.power_input
-        2:
-            role: role.digital_input
-        3:
-            role: role.digital_bidirectional
-        4:
-            role: role.digital_bidirectional
-        5:
-            role: role.digital_bidirectional
-        6:
-            role: role.digital_bidirectional
-        7:
-            role: role.digital_bidirectional
-        8:
-            role: role.digital_bidirectional
-        9:
-            role: role.digital_bidirectional
-        10:
-            role: role.digital_bidirectional
-        11:
-            role: role.ground
-        12:
-            role: role.ground
-        13:
-            role: role.ground
-        14:
-            role: role.digital_bidirectional
-        15:
-            role: role.digital_bidirectional
-        16:
-            role: role.digital_bidirectional
-        17:
-            role: role.digital_bidirectional
-        18:
-            role: role.digital_bidirectional
-        19:
-            role: role.digital_bidirectional
-        20:
-            role: role.digital_bidirectional
-        21:
-            role: role.digital_bidirectional
-        22:
-            role: role.digital_input
-        23:
-            role: role.power_input
-        24:
-            role: role.power_input
+        1: role.power_input
+        2: role.digital_input
+        3: role.digital_bidirectional
+        4: role.digital_bidirectional
+        5: role.digital_bidirectional
+        6: role.digital_bidirectional
+        7: role.digital_bidirectional
+        8: role.digital_bidirectional
+        9: role.digital_bidirectional
+        10: role.digital_bidirectional
+        11: role.ground
+        12: role.ground
+        13: role.ground
+        14: role.digital_bidirectional
+        15: role.digital_bidirectional
+        16: role.digital_bidirectional
+        17: role.digital_bidirectional
+        18: role.digital_bidirectional
+        19: role.digital_bidirectional
+        20: role.digital_bidirectional
+        21: role.digital_bidirectional
+        22: role.digital_input
+        23: role.power_input
+        24: role.power_input
     metadata:
         footprint: "ICs And Semiconductors SMD:SOP65P640X120-24N"
         ref_prefix: "IC"

@@ -215,14 +215,6 @@ def test_duplicate_registry_names_and_unknown_rulesets_are_errors(tmp_path):
         check_circuit(c, registry=registry)
 
 
-def test_retired_activation_metadata_has_migration_diagnostic(tmp_path):
-    with pytest.raises(DiagnosticError, match="std.parallel"):
-        circuit(
-            tmp_path,
-            SOURCE.replace("        checks:", "        max_capacitance_pF: 20\n        checks:"),
-        )
-
-
 def test_pin_application_specialization_and_instance_override(tmp_path):
     source = """import test
 component Base:
@@ -456,25 +448,3 @@ def test_waiver_names_applications_anywhere_on_its_net(tmp_path):
             tmp_path,
             INNER.replace('contention: "Reviewed', '"net:inner.bus:contention": "Reviewed'),
         )
-
-
-@pytest.mark.parametrize(
-    "field,message",
-    [
-        ('bias_reference_pin: "1"', "std.bias_reference"),
-        ("voltage_min_V: 0", "min_voltage"),
-        ("capacitance_pF: 2", "capacitance: 10p"),
-    ],
-)
-def test_retired_fields_explain_replacements(tmp_path, field, message):
-    source = INNER.replace(
-        "            role: role.digital_output",
-        "            role: role.digital_output\n            " + field,
-    )
-    if field.startswith("voltage"):
-        source = INNER.replace(
-            "    net bus: nettype.digital\n",
-            "    net bus: nettype.digital\n        " + field + "\n",
-        )
-    with pytest.raises(DiagnosticError, match=message):
-        circuit(tmp_path, source)

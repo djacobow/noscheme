@@ -4,9 +4,7 @@ from noscheme import role, nettype, unused
 
 component Header:
     pins:
-        1..2:
-            role: role.passive
-            unused: unused.never
+        1..2: [role.passive, unused.never]
     metadata:
         ref_prefix: "J"
         footprint: "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical"
@@ -25,14 +23,13 @@ block Supply:
         metadata:
             pins:
                 1:
-                    external_role:
+                    role:
                         choice: "power_mode"
                         cases:
                             source: role.power_output
                             load: role.power_input
                             absent: role.passive
-                2:
-                    external_role: role.ground
+                2: role.ground
     )
 
 board PowerModes:
@@ -74,8 +71,6 @@ board PowerModes:
             2: global.gnd
         metadata:
             pins:
-                1:
-                    external_role: role.power_input
-                2:
-                    external_role: role.ground
+                1: role.power_input
+                2: role.ground
     )

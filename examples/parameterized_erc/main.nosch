@@ -29,9 +29,7 @@ component Endpoint:
             min_voltage: -0.3
             max_voltage: 3.6
             unused: unused.never
-        2:
-            role: role.power_output
-            unused: unused.never
+        2: [role.power_output, unused.never]
     metadata:
         custom:
             description: "Abstract external source and open-drain endpoint"

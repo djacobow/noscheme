@@ -128,9 +128,15 @@ def test_invalid_choice_definitions_are_source_errors(tmp_path, old, new, code):
 
 
 def test_conditional_role_cannot_override_component_allowed_roles(tmp_path):
-    # A physical passive pin cannot become a power output through a selection.
+    # A pin that declares active roles selects among them; a choice cannot add one.
     with pytest.raises(DiagnosticError) as exc:
-        project(tmp_path, SOURCE.replace("external_role:\n", "role:\n", 1))
+        project(
+            tmp_path,
+            SOURCE.replace(
+                "1..2: [role.passive, unused.never]",
+                "1..2: [role.ground, role.passive, unused.never]",
+            ),
+        )
     assert exc.value.diagnostics[0].code == "metadata.constraint"
 
 

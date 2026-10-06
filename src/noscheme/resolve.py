@@ -11,6 +11,7 @@ from .metadata import (
     Value,
     enum,
     merge,
+    pin_metadata,
     read_metadata,
     declared_choices,
     validate_selection,
@@ -210,13 +211,7 @@ class Resolver:
                         f"specialization cannot add interface {name!r}",
                         field.span,
                     )
-                if source.kind == "component" and field.value is not None:
-                    fail(
-                        "resolve.interface",
-                        "physical pins contain metadata, not a type expression",
-                        field.span,
-                    )
-                if parent and field.value is not None:
+                if parent and source.kind != "component" and field.value is not None:
                     fail(
                         "resolve.specialization",
                         "specialization cannot change interface types",
@@ -226,19 +221,17 @@ class Resolver:
                     fail(
                         "resolve.interface", "port or bundle field requires a net type", field.span
                     )
-                metadata = read_metadata(
-                    field.fields,
-                    "pin" if source.kind == "component" else "port",
-                    self.project,
-                    module,
-                    params,
+                metadata = (
+                    pin_metadata(field, "pin", self.project, module, params)
+                    if source.kind == "component"
+                    else read_metadata(field.fields, "port", self.project, module, params)
                 )
                 interface[name] = Interface(
                     name,
                     previous.type
                     if parent
                     else Value(field.value, field.value.span, module)
-                    if field.value
+                    if field.value and source.kind != "component"
                     else None,
                     merge(previous.metadata, metadata) if previous else metadata,
                     field.span,
@@ -688,16 +681,21 @@ class Resolver:
                         "pin lists select physical component pins, not block ports",
                         field.key.span,
                     )
-                values = read_metadata(
-                    field.fields, "instance_pin", self.project, owner.body_module, owner.parameters
+                values = pin_metadata(
+                    field, "instance_pin", self.project, owner.body_module, owner.parameters
                 )
                 for value in metadata_expressions(values):
                     self.check_expression(value, owner.parameters)
                 for key in ("role", "external_role"):
                     if key in values:
                         validate_selection(values[key], choices)
-                if field.value is not None:
-                    fail("metadata.value", "pin annotations require indented metadata", field.span)
+                if "external_role" in values and target.kind == "component":
+                    fail(
+                        "metadata.role",
+                        "write role on a component pin: on a passive or undeclared contact it "
+                        "describes the attached equipment",
+                        values["external_role"].span,
+                    )
                 for name in self.keys(field.key):
                     pin = target.aliases.get(name)
                     if pin is None:
@@ -713,7 +711,8 @@ class Resolver:
                     permitted = target.interface[pin].metadata.get("role")
                     if (
                         "role" in values
-                        and permitted
+                        and permitted is not None
+                        and not attached_role(target, pin)
                         and not possible_selections(values["role"]) <= set(permitted.value)
                     ):
                         fail(
@@ -721,6 +720,28 @@ class Resolver:
                             "instance role is outside the definition permitted roles",
                             values["role"].span,
                         )
+
+
+def attached_role(definition, pin):
+    """Whether an instance's role for a component pin describes attached equipment.
+
+    On a contact that declares no role or only `passive`, such as a connector pin,
+    the instance role describes the equipment attached there. Where a pin declares
+    other roles, and on every block port (whose role is its public contract), an
+    instance role selects among the declared roles.
+    """
+    declared = definition.interface[pin].metadata.get("role")
+    return definition.kind == "component" and (
+        declared is None or set(possible_selections(declared)) <= {"passive"}
+    )
+
+
+def instance_roles(definition, pin, values):
+    """Store an attached-equipment role as the elaborated external_role attribute."""
+    if "role" in values and attached_role(definition, pin):
+        values = dict(values)
+        values["external_role"] = values.pop("role")
+    return values
 
 
 def resolve_project(path="."):

@@ -338,13 +338,6 @@ def load_project(path: Path | str = ".", *, sources=None, parsed_sources=None) -
                     original = imported.name.text
                     key = (imported.alias or imported.name).text
                     symbol = exports.get(original)
-                    if symbol is None and target == "noscheme" and original == "f":
-                        fail(
-                            "import.retired",
-                            "the f formatting helpers were removed: declare the value parameter "
-                            "with a quantity type, such as value: resistance = 4.7k",
-                            imported.name.span,
-                        )
                     if symbol is None:
                         fail(
                             "import.missing-name",

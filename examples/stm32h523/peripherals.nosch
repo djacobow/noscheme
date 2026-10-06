@@ -6,20 +6,16 @@ from components import Resistor0603, InputBias0603, Capacitor0603
 
 component UsbCConnector:
     pins:
-        [A1, A12, A4, A5, A6, A7, A8, A9, B1, B12, B4, B5, B6, B7, B8, B9, SH]:
-            role: role.passive
+        [A1, A12, A4, A5, A6, A7, A8, A9, B1, B12, B4, B5, B6, B7, B8, B9, SH]: role.passive
     metadata:
         ref_prefix: "J"
         footprint: "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12"
 
 component TLV1117LV33:
     pins:
-        "1":
-            role: role.ground
-        "2":
-            role: role.power_output
-        "3":
-            role: role.power_input
+        "1": role.ground
+        "2": role.power_output
+        "3": role.power_input
     metadata:
         value: "TLV1117LV33DCYR"
         ref_prefix: "U"
@@ -27,16 +23,14 @@ component TLV1117LV33:
 
 component MicroSDConnector:
     pins:
-        [1..10, SH]:
-            role: role.passive
+        [1..10, SH]: role.passive
     metadata:
         ref_prefix: "J"
         footprint: "Connector_Card:microSD_HC_Hirose_DM3AT-SF-PEJM5"
 
 component CortexHeader:
     pins:
-        1..10:
-            role: role.passive
+        1..10: role.passive
     metadata:
         ref_prefix: "J"
         footprint: "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD"
@@ -62,13 +56,12 @@ block UsbC:
         metadata:
             pins:
                 A4:
-                    external_role:
+                    role:
                         choice: "power_mode"
                         cases:
                             source: role.power_output
                             absent: role.passive
-                [A6, A7]:
-                    external_role: role.digital_bidirectional
+                [A6, A7]: role.digital_bidirectional
     )
     inst cc_pulldowns[2]: Resistor0603(
         connections:
@@ -125,14 +118,10 @@ block MicroSD:
             10: detect#
         metadata:
             pins:
-                [2..3, 5]:
-                    external_role: role.digital_input
-                4:
-                    external_role: role.power_input
-                6:
-                    external_role: role.ground
-                7:
-                    external_role: role.digital_output
+                [2..3, 5]: role.digital_input
+                4: role.power_input
+                6: role.ground
+                7: role.digital_output
     )
     // DAT1/DAT2 are unused by SPI but each has a physical pull-up to supply.
     // These passive nets have no resistance budget; their two-terminal wiring
@@ -212,16 +201,10 @@ block CortexDebug:
             10: debug.reset#
         metadata:
             pins:
-                1:
-                    external_role: role.power_input
-                2:
-                    external_role: role.digital_bidirectional
-                3:
-                    external_role: role.ground
-                4:
-                    external_role: role.digital_output
-                6:
-                    external_role: role.digital_input
-                10:
-                    external_role: role.open_drain
+                1: role.power_input
+                2: role.digital_bidirectional
+                3: role.ground
+                4: role.digital_output
+                6: role.digital_input
+                10: role.open_drain
     )

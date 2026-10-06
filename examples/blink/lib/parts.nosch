@@ -4,9 +4,7 @@ component Resistor:
     params:
         value: resistance
     pins:
-        1..2:
-            role: role.passive
-            unused: unused.never
+        1..2: [role.passive, unused.never]
     metadata:
         ref_prefix: "R"
         footprint: "Resistor_SMD:R_0603_1608Metric"
@@ -29,8 +27,7 @@ component Led:
 
 component Header:
     pins:
-        1..2:
-            unused: unused.explicit
+        1..2: unused.explicit
     metadata:
         ref_prefix: "J"
         footprint: "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical"

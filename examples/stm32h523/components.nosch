@@ -7,8 +7,7 @@ import Device
 // Require connected pins; each instance or specialization supplies its value.
 component Resistor extends Device.R:
     pins:
-        1..2:
-            unused: unused.never
+        1..2: unused.never
 
 component Resistor0603 extends Resistor:
     metadata:
@@ -52,9 +51,7 @@ component PushButton:
 
 component Header1x2:
     pins:
-        1..2:
-            role: role.passive
-            unused: unused.never
+        1..2: [role.passive, unused.never]
     metadata:
         ref_prefix: "J"
         footprint: "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical_SMD_Pin1Left"
@@ -119,9 +116,7 @@ component Header2x10:
 
 component UartHeaderJST3:
     pins:
-        MP:
-            role: role.do_not_connect
-            unused: unused.always
+        MP: [role.do_not_connect, unused.always]
         1:
             aliases: [gnd]
         2:
@@ -136,8 +131,7 @@ component UartHeaderJST3:
 
 component Capacitor extends Device.C:
     pins:
-        1..2:
-            unused: unused.never
+        1..2: unused.never
 
 component Capacitor0603 extends Capacitor:
     defaults:
@@ -149,9 +143,7 @@ component CrystalHC49:
     params:
         value: string = "8MHz CL18pF"
     pins:
-        1..2:
-            role: role.passive
-            unused: unused.never
+        1..2: [role.passive, unused.never]
     metadata:
         ref_prefix: "Y"
         footprint: "Crystal:Crystal_SMD_HC49-SD"

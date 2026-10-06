@@ -12,10 +12,8 @@ board Blink:
             2: global.gnd
         metadata:
             pins:
-                1:
-                    external_role: role.power_output
-                2:
-                    external_role: role.ground
+                1: role.power_output
+                2: role.ground
     )
     inst indicators[2]: Indicator(
         connections:

@@ -139,14 +139,13 @@ def extract(netlist, source, output):
         if c["pins"]:
             part_lines += ["    pins:"]
         for num, pin in sorted(c["pins"].items()):
-            part_lines += [
-                f"        {json.dumps(num)}:",
-                f"            role: role.{roles[pin['type']]}",
-            ]
+            values = [f"role.{roles[pin['type']]}"] + (
+                ["unused.always"] if num in singletons else []
+            )
+            shown = values[0] if len(values) == 1 else "[" + ", ".join(values) + "]"
+            part_lines += [f"        {json.dumps(num)}: {shown}"]
             if pin["type"] == "tri_state":
                 part_lines += ["            tristate_capable: true"]
-            if num in singletons:
-                part_lines += ["            unused: unused.always"]
         part_lines += [
             "    metadata:",
             f"        value: {json.dumps(c['value'])}",

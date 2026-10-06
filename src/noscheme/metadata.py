@@ -92,6 +92,7 @@ SCHEMAS = {
     },
     "instance_pin": {
         "role": "role",
+        # Only on block ports: an explicitly modeled endpoint outside the block.
         "external_role": "roles",
         "tristate_capable": "bool",
         "custom": "custom",
@@ -100,19 +101,6 @@ SCHEMAS = {
 for _scope in ("pin", "port", "net", "instance_pin"):
     SCHEMAS[_scope]["checks"] = "checks"
 
-RETIRED = {
-    "bias_reference_pin": 'replaced by a pin check such as reference: std.bias_reference("1")',
-    "voltage_min_V": "net voltage ranges use min_voltage and max_voltage, in volts",
-    "voltage_max_V": "net voltage ranges use min_voltage and max_voltage, in volts",
-    # Fields hold base SI units; scale belongs in the literal, such as 100m or 10p.
-    "min_voltage_V": "use min_voltage, in volts",
-    "max_voltage_V": "use max_voltage, in volts",
-    "capacitance_pF": "use capacitance, in farads, such as capacitance: 10p",
-    "wiring_capacitance_pF": "use wiring_capacitance, in farads, such as 2p",
-    "pull_resistance_ohm": "use pull_resistance, in ohms, such as 4.7k",
-    "max_load_current_mA": "use max_load_current, in amperes, such as 100m",
-    "max_source_current_mA": "use max_source_current, in amperes, such as 500m",
-}
 UNIMPLEMENTED = {
     "erc",
     "differential_pair",
@@ -211,16 +199,6 @@ def read_metadata(fields, scope, project, module, local_names=()):
                 fail("metadata.schema", "ERC module duplicates core metadata fields", field.span)
             kind = schema.get(key, extension.get(key))
             if kind is None:
-                if key in RETIRED:
-                    fail("metadata.retired", RETIRED[key], field.span)
-                if key == "max_capacitance_pF" or re.fullmatch(
-                    r"(?:min|max)_pull_(?:up|down)_resistance_ohm", key
-                ):
-                    fail(
-                        "metadata.retired",
-                        f"{key} was replaced by a named check such as std.parallel(pull_resistance, min=...)",
-                        field.span,
-                    )
                 code = "metadata.unsupported" if key in UNIMPLEMENTED else "metadata.unknown"
                 fail(
                     code,
@@ -415,6 +393,51 @@ def read_value(key, kind, expr, scope, project, module, local_names=()):
         if not valid:
             fail("metadata.value", f"{key!r} requires {kind} metadata", expr.span)
     return value
+
+
+# Builtin namespaces whose values may stand alone in a pin entry, and the field each sets.
+SHORTHAND = {"role": "role", "bias": "bias", "unused": "unused"}
+
+
+def pin_metadata(field, scope, project, module, local_names=()):
+    """Read a pin entry: builtin values in its value position, then indented fields.
+
+    `3: [role.open_drain, bias.none]` sets role and bias; several values from one
+    namespace form a list, such as a definition's permitted roles.
+    """
+    result = read_metadata(field.fields, scope, project, module, local_names)
+    if field.value is None:
+        return result
+    symbols = project.modules[module].symbols
+    groups = {}
+    expr = field.value
+    for item in expr.items if isinstance(expr, a.ListExpr) else (expr,):
+        base = expression_path(item.base) if isinstance(item, a.Member) else None
+        symbol = symbols.get(base) if base and base.split(".")[0] not in local_names else None
+        if symbol is None or symbol.module != "noscheme" or symbol.name not in SHORTHAND:
+            fail(
+                "metadata.shorthand",
+                "a pin entry's value lists builtin role, bias, or unused values",
+                item.span,
+            )
+        groups.setdefault(SHORTHAND[symbol.name], []).append(item)
+    schema = SCHEMAS[scope] | project.config.erc_registry.schemas.get(scope, {})
+    for key, items in groups.items():
+        if key in result or key not in schema:
+            fail(
+                "metadata.shorthand",
+                f"{key!r} is already set or not allowed in {scope} metadata",
+                items[0].span,
+            )
+        if len(items) > 1 and schema[key] != "roles":
+            fail("metadata.shorthand", f"{key!r} takes one value", items[1].span)
+        value = items[0] if len(items) == 1 else a.ListExpr(expr.span, tuple(items))
+        result[key] = Value(
+            read_value(key, schema[key], value, scope, project, module, local_names),
+            value.span,
+            module,
+        )
+    return result
 
 
 def merge(parent, child, *, _path=()):

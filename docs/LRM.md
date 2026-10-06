@@ -243,15 +243,30 @@ from noscheme import role, unused
 
 component Resistor:
     params:
-        value: string
+        value: resistance
     pins:
-        1..2:
-            role: role.passive
-            unused: unused.never
+        1..2: [role.passive, unused.never]
     metadata:
         ref_prefix: "R"
         footprint: "Resistor_SMD:R_0603_1608Metric"
 ```
+
+A pin entry may list builtin values instead of, or before, indented fields. Each
+value's namespace names the field it sets: `role.x` sets `role`, `bias.x` sets
+`bias`, and `unused.x` sets `unused`. Several values from one namespace form a
+list, which only `role` accepts, as a definition's permitted roles:
+
+```nosch
+pins:
+    1: [role.ground, role.power_input, unused.never]
+    2: role.open_drain
+        capacitance: 5p
+```
+
+This also applies in specializations and instance pin overlays, and follows
+import aliases. Setting a field both ways, or using a value that is not a builtin
+`role`, `bias`, or `unused` value, is an error. Ports and bundle fields are
+excluded: their value position holds the net type.
 
 Physical components do not contain internal instances or nets. A component may
 omit its footprint while a design is being developed; physical instances then
@@ -449,8 +464,7 @@ Formatting width, precision, and output size are bounded.
 Without a format specification, integers render exactly and doubles use their
 shortest round-trip representation, with a trailing `.0` removed.
 
-Quantity values format themselves (section 4.1). The former `f` helpers, such as
-`f.kOhm(4.7)`, are removed; importing `f` reports the replacement. ERC never
+Quantity values format themselves (section 4.1). ERC never
 derives a quantity from a displayed value.
 
 ## 5. Instances and connections
@@ -755,13 +769,22 @@ block instances accept `identity`, `erc_choices`, and `custom`.
 `footprint`, `ref_prefix`, `ref`, `identity`, and `net_class` are strings.
 `tristate_capable` and `placeholder` are booleans. Current amounts are finite,
 nonnegative numeric expressions. `aliases` is a list of names/strings. `role` on a
-definition can be one role or a list of permitted roles; an instance's `role`
-selects one permitted role, directly or through a choice mapping.
+definition can be one role or a list of permitted roles.
 
 Definitions declare `pins` directly. Instances annotate existing pins under
-`metadata.pins`; they cannot add pins or change aliases or unused policies.
-`external_role` describes equipment attached to a connector or an explicitly
-modeled endpoint on a block port.
+`metadata.pins`; they cannot add pins or change aliases or unused policies. An
+instance's `role` is the role the pin plays in that circuit, directly or through a
+choice mapping:
+
+- On a component pin that declares no role or only `passive`, such as a
+  connector or test-point contact, it describes the equipment attached there.
+  Reports and ERC record it as the pin's `external_role`.
+- On a pin that declares other roles, and on a block port, whose role is its
+  public contract, it selects one of the declared roles.
+
+`external_role` remains only for block ports, where it declares an explicitly
+modeled endpoint outside the block. Writing it on a component pin is an error that
+names `role`.
 
 `custom` accepts nested mappings, lists, strings, finite numbers, and booleans.
 It has no built-in electrical meaning. For example, `custom.dnp` is a user
@@ -959,8 +982,9 @@ do not imply tri-state capability.
 ### 10.1 Checking model
 
 ERC operates on flattened nets and counts physical endpoints once across
-hierarchy. Ordinary ports do not duplicate endpoints. Connector `external_role`
-replaces the contact's role for driver/load checking. An explicitly modeled
+hierarchy. Ordinary ports do not duplicate endpoints. A connector contact's
+instance role, its attached equipment, replaces the contact's role for
+driver/load checking. An explicitly modeled
 external endpoint on a block port counts once but creates no physical CAD pin.
 
 Digital nets require a suitable driver or explicitly declared compatible bias;
@@ -1063,9 +1087,6 @@ finite maximum. Empty sums are zero.
 
 Nets without an application do not receive these budget diagnostics. Tolerance,
 mixed reference rails, and protocol-derived limits are not automatically modeled.
-The former `max_capacitance_pF` and `min/max_pull_up/down_resistance_ohm`
-activation fields are rejected with migration guidance; replace them with
-checks as above.
 
 #### Pull reference terminals
 
@@ -1087,16 +1108,13 @@ pins, disconnected references, conflicting rail types, and a reference tied to t
 signal net itself produce `erc.bias_reference`. The check also runs on a
 disconnected signal pin. It traces no paths through other components and infers
 no voltages. To waive it for one pin, name the application with a `pins` target
-on the signal net (section 10.5); disconnected pins have no net waiver. The former
-`bias_reference_pin` field is rejected with this replacement.
+on the signal net (section 10.5); disconnected pins have no net waiver.
 
 #### Explicit voltage ranges and pin limits
 
 A net declares its operating range with `min_voltage` and `max_voltage`
 together. A physical pin or instance pin uses the same fields, alone or together,
-for its absolute limits, in volts. The former fields `voltage_min_V`,
-`voltage_max_V`, `min_voltage_V`, and `max_voltage_V` are rejected with this
-replacement. These fields accept finite signed numeric expressions, in volts. Bounds
+for its absolute limits, in volts. These fields accept finite signed numeric expressions, in volts. Bounds
 are inclusive; minimum values cannot exceed maximum values.
 
 `erc.voltage_limits` compares each annotated pin against the declared net range.
@@ -1213,7 +1231,7 @@ An internal instance can select a role using a local choice. Instance fragment:
 metadata:
     pins:
         1:
-            external_role:
+            role:
                 choice: "mode"
                 cases:
                     source: role.power_output
@@ -1221,8 +1239,8 @@ metadata:
                     absent: role.passive
 ```
 
-The same mapping is available for `role`, subject to the definition's permitted
-roles. Every alternative must have exactly one case. Alternatives are distinct,
+On a pin that declares active roles, every case must be one of them (section 8.1).
+Every alternative must have exactly one case. Alternatives are distinct,
 nonempty literal strings. A role list without a selection remains uncertain;
 the compiler does not choose a role to make the circuit pass.
 
@@ -1438,8 +1456,8 @@ configuration names, including for waived diagnostics.
 A selector chooses endpoints. Each term is one of:
 
 - a registered predicate, such as `std.active_digital_driver`;
-- a `role` value, which tests the endpoint's effective role, including a
-  connector's `external_role`;
+- a `role` value, which tests the endpoint's effective role, including the
+  equipment attached to a connector contact;
 - a `bias` value, which compares the endpoint's `bias` field;
 - the name of a boolean field, such as `tristate_capable`, which must be `true`.
 
@@ -1699,18 +1717,14 @@ component Resistor:
     params:
         value: resistance
     pins:
-        1..2:
-            role: role.passive
-            unused: unused.never
+        1..2: [role.passive, unused.never]
     metadata:
         ref_prefix: "R"
         footprint: "Resistor_SMD:R_0603_1608Metric"
 
 component Header:
     pins:
-        1..2:
-            role: role.passive
-            unused: unused.never
+        1..2: [role.passive, unused.never]
     metadata:
         ref_prefix: "J"
         footprint: "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical_SMD_Pin1Left"
@@ -1724,10 +1738,8 @@ board Demo:
             2: global.gnd
         metadata:
             pins:
-                1:
-                    external_role: role.digital_output
-                2:
-                    external_role: role.ground
+                1: role.digital_output
+                2: role.ground
     )
     inst load: Resistor(
         connections:

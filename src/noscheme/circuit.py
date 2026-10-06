@@ -13,11 +13,12 @@ from .metadata import (
     Value,
     NumericExpression,
     merge,
+    pin_metadata,
     read_metadata,
     possible_selections,
     valid_quantity,
 )
-from .resolve import Resolver
+from .resolve import Resolver, instance_roles
 from .instances import arguments, element_overrides
 
 
@@ -360,12 +361,12 @@ class Elaborator:
             for group in fields:
                 if group.key.first.text == "pins":
                     for f in group.fields:
-                        values = read_metadata(
-                            f.fields, "instance_pin", self.project, owner_module, caller
-                        )
+                        values = pin_metadata(f, "instance_pin", self.project, owner_module, caller)
                         for key in self.resolver.keys(f.key):
                             pin = definition.aliases[key]
-                            annotations[pin] = merge(annotations.get(pin, {}), values)
+                            annotations[pin] = merge(
+                                annotations.get(pin, {}), instance_roles(definition, pin, values)
+                            )
         metadata = self.numeric_metadata(definition.metadata, environment, overrides, caller)
         return metadata, overrides, annotations
 

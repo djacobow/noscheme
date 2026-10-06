@@ -75,11 +75,6 @@ def test_quoted_pin_name_may_look_like_a_scaled_number():
     assert tree.items[0].body[0].entries[0].key.first.text == "10k"
 
 
-def test_formatting_helpers_are_retired_with_guidance(tmp_path):
-    with pytest.raises(DiagnosticError, match="quantity type"):
-        compile_source(tmp_path, "from noscheme import f\n" + SOURCE)
-
-
 @pytest.mark.parametrize("name", ["leakage_uA", "rail_V", "pull_kOhm", "ripple_mV"])
 def test_extension_fields_cannot_name_units(name):
     with pytest.raises(ValueError, match="names a unit"):
