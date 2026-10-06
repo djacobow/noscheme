@@ -191,13 +191,7 @@ block MCU_H523:
             custom:
                 placement: "Place beside MCU pad 100, short return to ground."
     )
-    inst supply_bulk: Capacitor0603(
-        connections:
-            1: supply
-            2: ground
-        params:
-            value: 4.7u
-    )
+    inst supply_bulk: Capacitor0603(supply, ground, value=4.7u)
     inst analog_bulk: Capacitor0603(
         connections:
             1: supply
@@ -248,11 +242,7 @@ block MCU_H523:
             custom:
                 placement: "Place beside MCU pad 98; low ESR, do not connect VCAP to 3.3 V."
     )
-    inst crystal: CrystalHC49(
-        connections:
-            1: osc_in
-            2: osc_out
-    )
+    inst crystal: CrystalHC49(osc_in, osc_out)
     inst crystal_load_in: Capacitor0603(
         connections:
             1: osc_in
@@ -273,10 +263,4 @@ block MCU_H523:
             custom:
                 placement: "C0G; provisional for CL18pF crystal, tune for PCB stray capacitance."
     )
-    inst reset_cap: Capacitor0603(
-        connections:
-            1: debug.reset#
-            2: ground
-        params:
-            value: 100n
-    )
+    inst reset_cap: Capacitor0603(debug.reset#, ground, value=100n)

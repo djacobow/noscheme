@@ -2,10 +2,11 @@
 
 ## Current status
 
-As of `f38c836` (October 5, 2026), the compiler, extensible ERC, KiCad export,
-and Vim/Neovim/VS Code integrations are implemented. The last full validation
-reported 833 passing tests. The WREN benchmark is complete, and parser/ERC
-optimizations reduced local full LSP analysis from 6.65 s to 3.93 s.
+As of October 6, 2026, the compiler, extensible ERC, KiCad export,
+and Vim/Neovim/VS Code integrations are implemented, including compact instances
+for interchangeable pins. The last full validation reported 925 passing tests.
+The WREN benchmark is complete; parser/ERC optimizations measured at `f38c836`
+reduced local full LSP analysis from 6.65 s to 3.93 s.
 
 Caching unchanged ASTs across edits is a proposed next performance step, not an
 implemented feature. Background cancellation and incremental parsing are also
@@ -18,6 +19,34 @@ implementation-stage plans describe those checkpoints. Use the
 commands; recent work and measurements are listed first.
 
 ## Recent completed work
+
+### Interchangeable pins and compact instances (October 6, 2026)
+
+- [x] One component-level `interchangeable` group, with distinct physical pin IDs
+  or aliases. Validate matching electrical metadata after specialization; an empty
+  list clears an inherited group.
+- [x] Compact instances accept positional nets for every member of the group,
+  named `pin: net` bindings, and named `parameter=expression` arguments. Explicit
+  `no_connect`, arrays, slices, globals, and bundle-field targets use the existing
+  connection rules. Physical pin assignment follows the declared group order.
+- [x] KiCad conversion recognizes two-terminal passive R/C/L/ferrite-bead symbols
+  excluding polarized parts, and bidirectional diodes with A1/A2 pins. Updated
+  passive snapshots and compact instances in STM32 and Rulos.
+- [x] LSP references, navigation, completion, and rename work in compact instances.
+  Board-instance rename expands the compact form to add stable identity metadata,
+  preserving expressions, comments, physical identities, and connectivity.
+- [x] Regression coverage for invalid groups, specialization, array broadcasting,
+  importer classification, and editor operations. Language reference and generated
+  metadata tables updated. Multiple groups and automatic PCB pin swapping remain
+  outside this feature.
+- [x] Migrated every eligible instance in the non-WREN examples to compact syntax,
+  including named connections for asymmetric parts and block ports. Blink's resistor,
+  Rulos's inductor, and STM32's buttons and crystal declare interchangeable terminals.
+  Instances needing metadata, element overrides, or endpoint lists/selectors retain
+  sections. All seven projects preserve their pad assignments, values, electrical
+  metadata, and ERC results; WREN remains unchanged.
+
+### Performance work (October 5, 2026)
 
 Requested October 5, 2026. These are separate from the deferred review backlog.
 
@@ -967,6 +996,11 @@ Revisit these only when the user chooses to resume them:
   the two-terminal pattern. Explain or annotate the microSD DAT pull-ups.
 - [x] Retain the agreed direct input-to-rail behavior; any proposal for an
   additional strap marker needs a concrete use case and a separate decision.
+- [ ] Demo: a less common, project-specific ERC rule for polarized capacitors,
+  asserting that the `+` terminal's net sits at a higher voltage than the `-`
+  terminal's net (from declared `min_voltage`/`max_voltage` ranges), with unknown
+  ranges reported as incomplete rather than passing. Show it as an extension
+  example, applied once on the polarized capacitor component.
 
 ### Implementation maintenance
 

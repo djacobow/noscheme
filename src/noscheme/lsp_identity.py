@@ -1,6 +1,7 @@
 """Preserve board-instance CAD identities when planning a source rename."""
 
 import json
+from textwrap import indent
 
 from . import ast as a
 from .parser import Builder
@@ -15,6 +16,8 @@ def identity_edit(node, source):
     builder = Builder(source, node.span.filename)
     newline = "\r\n" if "\r\n" in source else "\n"
     identity = "identity: " + json.dumps(node.name.text)
+    if node.inline:
+        return inline_identity_edit(node, source, builder, newline, identity)
     if metadata:
         first = metadata.entries[0].key.span
         start = source.rfind("\n", 0, first.start_pos) + 1
@@ -35,6 +38,57 @@ def identity_edit(node, source):
         else:
             start = line_start
     return builder.position_span(start, start), text
+
+
+def inline_identity_edit(node, source, builder, newline, identity):
+    """Expand compact arguments into sections so rename can add stable identity.
+
+    The resolver has already mapped positional nets to physical pins. Keep source
+    expressions and comments, including those between comma-separated arguments.
+    """
+    masked = mask_comments(source, node.span.filename)
+    opening = masked.index("(", node.component[-1].span.end_pos, node.span.end_pos)
+    closing = masked.rfind(")", opening, node.span.end_pos)
+    entries = sorted(
+        ((entry, section.name) for section in node.sections for entry in section.entries),
+        key=lambda item: item[0].span.start_pos,
+    )
+    groups = {}
+    previous = opening + 1
+
+    def gap(start, stop):
+        # Only the separator is discarded; commas within comments are preserved.
+        comma = masked.find(",", start, stop)
+        return (
+            source[start:comma] + source[comma + 1 : stop] if comma >= 0 else source[start:stop]
+        ).strip()
+
+    for entry, section in entries:
+        comments = gap(previous, entry.span.start_pos)
+        if isinstance(entry, a.Binding):
+            endpoint = entry.endpoint
+            key = (
+                json.dumps(endpoint.head.first.text)
+                if endpoint.span == entry.target.span
+                else source[endpoint.span.start_pos : endpoint.span.end_pos]
+            )
+            expr = entry.target
+        else:
+            key, expr = entry.name.text, entry.value
+        text = key + ": " + source[expr.span.start_pos : expr.span.end_pos]
+        groups.setdefault(section, []).append((comments + newline if comments else "") + text)
+        previous = entry.span.end_pos
+    comments = gap(previous, closing)
+    base = " " * (node.span.column - 1)
+    lines = []
+    for section, values in groups.items():
+        lines.append(base + "    " + section + ":")
+        lines.extend(indent(value, base + "        ") for value in values)
+    if comments:
+        lines.append(indent(comments, base + "    "))
+    lines.extend([base + "    metadata:", base + "        " + identity])
+    text = newline + newline.join(lines) + newline + base
+    return builder.position_span(opening + 1, closing), text
 
 
 def renamed_path(value, old, new):

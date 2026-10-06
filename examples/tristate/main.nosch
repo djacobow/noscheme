@@ -14,11 +14,5 @@ component Receiver:
 
 board SharedBus:
     net data: nettype.tristate
-    inst devices[2]: Transceiver(
-        connections:
-            data: data
-    )
-    inst receiver: Receiver(
-        connections:
-            data: data
-    )
+    inst devices[2]: Transceiver(data: data)
+    inst receiver: Receiver(data: data)

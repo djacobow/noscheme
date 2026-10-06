@@ -489,7 +489,63 @@ inst series: Resistor(
 `connections`, `params`, `metadata`, and `elements` may be omitted when unnecessary. Omit an
 empty section rather than writing its header without entries. The parentheses
 contain the instance's contract; there is no additional instance implementation
-body. Part and block instances always bind by name, never position.
+body. Connections bind by name, except for the explicit interchangeable-pin
+group supported by the compact form below. Parameters always bind by name.
+
+#### Compact instances and interchangeable pins
+
+A component may declare one group of electrically interchangeable physical pins:
+
+```nosch
+component Resistor:
+    params:
+        value: resistance
+    pins:
+        1..2: role.passive
+    metadata:
+        interchangeable: [1, 2]
+```
+
+The list accepts physical pin IDs or aliases, including bare integer spellings.
+It must resolve to at least two distinct existing pins. Their electrical metadata
+must match, including roles, unused policies, bias, numeric fields, and checks;
+aliases and `custom` data may differ. This is an author assertion about the part's
+symmetry, not electrical inference. Only one group is supported. An empty list
+clears an inherited group. Specializations that give the pins different electrical
+metadata, such as putting pull-up bias on only one terminal, must clear it with
+`interchangeable: []` and use named connections.
+
+```nosch
+inst series: Resistor(source, destination, value=4.7k)
+inst decouple[4]: Capacitor(global.v3v3, global.gnd, value=100n)
+inst esd: Protection(data, no_connect, gnd: global.gnd)
+```
+
+These fragments assume the referenced types and nets exist. `Capacitor` declares
+two interchangeable pins; `Protection` declares two interchangeable signal pins
+and a separate pin aliased `gnd`.
+
+The compact form has three argument kinds, separated by commas:
+
+- A positional net reference binds the next pin in the declared interchangeable
+  group. If any positional connections are supplied, they must cover the whole
+  group; write `no_connect` explicitly for an unused member. The target must be
+  a component with a nonempty group.
+- `pin: net` connects a single pin or public port by name, alias, or quoted ID.
+  Named connections also work without an interchangeable group. A pin cannot be
+  bound twice, including through a positional argument and an alias.
+- `parameter=expression` supplies a named parameter in the caller's scope.
+
+The first argument must start on the same line as `(`. Following arguments may
+continue on later lines; a trailing comma is allowed. Positional references may
+include globals, bundle fields, and array indices/slices, with the same broadcast
+rules as section-form connections. Use the section form for instance metadata,
+element overrides, or endpoint lists/ranges. The two forms cannot be mixed.
+
+Positional nets map deterministically to the listed physical pins, in list order.
+Reordering the arguments or the group changes pad assignments in the exported
+netlist even though the declared electrical behavior is equivalent. There is no
+automatic PCB pin swapping or routing optimization.
 
 #### Explicit array element overrides
 
@@ -746,7 +802,7 @@ literal instead: `capacitance: 10p`, `max_load_current: 100m`.
 <!-- generated:core-fields -->
 | Scope | Fields |
 |---|---|
-| `component` | `current_loads`, `custom`, `footprint`, `ref_prefix`, `value` |
+| `component` | `current_loads`, `custom`, `footprint`, `interchangeable`, `ref_prefix`, `value` |
 | `current_load` | `max_load_current`, `pins` |
 | `block` | `custom`, `erc_choices` |
 | `board` | `configurations`, `custom`, `erc_choices` |
@@ -768,7 +824,8 @@ block instances accept `identity`, `erc_choices`, and `custom`.
 
 `footprint`, `ref_prefix`, `ref`, `identity`, and `net_class` are strings.
 `tristate_capable` and `placeholder` are booleans. Current amounts are finite,
-nonnegative numeric expressions. `aliases` is a list of names/strings. `role` on a
+nonnegative numeric expressions. `aliases` is a list of names, strings, or integer
+pin spellings (so `01` retains its leading zero). `role` on a
 definition can be one role or a list of permitted roles.
 
 Definitions declare `pins` directly. Instances annotate existing pins under
@@ -1022,7 +1079,7 @@ metadata:
             max_load_current: 100m
 ```
 
-Members are aliases or quoted physical pin IDs. Groups must be nonempty, resolve
+Members are aliases, quoted physical pin IDs, or bare integer pin spellings. Groups must be nonempty, resolve
 without duplicate pads, not overlap other groups, and contain pins permitting
 `power_input`. A member cannot also have an individual load annotation. All
 members must connect to the same flattened net and have effective `power_input`
@@ -1527,6 +1584,14 @@ parameter of type `resistance`, `capacitance`, or `inductance`, since its KiCad
 `Value` as the default. Ambiguous aliases
 and unsupported electrical types are reported rather than guessed.
 
+The converter also declares interchangeable pins for two-terminal symbols whose
+pins are all passive and whose reference prefix is `R`, `C`, `L`, or `FB`, unless
+the symbol's name, description, or keywords mark it as polarized. It also recognizes
+two-terminal diode symbols with passive pins named `A1` and `A2`. Ordinary diodes,
+polarized capacitors, and devices with more than two pins are excluded. This is a
+library-data heuristic: review the generated group for specialized parts, and
+clear it in a specialization when the terminals have different uses.
+
 KiCad `no_connect` maps to `role.do_not_connect`. An explicit KiCad `tri_state`
 output maps to `role.digital_output` plus `tristate_capable: true` when its other
 representations do not contradict that capability. A generic bidirectional pin
@@ -1783,7 +1848,8 @@ Not implemented:
 
 - Macros, general Python expressions, loops, conditionals, and automatic part generation.
 - Multiple inheritance or structural specialization.
-- Implicit nets, positional instance arguments, private-instance access, or net merging.
+- Implicit nets, positional parameters, multiple interchangeable-pin groups,
+  private-instance access, or net merging.
 - Dimensional analysis of arithmetic (quantities name units but do not check them)
   or automatic electrical inference from part-value strings.
 - Tri-state output-enable simulation or arbitration proofs.

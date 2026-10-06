@@ -25,11 +25,5 @@ board B:
             pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=2k, max=5k)
             capacitance: std.sum(capacitance, net=wiring_capacitance, max=20p)
         wiring_capacitance: 2p
-    inst pull[2]: Pull(
-        connections:
-            1: bus
-    )
-    inst device: Device(
-        connections:
-            1: bus
-    )
+    inst pull[2]: Pull(1: bus)
+    inst device: Device(1: bus)

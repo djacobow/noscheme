@@ -14,6 +14,7 @@ component C:
                 kicad_pin_types: ["passive"]
     metadata:
         ref_prefix: "C"
+        interchangeable: ["1", "2"]
         custom:
             kicad_symbol: "Device:C"
             kicad_duplicate_pin_numbers_are_jumpers: "no"
@@ -41,6 +42,7 @@ component R:
                 kicad_pin_types: ["passive"]
     metadata:
         ref_prefix: "R"
+        interchangeable: ["1", "2"]
         custom:
             kicad_symbol: "Device:R"
             kicad_duplicate_pin_numbers_are_jumpers: "no"

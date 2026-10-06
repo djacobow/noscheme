@@ -19,6 +19,10 @@ element 1 keeps the 4.7 kΩ default. Each part's `value` parameter is a
 `pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=1k)`. Per-element
 placement notes appear under custom metadata.
 
+The endpoint uses compact named connections. The pull-resistor array retains
+sections for its element overrides; its supply and signal terminals have different
+ERC metadata and are therefore connected by name.
+
 The pin check `reference: std.bias_reference("supply")` names the resistor's supply
 terminal. ERC checks its actual connection to a declared power net. It does not
 infer voltage or trace through other components. The design can therefore fail this

@@ -32,6 +32,29 @@ ROLE_MAP = {
 PASSIVE_QUANTITIES = {"R": "resistance", "C": "capacitance", "L": "inductance"}
 
 
+def interchangeable_pins(original, props, pins):
+    """Pins whose assignment cannot matter, judged conservatively from library data.
+
+    Two passive pins on a resistor, capacitor, inductor, or ferrite bead qualify
+    unless the symbol is described as polarized (KiCad's polarized capacitors have
+    the same pin data as plain ones); so do a bidirectional diode's A1/A2 pins.
+    """
+    entries = [pin for found in pins.values() for pin in found]
+    if len(pins) != 2 or any(str(pin[1]) != "passive" for pin in entries):
+        return ()
+    text = " ".join([original, props.get("Description", ""), props.get("ki_keywords", "")])
+    names = {str(scalar(pin, "name", "")) for pin in entries}
+    reference = props.get("Reference")
+    polarized = re.search(r"(?<!un)(?<!non)(?<!non-)(?<!non )polari[sz]ed", text, re.IGNORECASE)
+    if (
+        reference in {"R", "C", "L", "FB"}
+        and not polarized
+        or (reference == "D" and names == {"A1", "A2"})
+    ):
+        return tuple(sorted(pins))
+    return ()
+
+
 def failure(path, code, message):
     raise DiagnosticError([Diagnostic(code, "error", message, a.Span(str(path), 0, 0, 1, 1, 1, 1))])
 
@@ -310,6 +333,8 @@ def convert_library(source, output, symbols=(), footprint_roots=(), extra_footpr
         lines.extend(
             ["    metadata:", f"        ref_prefix: {json.dumps(props.get('Reference', 'U'))}"]
         )
+        if group := interchangeable_pins(original, props, pins):
+            lines.append(f"        interchangeable: {json.dumps(list(group))}")
         if footprint:
             footprints.add(footprint)
             lines.append(f"        footprint: {json.dumps(footprint)}")

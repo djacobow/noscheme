@@ -158,6 +158,9 @@ class Instance(Node):
     dimensions: tuple[Index, ...]
     component: tuple[Name, ...]
     sections: tuple[Section, ...]
+    # Nets bound in order to the component's interchangeable pins (one-line form).
+    positional: tuple[Expr, ...] = ()
+    inline: bool = False
 
 
 @dataclass(frozen=True)

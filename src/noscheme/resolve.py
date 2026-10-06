@@ -1,12 +1,13 @@
 """Resolve definitions and public interfaces without executing or expanding them."""
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, fields, replace
 import re
 
 from . import ast as a
 from .diagnostics import Related, DiagnosticError, collect_errors
 from .metadata import (
     NETTYPES,
+    NumericExpression,
     metadata_expressions,
     Value,
     enum,
@@ -271,6 +272,7 @@ class Resolver:
         combined = merge(parent.metadata, metadata) if parent else metadata
         if source.kind == "component":
             combined = validate_current_loads(combined, interface, aliases)
+            combined = validate_interchangeable(combined, interface, aliases, source.name.text)
         choices = combined.get("erc_choices", Value({}, source.span, module)).value
         configurations = combined.get("configurations", Value({}, source.span, module)).value
         for configuration in configurations.values():
@@ -331,9 +333,52 @@ class Resolver:
                 self.definitions[key] = self.build(key[0], source, parent)
         return dict(sorted(self.definitions.items()))
 
+    def expand_positional(self, definition):
+        """Bind one-line instances' positional nets to the target's interchangeable pins."""
+        body = []
+        for node in definition.body:
+            if isinstance(node, a.Instance) and node.positional:
+                key = self.symbol(definition.body_module, node.component, {"component", "block"})
+                target = self.definitions[key]
+                group = target.metadata.get("interchangeable")
+                pins = group.value if group else ()
+                if not pins:
+                    fail(
+                        "resolve.positional",
+                        f"{target.name} declares no interchangeable pins; connect pins by name",
+                        node.positional[0].span,
+                    )
+                if len(node.positional) != len(pins):
+                    fail(
+                        "resolve.positional",
+                        f"{target.name} has {len(pins)} interchangeable pins; "
+                        "give a net or no_connect for each",
+                        node.span,
+                    )
+                bindings = tuple(
+                    a.Binding(
+                        expr.span,
+                        a.Endpoint(
+                            expr.span, (), a.FieldKey(expr.span, a.PinKey(expr.span, pin, pin)), ()
+                        ),
+                        expr,
+                    )
+                    for pin, expr in zip(pins, node.positional)
+                )
+                sections = [s for s in node.sections if s.name != "connections"]
+                existing = next((s for s in node.sections if s.name == "connections"), None)
+                entries = (existing.entries if existing else ()) + bindings
+                sections.append(a.Section(node.span, "connections", entries))
+                node = replace(node, sections=tuple(sections), positional=())
+            body.append(node)
+        return replace(definition, body=tuple(body))
+
     def resolve_all(self):
         self.resolve_interfaces()
         errors = []
+        for key, definition in list(self.definitions.items()):
+            with collect_errors(errors):
+                self.definitions[key] = self.expand_positional(definition)
         for definition in self.definitions.values():
             with collect_errors(errors):
                 self.check_body(definition)
@@ -773,6 +818,56 @@ def resolution_summary(project, definitions):
         ],
         "remaining_stages": ["expression-evaluation", "elaboration", "ERC", "export"],
     }
+
+
+def comparable(value):
+    """A metadata value without source locations, for equality between pins."""
+    if isinstance(value, Value):
+        return comparable(value.value)
+    if isinstance(value, dict):
+        return {key: comparable(item) for key, item in value.items()}
+    if isinstance(value, (tuple, list)):
+        return tuple(comparable(item) for item in value)
+    if isinstance(value, NumericExpression):
+        return (value.constraint, comparable(value.expression))
+    if isinstance(value, a.Node):
+        return comparable(
+            {f.name: getattr(value, f.name) for f in fields(value) if f.name != "span"}
+            | {"node": type(value).__name__}
+        )
+    return value
+
+
+def validate_interchangeable(metadata, interface, aliases, name):
+    """Resolve the interchangeable group and require its pins to be indistinguishable."""
+    group = metadata.get("interchangeable")
+    if group is None or not group.value:
+        return metadata
+    pins = []
+    for member in group.value:
+        pin = aliases.get(member)
+        if pin is None or pin in pins:
+            fail("metadata.interchangeable", f"unknown or repeated pin {member!r}", group.span)
+        pins.append(pin)
+    if len(pins) < 2:
+        fail("metadata.interchangeable", "an interchangeable group needs two pins", group.span)
+
+    # Aliases name pins and custom data has no electrical meaning; all else must match.
+    def electrical(pin):
+        return comparable(
+            {k: v for k, v in interface[pin].metadata.items() if k not in {"aliases", "custom"}}
+        )
+
+    for pin in pins[1:]:
+        if electrical(pin) != electrical(pins[0]):
+            fail(
+                "metadata.interchangeable",
+                f"{name}: pins {pins[0]!r} and {pin!r} differ, so they are not interchangeable; "
+                "clear an inherited group with interchangeable: []",
+                group.span,
+                related=[Related("pin declaration", interface[pin].span)],
+            )
+    return {**metadata, "interchangeable": replace(group, value=tuple(pins))}
 
 
 def validate_current_loads(metadata, interface, aliases):

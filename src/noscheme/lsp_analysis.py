@@ -265,6 +265,8 @@ def reference_index(project, definitions, hover=None):
                     target_def = (
                         definitions.get((sym.module, sym.name)) if sym and definitions else None
                     )
+                    for net in node.positional:
+                        expression(net)
                     sections = (
                         *node.sections,
                         *(

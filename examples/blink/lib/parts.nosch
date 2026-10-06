@@ -7,6 +7,7 @@ component Resistor:
         1..2: [role.passive, unused.never]
     metadata:
         ref_prefix: "R"
+        interchangeable: [1, 2]
         footprint: "Resistor_SMD:R_0603_1608Metric"
 
 component Led:

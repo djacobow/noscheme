@@ -39,6 +39,10 @@ selects the supply and return roles for this board explicitly. Both modules have
 also been regenerated to omit redundant `unused.explicit` annotations; omitted
 unused policies retain that default.
 
+The passive module also includes converter-generated `interchangeable: ["1", "2"]`
+groups for `R` and `C`. They enable compact instances in the example. `I2CPullup`
+clears the inherited group because its signal terminal carries different ERC metadata.
+
 ## Regenerate and review
 
 Run from the repository root with KiCad symbol and footprint libraries installed.

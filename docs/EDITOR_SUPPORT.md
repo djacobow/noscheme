@@ -140,6 +140,10 @@ Pin and alias completion also works inside unfinished connection lists such as
 `[1..3, VD`. Navigation, references, and hover distinguish individual list
 entries; a range represents all of its physical pins, as in an unbracketed range.
 Qualified instance names such as `Device.R` and imported aliases are supported.
+
+Compact instances support pin/port and `parameter=` completion, and bundle-field
+completion in positional or named connections. Their net and parameter references
+also support navigation, hover, references, and rename.
 Completion also works after `extends`, including an unfinished header such as
 `component Resistor extends Device.` with no colon or body yet. Component
 headers suggest components; block headers suggest blocks. The definition being
@@ -360,6 +364,9 @@ change with the instance spelling.
 
 Targeted waiver pin paths on the containing board are updated too. Comments, custom text, reasons, and existing identity
 strings stay unchanged. The identity insertion preserves comments and indentation.
+For a compact instance, rename expands its arguments into `connections:` and
+`params:` sections so it can add `metadata.identity`. Positional connections become
+explicit physical pin bindings; their pad assignments stay unchanged.
 
 Physical pin IDs and aliases, internal instance names in reusable blocks,
 module/file names, and the board entry point remain unsupported. Moving instances

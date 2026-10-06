@@ -33,17 +33,8 @@ board SixLineMatrix:
     net serial_data: nettype.passive[5]
 
     // Four modules share controls and row buses. Slices form the serial chain.
-    inst banks[4]: TwoColumns(
-        connections:
-            rows: rows
-            supply: vcc
-            ground: gnd
-            clock: clock
-            latch: latch
-            blank: blank#
-            sdi: serial_data[0:4]
-            sdo: serial_data[1:5]
-    )
+    inst banks[4]: TwoColumns(rows: rows, supply: vcc, ground: gnd, clock: clock, latch: latch,
+        blank: blank#, sdi: serial_data[0:4], sdo: serial_data[1:5])
 
     inst mcu: MCU(
         connections:
@@ -71,31 +62,11 @@ board SixLineMatrix:
             value: "STM32F303K8T6"
     )
 
-    inst power_header: Header2(
-        connections:
-            "1": v5
-            "2": gnd
-        params:
-            value: "22-23-2021"
-    )
+    inst power_header: Header2("1": v5, "2": gnd, value="22-23-2021")
 
-    inst logic_regulator: Regulator(
-        connections:
-            "1": vcc
-            "2": gnd
-            "3": v5
-        params:
-            value: "7803"
-    )
+    inst logic_regulator: Regulator("1": vcc, "2": gnd, "3": v5, value="7803")
 
-    inst bus_regulator: Regulator(
-        connections:
-            "1": v10
-            "2": gnd
-            "3": v12
-        params:
-            value: "7810"
-    )
+    inst bus_regulator: Regulator("1": v10, "2": gnd, "3": v12, value="7810")
 
     inst debug: CortexHeader(
         connections:
@@ -122,38 +93,13 @@ board SixLineMatrix:
             value: "PCA9600SO8"
     )
 
-    inst uart: Header3(
-        connections:
-            "1": tx
-            "2": rx
-            "3": gnd
-        params:
-            value: "22-23-2031"
-    )
+    inst uart: Header3("1": tx, "2": rx, "3": gnd, value="22-23-2031")
 
-    inst inductor: Inductor(
-        connections:
-            "P$1": switch_node
-            "P$2": led_power
-        params:
-            value: "2.2uH"
-    )
+    inst inductor: Inductor(switch_node, led_power, value="2.2uH")
 
-    inst feedback_top: Resistor(
-        connections:
-            "1": feedback
-            "2": led_power
-        params:
-            value: "22.6k"
-    )
+    inst feedback_top: Resistor(feedback, led_power, value="22.6k")
 
-    inst feedback_bottom: Resistor(
-        connections:
-            "1": gnd
-            "2": feedback
-        params:
-            value: "10k"
-    )
+    inst feedback_bottom: Resistor(gnd, feedback, value="10k")
 
     inst buck: Buck(
         connections:
@@ -175,69 +121,21 @@ board SixLineMatrix:
             value: "CUI-PJ-051"
     )
 
-    inst cap_1: Cap0805(
-        connections:
-            "1": v5
-            "2": gnd
-        params:
-            value: "10uF"
-    )
+    inst cap_1: Cap0805(v5, gnd, value="10uF")
 
-    inst cap_2: Cap0603(
-        connections:
-            "1": vcc
-            "2": gnd
-        params:
-            value: "1uF"
-    )
+    inst cap_2: Cap0603(vcc, gnd, value="1uF")
 
-    inst cap_3: Cap0603(
-        connections:
-            "1": v12
-            "2": gnd
-        params:
-            value: "1uF"
-    )
+    inst cap_3: Cap0603(v12, gnd, value="1uF")
 
-    inst cap_4: Cap0805(
-        connections:
-            "1": v10
-            "2": gnd
-        params:
-            value: "10uF"
-    )
+    inst cap_4: Cap0805(v10, gnd, value="10uF")
 
-    inst cap_5: Cap0603(
-        connections:
-            "1": vcc
-            "2": gnd
-        params:
-            value: "1uF"
-    )
+    inst cap_5: Cap0603(vcc, gnd, value="1uF")
 
-    inst cap_8: Cap1210(
-        connections:
-            "1": led_power
-            "2": gnd
-        params:
-            value: "47uF"
-    )
+    inst cap_8: Cap1210(led_power, gnd, value="47uF")
 
-    inst cap_9: CapUnspecified(
-        connections:
-            "1": led_power
-            "2": gnd
-        params:
-            value: ""
-    )
+    inst cap_9: CapUnspecified(led_power, gnd, value="")
 
-    inst cap_10: Cap0603(
-        connections:
-            "1": switch_node
-            "2": bootstrap
-        params:
-            value: "0.1uF"
-    )
+    inst cap_10: Cap0603(switch_node, bootstrap, value="0.1uF")
 
     inst row_switch[6]: PChannel(
         connections:
@@ -253,19 +151,8 @@ board SixLineMatrix:
             value: "MOSFET-PCHANNEL"
     )
 
-    inst bus_ports[3]: RJ45(
-        connections:
-            "1": sda_hv
-            "2": gnd
-            "3": scl_hv
-            "4": v12
-            "5": gnd
-            "6": gnd
-            "7": v12
-            "8": gnd
-        params:
-            value: "54602-908LF"
-    )
+    inst bus_ports[3]: RJ45("1": sda_hv, "2": gnd, "3": scl_hv, "4": v12, "5": gnd, "6": gnd,
+        "7": v12, "8": gnd, value="54602-908LF")
 
     inst i2c_pullups[2]: Resistor(
         connections:
@@ -276,10 +163,4 @@ board SixLineMatrix:
             value: "2k"
     )
 
-    inst buck_input_caps[2]: Cap0805(
-        connections:
-            "1": v5
-            "2": gnd
-        params:
-            value: "10uF"
-    )
+    inst buck_input_caps[2]: Cap0805(v5, gnd, value="10uF")

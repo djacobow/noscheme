@@ -147,9 +147,10 @@ class RenameSession:
             return []
         edits = [(span, new_name) for span in target.occurrences]
         if target.instance:
-            insertion = identity_edit(
-                target.instance, self.sources[Path(target.instance.span.filename)]
-            )
+            module = self.modules_by_path[target.instance.span.filename]
+            definition = self.definitions[(module.name, target.owner.name.text)]
+            resolved = next(n for n in definition.body if n.name == target.instance.name)
+            insertion = identity_edit(resolved, self.sources[Path(target.instance.span.filename)])
             if insertion:
                 edits.append(insertion)
             edits.extend(waiver_edits(target.owner, target.name, new_name))

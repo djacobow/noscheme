@@ -52,6 +52,7 @@ SCHEMAS = {
         "footprint": "string",
         "ref_prefix": "string",
         "current_loads": "current_loads",
+        "interchangeable": "aliases",
         "value": "expression",
         "custom": "custom",
     },
@@ -352,13 +353,20 @@ def read_value(key, kind, expr, scope, project, module, local_names=()):
         value = enum(expr, "unused", UNUSED, project, module, local_names)
     elif kind == "aliases":
         if not isinstance(expr, a.ListExpr):
-            fail("metadata.value", "aliases must be a list of names or strings", expr.span)
+            fail("metadata.value", f"{key!r} requires a list of pin names", expr.span)
+        # Integer spellings are physical pin IDs, as in pin keys: 1 and "1" are one pin.
         value = tuple(
-            x.text if isinstance(x, a.Name) else x.value if isinstance(x, a.String) else None
+            x.text
+            if isinstance(x, a.Name)
+            else x.value
+            if isinstance(x, a.String)
+            else x.spelling
+            if isinstance(x, a.Number) and x.spelling.isdecimal()
+            else None
             for x in expr.items
         )
         if any(x is None or not x for x in value):
-            fail("metadata.value", "aliases must be nonempty names or strings", expr.span)
+            fail("metadata.value", f"{key!r} holds names, strings, or integers", expr.span)
     elif constraint(kind) in NUMERIC and not (
         isinstance(expr, (a.Number, a.String, a.ListExpr))
         or isinstance(expr, a.Unary)

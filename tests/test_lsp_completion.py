@@ -35,6 +35,33 @@ def test_partial_component_type(tmp_path):
     assert suggestions["Receiver"].text == "Receiver"
 
 
+def test_inline_pin_and_parameter_completion(tmp_path):
+    source = PRELUDE.replace("    pins:", "    params:\n        value: number = 1\n    pins:", 1)
+    suggestions = complete(tmp_path, source + "    inst r: Receiver(si|)")
+    assert suggestions["signal"].text == "signal: "
+    suggestions = complete(tmp_path, source + "    inst r: Receiver(01: net, va|)")
+    assert suggestions["value"].text == "value="
+    suggestions = complete(tmp_path, source + "    inst r: Receiver(01: net,\n        va|lue=2)")
+    assert suggestions["value"].text == "value"
+    assert not complete(tmp_path, source + "    inst r: Receiver(value=si|)")
+    assert not complete(tmp_path, source + "    inst r: Receiver(01: net)\n    si|")
+
+
+@pytest.mark.parametrize("argument", ["bus.", "01: bus.", "bus[0:1]."])
+def test_inline_bundle_member_completion(tmp_path, argument):
+    source = PRELUDE.replace(
+        "board B:",
+        """bundle Bus:
+    data: nettype.digital
+board B:
+    net bus: Bus[2]""",
+    )
+    source += "\n    inst r: Receiver(" + argument + "|)"
+    suggestions = complete(tmp_path, source)
+    assert suggestions["data"].text == "data"
+    assert source[suggestions["data"].start] == "|"
+
+
 def test_incomplete_connection_section_inherited_aliases(tmp_path):
     suggestions = complete(
         tmp_path, PRELUDE + "    inst r: Specialized(\n        connections:\n            |"

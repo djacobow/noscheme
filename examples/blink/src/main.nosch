@@ -15,7 +15,4 @@ board Blink:
                 1: role.power_output
                 2: role.ground
     )
-    inst indicators[2]: Indicator(
-        connections:
-            supply: global.v5
-    )
+    inst indicators[2]: Indicator(supply: global.v5)

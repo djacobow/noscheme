@@ -1,6 +1,6 @@
 """Contextual completion with bounded recovery of the definition being edited."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import json
 import re
 
@@ -19,7 +19,7 @@ TYPE_PREFIX = r"[A-Za-z0-9_#.]*"
 DEFINITION = re.compile(
     rf"^(component|block|board|bundle|nettype)\s+({IDENTIFIER})(?=\s|:)[^\n]*:", re.M
 )
-INSTANCE = re.compile(rf"^(\s*)inst\s+{IDENTIFIER}(?:\[[^\n]*?\])*\s*:\s*({TYPE_PATH})\s*\(")
+INSTANCE = re.compile(rf"^([ \t]*)inst\s+{IDENTIFIER}(?:\[[^\n]*?\])*\s*:\s*({TYPE_PATH})\s*\(")
 
 
 @dataclass(frozen=True)
@@ -398,6 +398,90 @@ def recovered_project(path, config, sources, masked, owner):
     return project, next((m for m in project.modules.values() if m.path == path), None)
 
 
+def inline_completion(path, config, sources, offset, masked):
+    """Offer pins/parameters and bundle members inside unfinished compact instances."""
+    owners = list(DEFINITION.finditer(masked, 0, offset))
+    if not owners or owners[-1][1] not in {"board", "block"}:
+        return []
+    owner = owners[-1]
+    instances = list(re.finditer(INSTANCE.pattern, masked[owner.end() : offset], re.M))
+    if not instances:
+        return []
+    active = instances[-1]
+    opening = owner.end() + active.end()
+    arguments = masked[opening:offset]
+    if arguments.lstrip(" \t").startswith("\n"):
+        return []  # Section form, including unfinished connections sections.
+    depth = 0
+    for char in arguments:
+        if char in "([":
+            depth += 1
+        elif char in ")]":
+            depth -= 1
+        if depth < 0:
+            return []  # The instance has already closed.
+    _, keyword, argument = current_argument(arguments)
+    if keyword or depth:
+        return []
+    argument = argument.strip()
+    # Reuse bundle recovery with a virtual section-form connection. All text to
+    # the right of this insertion has the same offset delta, including the cursor.
+    if "." in argument:
+        reference = re.sub(rf"^(?:{IDENTIFIER}|[0-9]+)?\s*:\s*", "", argument)
+        if re.fullmatch(rf".+\.{WORD}", reference):
+            prefix = "\n" + active[1] + "    connections:\n" + active[1] + "        1: "
+            source = sources[path]
+            reference_start = offset - len(reference)
+            virtual = source[:opening] + prefix + source[reference_start:]
+            delta = opening + len(prefix) - reference_start
+            virtual_masked = masked_source(virtual, offset + delta)
+            if virtual_masked is not None:
+                return [
+                    replace(item, start=item.start - delta, end=item.end - delta)
+                    for item in bundle_completion(
+                        path, config, {**sources, path: virtual}, offset + delta, virtual_masked
+                    )
+                ]
+    if not re.fullmatch(WORD, argument):
+        return []
+    try:
+        project, module = recovered_project(path, config, sources, masked, owner)
+        symbol = module.symbols.get(active[2]) if module else None
+        if symbol is None or symbol.declaration is None:
+            return []
+        target = Resolver(project).resolve_interfaces()[(symbol.module, symbol.name)]
+        tail = re.match(WORD, masked[offset:]).group()
+        start, end = offset - len(argument), offset + len(tail)
+        suffix = masked[end:].lstrip()
+        choices = []
+        for alias, canonical in target.aliases.items():
+            spelling = alias if re.fullmatch(IDENTIFIER + r"|[0-9]+", alias) else json.dumps(alias)
+            choices.append(
+                (
+                    alias,
+                    spelling + ("" if suffix.startswith(":") else ": "),
+                    f"{target.name}: pin/port {canonical}",
+                    "pin",
+                )
+            )
+        choices.extend(
+            (
+                name,
+                name + ("" if suffix.startswith("=") else "="),
+                f"{target.name}: parameter {name}",
+                "parameter",
+            )
+            for name in target.parameters
+        )
+        return [
+            Suggestion(label, text, detail, kind, start, end)
+            for label, text, detail, kind in sorted(choices)
+            if label.startswith(argument)
+        ]
+    except (DiagnosticError, OSError, UnicodeError):
+        return []
+
+
 def completion_items(path, config, sources, offset):
     source = sources[path]
     if config is not None:
@@ -410,6 +494,9 @@ def completion_items(path, config, sources, offset):
     masked = masked_source(source, offset)
     if masked is None or config is None:
         return []
+    inline = inline_completion(path, config, sources, offset, masked)
+    if inline:
+        return inline
     bundles = bundle_completion(path, config, sources, offset, masked)
     if bundles:
         return bundles

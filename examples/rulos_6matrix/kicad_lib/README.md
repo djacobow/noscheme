@@ -5,6 +5,10 @@ NoScheme's `convert-library` tool. They are committed so compilation, editor
 navigation/completion, and export validation work without KiCad installed.
 Handwritten specializations live in `../components.nosch`.
 
+The `Device` snapshot includes generated interchangeable-pin groups for `R` and
+`C`, allowing their instances to use compact positional connections. Source values
+and physical pad assignments are preserved by the example's regression tests.
+
 | Directory | Converted symbols |
 |---|---|
 | `Device/` | `R`, `C` |

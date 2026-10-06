@@ -197,10 +197,14 @@ for a PCB handoff. Current performance measurements are recorded in its README.
 ### Explicit names and connection syntax
 
 Named connections prevent silent rewiring when declarations move. `:` indicates
-a connection or binding; `=` is reserved for parameter defaults and formatting
+a connection or binding; `=` is used for parameter defaults and call
 arguments. Instance parentheses visually group connections and configuration,
 while indentation separates their sections. Definition bodies hold internal
-circuitry. These choices preserve explicit interfaces without positional wiring.
+circuitry. Compact instances allow positional connections only for a component's
+explicitly declared group of interchangeable pins, such as a resistor's two
+terminals. All group members must be supplied, and their electrical metadata must
+match. Other pins remain named; compact parameter arguments use `name=value`.
+The group order fixes physical pad assignments, with no automatic PCB pin swapping.
 
 Named imports, import aliases, and qualified module references let authors choose
 how visibly to show provenance. Builtin namespaces require explicit imports and

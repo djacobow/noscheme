@@ -218,6 +218,34 @@ class Builder:
         selectors = tuple(self.index(x) if isinstance(x, Tree) else self.name(x) for x in c)
         return a.Endpoint(self.span(node), tuple(leading), head, selectors)
 
+    def inline_instance(self, span, name, dimensions, component, arguments):
+        """Desugar `inst r: R(a, b, 1: c, value=4.7k)` into ordinary sections."""
+        positional, bindings, parameters = [], [], []
+        for argument in arguments.children:
+            c = argument.children
+            if argument.data == "positional_argument":
+                positional.append(self.expr(c[0]))
+            elif argument.data == "inline_binding":
+                bindings.append(
+                    a.Binding(self.span(argument), self.endpoint(c[0]), self.expr(c[1]))
+                )
+            else:
+                parameters.append(a.Argument(self.span(argument), self.name(c[0]), self.expr(c[1])))
+        sections = tuple(
+            a.Section(self.span(arguments), kind, tuple(entries))
+            for kind, entries in (("connections", bindings), ("params", parameters))
+            if entries
+        )
+        return a.Instance(
+            span,
+            self.name(name),
+            tuple(dimensions),
+            tuple(self.name(x) for x in component.children),
+            sections,
+            tuple(positional),
+            inline=True,
+        )
+
     def field(self, node):
         c = node.children
         values = [x for x in c[1:] if not (isinstance(x, Tree) and x.data == "field")]
@@ -284,12 +312,15 @@ class Builder:
             while c[i].data == "index":
                 dimensions.append(self.index(c[i]))
                 i += 1
+            rest = c[i + 1 :]
+            if rest and rest[0].data == "inline_arguments":
+                return self.inline_instance(span, c[0], dimensions, c[i], rest[0])
             return a.Instance(
                 span,
                 self.name(c[0]),
                 tuple(dimensions),
                 tuple(self.name(x) for x in c[i].children),
-                tuple(self.build(x) for x in c[i + 1 :]),
+                tuple(self.build(x) for x in rest),
             )
         if kind == "element_override":
             indices = tuple(self.index(x) for x in c if x.data == "index")

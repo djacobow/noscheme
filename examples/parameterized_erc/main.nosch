@@ -59,8 +59,4 @@ board Demo:
                     custom:
                         placement: "At the remote connector"
     )
-    inst endpoint: Endpoint(
-        connections:
-            1: bus
-            2: supply
-    )
+    inst endpoint: Endpoint(1: bus, 2: supply)

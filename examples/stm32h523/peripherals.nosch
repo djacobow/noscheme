@@ -63,39 +63,16 @@ block UsbC:
                             absent: role.passive
                 [A6, A7]: role.digital_bidirectional
     )
-    inst cc_pulldowns[2]: Resistor0603(
-        connections:
-            1: cc
-            2: ground
-        params:
-            value: 5.1k
-    )
+    inst cc_pulldowns[2]: Resistor0603(cc, ground, value=5.1k)
 
 block Ldo3v3:
     ports:
         input: nettype.power
         output: nettype.power
         ground: nettype.ground
-    inst regulator: TLV1117LV33(
-        connections:
-            1: ground
-            2: output
-            3: input
-    )
-    inst input_cap: Capacitor0603(
-        connections:
-            1: input
-            2: ground
-        params:
-            value: 1u
-    )
-    inst output_cap: Capacitor0603(
-        connections:
-            1: output
-            2: ground
-        params:
-            value: 4.7u
-    )
+    inst regulator: TLV1117LV33(1: ground, 2: output, 3: input)
+    inst input_cap: Capacitor0603(input, ground, value=1u)
+    inst output_cap: Capacitor0603(output, ground, value=4.7u)
     // POC: direct rails, no reverse-feed isolation or automatic power selection.
 
 block MicroSD:
@@ -126,11 +103,7 @@ block MicroSD:
     // DAT1/DAT2 are unused by SPI but each has a physical pull-up to supply.
     // These passive nets have no resistance budget; their two-terminal wiring
     // is explicit even though no bias metadata is needed for current checks.
-    inst unused_dat_pullups[2]: InputBias0603(
-        connections:
-            1: supply
-            2: unused_dat
-    )
+    inst unused_dat_pullups[2]: InputBias0603(supply, unused_dat)
     inst cs_pullup: InputBias0603(
         connections:
             1: supply
@@ -177,13 +150,7 @@ block MicroSD:
             custom:
                 placement: "Place adjacent to microSD VDD pad."
     )
-    inst bulk: Capacitor0603(
-        connections:
-            1: supply
-            2: ground
-        params:
-            value: 4.7u
-    )
+    inst bulk: Capacitor0603(supply, ground, value=4.7u)
 
 block CortexDebug:
     ports:

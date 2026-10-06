@@ -48,24 +48,10 @@ board STM32H523Reference:
     net uart_tx: nettype.digital[2]
     net uart_rx: nettype.digital[2]
 
-    inst mcu: mcu.MCU_H523(
-        connections:
-            supply: global.v3v3
-            ground: global.gnd
-            usb: usb
-            debug: debug
-            sd: sd
-            sd_detect#: sd_detect#
-            oled: oled
-            expansion_i2c: expansion_i2c
-            expansion_spi: expansion_spi
-            expansion_gpio: expansion_gpio
-            led_drive: led_drive
-            buttons#: buttons#
-            boot0: boot0
-            uart_tx: uart_tx
-            uart_rx: uart_rx
-    )
+    inst mcu: mcu.MCU_H523(supply: global.v3v3, ground: global.gnd, usb: usb, debug: debug, sd: sd,
+        sd_detect#: sd_detect#, oled: oled, expansion_i2c: expansion_i2c,
+        expansion_spi: expansion_spi, expansion_gpio: expansion_gpio, led_drive: led_drive,
+        buttons#: buttons#, boot0: boot0, uart_tx: uart_tx, uart_rx: uart_rx)
 
     inst usb_c: peripherals.UsbC(
         connections:
@@ -81,27 +67,12 @@ board STM32H523Reference:
                         header5v: "absent"
     )
 
-    inst regulator: peripherals.Ldo3v3(
-        connections:
-            input: global.v5
-            output: global.v3v3
-            ground: global.gnd
-    )
+    inst regulator: peripherals.Ldo3v3(input: global.v5, output: global.v3v3, ground: global.gnd)
 
-    inst micro_sd: peripherals.MicroSD(
-        connections:
-            supply: global.v3v3
-            ground: global.gnd
-            bus: sd
-            detect#: sd_detect#
-    )
+    inst micro_sd: peripherals.MicroSD(supply: global.v3v3, ground: global.gnd, bus: sd,
+        detect#: sd_detect#)
 
-    inst swd: peripherals.CortexDebug(
-        connections:
-            reference: global.v3v3
-            ground: global.gnd
-            debug: debug
-    )
+    inst swd: peripherals.CortexDebug(reference: global.v3v3, ground: global.gnd, debug: debug)
 
     // OLED header order: 3.3 V, ground, SCL, SDA; match the module cable to it.
     inst oled_decouple: Capacitor0603(
@@ -114,13 +85,7 @@ board STM32H523Reference:
             custom:
                 placement: "Place beside display header supply pin."
     )
-    inst oled_bulk: Capacitor0603(
-        connections:
-            1: global.v3v3
-            2: global.gnd
-        params:
-            value: 4.7u
-    )
+    inst oled_bulk: Capacitor0603(global.v3v3, global.gnd, value=4.7u)
 
     inst oled_header: Header1x4(
         connections:
@@ -137,16 +102,8 @@ board STM32H523Reference:
                 4: [role.open_drain, bias.none]
     )
 
-    inst oled_scl_pullup: I2CPullup(
-        connections:
-            1: global.v3v3
-            2: oled.scl
-    )
-    inst oled_sda_pullup: I2CPullup(
-        connections:
-            1: global.v3v3
-            2: oled.sda
-    )
+    inst oled_scl_pullup: I2CPullup(1: global.v3v3, 2: oled.scl)
+    inst oled_sda_pullup: I2CPullup(1: global.v3v3, 2: oled.sda)
     // Bias is explicitly modeled; check whether the chosen OLED module already
     // has pullups. Choose net resistance/capacitance limits after hardware review.
 
@@ -187,16 +144,8 @@ board STM32H523Reference:
     )
     // Connector roles above describe the external equipment's endpoints.
     // Example SPI roles assume the board is controller; other uses need ERC configurations.
-    inst expansion_scl_pullup: I2CPullup(
-        connections:
-            1: global.v3v3
-            2: expansion_i2c.scl
-    )
-    inst expansion_sda_pullup: I2CPullup(
-        connections:
-            1: global.v3v3
-            2: expansion_i2c.sda
-    )
+    inst expansion_scl_pullup: I2CPullup(1: global.v3v3, 2: expansion_i2c.scl)
+    inst expansion_sda_pullup: I2CPullup(1: global.v3v3, 2: expansion_i2c.sda)
 
     // TX/RX are named from the MCU's perspective. Each header gets its own UART.
     inst uart_headers[2]: UartHeaderJST3(
@@ -212,11 +161,7 @@ board STM32H523Reference:
     )
 
     // Two active-low buttons with independent pull-ups and common ground.
-    inst buttons[2]: PushButton(
-        connections:
-            signal: buttons#
-            ground: global.gnd
-    )
+    inst buttons[2]: PushButton(buttons#, global.gnd)
     inst button_pullups[2]: InputBias0603(
         connections:
             1: global.v3v3
@@ -230,18 +175,10 @@ board STM32H523Reference:
                         reference: std.bias_reference("1")
     )
     // NRST uses the MCU internal pull-up and the existing 100 nF reset capacitor.
-    inst reset_button: PushButton(
-        connections:
-            signal: debug.reset#
-            ground: global.gnd
-    )
+    inst reset_button: PushButton(debug.reset#, global.gnd)
 
     // Shunt installed: BOOT0 high. Shunt absent: resistor pulls BOOT0 low.
-    inst boot_header: Header1x2(
-        connections:
-            1: global.v3v3
-            2: boot0
-    )
+    inst boot_header: Header1x2(1: global.v3v3, 2: boot0)
     inst boot_pulldown: InputBias0603(
         connections:
             1: boot0
