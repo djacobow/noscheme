@@ -134,7 +134,7 @@ regeneration with the same source was verified byte-for-byte identical.
 
 ## Performance
 
-Latest recorded full-board results at `f38c836`, October 5, 2026: **3.93 s full
+Earlier full-board results at `f38c836`, October 5, 2026: **3.93 s full
 LSP analysis** and **1.37 s isolated ERC**, using five-run medians after parser
 and ERC optimizations. Environment: Python 3.13.9, Lark 1.3.1, pygls 2.1.1,
 Linux x86-64. Timings were collected separately from tests. They are local
@@ -145,6 +145,15 @@ repeatable commands, per-sample timings, source hashes, and optional cProfile
 output. This benchmark measures complete analysis; it does not directly measure
 completion/hover requests or typing responsiveness. Several seconds per analysis
 still warrants further work.
+
+Persistent-worker measurements (October 6, three-run medians) show 179 ms for
+an unchanged semantic snapshot, 2.15 s after editing the large board file, and
+3.71 s for full diagnostics after an edit. The same run measured 3.76 s for the
+uncached full analysis path. Workers separate interactive operations from ERC;
+large-file parsing and elaboration remain significant. These timings include
+pipe transport. See the [measurement table](../../docs/DEVELOPMENT.md#lsp-worker-measurements)
+for cold startup and smaller designs; add `--workers` to the benchmark command
+to reproduce them.
 
 ### Optimization history
 
@@ -167,8 +176,8 @@ parsing, including 5.90 s in comment masking. After parsing improvements, it
 measured 3.88 s parsing and 5.03 s ERC. These profiled timings include
 instrumentation overhead and must not be compared directly with the table.
 The main file is now parsed once per analysis instead of twice. AST reuse checks
-exact source text and lasts for one analysis; caching across edits remains
-unimplemented. Analysis still produces 20,725 references, 5,231 builtin hover
+exact source text. At that checkpoint it lasted for one analysis; the persistent
+worker cache added October 6 now also reuses unchanged ASTs across edits. Analysis still produces 20,725 references, 5,231 builtin hover
 entries, and 1,309 unchecked-net warnings, with no errors.
 
 ### ERC comparison

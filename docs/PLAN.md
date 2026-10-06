@@ -4,14 +4,11 @@
 
 As of October 6, 2026, the compiler, extensible ERC, KiCad export,
 and Vim/Neovim/VS Code integrations are implemented, including compact instances
-for interchangeable pins. The last full validation reported 925 passing tests.
-The WREN benchmark is complete; parser/ERC optimizations measured at `f38c836`
-reduced local full LSP analysis from 6.65 s to 3.93 s.
-
-Caching unchanged ASTs across edits is a proposed next performance step, not an
-implemented feature. Background cancellation and incremental parsing are also
-unimplemented. The [deferred review list](#deferred-work) records the remaining
-review proposals; it does not undo the performance work resumed below.
+for interchangeable pins. Persistent Python LSP workers now separate interactive
+semantic requests from background ERC and cache unchanged ASTs across edits.
+Changed files still parse in full; incremental parsing and a Rust port remain
+future options. The [deferred review list](#deferred-work) records the remaining
+review proposals.
 
 This file retains milestone history. Old test counts, benchmark timings, and
 implementation-stage plans describe those checkpoints. Use the
@@ -19,6 +16,28 @@ implementation-stage plans describe those checkpoints. Use the
 commands; recent work and measurements are listed first.
 
 ## Recent completed work
+
+### LSP caching and background workers (October 6, 2026)
+
+- [x] Bounded, opt-in AST cache keyed by filename and exact source, including
+  parse failures. Keep ordinary CLI behavior unchanged.
+- [x] Reuse loaded/resolved projects and semantic indexes within a snapshot;
+  invalidate on source, configuration, import availability, and configured ERC
+  module edits, including same-size edits with preserved timestamps.
+- [x] Separate persistent Python processes for interactive semantic work and
+  full ERC diagnostics. Analyze each open project once per background update.
+- [x] Coalesce edits after the existing 200 ms debounce; reject stale results,
+  terminate cancelled requests' workers, restart failed workers, and close
+  workers on shutdown. Check unreachable open files for syntax errors.
+- [x] Regression coverage for slow ERC alongside navigation, rapid edits,
+  stale interactive results, cancellation, recovery, and cache invalidation.
+  Validation: 954 tests passed; Ruff lint and formatting checks passed.
+- [x] Benchmark cold/warm/edited snapshots and multiple open files, including
+  subprocess transport. See [measurements](DEVELOPMENT.md#lsp-worker-measurements).
+- Remaining limits: full-file parsing, project-wide semantic rebuild after an
+  edit, large index transfer costs, and Python helper-module reloads requiring
+  a server restart. No Rust implementation is introduced by this change.
+
 
 ### Interchangeable pins and compact instances (October 6, 2026)
 

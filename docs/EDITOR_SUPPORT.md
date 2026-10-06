@@ -80,15 +80,25 @@ board's reachable import graph are also only syntax-checked. Navigation covers
 named definitions/imports, lexical nets/parameters, explicit pin/port aliases,
 and public bundle fields on both sides of connection bindings. Find-references uses the same resolved symbols. Rename supports selected symbols as described below;
 formatting is not implemented. A syntax error can temporarily prevent
-semantic navigation until the code parses again. Analysis currently performs
-serialized full checks; incremental compilation and background cancellation are
-future improvements.
+semantic navigation until the code parses again.
 
-The current file's AST is reused during project loading within one analysis,
-provided its source text matches. Every edit still reparses whole files; ASTs
-are not cached across updates. The 200 ms delay is a debounce, not a response-time
-guarantee. The latest recorded full WREN analysis is 3.93 seconds; see the
-[benchmark notes](../examples/wren/README.md#performance) for workload and limits.
+The server uses two persistent Python subprocesses: one for interactive semantic
+requests, the other for full diagnostics, including ERC. Slow ERC checks do not
+block completion, navigation, or handling new editor messages. Each project is
+checked once per snapshot even when several of its files are open. Edits are
+coalesced after a 200 ms debounce; an already-running check finishes, but its
+results are discarded if newer edits arrived. Request cancellation terminates
+that request's worker, which restarts on demand.
+
+Workers reuse ASTs by filename and exact source text, including parse failures.
+Only changed files need parsing again, but each changed file is still parsed in
+full. Resolved projects and semantic indexes are reused within an unchanged
+snapshot. Workers check disk content, configuration, module availability, and
+configured ERC module files before reuse. These caches are in memory only.
+Changes to Python helpers imported by ERC modules require restarting the server.
+The debounce is not a response-time guarantee; cold startup and large changed
+files still take time. See [Development](DEVELOPMENT.md#reference-tables-coverage-and-performance)
+for measurements and the benchmark command.
 
 The resolver can report several independent mistakes in one update, such as
 misspelled nets in separate bindings and an unknown component in another

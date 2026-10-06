@@ -7,6 +7,7 @@ initialization is reported separately. Run without competing test workloads.
 """
 
 import argparse
+import asyncio
 from copy import deepcopy
 import cProfile
 from hashlib import sha256
@@ -20,6 +21,7 @@ from time import perf_counter
 from noscheme.circuit import elaborate_project
 from noscheme.erc import apply_erc
 from noscheme.lsp_analysis import analyze
+from noscheme.lsp_transport import WorkerLane
 from noscheme.resolve import resolve_project
 
 
@@ -36,11 +38,63 @@ def measure(callback, repeat):
     }
 
 
+async def measure_workers(project, repeat):
+    """Include subprocess startup, snapshot validation, and private pipe transport."""
+    path = project.modules[project.config.board_module].path
+    source = path.read_text()
+    request = dict(
+        operation="analysis",
+        generation=0,
+        sources={path: source},
+        roots=[project.config.path.parent],
+        explicit=project.config.path,
+        paths=[path],
+    )
+    interactive, checker = WorkerLane(), WorkerLane()
+
+    async def sample(lane, count, edit=False):
+        times = []
+        for _ in range(count):
+            if edit:
+                request["generation"] += 1
+                request["sources"] = {path: source + f"\n// edit {request['generation']}\n"}
+            start = perf_counter()
+            response = await lane.call(request)
+            times.append((perf_counter() - start) * 1000)
+            assert response["valid"]
+            errors = [
+                d
+                for result in response["value"].values()
+                for d in result.diagnostics
+                if d.severity == "error"
+            ]
+            if errors:
+                raise RuntimeError(f"Worker benchmark has errors: {errors[0]}")
+        return {"median_ms": round(median(times), 3), "samples_ms": [round(t, 3) for t in times]}
+
+    try:
+        result = {"cold_semantic": await sample(interactive, 1)}
+        result["warm_semantic"] = await sample(interactive, repeat)
+        result["edited_semantic"] = await sample(interactive, repeat, edit=True)
+        request["paths"] = sorted(m.path for m in project.modules.values())
+        result["all_files_open_semantic"] = await sample(interactive, repeat)
+        request["operation"] = "diagnostics"
+        result["cold_diagnostics"] = await sample(checker, 1)
+        result["edited_diagnostics"] = await sample(checker, repeat, edit=True)
+        return result
+    finally:
+        await interactive.close()
+        await checker.close()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("project", nargs="?", default="examples/stm32h523")
     parser.add_argument("--repeat", type=int, default=5)
     parser.add_argument("--profile", type=Path, help="Write a separate full LSP cProfile run")
+    parser.add_argument(
+        "--workers", action="store_true", help="Also measure persistent LSP workers"
+    )
     args = parser.parse_args()
     if args.repeat < 1:
         parser.error("--repeat must be positive")
@@ -87,6 +141,8 @@ def main():
         ),
         "lsp_analysis": measure(analyze_project, args.repeat),
     }
+    if args.workers:
+        result["workers"] = asyncio.run(measure_workers(project, args.repeat))
     if args.profile:
         args.profile.parent.mkdir(parents=True, exist_ok=True)
         profile = cProfile.Profile()

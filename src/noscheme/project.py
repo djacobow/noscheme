@@ -11,6 +11,7 @@ import tomllib
 from functools import cached_property
 
 from . import ast as a
+from .analysis_cache import cached_project, record_source, record_candidate, watch_config
 from .diagnostics import Diagnostic, DiagnosticError, Related
 from .parser import Builder, parse
 
@@ -93,7 +94,10 @@ def source_text(path, sources=None):
     path = Path(path).resolve()
     if sources is not None and path in sources:
         return sources[path]
-    return path.read_text(encoding="utf-8")
+    record_candidate(path)
+    text = path.read_text(encoding="utf-8")
+    record_source(path, text)
+    return text
 
 
 def read_config(path: Path | str = ".", *, sources=None) -> ProjectConfig:
@@ -174,17 +178,19 @@ def read_config(path: Path | str = ".", *, sources=None) -> ProjectConfig:
         or len(set(rule_sets)) != len(rule_sets)
     ):
         invalid("erc_rule_sets", "erc_rule_sets must be an array of distinct rule-set names")
-    return ProjectConfig(
-        path,
-        "0.1",
-        module,
-        name,
-        sources,
-        libraries,
-        output,
-        span("board"),
-        modules,
-        tuple(rule_sets),
+    return watch_config(
+        ProjectConfig(
+            path,
+            "0.1",
+            module,
+            name,
+            sources,
+            libraries,
+            output,
+            span("board"),
+            modules,
+            tuple(rule_sets),
+        )
     )
 
 
@@ -195,6 +201,7 @@ def module_path(config, name, span, sources=None):
     matches = []
     for root in config.search_paths:
         candidate = root / relative
+        record_candidate(candidate)
         resolved = candidate.resolve()
         if not resolved.is_relative_to(root):
             fail("import.escape", f"module {name!r} escapes search root {root}", span)
@@ -230,6 +237,7 @@ def erc_exports(config):
     return result
 
 
+@cached_project
 def load_project(path: Path | str = ".", *, sources=None, parsed_sources=None) -> Project:
     """Load a project, optionally reusing ASTs from the same analysis.
 

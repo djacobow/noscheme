@@ -4,6 +4,7 @@ from dataclasses import dataclass, fields, replace
 import re
 
 from . import ast as a
+from .analysis_cache import cached_resolution
 from .diagnostics import Related, DiagnosticError, collect_errors
 from .metadata import (
     NETTYPES,
@@ -299,6 +300,7 @@ class Resolver:
             parent.electrical if parent else self.builtin_base(module, source),
         )
 
+    @cached_resolution
     def resolve_interfaces(self):
         """Resolve inherited public interfaces without checking instance bodies."""
         sources = {
@@ -373,6 +375,7 @@ class Resolver:
             body.append(node)
         return replace(definition, body=tuple(body))
 
+    @cached_resolution
     def resolve_all(self):
         self.resolve_interfaces()
         errors = []

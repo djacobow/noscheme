@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 import importlib.util
+from pathlib import Path
 import re
 import sys
 
@@ -129,6 +130,7 @@ def load_registry(paths=(), span=None):
     for callback in (register, register_primitives, register_electrical, register_voltage):
         callback(registry)
     for index, path in enumerate(paths):
+        path = Path(path)
         name = f"_noscheme_erc_{index}"
         try:
             spec = importlib.util.spec_from_file_location(name, path)
@@ -137,7 +139,9 @@ def load_registry(paths=(), span=None):
             module = importlib.util.module_from_spec(spec)
             sys.modules[name] = module
             try:
-                spec.loader.exec_module(module)
+                # Read source directly: editor changes can preserve both byte count
+                # and timestamp, making Python's timestamp-based pyc stale.
+                exec(compile(path.read_bytes(), str(path), "exec"), module.__dict__)
                 module.register(registry)
             finally:
                 sys.modules.pop(name, None)

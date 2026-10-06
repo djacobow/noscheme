@@ -60,8 +60,23 @@ No export state is changed, and profile files under `build/` are ignored.
 Comment masking consumes ordinary text in chunks while preserving source
 offsets and newlines. During LSP analysis, the open file's parsed AST is passed
 to the project loader for reuse when the filename and source text match.
-This reuse lasts for one analysis only. Every edit still reparses the whole
-changed file; no AST cache persists across editor updates.
+Persistent LSP workers also retain ASTs across edits, keyed by exact filename and
+source text. Each changed file is still parsed in full. The opt-in cache leaves
+ordinary CLI compilation uncached. Each worker retains at most 256 parse entries
+and 16 MiB of source text (AST overhead is additional); eviction affects only
+performance. Resolved projects and semantic indexes are scoped to one editor/disk
+snapshot, with a 128-entry memo threshold before the next request resets them.
+Disk content is compared directly, so preserving a file's size and timestamp does
+not hide an edit. New/deleted modules and project configuration changes invalidate
+the snapshot too.
+
+The protocol loop delegates interactive work and full ERC diagnostics to separate
+persistent Python subprocesses. Private framed pipe messages carry source snapshots
+and results; plugins run in their worker's own interpreter. The background lane
+runs once per project, coalesces edits, and discards outdated results. Interactive
+cancellation kills its worker to avoid consuming an old response on a later request.
+Both workers close on LSP shutdown and restart on demand after failure. Plugin
+stdout is redirected to stderr to keep both protocols intact.
 
 ERC configuration views share unchanged circuit records and copy the paths to
 records whose selected roles change. A freeze memo local to each `apply_erc`
@@ -201,7 +216,12 @@ footprint overrides. For capacitors, edit `Capacitor0603` and use the prefix
 ERC extension modules are loaded once per loaded project configuration, shared
 by metadata validation and electrical checking. CLI export runs ERC once and
 uses the same diagnostics for its reports and stderr. Each fresh CLI operation
-or LSP analysis reloads extensions; there is no process-wide registry cache.
+reloads extensions. LSP workers reuse a registry within an unchanged snapshot and
+reload configured ERC modules when their source changes. Entry modules are read
+directly, avoiding stale timestamp-based Python bytecode. Imported Python helper
+modules follow Python's normal module cache; restart the server after editing
+those helpers. Plugin registration runs in both workers for schema resolution,
+but ERC callbacks run only in the diagnostics worker.
 `erc_rule_sets` selects automatic policies; the default is `["std.default"]`.
 Explicit `checks` applications run independently of that selection. Every rule
 receives the same recursively immutable graph for its configuration, with no
@@ -273,7 +293,7 @@ uv run --locked coverage report
 uv run --locked coverage html
 ```
 
-To measure resolve/elaborate, circuit copying, ERC, and complete LSP analysis:
+To measure resolve/elaborate, circuit copying, ERC, and complete uncached LSP analysis:
 
 ```sh
 uv run --locked python -m tools.benchmark_analysis examples/stm32h523 --repeat 5
@@ -281,11 +301,45 @@ uv run --locked python -m tools.benchmark_analysis examples/rulos_6matrix --repe
 uv run --locked python -m tools.benchmark_analysis examples/wren/full --repeat 5
 ```
 
+Add `--workers` to include persistent subprocess measurements: cold semantic
+analysis, unchanged snapshots, single-file edits, all project files open, and
+background ERC. These include process startup where applicable, source validation,
+and pipe serialization. Semantic timings measure preparation of navigation/hover
+indexes, not editor rendering or an end-to-end UI latency. Edits append a comment
+to an in-memory board buffer; no source files are changed.
+
 The benchmark writes no export state. It reports cold initialization separately
 from repeated operations. Timings are machine-dependent observations, not CI
 thresholds; extension-heavy projects can behave differently from these examples.
 The [WREN performance notes](../examples/wren/README.md#performance) separate
 the current measurements from earlier optimization checkpoints.
+
+### LSP worker measurements
+
+October 6, 2026; Python 3.13.9, Lark 1.3.1, pygls 2.1.1, Linux x86-64.
+Three-run medians with tests stopped; cold worker startup is a single sample.
+Measurements include private pipe serialization and disk snapshot checks.
+The baseline is the existing full uncached `analyze()` path in the same build.
+
+| Workload | Uncached full analysis | Warm semantic | Edited semantic | Edited full diagnostics |
+| --- | ---: | ---: | ---: | ---: |
+| STM32 | 229 ms | 8 ms | 81 ms | 142 ms |
+| Rulos | 611 ms | 8 ms | 103 ms | 504 ms |
+| WREN full | 3,756 ms | 179 ms | 2,150 ms | 3,706 ms |
+
+Cold semantic worker requests measured 334 / 365 / 2,150 ms respectively;
+cold diagnostics measured 385 / 753 / 3,363 ms. With all project files included
+in the open-file set, repeated unchanged semantic requests measured
+10 / 9 / 229 ms. The first expanded open-file set rebuilds the index, so those
+samples are reported separately in the benchmark's sample arrays.
+
+Separating ERC makes interactive work independent of a slow checker; it does
+not reduce the checker's own runtime. WREN's large edited board still requires
+full parsing and semantic reconstruction. Repeated WREN navigation also pays
+for transferring the full reference/hover index from the worker. These are
+remaining optimization targets. The slow-checker regression test uses a release
+barrier to verify navigation responds while ERC is blocked, without a fragile
+millisecond threshold.
 
 ## Parameterized ERC example
 

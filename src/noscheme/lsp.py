@@ -3,22 +3,19 @@
 import argparse
 import asyncio
 import logging
-import sys
-from contextlib import redirect_stdout
 from pathlib import Path
 from urllib.parse import unquote, urlparse
 
 from lsprotocol import types
 from pygls.lsp.server import LanguageServer
-from pygls.exceptions import JsonRpcInvalidParams
+from pygls.exceptions import JsonRpcInvalidParams, JsonRpcContentModified
 from pygls.workspace import TextDocument
 
 from . import ast as a
 from .diagnostics import Diagnostic, DiagnosticError
-from .lsp_analysis import Analysis, analyze, find_project
-from .lsp_completion import completion_items
+from .lsp_analysis import Analysis
 from .lsp_hover import format_hover
-from .lsp_rename import RenameSession
+from .lsp_transport import WorkerLane
 from .project import source_text
 
 LOG = logging.getLogger(__name__)
@@ -39,6 +36,10 @@ class NoSchemeServer(LanguageServer):
         self.analysis = {}
         self.published = set()
         self.pending = None
+        self.generation = 0
+        self.interactive = WorkerLane()
+        self.checker = WorkerLane()
+        self.analysis_sources = {}
 
     def sources(self):
         return {
@@ -95,33 +96,63 @@ class NoSchemeServer(LanguageServer):
             or None,
         )
 
-    def refresh(self):
-        sources = self.sources()
+    async def request_analysis(self, operation, *, path=None, offset=None, new_name=None):
+        generation = self.generation
+        request = {
+            "operation": operation,
+            "generation": generation,
+            "sources": self.sources(),
+            "roots": self.roots(),
+            "explicit": self.project_path,
+            "paths": sorted(
+                p
+                for uri in self.open_uris
+                if (p := uri_path(uri)) is not None and p.suffix == ".nosch"
+            ),
+            "path": path,
+            "offset": offset,
+            "new_name": new_name,
+        }
+        lane = self.checker if operation == "diagnostics" else self.interactive
+        response = await lane.call(request)
+        if generation != self.generation or not response["valid"]:
+            if generation == self.generation:
+                self.schedule()
+            raise JsonRpcContentModified("Source changed during analysis")
+        return response["value"], response["sources"]
+
+    async def refresh(self):
+        generation = self.generation
+        try:
+            results, sources = await self.request_analysis("diagnostics")
+        except JsonRpcContentModified:
+            return
+        except Exception as exc:
+            LOG.exception("NoScheme analysis failed")
+            if generation != self.generation:
+                return
+            sources = self.sources()
+            results = {
+                path: Analysis(
+                    [
+                        Diagnostic(
+                            "lsp.analysis", "error", str(exc), a.Span(str(path), 0, 0, 1, 1, 1, 1)
+                        )
+                    ]
+                )
+                for path in sources
+                if path.suffix == ".nosch"
+            }
         grouped = {}
-        self.analysis = {}
-        # Full checks are serialized. The debounce avoids compiling each keystroke;
-        # published versions identify the exact open-buffer snapshot checked.
-        cache = {}
-        for uri in sorted(self.open_uris):
-            path = uri_path(uri)
-            if path is None or path.suffix != ".nosch":
-                continue
-            try:
-                config = find_project(path, self.roots(), self.project_path, sources)
-                # Analyze each current file, including unreachable/new modules.
-                # Project-local ERC extensions may print; reserve stdout for LSP.
-                with redirect_stdout(sys.stderr):
-                    result = analyze(path, config, sources)
-            except Exception as exc:
-                LOG.exception("NoScheme analysis failed")
-                span = a.Span(str(path), 0, 0, 1, 1, 1, 1)
-                result = Analysis([Diagnostic("lsp.analysis", "error", str(exc), span)])
-            self.analysis[uri] = result
+        seen = set()
+        self.analysis = {path.as_uri(): result for path, result in results.items()}
+        self.analysis_sources = sources
+        for result in results.values():
             for d in result.diagnostics:
                 target = Path(d.span.filename).as_uri()
                 key = (target, d.code, d.span.start_pos, d.message, d.configuration, d.application)
-                if key not in cache:
-                    cache[key] = True
+                if key not in seen:
+                    seen.add(key)
                     grouped.setdefault(target, []).append(self.diagnostic(d, sources))
         for uri in self.published | set(grouped) | self.open_uris:
             version = (
@@ -137,31 +168,49 @@ class NoSchemeServer(LanguageServer):
         self.published = set(grouped)
 
     def schedule(self):
-        self.analysis.clear()  # Never navigate using spans from a previous buffer.
-        if self.pending:
-            self.pending.cancel()
+        self.generation += 1
+        self.analysis.clear()
+        self.analysis_sources = {}
+        if self.pending is not None and not self.pending.done():
+            return
 
         async def delayed():
-            await asyncio.sleep(0.2)
-            self.refresh()
+            try:
+                while True:
+                    generation = self.generation
+                    await asyncio.sleep(0.2)
+                    if generation != self.generation:
+                        continue
+                    await self.refresh()
+                    if generation == self.generation:
+                        return
+            finally:
+                self.pending = None
 
         self.pending = asyncio.create_task(delayed())
 
-    def reference(self, params, *, hover=False):
+    async def reference(self, params, *, hover=False):
         uri = params.text_document.uri
         path = uri_path(uri)
         if path is None:
             return None
-        if uri not in self.analysis:
-            if self.pending:
-                self.pending.cancel()
-            self.refresh()
+        # The worker validates disk content even when the editor sends no watcher
+        # notification. An unchanged snapshot reuses its semantic index.
+        results, sources = await self.request_analysis("analysis")
+        self.analysis = {p.as_uri(): result for p, result in results.items()}
+        self.analysis_sources = sources
         result = self.analysis.get(uri)
         if result is None:
             return None
         doc = self.workspace.get_text_document(uri)
         lookup = result.hover_at if hover else result.reference_at
         return lookup(path, doc.offset_at_position(params.position))
+
+    async def close_workers(self):
+        if self.pending is not None:
+            self.pending.cancel()
+            await asyncio.gather(self.pending, return_exceptions=True)
+        await asyncio.gather(self.interactive.close(), self.checker.close())
 
 
 def create_server(project=None):
@@ -191,24 +240,24 @@ def create_server(project=None):
         ls.schedule()
 
     @server.feature(types.TEXT_DOCUMENT_DEFINITION)
-    def definition(ls: NoSchemeServer, params: types.DefinitionParams):
-        ref = ls.reference(params)
+    async def definition(ls: NoSchemeServer, params: types.DefinitionParams):
+        ref = await ls.reference(params)
         if ref:
             return types.Location(
                 uri=Path(ref.target.filename).as_uri(),
-                range=ls.span_range(ref.target, ls.sources()),
+                range=ls.span_range(ref.target, ls.analysis_sources),
             )
         return None
 
     @server.feature(types.TEXT_DOCUMENT_REFERENCES)
-    def references(ls: NoSchemeServer, params: types.ReferenceParams):
+    async def references(ls: NoSchemeServer, params: types.ReferenceParams):
         # Refresh through the same snapshot path used by definition navigation.
-        if ls.reference(params) is None:
+        if await ls.reference(params) is None:
             return []
         path = uri_path(params.text_document.uri)
         doc = ls.workspace.get_text_document(params.text_document.uri)
         result = ls.analysis[params.text_document.uri]
-        sources = ls.sources()
+        sources = ls.analysis_sources
         return [
             types.Location(uri=Path(span.filename).as_uri(), range=ls.span_range(span, sources))
             for span in result.references_at(
@@ -216,26 +265,20 @@ def create_server(project=None):
             )
         ]
 
-    def rename_context(ls, params):
+    def request_position(ls, params):
         path = uri_path(params.text_document.uri)
         if path is None or params.text_document.uri not in ls.open_uris:
             raise ValueError("Open a NoScheme source file to rename a symbol.")
-        sources = ls.sources()
-        config = find_project(path, ls.roots(), ls.project_path, sources)
-        if config is None:
-            raise ValueError("Rename requires a NoScheme project.")
-        session = RenameSession(config, sources)
         offset = ls.workspace.get_text_document(params.text_document.uri).offset_at_position(
             params.position
         )
-        return session, path, offset, sources
+        return path, offset
 
     @server.feature(types.TEXT_DOCUMENT_PREPARE_RENAME)
-    def prepare_rename(ls: NoSchemeServer, params: types.PrepareRenameParams):
+    async def prepare_rename(ls: NoSchemeServer, params: types.PrepareRenameParams):
         try:
-            with redirect_stdout(sys.stderr):
-                session, path, offset, sources = rename_context(ls, params)
-                target = session.prepare(path, offset)
+            path, offset = request_position(ls, params)
+            target, sources = await ls.request_analysis("prepare", path=path, offset=offset)
             return types.PrepareRenamePlaceholder(
                 range=ls.span_range(target.span, sources), placeholder=target.name
             )
@@ -243,11 +286,12 @@ def create_server(project=None):
             raise JsonRpcInvalidParams(str(exc)) from exc
 
     @server.feature(types.TEXT_DOCUMENT_RENAME, types.RenameOptions(prepare_provider=True))
-    def rename(ls: NoSchemeServer, params: types.RenameParams):
+    async def rename(ls: NoSchemeServer, params: types.RenameParams):
         try:
-            with redirect_stdout(sys.stderr):
-                session, path, offset, sources = rename_context(ls, params)
-                edits = session.rename(path, offset, params.new_name)
+            path, offset = request_position(ls, params)
+            edits, sources = await ls.request_analysis(
+                "rename", path=path, offset=offset, new_name=params.new_name
+            )
             grouped = {}
             for span, text in edits:
                 uri = Path(span.filename).as_uri()
@@ -275,8 +319,8 @@ def create_server(project=None):
             raise JsonRpcInvalidParams(str(exc)) from exc
 
     @server.feature(types.TEXT_DOCUMENT_HOVER)
-    def hover(ls: NoSchemeServer, params: types.HoverParams):
-        ref = ls.reference(params, hover=True)
+    async def hover(ls: NoSchemeServer, params: types.HoverParams):
+        ref = await ls.reference(params, hover=True)
         if ref:
             text_document = ls.client_capabilities.text_document
             capabilities = text_document.hover if text_document else None
@@ -287,26 +331,23 @@ def create_server(project=None):
                     kind=kind,
                     value=format_hover(ref.description, kind == types.MarkupKind.Markdown),
                 ),
-                range=ls.span_range(ref.span, ls.sources()),
+                range=ls.span_range(ref.span, ls.analysis_sources),
             )
         return None
 
     @server.feature(
         types.TEXT_DOCUMENT_COMPLETION, types.CompletionOptions(trigger_characters=[".", ":", '"'])
     )
-    def completion(ls: NoSchemeServer, params: types.CompletionParams):
+    async def completion(ls: NoSchemeServer, params: types.CompletionParams):
         uri = params.text_document.uri
         path = uri_path(uri)
         if path is None or uri not in ls.open_uris:
             return []
-        sources = ls.sources()
         doc = ls.workspace.get_text_document(uri)
         try:
-            config = find_project(path, ls.roots(), ls.project_path, sources)
-            with redirect_stdout(sys.stderr):
-                suggestions = completion_items(
-                    path, config, sources, doc.offset_at_position(params.position)
-                )
+            suggestions, _ = await ls.request_analysis(
+                "completion", path=path, offset=doc.offset_at_position(params.position)
+            )
         except ValueError:
             return []
         kinds = {
@@ -335,6 +376,10 @@ def create_server(project=None):
                 for index, s in enumerate(suggestions)
             ],
         )
+
+    @server.feature(types.SHUTDOWN)
+    async def shutdown(ls: NoSchemeServer, *args):
+        await ls.close_workers()
 
     return server
 

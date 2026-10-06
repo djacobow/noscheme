@@ -4,6 +4,7 @@ No expression execution, name resolution, electrical checking, or CAD export.
 """
 
 from bisect import bisect_right
+from .analysis_cache import cached_parse
 import json
 from lark import Token, Tree
 from . import ast as a
@@ -489,6 +490,7 @@ def validate_structure(module):
     return tuple(errors)
 
 
+@cached_parse
 def parse(source: str, filename: str = "<input>") -> a.Module:
     builder = Builder(source, filename)
     try:

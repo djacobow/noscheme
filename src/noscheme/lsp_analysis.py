@@ -388,7 +388,7 @@ def reference_index(project, definitions, hover=None):
     return result
 
 
-def analyze(path, config, sources):
+def analyze(path, config, sources, *, run_erc=True, extra_paths=()):
     """Analyze a snapshot without publishing artifacts or changing export state."""
     result = Analysis(files={path})
     project = None
@@ -398,22 +398,35 @@ def analyze(path, config, sources):
         # Parse the current file even if it is not reachable from the board.
         text = source_text(path, sources)
         tree = parse(text, str(path.resolve()))
-        if config is None:
-            return result
-        project = load_project(
-            config, sources=sources, parsed_sources={path.resolve(): (text, tree)}
-        )
-        result.files.update(m.path for m in project.modules.values())
-        definitions = Resolver(project).resolve_all()
-        circuit, warnings = elaborate_project(project, definitions)
-        result.diagnostics.extend(warnings)
-        result.diagnostics.extend(apply_erc(circuit, registry=project.config.erc_registry))
+        if config is not None:
+            project = load_project(
+                config, sources=sources, parsed_sources={path.resolve(): (text, tree)}
+            )
+            result.files.update(m.path for m in project.modules.values())
+            definitions = Resolver(project).resolve_all()
+            circuit, warnings = elaborate_project(project, definitions)
+            result.diagnostics.extend(warnings)
+            if run_erc:
+                result.diagnostics.extend(apply_erc(circuit, registry=project.config.erc_registry))
     except DiagnosticError as exc:
         result.diagnostics.extend(exc.diagnostics)
     except (OSError, UnicodeError) as exc:
         result.diagnostics.append(
             Diagnostic("lsp.io", "error", str(exc), a.Span(str(path), 0, 0, 1, 1, 1, 1))
         )
+    # Open, unreachable files still receive syntax/structural diagnostics.
+    for extra in extra_paths:
+        if extra == path or (project and extra in result.files):
+            continue
+        result.files.add(extra)
+        try:
+            parse(source_text(extra, sources), str(extra))
+        except DiagnosticError as exc:
+            result.diagnostics.extend(exc.diagnostics)
+        except (OSError, UnicodeError) as exc:
+            result.diagnostics.append(
+                Diagnostic("lsp.io", "error", str(exc), a.Span(str(extra), 0, 0, 1, 1, 1, 1))
+            )
     if project:
         details = HoverDetails(project, definitions, circuit, sources)
         result.references = reference_index(project, definitions, details)
