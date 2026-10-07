@@ -137,7 +137,7 @@ it never grants access to a component or block's private internals.
 ### 2.1 Layout and punctuation
 
 Indentation defines blocks and must use spaces; indentation tabs are errors.
-Four spaces per level is the repository convention. Blank and comment-only lines
+Four spaces per level is the canonical layout (section 2.5). Blank and comment-only lines
 do not declare blocks. Newlines inside parentheses and brackets, including an
 instance's argument list, are not layout.
 Statements and mapping entries use newlines, not semicolons.
@@ -227,6 +227,34 @@ In a physical pin key, integer spelling is preserved as text:
 
 Physical pin identifiers are not evaluated as numbers. Numeric expressions and
 array indices use the numeric rules in section 4.
+
+### 2.5 Canonical layout
+
+`noscheme format` rewrites sources in one canonical layout; editors offer the same
+through the language server. It changes only layout, never meaning:
+
+- Four spaces per level. One space after `:` and `,` and around binary operators
+  and parameter-default `=`; none around `=` in arguments, `..` in pin ranges, or
+  `:` in slices.
+- Lines are at most 100 characters where possible. A longer bracketed list (instance
+  arguments, call arguments, or a list value) breaks one item per line with a
+  trailing comma. A list written with a trailing comma stays broken, so the author
+  can keep a short list vertical; a broken list without one is joined when it fits.
+- One blank line before each top-level definition and the comments directly above
+  it. Elsewhere at most one blank line is kept, and none at the start of a block.
+- Spellings are kept: `4k7` stays `4k7`, strings keep their escapes, and pin keys
+  keep their quotes. Order, the pin-entry shorthand, and the choice between
+  instance arguments and sections are also the author's. The parentheses of an
+  empty argument list are dropped.
+- A trailing comment stays after its code, two spaces from it. A comment on its
+  own line stays above the code that follows it, at that code's indentation, or at
+  the indentation of the block it ends. A comment inside a bracketed list keeps
+  the list broken so the comment stays with its item.
+
+The formatter checks that its result parses to the same syntax tree with the same
+comments. It reports, and leaves unchanged, a file with a syntax error or a comment
+it cannot place without moving it, such as one inside an expression outside a
+bracketed list or a block comment followed by code on its line.
 
 ## 3. Declarations
 
@@ -1592,8 +1620,9 @@ not language restrictions or guarantees of mechanical compatibility.
 
 The compiler consumes NoScheme definitions; it does not import KiCad symbols
 implicitly. `convert-library` writes explicit components and footprint snapshots
-into a new directory. It preserves physical pin text, follows symbol inheritance,
-folds duplicate representations, and keeps unambiguous aliases. A two-terminal
+into a new directory, with sources in the canonical layout. It preserves physical
+pin text, follows symbol inheritance, folds duplicate representations, and keeps
+unambiguous aliases. A two-terminal
 symbol whose reference prefix is `R`, `C`, or `L` gets a required `value`
 parameter of type `resistance`, `capacitance`, or `inductance`, since its KiCad
 `Value` is only a placeholder; other symbols keep `value: string` with KiCad's
@@ -1674,6 +1703,7 @@ environment, prefix commands with `uv run --locked`.
 | Command | Result |
 |---|---|
 | `noscheme parse FILE` | Parse source and emit typed AST JSON |
+| `noscheme format [PATH...]` | Rewrite sources in the canonical layout |
 | `noscheme load --project PATH` | Load configuration and imports |
 | `noscheme resolve --project PATH` | Resolve definitions and public interfaces |
 | `noscheme lint --project PATH` | Opt-in unused-parameter warnings; no artifacts |
@@ -1692,6 +1722,11 @@ for compiler commands. Diagnostics support `--diagnostics text` and `json`.
 all symbols. The conversion output directory must not already exist.
 
 `check`, `compile`, and `export-kicad` accept repeated `--erc-configuration NAME`.
+
+`format` accepts files and directories, defaulting to the current directory. It
+skips hidden directories and each project's `output_dir`. `--check` writes nothing
+and fails if a file would change; `--diff` prints the changes instead of writing
+them. Files it cannot format are reported, and the command then fails.
 `load`, `resolve`, and `evaluate` are inspection stages, not electrical validation.
 
 Conversion maps KiCad `open_collector` to `role.open_drain` and `open_emitter`
@@ -1869,7 +1904,7 @@ Not implemented:
 - Tri-state output-enable simulation or arbitration proofs.
 - Resistance/capacitance tolerance models and automatic protocol-limit derivation.
 - Language-level differential-pair declarations.
-- A compiler formatter, incremental compiler analysis, or identity-preserving
+- Range formatting, incremental compiler analysis, or identity-preserving
   moves and internal instance renames. LSP rename preserves CAD identities for
   board-level component/block instances using existing `identity` metadata;
   public bundle-member navigation is also implemented. See

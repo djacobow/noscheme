@@ -1,6 +1,7 @@
 // Electrical-check example; simplified pin models, not a fabrication design.
 from noscheme import role, nettype, bias, std
 import demo
+
 // Pull models only the bus-side electrical contribution of a pull-up.
 // Its supply terminal is omitted for this registry demonstration. For a real
 // two-terminal resistor, see I2CPullup in ../stm32h523/components.nosch and
@@ -12,12 +13,14 @@ component Pull:
             bias: bias.pull_up
             pull_resistance: 4.7k
             capacitance: 2p
+
 component Device:
     pins:
         1:
             role: role.open_drain
             bias: bias.none
             capacitance: 10p
+
 board B:
     net bus: nettype.open_drain
         checks:

@@ -2,7 +2,7 @@
 
 NoScheme provides Vim/Neovim syntax highlighting, a local VS Code extension, and
 an independent language server for diagnostics, navigation, references, rename,
-hover, and completion. Follow
+hover, completion, and formatting. Follow
 [Development setup](DEVELOPMENT.md#environment-and-checks) to install the tools.
 
 ## Vim and Neovim
@@ -45,7 +45,7 @@ Highlighting covers declarations, sections, metadata keys, qualified enums and
 helpers, numbers, strings, and both comment forms. `#` is part of an identifier,
 not a comment marker, and block comments do not nest. The filetype plugin sets
 four-space indentation with spaces, word motions that include `#`, and `//`
-comment formatting. It does not provide completion or automatic formatting.
+comment formatting. Completion and whole-file formatting come from the language server.
 To override indentation, put your preferences in `after/ftplugin/noscheme.vim`
 under your Vim/Neovim configuration directory.
 
@@ -60,7 +60,7 @@ After `uv sync --locked`, configure your editor's LSP client to run:
 ```
 
 The language server provides compiler/ERC diagnostics, go-to-definition,
-find-references, rename, and resolved hover details, plus completion for component/block names, connection pins/ports,
+find-references, rename, formatting, and resolved hover details, plus completion for component/block names, connection pins/ports,
 imported `role.` / `nettype.` values, and footprint strings. It checks unsaved buffers, including
 imported files, after a 200 ms typing delay. It does not write circuit artifacts,
 netlists, or identity state.
@@ -78,8 +78,8 @@ STM32 example, a reliable command is:
 Without a project, files receive syntax diagnostics only. Files outside the
 board's reachable import graph are also only syntax-checked. Navigation covers
 named definitions/imports, lexical nets/parameters, explicit pin/port aliases,
-and public bundle fields on both sides of connection bindings. Find-references uses the same resolved symbols. Rename supports selected symbols as described below;
-formatting is not implemented. A syntax error can temporarily prevent
+and public bundle fields on both sides of connection bindings. Find-references uses the same resolved symbols. Rename supports selected symbols as described below.
+A syntax error can temporarily prevent
 semantic navigation until the code parses again.
 
 The server uses two persistent Python subprocesses: one for interactive semantic
@@ -197,12 +197,13 @@ Open `examples/stm32h523/peripherals.nosch`. Use:
 | Definition | `gd` or `gD` |
 | References | `gr` |
 | Rename | `<leader>rn` |
+| Format the file | `<leader>f` |
 | Diagnostic details | `<leader>e` |
 | Next / previous diagnostic | `]d` / `[d` |
 | Check attached clients | `:checkhealth vim.lsp` |
 
 `<leader>` is your configured leader key (backslash by default). Completion
-plugins may add their own popup keys. NoScheme does not provide formatting.
+plugins may add their own popup keys.
 
 #### Manual smoke checklist
 
@@ -246,6 +247,7 @@ Workspace Trust is required because project-local ERC plugins run Python code.
   confirm the diagnostic clears.
 - Use F2 on a board-level instance to rename it. Review the workspace edits
   and retained `metadata.identity` before saving.
+- Run **Format Document** (Shift-Alt-F) and review the result.
 
 Server messages appear in **View → Output → NoScheme**. If no server attaches,
 check the executable path, language mode, and workspace trust. In Restricted
@@ -383,6 +385,22 @@ between scopes and identity-preserving internal renames need a broader model;
 no `local_identity` field is introduced. Only modules reachable from the selected
 board are included; outside consumers of a reusable library require separate updates.
 
+### Formatting
+
+The server formats a whole file in the canonical layout described in
+[LRM §2.5](LRM.md#25-canonical-layout), the same as `noscheme format`. The
+editor's tab and indentation options do not apply. In Vim, run
+`:LspDocumentFormat`; an optional mapping is:
+
+```vim
+autocmd FileType noscheme nmap <buffer> <leader>f <plug>(lsp-document-format)
+```
+
+Neovim maps `<leader>f` to `vim.lsp.buf.format()`, and VS Code uses
+**Format Document**, so format-on-save works where the editor enables it. A file
+with a syntax error is left unchanged; its diagnostic already explains why. A
+comment the formatter cannot place is reported as an error and nothing changes.
+Range formatting is not supported.
 
 ### Hover details
 

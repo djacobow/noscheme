@@ -50,7 +50,10 @@ component PCA9600D:
         custom:
             kicad_symbol: "Interface:PCA9600D"
             kicad_duplicate_pin_numbers_are_jumpers: "no"
-            kicad_footprint_candidates: ["Package_SO:SO-8_3.9x4.9mm_P1.27mm", "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm"]
+            kicad_footprint_candidates: [
+                "Package_SO:SO-8_3.9x4.9mm_P1.27mm",
+                "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+            ]
             kicad_properties:
                 "Datasheet": "https://www.nxp.com/docs/en/data-sheet/PCA9600.pdf"
                 "Description": "Dual bidirectional bus buffer, SO-8"

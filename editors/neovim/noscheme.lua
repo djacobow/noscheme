@@ -19,6 +19,7 @@ vim.lsp.config('noscheme', {
     map('gD', vim.lsp.buf.definition, 'NoScheme definition')
     map('gr', vim.lsp.buf.references, 'NoScheme references')
     map('<leader>rn', vim.lsp.buf.rename, 'NoScheme rename')
+    map('<leader>f', vim.lsp.buf.format, 'NoScheme format file')
     map('<leader>e', vim.diagnostic.open_float, 'Show diagnostic')
   end,
 })

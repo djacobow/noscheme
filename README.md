@@ -14,8 +14,9 @@ or capacitance budget violations.
 
 The compiler and language server are implemented in Python. Vim, Neovim, and the
 local VS Code extension provide syntax highlighting and LSP integration for
-diagnostics, definition navigation, references, rename, hover, and completion
-while editing unsaved designs.
+diagnostics, definition navigation, references, rename, hover, completion, and
+formatting while editing unsaved designs. `noscheme format` applies the same
+canonical layout from the command line.
 
 ## History and Rationale
 

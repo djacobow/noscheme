@@ -494,18 +494,23 @@ def validate_structure(module):
     return tuple(errors)
 
 
-@cached_parse
-def parse(source: str, filename: str = "<input>") -> a.Module:
-    builder = Builder(source, filename)
+def syntax_tree(source: str, filename: str = "<input>", builder=None):
+    """Parse to the concrete syntax tree, reporting syntax errors as diagnostics."""
+    builder = builder or Builder(source, filename)
     try:
-        tree = syntax_parse(source, str(filename))
+        return syntax_parse(source, str(filename))
     except SyntaxDiagnostic as exc:
         offset = builder.lines[min(exc.line - 1, len(builder.lines) - 1)] + exc.column - 1
         code = "syntax.indentation" if "indentation" in exc.message else "syntax.invalid"
         raise DiagnosticError(
             [Diagnostic(code, "error", exc.message, builder.position_span(offset, offset + 1))]
         ) from exc
-    module = builder.build(tree)
+
+
+@cached_parse
+def parse(source: str, filename: str = "<input>") -> a.Module:
+    builder = Builder(source, filename)
+    module = builder.build(syntax_tree(source, filename, builder))
     errors = validate_structure(module)
     if errors:
         raise DiagnosticError(errors)

@@ -40,7 +40,10 @@ component TPS563200:
         custom:
             kicad_symbol: "Regulator_Switching:TPS563200"
             kicad_duplicate_pin_numbers_are_jumpers: "no"
-            kicad_footprint_candidates: ["Package_TO_SOT_SMD:SOT-23-6", "Package_TO_SOT_SMD:SOT-23-6_Handsoldering"]
+            kicad_footprint_candidates: [
+                "Package_TO_SOT_SMD:SOT-23-6",
+                "Package_TO_SOT_SMD:SOT-23-6_Handsoldering",
+            ]
             kicad_properties:
                 "Datasheet": "http://www.ti.com/lit/ds/symlink/tps563200.pdf"
                 "Description": "3A Synchronous Step-Down Voltage Regulator, Adjustable Output Voltage, 4.5-17V Input Voltage, SOT-23-6"

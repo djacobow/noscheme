@@ -1,6 +1,7 @@
 """Inspect source syntax, project loading, and resolved definitions."""
 
 import argparse
+import difflib
 import json
 import os
 from pathlib import Path
@@ -9,6 +10,7 @@ import tempfile
 
 from .ast import to_data
 from .diagnostics import DiagnosticError, render_json, render_text
+from .formatter import format_source, source_files
 from .parser import parse
 from .project import load_project, project_summary
 from .resolve import resolve_project, resolution_summary
@@ -39,6 +41,35 @@ def write_atomic(path, text):
             os.unlink(temporary)
 
 
+def format_paths(args):
+    """Format files in place, or with --check/--diff only report what would change."""
+    renderer = render_json if args.diagnostics == "json" else render_text
+    changed = failed = 0
+    for path in source_files(args.paths):
+        source = path.read_text(encoding="utf-8")
+        try:
+            result = format_source(source, str(path))
+        except DiagnosticError as exc:
+            print(renderer(exc.diagnostics), file=sys.stderr)
+            failed += 1
+            continue
+        if result == source:
+            continue
+        changed += 1
+        if args.diff:
+            sys.stdout.writelines(
+                difflib.unified_diff(
+                    source.splitlines(True), result.splitlines(True), str(path), str(path)
+                )
+            )
+        if args.check or args.diff:
+            print(f"would reformat {path}", file=sys.stderr)
+        else:
+            write_atomic(path, result)
+            print(f"reformatted {path}", file=sys.stderr)
+    return int(failed > 0 or (args.check and changed > 0))
+
+
 def main(argv=None):
     cli = argparse.ArgumentParser(
         description="NoScheme compiler, electrical checks, and KiCad tools."
@@ -48,6 +79,15 @@ def main(argv=None):
     parser.add_argument("source", type=Path)
     parser.add_argument("--output", type=Path, help="write AST JSON atomically; default is stdout")
     parser.add_argument("--diagnostics", choices=["text", "json"], default="text")
+    formatter = sub.add_parser("format", help="rewrite sources in the canonical layout")
+    formatter.add_argument(
+        "paths", nargs="*", type=Path, default=[Path(".")], help="files or directories; default ."
+    )
+    formatter.add_argument(
+        "--check", action="store_true", help="write nothing; fail if a file would change"
+    )
+    formatter.add_argument("--diff", action="store_true", help="print changes instead of writing")
+    formatter.add_argument("--diagnostics", choices=["text", "json"], default="text")
     loader = sub.add_parser("load", help="load a project and bind imports; no elaboration or ERC")
     loader.add_argument("--project", type=Path, default=Path("."))
     loader.add_argument("--diagnostics", choices=["text", "json"], default="text")
@@ -113,6 +153,8 @@ def main(argv=None):
     classes.add_argument("--diagnostics", choices=["text", "json"], default="text")
     args = cli.parse_args(argv)
     try:
+        if args.command == "format":
+            return format_paths(args)
         if args.command == "update-kicad-classes":
             print(
                 json.dumps(

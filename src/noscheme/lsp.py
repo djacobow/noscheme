@@ -13,6 +13,7 @@ from pygls.workspace import TextDocument
 
 from . import ast as a
 from .diagnostics import Diagnostic, DiagnosticError
+from .formatter import format_source
 from .lsp_analysis import Analysis
 from .lsp_hover import format_hover
 from .lsp_transport import WorkerLane
@@ -317,6 +318,23 @@ def create_server(project=None):
             return types.WorkspaceEdit(changes=grouped)
         except (ValueError, DiagnosticError, OSError, UnicodeError) as exc:
             raise JsonRpcInvalidParams(str(exc)) from exc
+
+    @server.feature(types.TEXT_DOCUMENT_FORMATTING)
+    async def formatting(ls: NoSchemeServer, params: types.DocumentFormattingParams):
+        # The layout is canonical, so the client's tab and spacing options do not apply.
+        doc = ls.workspace.get_text_document(params.text_document.uri)
+        try:
+            result = await asyncio.to_thread(format_source, doc.source, doc.path)
+        except DiagnosticError as exc:
+            problem = exc.diagnostics[0]
+            if problem.code.startswith("syntax."):
+                return None  # Already published as a diagnostic.
+            raise JsonRpcInvalidParams(f"line {problem.span.line}: {problem.message}") from exc
+        if result == doc.source:
+            return []
+        start = types.Position(line=0, character=0)
+        end = doc.client_position_at_offset(len(doc.source))
+        return [types.TextEdit(range=types.Range(start=start, end=end), new_text=result)]
 
     @server.feature(types.TEXT_DOCUMENT_HOVER)
     async def hover(ls: NoSchemeServer, params: types.HoverParams):

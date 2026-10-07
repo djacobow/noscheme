@@ -12,8 +12,12 @@ uv sync --locked
 uv run --locked pytest -q
 uv run --locked ruff format --check .
 uv run --locked ruff check .
+uv run --locked noscheme format --check examples
 uv run --locked noscheme compile --project examples/blink
 ```
+
+`noscheme format examples` rewrites the example sources; the test suite also fails
+when an example is not in the canonical layout.
 
 Compilation writes `circuit.json`, `erc.txt`, and `erc.json` under the project's
 configured output directory. Electrical errors allow compilation/export;
@@ -235,7 +239,8 @@ GitHub Actions runs on pushes, pull requests, and manual dispatch. Both jobs use
 the explicit `ubuntu-26.04` runner label, which is
 [generally available](https://github.blog/changelog/2026-09-17-ubuntu-26-generally-available-and-latest-migration/):
 
-- Python 3.11 and 3.14: locked dependencies, Ruff formatting/lint, all tests,
+- Python 3.11 and 3.14: locked dependencies, Ruff formatting/lint, all tests
+  (including the NoScheme layout of every example),
   distribution builds, and installed-wheel parser/compiler smoke checks.
 - Python 3.12 with KiCad 10.0 library data: all tests, including conversion
   and saved-board fixtures that otherwise skip when KiCad data is unavailable.

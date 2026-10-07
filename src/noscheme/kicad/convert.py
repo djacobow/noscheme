@@ -13,6 +13,7 @@ import sexpdata
 
 from .. import ast as a
 from ..diagnostics import Diagnostic, DiagnosticError
+from ..formatter import format_source
 from ..parser import parse, RESERVED_NAMES
 from .sexpr import load, tag, children, scalar
 
@@ -384,7 +385,9 @@ def convert_library(source, output, symbols=(), footprint_roots=(), extra_footpr
                     )
     text = "from noscheme import role\n\n" + "\n\n".join(generated) + "\n"
     module = identifier(source.stem)
-    parse(text, str(output / (module + ".nosch")))
+    filename = str(output / (module + ".nosch"))
+    parse(text, filename)
+    text = format_source(text, filename)
     manifest = {
         "schema_version": 1,
         "source": str(source),

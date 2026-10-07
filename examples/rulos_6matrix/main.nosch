@@ -88,8 +88,16 @@ board SixLineMatrix:
     net serial_data: nettype.digital[5]
 
     // Four modules share controls and row buses. Slices form the serial chain.
-    inst banks[4]: TwoColumns(rows: rows, supply: vcc, ground: gnd, clock: clock, latch: latch,
-        blank: blank#, sdi: serial_data[0:4], sdo: serial_data[1:5])
+    inst banks[4]: TwoColumns(
+        rows: rows,
+        supply: vcc,
+        ground: gnd,
+        clock: clock,
+        latch: latch,
+        blank: blank#,
+        sdi: serial_data[0:4],
+        sdo: serial_data[1:5],
+    )
 
     inst mcu: MCU
         connections:

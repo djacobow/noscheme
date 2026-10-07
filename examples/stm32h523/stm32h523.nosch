@@ -48,10 +48,23 @@ board STM32H523Reference:
     net uart_tx: nettype.digital[2]
     net uart_rx: nettype.digital[2]
 
-    inst mcu: mcu.MCU_H523(supply: global.v3v3, ground: global.gnd, usb: usb, debug: debug, sd: sd,
-        sd_detect#: sd_detect#, oled: oled, expansion_i2c: expansion_i2c,
-        expansion_spi: expansion_spi, expansion_gpio: expansion_gpio, led_drive: led_drive,
-        buttons#: buttons#, boot0: boot0, uart_tx: uart_tx, uart_rx: uart_rx)
+    inst mcu: mcu.MCU_H523(
+        supply: global.v3v3,
+        ground: global.gnd,
+        usb: usb,
+        debug: debug,
+        sd: sd,
+        sd_detect#: sd_detect#,
+        oled: oled,
+        expansion_i2c: expansion_i2c,
+        expansion_spi: expansion_spi,
+        expansion_gpio: expansion_gpio,
+        led_drive: led_drive,
+        buttons#: buttons#,
+        boot0: boot0,
+        uart_tx: uart_tx,
+        uart_rx: uart_rx,
+    )
 
     inst usb_c: peripherals.UsbC
         connections:
@@ -68,8 +81,12 @@ board STM32H523Reference:
 
     inst regulator: peripherals.Ldo3v3(input: global.v5, output: global.v3v3, ground: global.gnd)
 
-    inst micro_sd: peripherals.MicroSD(supply: global.v3v3, ground: global.gnd, bus: sd,
-        detect#: sd_detect#)
+    inst micro_sd: peripherals.MicroSD(
+        supply: global.v3v3,
+        ground: global.gnd,
+        bus: sd,
+        detect#: sd_detect#,
+    )
 
     inst swd: peripherals.CortexDebug(reference: global.v3v3, ground: global.gnd, debug: debug)
 

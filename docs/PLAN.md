@@ -2,10 +2,10 @@
 
 ## Current status
 
-As of October 6, 2026, the compiler, extensible ERC, KiCad export,
-and Vim/Neovim/VS Code integrations are implemented, including compact instances
-for interchangeable pins. Persistent Python LSP workers now separate interactive
-semantic requests from background ERC and cache unchanged ASTs across edits.
+As of October 7, 2026, the compiler, extensible ERC, KiCad export, a source
+formatter, and Vim/Neovim/VS Code integrations are implemented, including compact
+instances for interchangeable pins. Persistent Python LSP workers now separate
+interactive semantic requests from background ERC and cache unchanged ASTs across edits.
 Changed files still parse in full; incremental parsing and a Rust port remain
 future options. The [deferred review list](#deferred-work) records the remaining
 review proposals.
@@ -16,6 +16,28 @@ implementation-stage plans describe those checkpoints. Use the
 commands; recent work and measurements are listed first.
 
 ## Recent completed work
+
+### Source formatter (October 7, 2026)
+
+- [x] `noscheme format [--check] [--diff] [PATH...]` and LSP whole-file formatting
+  print the concrete syntax tree in one canonical layout (LRM §2.5): four-space
+  indentation, 100-column lines, broken lists one item per line with a trailing
+  comma, a trailing comma keeping a list broken, and one blank line before
+  top-level definitions. Spellings, order, pin shorthand, and the choice between
+  instance arguments and sections are kept.
+- [x] Comments are reattached by source position; a comment inside a bracketed
+  list keeps the list broken. A comment that cannot be placed without moving it
+  is reported and the file is left unchanged, as is a file with a syntax error.
+- [x] Each result is checked to parse to the same tree with the same comments.
+  Tests format every repository source, including the generated WREN board, and
+  require formatting to be stable; all 305 parsing test snippets also format.
+  The examples are formatted, a test keeps them so, and `convert-library` writes
+  formatted output.
+- [ ] Range formatting, and optional normalization of number spellings.
+- [ ] Change the canonical indentation to two spaces per level (requested
+  October 7, 2026): formatter `INDENT`, LRM §2.1/§2.5, the Vim filetype plugin's
+  indentation, and reformat the examples, generated WREN sources, and converted
+  libraries.
 
 ### LSP caching and background workers (October 6, 2026)
 

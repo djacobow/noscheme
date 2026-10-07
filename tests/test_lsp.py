@@ -777,3 +777,27 @@ def test_net_type_navigation_hover_and_checks(tmp_path):
     assert "nettype main.I2CLine" in hover and "Electrical type: nettype.open_drain" in hover
     call = source.index("std.parallel(pull_resistance")
     assert result.hover_at(path, call).description.startswith("net rule std.parallel(")
+
+
+def test_formatting_protocol_replaces_the_document_or_explains_a_refusal(client, project):
+    path = project / "format.nosch"
+    open_document(client, path, "board B:\n  net a:T // é\n")
+    params = {
+        "textDocument": {"uri": path.as_uri()},
+        "options": {"tabSize": 2, "insertSpaces": True},
+    }
+    (edit,) = client.request("textDocument/formatting", params)
+    assert edit["newText"] == "board B:\n    net a: T  // é\n"
+    assert edit["range"] == {
+        "start": {"line": 0, "character": 0},
+        "end": {"line": 2, "character": 0},
+    }
+    open_document(client, path, edit["newText"], version=2)
+    assert client.request("textDocument/formatting", params) == []
+    open_document(client, path, "board B:\n    net a:\n", version=3)
+    assert client.request("textDocument/formatting", params) is None
+    open_document(client, path, "board B:\n    /* c */ net a: T\n", version=4)
+    client.identifier += 1
+    client.send("textDocument/formatting", params, client.identifier)
+    response = client.wait(lambda m: m.get("id") == client.identifier)
+    assert "line 2: a comment must end its line" in response["error"]["message"]

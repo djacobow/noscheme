@@ -339,7 +339,7 @@ The reporting contract is in [LRM §14](LRM.md#14-commands-and-diagnostics).
 
 The independent stdio language server reuses the compiler with unsaved-document
 overlays. It provides diagnostics, completion, definition navigation, references,
-rename, and formatted hover, including supported public bundle-member navigation.
+rename, whole-file formatting, and formatted hover, including supported public bundle-member navigation.
 It does not write build artifacts or identity state. Rename scope and syntax-error
 limitations are documented in [EDITOR_SUPPORT.md](EDITOR_SUPPORT.md).
 
