@@ -38,11 +38,16 @@ local tooling observation, not a reason to depend on that API in the compiler.
 
 ## Parser: demonstrated
 
+Superseded October 7, 2026: an instance's parentheses are now an ordinary
+argument list, and its sections follow the instance line as an indented block, so
+neither the separate terminals nor the indentation inside parentheses described
+here remain. See LRM section 5.1. The findings below record the design at the time.
+
 The complete STM32H523 draft parses under Lark LALR with contextual lexing,
 including its significant indentation inside instance parentheses. No parentheses
 were removed and no comma-based instance syntax was substituted.
 
-The implementation distinguishes `_INST_LPAR`/`_INST_RPAR` from expression
+The implementation distinguished `_INST_LPAR`/`_INST_RPAR` from expression
 parentheses. The contextual lexer selects the appropriate terminal. The reusable
 Lark `Indenter` suppresses indentation only for expression parentheses and square
 brackets, so multiline calls/lists coexist with indented instance sections.

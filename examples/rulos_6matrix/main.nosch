@@ -91,7 +91,7 @@ board SixLineMatrix:
     inst banks[4]: TwoColumns(rows: rows, supply: vcc, ground: gnd, clock: clock, latch: latch,
         blank: blank#, sdi: serial_data[0:4], sdo: serial_data[1:5])
 
-    inst mcu: MCU(
+    inst mcu: MCU
         connections:
             ["1", "17", "5"]: vcc
             "10": row_enable[4]
@@ -115,9 +115,8 @@ board SixLineMatrix:
             "9": row_enable[3]
         params:
             value: "STM32F303K8T6"
-    )
 
-    inst power_header: Header2(
+    inst power_header: Header2
         connections:
             1: v5
             2: gnd
@@ -132,13 +131,12 @@ board SixLineMatrix:
                             jack: role.power_input
                             header: role.power_output
                 2: role.ground
-    )
 
     inst logic_regulator: LogicRegulator(1: gnd, 2: vcc, 3: v5)
 
     inst bus_regulator: BusRegulator(1: v12, 2: gnd, 3: v10)
 
-    inst debug: CortexHeader(
+    inst debug: CortexHeader
         connections:
             "1": vcc
             "10": reset#
@@ -158,9 +156,8 @@ board SixLineMatrix:
                 4: role.digital_output
                 6: role.digital_input
                 10: role.open_drain
-    )
 
-    inst bus_buffer: I2CBuffer(
+    inst bus_buffer: I2CBuffer
         connections:
             "1": sda
             ["2", "3"]: sda_hv
@@ -170,9 +167,8 @@ board SixLineMatrix:
             "8": v10
         params:
             value: "PCA9600SO8"
-    )
 
-    inst uart: Header3(
+    inst uart: Header3
         connections:
             1: tx
             2: rx
@@ -185,7 +181,6 @@ board SixLineMatrix:
                 1: role.digital_input
                 2: role.digital_output
                 3: role.ground
-    )
 
     inst inductor: BuckOutputInductor(1: switch_node, 2: led_power, value=2.2u)
 
@@ -193,7 +188,7 @@ board SixLineMatrix:
 
     inst feedback_bottom: Resistor(gnd, feedback, value=10k)
 
-    inst buck: Buck(
+    inst buck: Buck
         connections:
             "1": gnd
             "2": switch_node
@@ -202,9 +197,8 @@ board SixLineMatrix:
             "6": bootstrap
         params:
             value: "TPS563200"
-    )
 
-    inst power_jack: PowerJack(
+    inst power_jack: PowerJack
         connections:
             PWR: v5
             GND: gnd
@@ -220,7 +214,6 @@ board SixLineMatrix:
                             jack: role.power_output
                             header: role.power_input
                 GND: role.ground
-    )
 
     inst cap_1: Cap0805(v5, gnd, value=10u)
 
@@ -238,7 +231,7 @@ board SixLineMatrix:
 
     inst cap_10: Cap0603(switch_node, bootstrap, value=100n)
 
-    inst row_switch[6]: PChannel(
+    inst row_switch[6]: PChannel
         connections:
             G: row_enable
             "2": led_power
@@ -250,9 +243,8 @@ board SixLineMatrix:
             [5]."3": rows.row5
         params:
             value: "MOSFET-PCHANNEL"
-    )
 
-    inst bus_ports[3]: RJ45(
+    inst bus_ports[3]: RJ45
         connections:
             1: sda_hv
             [2, 5, 6, 8]: gnd
@@ -322,15 +314,13 @@ board SixLineMatrix:
                                     port0: role.power_input
                                     port1: role.power_input
                                     port2: role.passive
-    )
 
-    inst i2c_pullups[2]: I2CPullup(
+    inst i2c_pullups[2]: I2CPullup
         connections:
             [0]."1": sda
             [1]."1": scl
             "2": vcc
         params:
             value: 2k
-    )
 
     inst buck_input_caps[2]: Cap0805(v5, gnd, value=10u)

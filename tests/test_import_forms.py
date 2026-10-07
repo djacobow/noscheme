@@ -23,10 +23,9 @@ bundle Bus:
 block Wrapper:
     ports:
         bus: Bus
-    inst r: R(
+    inst r: R
         connections:
             1: bus.signal
-    )
 """
 
 SOURCE = """import Device
@@ -43,22 +42,18 @@ board B:
     net a: noscheme.nettype.passive
     net bus: Device.Bus
     net other: SignalBus
-    inst r: Device.R(
+    inst r: Device.R
         connections:
             1: a
-    )
-    inst s: Specialized(
+    inst s: Specialized
         connections:
             1: a
-    )
-    inst alias: KiCadResistor(
+    inst alias: KiCadResistor
         connections:
             1: a
-    )
-    inst wrapper: Device.Wrapper(
+    inst wrapper: Device.Wrapper
         connections:
             bus: bus
-    )
 """
 
 
@@ -72,7 +67,7 @@ def test_qualified_and_aliased_types_helpers_and_navigation(tmp_path):
     assert next(p for p in circuit["parts"] if p["identity"] == "s")["value"]["value"] == "2kOhm"
     references = reference_index(project, definitions)
     source_path = tmp_path / "main.nosch"
-    for occurrence in ["Device.R:", "Device.R(", "KiCadResistor(", "Device.Bus"]:
+    for occurrence in ["Device.R:", "Device.R\n", "KiCadResistor\n", "Device.Bus"]:
         offset = SOURCE.index(occurrence) + (
             len(occurrence.split(".")[0]) + 1 if "." in occurrence else 0
         )
@@ -89,8 +84,8 @@ def test_qualified_completion_and_aliases(tmp_path):
     make_project(tmp_path, SOURCE, {"Device": LIBRARY})
     path = tmp_path / "main.nosch"
     for old, new, expected in [
-        ("Device.R(", "Device.", {"Device.R", "Device.Wrapper"}),
-        ("KiCadResistor(", "KiCad", {"KiCadResistor"}),
+        ("Device.R\n", "Device.", {"Device.R", "Device.Wrapper"}),
+        ("KiCadResistor\n", "KiCad", {"KiCadResistor"}),
         ("noscheme.nettype.passive", "noscheme.nettype.pass", {"passive"}),
     ]:
         source = SOURCE.replace(old, new, 1)
@@ -104,7 +99,7 @@ def test_qualified_completion_and_aliases(tmp_path):
         ("connections", "", {"1"}),
         ("metadata", 'footprint: "', {"Test:R"}),
     ]:
-        source = "import Device\nboard B:\n    inst r: Device.R(\n"
+        source = "import Device\nboard B:\n    inst r: Device.R\n"
         source += f"        {section}:\n            {field}"
         assert {
             s.label for s in completion_items(path, tmp_path, {path: source}, len(source))

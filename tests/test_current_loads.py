@@ -24,15 +24,13 @@ component MCU:
                 max_load_current: 100m
 board B:
     net rail: nettype.power
-    inst supply: Supply(
+    inst supply: Supply
         connections:
             1: rail
-    )
-    inst mcu: MCU(
+    inst mcu: MCU
         connections:
             1: rail
             2: rail
-    )
 """
 
 
@@ -100,10 +98,10 @@ def test_group_and_individual_loads_sum(tmp_path):
             role: role.power_input
             max_load_current: 60m
 board B:
-    inst extra: Extra(
+    inst extra: Extra
         connections:
             1: rail
-    )""",
+""",
     )
     assert [d.code for d in diagnostics(tmp_path, source)] == ["erc.current_overload"]
 
@@ -131,13 +129,13 @@ def test_effective_role_override_does_not_silently_drop_group(tmp_path):
         "        2:\n            role: role.power_input\n",
         "        2:\n            role: [role.power_input, role.passive]\n",
     ).replace(
-        "            2: rail\n    )",
+        "            2: rail",
         """            2: rail
         metadata:
             pins:
                 2:
                     role: role.passive
-    )""",
+""",
     )
     errors = diagnostics(tmp_path, source)
     assert any(d.code == "erc.current_load_group" for d in errors)
@@ -157,10 +155,9 @@ def test_independent_supply_groups_on_separate_rails(tmp_path):
         .replace(
             "    net rail:",
             """    net analog: nettype.power
-    inst analog_supply: Supply(
+    inst analog_supply: Supply
         connections:
             1: analog
-    )
     net rail:""",
         )
         .replace("            2: rail", "            2: analog")
@@ -185,7 +182,7 @@ def test_configurations_check_effective_group_roles(tmp_path):
                 mode: "absent"''',
     )
     source = source.replace(
-        "            2: rail\n    )",
+        "            2: rail",
         """            2: rail
         metadata:
             pins:
@@ -195,7 +192,7 @@ def test_configurations_check_effective_group_roles(tmp_path):
                         cases:
                             powered: role.power_input
                             absent: role.passive
-    )""",
+""",
     )
     circuit = compile_source(tmp_path, source)
     errors = apply_erc(circuit)

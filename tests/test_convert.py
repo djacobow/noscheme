@@ -187,7 +187,7 @@ def test_filter_candidates_saved_and_completed_offline(tmp_path):
         'language_version="0.1"\nboard="main.B"\nsource_paths=["."]\nlibrary_paths=["converted"]\noutput_dir="build"\n'
     )
     path = tmp_path / "main.nosch"
-    text = 'from Parts import Part\nboard B:\n    inst p: Part(\n        metadata:\n            footprint: "'
+    text = 'from Parts import Part\nboard B:\n    inst p: Part\n        metadata:\n            footprint: "'
     choices = completion_items(path, tmp_path, {path: text}, len(text))
     assert [s.label for s in choices] == ["Test:Z", "Test:R2", "Test:R_2"]
 

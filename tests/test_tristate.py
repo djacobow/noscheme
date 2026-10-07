@@ -53,7 +53,7 @@ SOURCE = """component Contact:
             unused: unused.never
 board B:
     net bus: nettype.tristate
-    inst connectors[2]: Contact(
+    inst connectors[2]: Contact
         connections:
             1: bus
         metadata:
@@ -61,7 +61,6 @@ board B:
                 1:
                     role: role.digital_output
                     tristate_capable: true
-    )
 """
 
 
@@ -89,16 +88,14 @@ def test_public_tristate_port_checks_internal_driver(tmp_path):
 block Device:
     ports:
         bus: nettype.tristate
-    inst output: Driver(
+    inst output: Driver
         connections:
             1: bus
-    )
 board B:
     net bus: nettype.tristate
-    inst devices[2]: Device(
+    inst devices[2]: Device
         connections:
             bus: bus
-    )
 """
     assert codes(compile_source(tmp_path, source)) == []
     assert (

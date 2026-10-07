@@ -1,7 +1,6 @@
 """Preserve board-instance CAD identities when planning a source rename."""
 
 import json
-from textwrap import indent
 
 from . import ast as a
 from .parser import Builder
@@ -9,86 +8,34 @@ from .syntax import mask_comments
 
 
 def identity_edit(node, source):
-    """Insert the old board-level identity, preserving existing explicit metadata."""
+    """Insert the old board-level identity, preserving existing explicit metadata.
+
+    Add a line to an existing metadata section, or a new section after the
+    instance's last line; arguments, sections, and comments stay untouched.
+    """
     metadata = next((s for s in node.sections if s.name == "metadata"), None)
     if metadata and any(f.key.first.text == "identity" for f in metadata.entries):
         return None
     builder = Builder(source, node.span.filename)
     newline = "\r\n" if "\r\n" in source else "\n"
     identity = "identity: " + json.dumps(node.name.text)
-    if node.inline:
-        return inline_identity_edit(node, source, builder, newline, identity)
     if metadata:
         first = metadata.entries[0].key.span
         start = source.rfind("\n", 0, first.start_pos) + 1
-        text = " " * (first.column - 1) + identity + newline
-    else:
-        base = node.span.column - 1
-        section = node.sections[0].span.column - 1 if node.sections else base + 4
-        fields = section + (section - base)
-        masked = mask_comments(source, node.span.filename)
-        closing = masked.rfind(")", node.span.start_pos, node.span.end_pos)
-        if closing < 0:
-            raise ValueError("Cannot locate the instance's closing parenthesis safely.")
-        line_start = source.rfind("\n", 0, closing) + 1
-        text = " " * section + "metadata:" + newline + " " * fields + identity + newline
-        if source[line_start:closing].strip():
-            start = closing
-            text = newline + text + " " * base
-        else:
-            start = line_start
-    return builder.position_span(start, start), text
-
-
-def inline_identity_edit(node, source, builder, newline, identity):
-    """Expand compact arguments into sections so rename can add stable identity.
-
-    The resolver has already mapped positional nets to physical pins. Keep source
-    expressions and comments, including those between comma-separated arguments.
-    """
-    masked = mask_comments(source, node.span.filename)
-    opening = masked.index("(", node.component[-1].span.end_pos, node.span.end_pos)
-    closing = masked.rfind(")", opening, node.span.end_pos)
-    entries = sorted(
-        ((entry, section.name) for section in node.sections for entry in section.entries),
-        key=lambda item: item[0].span.start_pos,
+        return builder.position_span(start, start), " " * (first.column - 1) + identity + newline
+    base = node.span.column - 1
+    section = (
+        node.sections[0].span.column - 1
+        if node.sections and node.sections[0].span.line != node.span.line
+        else base + 4
     )
-    groups = {}
-    previous = opening + 1
-
-    def gap(start, stop):
-        # Only the separator is discarded; commas within comments are preserved.
-        comma = masked.find(",", start, stop)
-        return (
-            source[start:comma] + source[comma + 1 : stop] if comma >= 0 else source[start:stop]
-        ).strip()
-
-    for entry, section in entries:
-        comments = gap(previous, entry.span.start_pos)
-        if isinstance(entry, a.Binding):
-            endpoint = entry.endpoint
-            key = (
-                json.dumps(endpoint.head.first.text)
-                if endpoint.span == entry.target.span
-                else source[endpoint.span.start_pos : endpoint.span.end_pos]
-            )
-            expr = entry.target
-        else:
-            key, expr = entry.name.text, entry.value
-        text = key + ": " + source[expr.span.start_pos : expr.span.end_pos]
-        groups.setdefault(section, []).append((comments + newline if comments else "") + text)
-        previous = entry.span.end_pos
-    comments = gap(previous, closing)
-    base = " " * (node.span.column - 1)
-    lines = []
-    for section, values in groups.items():
-        lines.append(base + "    " + section + ":")
-        lines.extend(indent(value, base + "        ") for value in values)
-    if comments:
-        lines.append(indent(comments, base + "    "))
-    lines.extend([base + "    metadata:", base + "        " + identity])
-    text = newline + newline.join(lines) + newline + base
-    return builder.position_span(opening + 1, closing), text
+    # Insert after the end of the instance's last line, past any trailing comment.
+    masked = mask_comments(source, node.span.filename)
+    last = len(masked[: node.span.end_pos].rstrip())
+    end = source.find("\n", last)
+    end = len(source) if end < 0 else end - (source[end - 1] == "\r")
+    text = newline + " " * section + "metadata:" + newline + " " * (section + section - base)
+    return builder.position_span(end, end), text + identity
 
 
 def renamed_path(value, old, new):

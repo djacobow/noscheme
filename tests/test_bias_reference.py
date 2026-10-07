@@ -21,15 +21,13 @@ component Driver:
 board B:
     net supply: nettype.power
     net bus: nettype.open_drain
-    inst pull: Pull(
+    inst pull: Pull
         connections:
             1: supply
             2: bus
-    )
-    inst driver: Driver(
+    inst driver: Driver
         connections:
             1: bus
-    )
 """
 
 

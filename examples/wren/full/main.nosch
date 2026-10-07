@@ -10,76 +10,63 @@ block Sheet_fpga_mgts_power_654c2b49ba7125d9:
         n_7c5ccf66fe10d33e: nettype.unchecked
         n_9d5d1561ab4759c4: nettype.unchecked
         n_dce90eb880d4424e: nettype.unchecked
-    inst part_C341: Part_30982e4816588ab1(
+    inst part_C341: Part_30982e4816588ab1
         connections:
             "1": n_9d5d1561ab4759c4
             "2": n_580fc421a890e15c
-    )
-    inst part_R222: Part_b43bb8d6d213d3ab(
+    inst part_R222: Part_b43bb8d6d213d3ab
         connections:
             "1": n_61d992742444c354
             "2": n_300ed7b87e457fa6
-    )
-    inst part_C344: Part_30982e4816588ab1(
+    inst part_C344: Part_30982e4816588ab1
         connections:
             "1": n_9d5d1561ab4759c4
             "2": n_580fc421a890e15c
-    )
-    inst part_C157: Part_30982e4816588ab1(
+    inst part_C157: Part_30982e4816588ab1
         connections:
             "1": n_9d5d1561ab4759c4
             "2": n_dce90eb880d4424e
-    )
-    inst part_C31: Part_30982e4816588ab1(
+    inst part_C31: Part_30982e4816588ab1
         connections:
             "1": n_9d5d1561ab4759c4
             "2": n_300ed7b87e457fa6
-    )
-    inst part_C343: Part_30982e4816588ab1(
+    inst part_C343: Part_30982e4816588ab1
         connections:
             "1": n_9d5d1561ab4759c4
             "2": n_300ed7b87e457fa6
-    )
-    inst part_C342: Part_30982e4816588ab1(
+    inst part_C342: Part_30982e4816588ab1
         connections:
             "1": n_9d5d1561ab4759c4
             "2": n_dce90eb880d4424e
-    )
-    inst part_C25: Part_30982e4816588ab1(
+    inst part_C25: Part_30982e4816588ab1
         connections:
             "1": n_9d5d1561ab4759c4
             "2": n_dce90eb880d4424e
-    )
-    inst part_C340: Part_30982e4816588ab1(
+    inst part_C340: Part_30982e4816588ab1
         connections:
             "1": n_9d5d1561ab4759c4
             "2": n_300ed7b87e457fa6
-    )
-    inst part_C49: Part_30982e4816588ab1(
+    inst part_C49: Part_30982e4816588ab1
         connections:
             "1": n_9d5d1561ab4759c4
             "2": n_580fc421a890e15c
-    )
-    inst part_C30: Part_30982e4816588ab1(
+    inst part_C30: Part_30982e4816588ab1
         connections:
             "1": n_9d5d1561ab4759c4
             "2": n_dce90eb880d4424e
-    )
-    inst part_C19: Part_30982e4816588ab1(
+    inst part_C19: Part_30982e4816588ab1
         connections:
             "1": n_9d5d1561ab4759c4
             "2": n_7c5ccf66fe10d33e
-    )
 
 block Sheet_fpga_power_gnd_3ce7882bdf1a11c2:
     ports:
         n_115bbc5d48cdc37d: nettype.unchecked
         n_ae2d87101a5ef5a0: nettype.unchecked
-    inst part_L2: Part_9f7d6b40a81f0be6(
+    inst part_L2: Part_9f7d6b40a81f0be6
         connections:
             "1": n_115bbc5d48cdc37d
             "2": n_ae2d87101a5ef5a0
-    )
 
 block Sheet_io_driver_5432b2ba092bad9c:
     ports:
@@ -106,12 +93,11 @@ block Sheet_io_driver_5432b2ba092bad9c:
     net n_c8a4ff871540a800: nettype.unchecked
     net n_e2faabd5f012a82b: nettype.unchecked
     net n_f02dbee525d06c5d: nettype.unchecked
-    inst part_R454: Part_095c641c3b4e4f6a(
+    inst part_R454: Part_095c641c3b4e4f6a
         connections:
             "1": n_653cbfc56a1a7821
             "2": n_e5a0c357a594eca1
-    )
-    inst part_IC43: Part_9999e8fa5ba944f9(
+    inst part_IC43: Part_9999e8fa5ba944f9
         connections:
             "1": n_80ca865392145fdb
             "2": n_7340881172a413d7
@@ -119,34 +105,28 @@ block Sheet_io_driver_5432b2ba092bad9c:
             "4": n_5a6c4621dff09db6
             "5": n_4b65a69157613256
             "6": n_2ee8ee46f1f6697c
-    )
-    inst part_R47: Part_b43bb8d6d213d3ab(
+    inst part_R47: Part_b43bb8d6d213d3ab
         connections:
             "1": n_c8a4ff871540a800
             "2": n_2f3e9aebc40fdd66
-    )
-    inst part_T40: Part_c6473ec04d5a1540(
+    inst part_T40: Part_c6473ec04d5a1540
         connections:
             "1": n_5a04198c4b4058ad
             "2": n_7340881172a413d7
             "3": n_653cbfc56a1a7821
-    )
-    inst part_R476: Part_095c641c3b4e4f6a(
+    inst part_R476: Part_095c641c3b4e4f6a
         connections:
             "1": n_34a8fb9955e5cc71
             "2": n_936e626dac353208
-    )
-    inst part_C47: Part_13eaf2e4fcd8dcfc(
+    inst part_C47: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_80ca865392145fdb
             "2": n_7340881172a413d7
-    )
-    inst part_R36: Part_f1445f282dbcd9e8(
+    inst part_R36: Part_f1445f282dbcd9e8
         connections:
             "1": n_7340881172a413d7
             "2": n_e5a0c357a594eca1
-    )
-    inst part_IC33: Part_9999e8fa5ba944f9(
+    inst part_IC33: Part_9999e8fa5ba944f9
         connections:
             "1": n_80ca865392145fdb
             "2": n_7340881172a413d7
@@ -154,49 +134,40 @@ block Sheet_io_driver_5432b2ba092bad9c:
             "4": n_0b02519288743b52
             "5": n_07ca38cfc351f30f
             "6": n_2ee8ee46f1f6697c
-    )
-    inst part_R45: Part_b43bb8d6d213d3ab(
+    inst part_R45: Part_b43bb8d6d213d3ab
         connections:
             "1": n_a1ff8d7bb97b6b84
             "2": n_4571724aff9cd75d
-    )
-    inst part_T5: Part_c6473ec04d5a1540(
+    inst part_T5: Part_c6473ec04d5a1540
         connections:
             "1": n_1ad47b84d276e330
             "2": n_7340881172a413d7
             "3": n_34a8fb9955e5cc71
-    )
-    inst part_R29: Part_9e7655e7181ee42e(
+    inst part_R29: Part_9e7655e7181ee42e
         connections:
             "1": n_f02dbee525d06c5d
             "2": n_e5a0c357a594eca1
-    )
-    inst part_R10: Part_c873a1fcb9ddaba5(
+    inst part_R10: Part_c873a1fcb9ddaba5
         connections:
             "1": n_4b65a69157613256
             "2": n_80ca865392145fdb
-    )
-    inst part_C170: Part_13eaf2e4fcd8dcfc(
+    inst part_C170: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_2ee8ee46f1f6697c
             "2": n_7340881172a413d7
-    )
-    inst part_D3: Part_921324fa66ca0064(
+    inst part_D3: Part_921324fa66ca0064
         connections:
             "1": n_936e626dac353208
             "2": n_7340881172a413d7
-    )
-    inst part_R32: Part_9e7655e7181ee42e(
+    inst part_R32: Part_9e7655e7181ee42e
         connections:
             "1": n_e2faabd5f012a82b
             "2": n_936e626dac353208
-    )
-    inst part_R6: Part_c873a1fcb9ddaba5(
+    inst part_R6: Part_c873a1fcb9ddaba5
         connections:
             "1": n_07ca38cfc351f30f
             "2": n_80ca865392145fdb
-    )
-    inst part_IC23: Part_e96ac0a3891bc5a7(
+    inst part_IC23: Part_e96ac0a3891bc5a7
         connections:
             "1": n_07ca38cfc351f30f
             "10": n_4b65a69157613256
@@ -212,79 +183,64 @@ block Sheet_io_driver_5432b2ba092bad9c:
             "7": n_7340881172a413d7
             "8": n_e2faabd5f012a82b
             "9": n_fb969003684662e5
-    )
-    inst part_C163: Part_13eaf2e4fcd8dcfc(
+    inst part_C163: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_80ca865392145fdb
             "2": n_7340881172a413d7
-    )
-    inst part_D9: Part_921324fa66ca0064(
+    inst part_D9: Part_921324fa66ca0064
         connections:
             "1": n_e5a0c357a594eca1
             "2": n_7340881172a413d7
-    )
-    inst part_D11: Part_1bb07afcf93592e4(
+    inst part_D11: Part_1bb07afcf93592e4
         connections:
             "1": n_7340881172a413d7
             "2": n_80ca865392145fdb
             "3": n_c8a4ff871540a800
-    )
-    inst part_R35: Part_f1445f282dbcd9e8(
+    inst part_R35: Part_f1445f282dbcd9e8
         connections:
             "1": n_7340881172a413d7
             "2": n_936e626dac353208
-    )
-    inst part_R42: Part_b43bb8d6d213d3ab(
+    inst part_R42: Part_b43bb8d6d213d3ab
         connections:
             "1": n_936e626dac353208
             "2": n_a1ff8d7bb97b6b84
-    )
-    inst part_C164: Part_30982e4816588ab1(
+    inst part_C164: Part_30982e4816588ab1
         connections:
             "1": n_7340881172a413d7
             "2": n_80ca865392145fdb
-    )
-    inst part_C28: Part_13eaf2e4fcd8dcfc(
+    inst part_C28: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_80ca865392145fdb
             "2": n_7340881172a413d7
-    )
-    inst part_R43: Part_b43bb8d6d213d3ab(
+    inst part_R43: Part_b43bb8d6d213d3ab
         connections:
             "1": n_e5a0c357a594eca1
             "2": n_c8a4ff871540a800
-    )
-    inst part_C172: Part_13eaf2e4fcd8dcfc(
+    inst part_C172: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_2ee8ee46f1f6697c
             "2": n_7340881172a413d7
-    )
-    inst part_R477: Part_095c641c3b4e4f6a(
+    inst part_R477: Part_095c641c3b4e4f6a
         connections:
             "1": n_34a8fb9955e5cc71
             "2": n_936e626dac353208
-    )
-    inst part_R28: Part_9e7655e7181ee42e(
+    inst part_R28: Part_9e7655e7181ee42e
         connections:
             "1": n_3a57c5f7cfb09f8e
             "2": n_e5a0c357a594eca1
-    )
-    inst part_R33: Part_9e7655e7181ee42e(
+    inst part_R33: Part_9e7655e7181ee42e
         connections:
             "1": n_79259c4a0e052f00
             "2": n_936e626dac353208
-    )
-    inst part_D43: Part_1bb07afcf93592e4(
+    inst part_D43: Part_1bb07afcf93592e4
         connections:
             "1": n_7340881172a413d7
             "2": n_80ca865392145fdb
             "3": n_a1ff8d7bb97b6b84
-    )
-    inst part_R41: Part_095c641c3b4e4f6a(
+    inst part_R41: Part_095c641c3b4e4f6a
         connections:
             "1": n_653cbfc56a1a7821
             "2": n_e5a0c357a594eca1
-    )
 
 block Sheet_pp_driver_2x_83f9b761e8c7ca66:
     ports:
@@ -299,42 +255,35 @@ block Sheet_pp_driver_2x_83f9b761e8c7ca66:
     net n_78c1370ac27b59f7: nettype.unchecked
     net n_7df97393f5b927dc: nettype.unchecked
     net n_e4a047691bcff4b7: nettype.unchecked
-    inst part_C381: Part_30982e4816588ab1(
+    inst part_C381: Part_30982e4816588ab1
         connections:
             "1": n_6256db9d6d001485
             "2": n_23a38ce90d56795c
-    )
-    inst part_D78: Part_921324fa66ca0064(
+    inst part_D78: Part_921324fa66ca0064
         connections:
             "1": n_04b2563c37cfcdb4
             "2": n_6256db9d6d001485
-    )
-    inst part_R93: Part_9e7655e7181ee42e(
+    inst part_R93: Part_9e7655e7181ee42e
         connections:
             "1": n_2378bf6339d04bff
             "2": n_cbe0f6f5139c2236
-    )
-    inst part_C380: Part_13eaf2e4fcd8dcfc(
+    inst part_C380: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_23a38ce90d56795c
             "2": n_6256db9d6d001485
-    )
-    inst part_R164: Part_9e7655e7181ee42e(
+    inst part_R164: Part_9e7655e7181ee42e
         connections:
             "1": n_e4a047691bcff4b7
             "2": n_cbe0f6f5139c2236
-    )
-    inst part_D77: Part_921324fa66ca0064(
+    inst part_D77: Part_921324fa66ca0064
         connections:
             "1": n_cbe0f6f5139c2236
             "2": n_6256db9d6d001485
-    )
-    inst part_R323: Part_f1445f282dbcd9e8(
+    inst part_R323: Part_f1445f282dbcd9e8
         connections:
             "1": n_6256db9d6d001485
             "2": n_04b2563c37cfcdb4
-    )
-    inst part_IC62: Part_e96ac0a3891bc5a7(
+    inst part_IC62: Part_e96ac0a3891bc5a7
         connections:
             "1": n_d0714adb8def6fcb
             "10": n_d0714adb8def6fcb
@@ -350,22 +299,18 @@ block Sheet_pp_driver_2x_83f9b761e8c7ca66:
             "7": n_6256db9d6d001485
             "8": n_7df97393f5b927dc
             "9": n_0432fa4699194587
-    )
-    inst part_R281: Part_9e7655e7181ee42e(
+    inst part_R281: Part_9e7655e7181ee42e
         connections:
             "1": n_7df97393f5b927dc
             "2": n_04b2563c37cfcdb4
-    )
-    inst part_R295: Part_9e7655e7181ee42e(
+    inst part_R295: Part_9e7655e7181ee42e
         connections:
             "1": n_78c1370ac27b59f7
             "2": n_04b2563c37cfcdb4
-    )
-    inst part_R309: Part_f1445f282dbcd9e8(
+    inst part_R309: Part_f1445f282dbcd9e8
         connections:
             "1": n_6256db9d6d001485
             "2": n_cbe0f6f5139c2236
-    )
 
 block Sheet_fpga_config_c48334d4c8ede89c:
     ports:
@@ -396,64 +341,53 @@ block Sheet_fpga_config_c48334d4c8ede89c:
     net n_8cd3d20c2bcd05ec: nettype.unchecked
     net n_c6d865cc66063cbf: nettype.unchecked
     net n_fc060015cff8a35b: nettype.unchecked
-    inst part_R53: Part_4a07a4c8407eef01(
+    inst part_R53: Part_4a07a4c8407eef01
         connections:
             "1": n_54ec1719eebcd5ec
             "2": n_e3c957e882cfadd8
-    )
-    inst part_R51: Part_4a07a4c8407eef01(
+    inst part_R51: Part_4a07a4c8407eef01
         connections:
             "1": n_bcfe24bbafd9022d
             "2": n_e3c957e882cfadd8
-    )
-    inst part_T3: Part_5be6c077e001fed2(
+    inst part_T3: Part_5be6c077e001fed2
         connections:
             "1": n_0c70d7ab6b414420
             "2": n_ccd508a56926d4c0
             "3": n_77cf2df472c641ef
-    )
-    inst part_R118: Part_c873a1fcb9ddaba5(
+    inst part_R118: Part_c873a1fcb9ddaba5
         connections:
             "1": n_6558757b32bc9f40
             "2": n_e3c957e882cfadd8
-    )
-    inst part_R168: Part_4a07a4c8407eef01(
+    inst part_R168: Part_4a07a4c8407eef01
         connections:
             "1": n_81c8a596ba3eb33d
             "2": n_e3c957e882cfadd8
-    )
-    inst part_R54: Part_4a07a4c8407eef01(
+    inst part_R54: Part_4a07a4c8407eef01
         connections:
             "1": n_922c1fcd0a0d337d
             "2": n_e3c957e882cfadd8
-    )
-    inst part_R161: Part_b43bb8d6d213d3ab(
+    inst part_R161: Part_b43bb8d6d213d3ab
         connections:
             "1": n_ccd508a56926d4c0
             "2": n_6cf8ed0058df2099
-    )
-    inst part_C48: Part_0d49e8b22079a912(
+    inst part_C48: Part_0d49e8b22079a912
         connections:
             "1": n_ccd508a56926d4c0
             "2": n_11bf86e385c83386
-    )
-    inst part_LD1: Part_73115d0fbf63110a(
+    inst part_LD1: Part_73115d0fbf63110a
         connections:
             "1": n_c6d865cc66063cbf
             "2": n_5f27acdc53c864fb
-    )
-    inst part_R170: Part_4a07a4c8407eef01(
+    inst part_R170: Part_4a07a4c8407eef01
         connections:
             "1": n_de9f8eb7ad338cd0
             "2": n_e3c957e882cfadd8
-    )
-    inst part_PB1: Part_f8a63967495aa276(
+    inst part_PB1: Part_f8a63967495aa276
         connections:
             "1": n_ccd508a56926d4c0
             "2": n_8cd3d20c2bcd05ec
             "3": n_ccd508a56926d4c0
-    )
-    inst part_SW1: Part_b53b39a327fb280b(
+    inst part_SW1: Part_b53b39a327fb280b
         connections:
             "1": n_ccd508a56926d4c0
             "2": n_ccd508a56926d4c0
@@ -463,120 +397,97 @@ block Sheet_fpga_config_c48334d4c8ede89c:
             "6": n_6558757b32bc9f40
             "7": n_6cf8ed0058df2099
             "8": n_34e1eb0ea7ef252c
-    )
-    inst part_R7: Part_c873a1fcb9ddaba5(
+    inst part_R7: Part_c873a1fcb9ddaba5
         connections:
             "1": n_34e1eb0ea7ef252c
             "2": n_e3c957e882cfadd8
-    )
-    inst part_T4: Part_5be6c077e001fed2(
+    inst part_T4: Part_5be6c077e001fed2
         connections:
             "1": n_c3b0c42882345bee
             "2": n_ccd508a56926d4c0
             "3": n_5e5d8828923be708
-    )
-    inst part_D4: Part_633bcdd49b38b66d(
+    inst part_D4: Part_633bcdd49b38b66d
         connections:
             "1": n_7774c64732cad61e
             "2": n_ccd508a56926d4c0
-    )
-    inst part_PB2: Part_f8a63967495aa276(
+    inst part_PB2: Part_f8a63967495aa276
         connections:
             "1": n_ccd508a56926d4c0
             "2": n_81c8a596ba3eb33d
             "3": n_ccd508a56926d4c0
-    )
-    inst part_R9: Part_4a07a4c8407eef01(
+    inst part_R9: Part_4a07a4c8407eef01
         connections:
             "1": n_2b0a12520ebf5846
             "2": n_e3c957e882cfadd8
-    )
-    inst part_C302: Part_13eaf2e4fcd8dcfc(
+    inst part_C302: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_ccd508a56926d4c0
             "2": n_de9f8eb7ad338cd0
-    )
-    inst part_LD4: Part_73115d0fbf63110a(
+    inst part_LD4: Part_73115d0fbf63110a
         connections:
             "1": n_5e5d8828923be708
             "2": n_fc060015cff8a35b
-    )
-    inst part_D6: Part_633bcdd49b38b66d(
+    inst part_D6: Part_633bcdd49b38b66d
         connections:
             "1": n_922c1fcd0a0d337d
             "2": n_ccd508a56926d4c0
-    )
-    inst part_D1: Part_633bcdd49b38b66d(
+    inst part_D1: Part_633bcdd49b38b66d
         connections:
             "1": n_18c6a131c04d2223
             "2": n_ccd508a56926d4c0
-    )
-    inst part_R190: Part_cc4ecc6cb394cf6d(
+    inst part_R190: Part_cc4ecc6cb394cf6d
         connections:
             "1": n_11bf86e385c83386
             "2": n_7774c64732cad61e
-    )
-    inst part_D2: Part_633bcdd49b38b66d(
+    inst part_D2: Part_633bcdd49b38b66d
         connections:
             "1": n_bcfe24bbafd9022d
             "2": n_ccd508a56926d4c0
-    )
-    inst part_R162: Part_b43bb8d6d213d3ab(
+    inst part_R162: Part_b43bb8d6d213d3ab
         connections:
             "1": n_ccd508a56926d4c0
             "2": n_6558757b32bc9f40
-    )
-    inst part_R5: Part_4a07a4c8407eef01(
+    inst part_R5: Part_4a07a4c8407eef01
         connections:
             "1": n_93e61575a7ba18cf
             "2": n_e3c957e882cfadd8
-    )
-    inst part_R128: Part_c873a1fcb9ddaba5(
+    inst part_R128: Part_c873a1fcb9ddaba5
         connections:
             "1": n_243f4341c161130b
             "2": n_e3c957e882cfadd8
-    )
-    inst part_R52: Part_4a07a4c8407eef01(
+    inst part_R52: Part_4a07a4c8407eef01
         connections:
             "1": n_7774c64732cad61e
             "2": n_e3c957e882cfadd8
-    )
-    inst part_R4: Part_ae43f930869cff95(
+    inst part_R4: Part_ae43f930869cff95
         connections:
             "1": n_fc060015cff8a35b
             "2": n_e3c957e882cfadd8
-    )
-    inst part_R160: Part_b43bb8d6d213d3ab(
+    inst part_R160: Part_b43bb8d6d213d3ab
         connections:
             "1": n_ccd508a56926d4c0
             "2": n_34e1eb0ea7ef252c
-    )
-    inst part_R163: Part_b43bb8d6d213d3ab(
+    inst part_R163: Part_b43bb8d6d213d3ab
         connections:
             "1": n_ccd508a56926d4c0
             "2": n_243f4341c161130b
-    )
-    inst part_R2: Part_ae43f930869cff95(
+    inst part_R2: Part_ae43f930869cff95
         connections:
             "1": n_5f27acdc53c864fb
             "2": n_e3c957e882cfadd8
-    )
-    inst part_D5: Part_633bcdd49b38b66d(
+    inst part_D5: Part_633bcdd49b38b66d
         connections:
             "1": n_54ec1719eebcd5ec
             "2": n_ccd508a56926d4c0
-    )
-    inst part_R24: Part_c873a1fcb9ddaba5(
+    inst part_R24: Part_c873a1fcb9ddaba5
         connections:
             "1": n_6cf8ed0058df2099
             "2": n_e3c957e882cfadd8
-    )
-    inst part_R46: Part_4a07a4c8407eef01(
+    inst part_R46: Part_4a07a4c8407eef01
         connections:
             "1": n_18c6a131c04d2223
             "2": n_e3c957e882cfadd8
-    )
-    inst part_J7: Part_ed825c23a77ac311(
+    inst part_J7: Part_ed825c23a77ac311
         connections:
             "1": n_ccd508a56926d4c0
             "10": n_922c1fcd0a0d337d
@@ -592,43 +503,36 @@ block Sheet_fpga_config_c48334d4c8ede89c:
             "7": n_ccd508a56926d4c0
             "8": n_54ec1719eebcd5ec
             "9": n_ccd508a56926d4c0
-    )
-    inst part_LD2: Part_73115d0fbf63110a(
+    inst part_LD2: Part_73115d0fbf63110a
         connections:
             "1": n_77cf2df472c641ef
             "2": n_4792f3d3a76fa1b0
-    )
-    inst part_R63: Part_f1445f282dbcd9e8(
+    inst part_R63: Part_f1445f282dbcd9e8
         connections:
             "1": n_3a74bc8b08406e6e
             "2": n_f0f8d2431f477d2d
-    )
-    inst part_T2: Part_5be6c077e001fed2(
+    inst part_T2: Part_5be6c077e001fed2
         connections:
             "1": n_93e61575a7ba18cf
             "2": n_ccd508a56926d4c0
             "3": n_c6d865cc66063cbf
-    )
-    inst part_R191: Part_cc4ecc6cb394cf6d(
+    inst part_R191: Part_cc4ecc6cb394cf6d
         connections:
             "1": n_de9f8eb7ad338cd0
             "2": n_8cd3d20c2bcd05ec
-    )
-    inst part_R3: Part_ae43f930869cff95(
+    inst part_R3: Part_ae43f930869cff95
         connections:
             "1": n_4792f3d3a76fa1b0
             "2": n_e3c957e882cfadd8
-    )
 
 block Sheet_fpga_hd_banks_fdb051eeeb08c271:
     ports:
         n_4d904d5e9efcf006: nettype.unchecked
         n_5cf0f0b85f9f26ff: nettype.unchecked
-    inst part_R193: Part_ad88739b62611ac9(
+    inst part_R193: Part_ad88739b62611ac9
         connections:
             "1": n_5cf0f0b85f9f26ff
             "2": n_4d904d5e9efcf006
-    )
 
 block Sheet_fpga_hp_banks_37367e6d5795ec5a:
     ports:
@@ -1051,7 +955,7 @@ block Sheet_fpga_hp_banks_37367e6d5795ec5a:
     net n_eade7e4809045b4d: nettype.unchecked
     net n_efce2311cb8643a9: nettype.unchecked
     net n_f450ff2dbe28d66b: nettype.unchecked
-    inst part_IC108: Part_a1164d92361ef13f(
+    inst part_IC108: Part_a1164d92361ef13f
         connections:
             "1": n_63c406236419c6e3
             "10": n_ad6a2e691f4271dc
@@ -1077,18 +981,15 @@ block Sheet_fpga_hp_banks_37367e6d5795ec5a:
             "7": n_eade7e4809045b4d
             "8": n_7a254a9056fa67b2
             "9": n_efce2311cb8643a9
-    )
-    inst part_R22: Part_0439920e0e76fa98(
+    inst part_R22: Part_0439920e0e76fa98
         connections:
             "1": n_f525a21b3dd7de9e
             "2": n_a9605333764ad4f3
-    )
-    inst part_R453: Part_ad88739b62611ac9(
+    inst part_R453: Part_ad88739b62611ac9
         connections:
             "1": n_e816830213f03338
             "2": n_1aa3765bcb48d0f9
-    )
-    inst part_IC141: Part_a1164d92361ef13f(
+    inst part_IC141: Part_a1164d92361ef13f
         connections:
             "1": n_63c406236419c6e3
             "10": n_f525a21b3dd7de9e
@@ -1114,28 +1015,23 @@ block Sheet_fpga_hp_banks_37367e6d5795ec5a:
             "7": n_f525a21b3dd7de9e
             "8": n_f525a21b3dd7de9e
             "9": n_f525a21b3dd7de9e
-    )
-    inst part_R445: Part_b43bb8d6d213d3ab(
+    inst part_R445: Part_b43bb8d6d213d3ab
         connections:
             "1": n_169ddce781975c1d
             "2": n_b9aa8023fbb2296a
-    )
-    inst part_C489: Part_13eaf2e4fcd8dcfc(
+    inst part_C489: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_63c406236419c6e3
             "2": n_f525a21b3dd7de9e
-    )
-    inst part_C487: Part_13eaf2e4fcd8dcfc(
+    inst part_C487: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_63c406236419c6e3
             "2": n_f525a21b3dd7de9e
-    )
-    inst part_C546: Part_13eaf2e4fcd8dcfc(
+    inst part_C546: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_7962dc2405dbdb0e
             "2": n_f525a21b3dd7de9e
-    )
-    inst part_IC109: Part_a1164d92361ef13f(
+    inst part_IC109: Part_a1164d92361ef13f
         connections:
             "1": n_63c406236419c6e3
             "10": n_7f765700600cb0a7
@@ -1161,18 +1057,15 @@ block Sheet_fpga_hp_banks_37367e6d5795ec5a:
             "7": n_560a7a1927880a09
             "8": n_9c569298747cc1ed
             "9": n_f450ff2dbe28d66b
-    )
-    inst part_C466: Part_13eaf2e4fcd8dcfc(
+    inst part_C466: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_7962dc2405dbdb0e
             "2": n_f525a21b3dd7de9e
-    )
-    inst part_C488: Part_13eaf2e4fcd8dcfc(
+    inst part_C488: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_7962dc2405dbdb0e
             "2": n_f525a21b3dd7de9e
-    )
-    inst part_IC107: Part_a1164d92361ef13f(
+    inst part_IC107: Part_a1164d92361ef13f
         connections:
             "1": n_63c406236419c6e3
             "10": n_f525a21b3dd7de9e
@@ -1198,33 +1091,27 @@ block Sheet_fpga_hp_banks_37367e6d5795ec5a:
             "7": n_e77fbb4a04b83b2b
             "8": n_d73135e678ae8935
             "9": n_e798c5514a630cf7
-    )
-    inst part_R20: Part_0439920e0e76fa98(
+    inst part_R20: Part_0439920e0e76fa98
         connections:
             "1": n_f525a21b3dd7de9e
             "2": n_79b9d906795af947
-    )
-    inst part_R444: Part_b43bb8d6d213d3ab(
+    inst part_R444: Part_b43bb8d6d213d3ab
         connections:
             "1": n_1947b2b38d53093b
             "2": n_26211724538c62a9
-    )
-    inst part_C464: Part_13eaf2e4fcd8dcfc(
+    inst part_C464: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_7962dc2405dbdb0e
             "2": n_f525a21b3dd7de9e
-    )
-    inst part_C465: Part_13eaf2e4fcd8dcfc(
+    inst part_C465: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_63c406236419c6e3
             "2": n_f525a21b3dd7de9e
-    )
-    inst part_C547: Part_13eaf2e4fcd8dcfc(
+    inst part_C547: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_63c406236419c6e3
             "2": n_f525a21b3dd7de9e
-    )
-    inst part_IC110: Part_a1164d92361ef13f(
+    inst part_IC110: Part_a1164d92361ef13f
         connections:
             "1": n_63c406236419c6e3
             "10": no_connect
@@ -1250,28 +1137,23 @@ block Sheet_fpga_hp_banks_37367e6d5795ec5a:
             "7": no_connect
             "8": no_connect
             "9": n_cad948be4873af97
-    )
-    inst part_R188: Part_ad88739b62611ac9(
+    inst part_R188: Part_ad88739b62611ac9
         connections:
             "1": n_8c24b001c0e07fca
             "2": n_519c75c81d6f64dd
-    )
-    inst part_R21: Part_0439920e0e76fa98(
+    inst part_R21: Part_0439920e0e76fa98
         connections:
             "1": n_f525a21b3dd7de9e
             "2": n_aa6ec72f75fdf6b5
-    )
-    inst part_R451: Part_ad88739b62611ac9(
+    inst part_R451: Part_ad88739b62611ac9
         connections:
             "1": n_676ee00a4f002c32
             "2": n_6329c2541ee58b4a
-    )
-    inst part_C486: Part_13eaf2e4fcd8dcfc(
+    inst part_C486: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_7962dc2405dbdb0e
             "2": n_f525a21b3dd7de9e
-    )
-    inst part_IC14: Part_69c5fcfd73a4c1e9(
+    inst part_IC14: Part_69c5fcfd73a4c1e9
         connections:
             "A1": n_a10401557005e687
             "A10": n_100a25e9098ada01
@@ -2057,17 +1939,14 @@ block Sheet_fpga_hp_banks_37367e6d5795ec5a:
             "Y7": n_f525a21b3dd7de9e
             "Y8": n_37f222579f194168
             "Y9": n_9cb9154c9d86c9c7
-    )
-    inst part_R187: Part_ad88739b62611ac9(
+    inst part_R187: Part_ad88739b62611ac9
         connections:
             "1": n_e837b4324a7b58cc
             "2": n_5434ca25f06ffcb6
-    )
-    inst part_C467: Part_13eaf2e4fcd8dcfc(
+    inst part_C467: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_63c406236419c6e3
             "2": n_f525a21b3dd7de9e
-    )
 
 block Sheet_fpga_mgts_fc203d2a891825b4:
     ports:
@@ -2115,27 +1994,23 @@ block Sheet_fpga_mgts_fc203d2a891825b4:
     net n_bbfb3bef971a3921: nettype.unchecked
     net n_e60f3598f44b06cc: nettype.unchecked
     net n_f97c79780903c91a: nettype.unchecked
-    inst part_C472: Part_13eaf2e4fcd8dcfc(
+    inst part_C472: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_9057213ae6dedfb3
             "2": n_5ad8d7e61f6aa921
-    )
-    inst part_C484: Part_13eaf2e4fcd8dcfc(
+    inst part_C484: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_e60f3598f44b06cc
             "2": n_bbfb3bef971a3921
-    )
-    inst part_C468: Part_13eaf2e4fcd8dcfc(
+    inst part_C468: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_57890e10cdbcebf9
             "2": n_23d20ffb442babb4
-    )
-    inst part_R11: Part_5ba6fe1412ee5616(
+    inst part_R11: Part_5ba6fe1412ee5616
         connections:
             "1": n_22991e5c2421ce1b
             "2": n_5d02b67a615198cf
-    )
-    inst part_IC121: Part_d69605cbc7dfc9c5(
+    inst part_IC121: Part_d69605cbc7dfc9c5
         connections:
             "1": n_22991e5c2421ce1b
             "10": n_61c6039049f05358
@@ -2150,18 +2025,15 @@ block Sheet_fpga_mgts_fc203d2a891825b4:
             "7": n_22991e5c2421ce1b
             "8": n_bbfb3bef971a3921
             "9": n_0e2240e9111feec6
-    )
-    inst part_C297: Part_13eaf2e4fcd8dcfc(
+    inst part_C297: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_716a25c46df35b46
             "2": n_22991e5c2421ce1b
-    )
-    inst part_C470: Part_13eaf2e4fcd8dcfc(
+    inst part_C470: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_1337cbb0c823cd7b
             "2": n_f97c79780903c91a
-    )
-    inst part_IC122: Part_d69605cbc7dfc9c5(
+    inst part_IC122: Part_d69605cbc7dfc9c5
         connections:
             "1": n_22991e5c2421ce1b
             "10": n_f97c79780903c91a
@@ -2176,8 +2048,7 @@ block Sheet_fpga_mgts_fc203d2a891825b4:
             "7": n_22991e5c2421ce1b
             "8": n_93924154f16a807b
             "9": n_5ad8d7e61f6aa921
-    )
-    inst part_TR3: Part_9906dca997f8c18b(
+    inst part_TR3: Part_9906dca997f8c18b
         connections:
             "1": n_22991e5c2421ce1b
             "2": no_connect
@@ -2185,53 +2056,43 @@ block Sheet_fpga_mgts_fc203d2a891825b4:
             "4": n_8def732b89d6d2e2
             "5": no_connect
             "6": n_e60f3598f44b06cc
-    )
-    inst part_J11: Part_1466e8a6b8c3ce97(
+    inst part_J11: Part_1466e8a6b8c3ce97
         connections:
             "1": n_558e80a7a1e20232
             "2": n_22991e5c2421ce1b
-    )
-    inst part_C274: Part_5a10aac218ff7739(
+    inst part_C274: Part_5a10aac218ff7739
         connections:
             "1": n_22991e5c2421ce1b
             "2": n_716a25c46df35b46
-    )
-    inst part_C374: Part_13eaf2e4fcd8dcfc(
+    inst part_C374: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_68a6826a92e1612c
             "2": n_f2b49ae5a76af7eb
-    )
-    inst part_C469: Part_13eaf2e4fcd8dcfc(
+    inst part_C469: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_5e1f4088815de69f
             "2": n_b2a200a74a02c7a2
-    )
-    inst part_J12: Part_1466e8a6b8c3ce97(
+    inst part_J12: Part_1466e8a6b8c3ce97
         connections:
             "1": n_88fa71051da8075f
             "2": n_22991e5c2421ce1b
-    )
-    inst part_C233: Part_13eaf2e4fcd8dcfc(
+    inst part_C233: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_d3f874c66e5bc93a
             "2": n_c43c06d7ea7864ce
-    )
-    inst part_C476: Part_13eaf2e4fcd8dcfc(
+    inst part_C476: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_6596b8a9fc2e0e9b
             "2": n_46e3d13c71777296
-    )
-    inst part_C483: Part_13eaf2e4fcd8dcfc(
+    inst part_C483: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_d90db0d6945efd23
             "2": n_64b7038105a48e8f
-    )
-    inst part_C485: Part_13eaf2e4fcd8dcfc(
+    inst part_C485: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_88fa71051da8075f
             "2": n_a40d1e9d426c8ecc
-    )
-    inst part_TR1: Part_9906dca997f8c18b(
+    inst part_TR1: Part_9906dca997f8c18b
         connections:
             "1": n_22991e5c2421ce1b
             "2": no_connect
@@ -2239,78 +2100,63 @@ block Sheet_fpga_mgts_fc203d2a891825b4:
             "4": n_9057213ae6dedfb3
             "5": no_connect
             "6": n_1f66987cc56e4eb1
-    )
-    inst part_C478: Part_13eaf2e4fcd8dcfc(
+    inst part_C478: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_558e80a7a1e20232
             "2": n_69a52dea3ad3a52f
-    )
-    inst part_C475: Part_13eaf2e4fcd8dcfc(
+    inst part_C475: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_0a15a4ba3b962db6
             "2": n_23d20ffb442babb4
-    )
-    inst part_C491: Part_13eaf2e4fcd8dcfc(
+    inst part_C491: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_716a25c46df35b46
             "2": n_22991e5c2421ce1b
-    )
-    inst part_C473: Part_13eaf2e4fcd8dcfc(
+    inst part_C473: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_1f66987cc56e4eb1
             "2": n_93924154f16a807b
-    )
-    inst part_C477: Part_13eaf2e4fcd8dcfc(
+    inst part_C477: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_3f08d332b926ec59
             "2": n_8f8ee62842d3befa
-    )
-    inst part_C474: Part_13eaf2e4fcd8dcfc(
+    inst part_C474: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_1337cbb0c823cd7b
             "2": n_b2a200a74a02c7a2
-    )
-    inst part_C479: Part_13eaf2e4fcd8dcfc(
+    inst part_C479: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_657046f704c91450
             "2": n_46e3d13c71777296
-    )
-    inst part_C230: Part_13eaf2e4fcd8dcfc(
+    inst part_C230: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_0664b22f76e0d754
             "2": n_d3e475db9e786532
-    )
-    inst part_C490: Part_5a10aac218ff7739(
+    inst part_C490: Part_5a10aac218ff7739
         connections:
             "1": n_22991e5c2421ce1b
             "2": n_716a25c46df35b46
-    )
-    inst part_C471: Part_13eaf2e4fcd8dcfc(
+    inst part_C471: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_0a15a4ba3b962db6
             "2": n_516a7ee93263300e
-    )
-    inst part_C482: Part_13eaf2e4fcd8dcfc(
+    inst part_C482: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_8def732b89d6d2e2
             "2": n_0e2240e9111feec6
-    )
-    inst part_C480: Part_13eaf2e4fcd8dcfc(
+    inst part_C480: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_d90db0d6945efd23
             "2": n_8f8ee62842d3befa
-    )
-    inst part_C375: Part_13eaf2e4fcd8dcfc(
+    inst part_C375: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_d4b8f41a2b5aa1d8
             "2": n_2e32f449103099ce
-    )
-    inst part_C481: Part_13eaf2e4fcd8dcfc(
+    inst part_C481: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_657046f704c91450
             "2": n_61c6039049f05358
-    )
-    inst sub_0: Sheet_fpga_mgts_power_654c2b49ba7125d9(
+    inst sub_0: Sheet_fpga_mgts_power_654c2b49ba7125d9
         connections:
             n_300ed7b87e457fa6: n_1cd054ace9898c88
             n_580fc421a890e15c: n_946846c2fb795a95
@@ -2318,7 +2164,6 @@ block Sheet_fpga_mgts_fc203d2a891825b4:
             n_7c5ccf66fe10d33e: n_a3c03b4243fde12d
             n_9d5d1561ab4759c4: n_22991e5c2421ce1b
             n_dce90eb880d4424e: n_3324c713c352c421
-    )
 
 block Sheet_fpga_power_f164fc135491fabe:
     ports:
@@ -2331,261 +2176,211 @@ block Sheet_fpga_power_f164fc135491fabe:
         n_d4bdb95a95c78e58: nettype.unchecked
         n_ec89425d79195f85: nettype.unchecked
         n_eeffb693f928942e: nettype.unchecked
-    inst part_C92: Part_2f4e3bd734ae70f0(
+    inst part_C92: Part_2f4e3bd734ae70f0
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_d4bdb95a95c78e58
-    )
-    inst part_C81: Part_1ef9ba2d901e1efe(
+    inst part_C81: Part_1ef9ba2d901e1efe
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_9bc3b1c77f0c54be
-    )
-    inst part_C83: Part_1ef9ba2d901e1efe(
+    inst part_C83: Part_1ef9ba2d901e1efe
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_ec89425d79195f85
-    )
-    inst part_C35: Part_1ef9ba2d901e1efe(
+    inst part_C35: Part_1ef9ba2d901e1efe
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_9bc3b1c77f0c54be
-    )
-    inst part_L6: Part_1a2e4b56d6f1d8a8(
+    inst part_L6: Part_1a2e4b56d6f1d8a8
         connections:
             "1": n_eeffb693f928942e
             "2": n_5389a142701548f8
-    )
-    inst part_C82: Part_6ea1a874fc30e514(
+    inst part_C82: Part_6ea1a874fc30e514
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_9bc3b1c77f0c54be
-    )
-    inst part_C67: Part_6ea1a874fc30e514(
+    inst part_C67: Part_6ea1a874fc30e514
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_eeffb693f928942e
-    )
-    inst part_C44: Part_1ef9ba2d901e1efe(
+    inst part_C44: Part_1ef9ba2d901e1efe
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_eeffb693f928942e
-    )
-    inst part_C39: Part_6ea1a874fc30e514(
+    inst part_C39: Part_6ea1a874fc30e514
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_9bc3b1c77f0c54be
-    )
-    inst part_C84: Part_6ea1a874fc30e514(
+    inst part_C84: Part_6ea1a874fc30e514
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_ec89425d79195f85
-    )
-    inst part_C104: Part_1ef9ba2d901e1efe(
+    inst part_C104: Part_1ef9ba2d901e1efe
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_eeffb693f928942e
-    )
-    inst part_C34: Part_1ef9ba2d901e1efe(
+    inst part_C34: Part_1ef9ba2d901e1efe
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_9bc3b1c77f0c54be
-    )
-    inst part_C58: Part_6ea1a874fc30e514(
+    inst part_C58: Part_6ea1a874fc30e514
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_8d3648588f9c5335
-    )
-    inst part_L5: Part_1a2e4b56d6f1d8a8(
+    inst part_L5: Part_1a2e4b56d6f1d8a8
         connections:
             "1": n_eeffb693f928942e
             "2": n_a58f3ed706de8f3c
-    )
-    inst part_C79: Part_1ef9ba2d901e1efe(
+    inst part_C79: Part_1ef9ba2d901e1efe
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_9bc3b1c77f0c54be
-    )
-    inst part_C96: Part_2f4e3bd734ae70f0(
+    inst part_C96: Part_2f4e3bd734ae70f0
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_a58f3ed706de8f3c
-    )
-    inst part_C41: Part_6ea1a874fc30e514(
+    inst part_C41: Part_6ea1a874fc30e514
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_9bc3b1c77f0c54be
-    )
-    inst part_C93: Part_2f4e3bd734ae70f0(
+    inst part_C93: Part_2f4e3bd734ae70f0
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_d4bdb95a95c78e58
-    )
-    inst part_C100: Part_bbf8928ae7689f98(
+    inst part_C100: Part_bbf8928ae7689f98
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_8d3648588f9c5335
-    )
-    inst part_C105: Part_6ea1a874fc30e514(
+    inst part_C105: Part_6ea1a874fc30e514
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_eeffb693f928942e
-    )
-    inst part_C40: Part_bbf8928ae7689f98(
+    inst part_C40: Part_bbf8928ae7689f98
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_9bc3b1c77f0c54be
-    )
-    inst part_C86: Part_6ea1a874fc30e514(
+    inst part_C86: Part_6ea1a874fc30e514
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_9bc3b1c77f0c54be
-    )
-    inst part_C26: Part_6ea1a874fc30e514(
+    inst part_C26: Part_6ea1a874fc30e514
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_8d3648588f9c5335
-    )
-    inst part_C33: Part_ff4bfae02b00eb94(
+    inst part_C33: Part_ff4bfae02b00eb94
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_9bc3b1c77f0c54be
-    )
-    inst part_C94: Part_2f4e3bd734ae70f0(
+    inst part_C94: Part_2f4e3bd734ae70f0
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_d4bdb95a95c78e58
-    )
-    inst part_C80: Part_6ea1a874fc30e514(
+    inst part_C80: Part_6ea1a874fc30e514
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_9bc3b1c77f0c54be
-    )
-    inst part_C27: Part_bbf8928ae7689f98(
+    inst part_C27: Part_bbf8928ae7689f98
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_eeffb693f928942e
-    )
-    inst part_C108: Part_6ea1a874fc30e514(
+    inst part_C108: Part_6ea1a874fc30e514
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_8d3648588f9c5335
-    )
-    inst part_C38: Part_bbf8928ae7689f98(
+    inst part_C38: Part_bbf8928ae7689f98
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_9bc3b1c77f0c54be
-    )
-    inst part_C90: Part_30982e4816588ab1(
+    inst part_C90: Part_30982e4816588ab1
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_d4bdb95a95c78e58
-    )
-    inst part_C91: Part_30982e4816588ab1(
+    inst part_C91: Part_30982e4816588ab1
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_d4bdb95a95c78e58
-    )
-    inst part_C36: Part_1ef9ba2d901e1efe(
+    inst part_C36: Part_1ef9ba2d901e1efe
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_9bc3b1c77f0c54be
-    )
-    inst part_C29: Part_6ea1a874fc30e514(
+    inst part_C29: Part_6ea1a874fc30e514
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_eeffb693f928942e
-    )
-    inst part_C45: Part_6ea1a874fc30e514(
+    inst part_C45: Part_6ea1a874fc30e514
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_eeffb693f928942e
-    )
-    inst part_C101: Part_6ea1a874fc30e514(
+    inst part_C101: Part_6ea1a874fc30e514
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_8d3648588f9c5335
-    )
-    inst part_C97: Part_6ea1a874fc30e514(
+    inst part_C97: Part_6ea1a874fc30e514
         connections:
             "1": n_24423c5d61e5e48f
             "2": n_5389a142701548f8
-    )
-    inst part_C42: Part_bbf8928ae7689f98(
+    inst part_C42: Part_bbf8928ae7689f98
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_eeffb693f928942e
-    )
-    inst part_C98: Part_2f4e3bd734ae70f0(
+    inst part_C98: Part_2f4e3bd734ae70f0
         connections:
             "1": n_24423c5d61e5e48f
             "2": n_5389a142701548f8
-    )
-    inst part_C46: Part_6ea1a874fc30e514(
+    inst part_C46: Part_6ea1a874fc30e514
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_eeffb693f928942e
-    )
-    inst part_C106: Part_6ea1a874fc30e514(
+    inst part_C106: Part_6ea1a874fc30e514
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_eeffb693f928942e
-    )
-    inst part_C95: Part_2f4e3bd734ae70f0(
+    inst part_C95: Part_2f4e3bd734ae70f0
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_d4bdb95a95c78e58
-    )
-    inst part_C37: Part_1ef9ba2d901e1efe(
+    inst part_C37: Part_1ef9ba2d901e1efe
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_9bc3b1c77f0c54be
-    )
-    inst part_C137: Part_6ea1a874fc30e514(
+    inst part_C137: Part_6ea1a874fc30e514
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_8d3648588f9c5335
-    )
-    inst part_C43: Part_6ea1a874fc30e514(
+    inst part_C43: Part_6ea1a874fc30e514
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_eeffb693f928942e
-    )
-    inst part_C85: Part_1ef9ba2d901e1efe(
+    inst part_C85: Part_1ef9ba2d901e1efe
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_9bc3b1c77f0c54be
-    )
-    inst part_C119: Part_6ea1a874fc30e514(
+    inst part_C119: Part_6ea1a874fc30e514
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_8d3648588f9c5335
-    )
-    inst part_C107: Part_6ea1a874fc30e514(
+    inst part_C107: Part_6ea1a874fc30e514
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_eeffb693f928942e
-    )
-    inst part_C32: Part_6ea1a874fc30e514(
+    inst part_C32: Part_6ea1a874fc30e514
         connections:
             "1": n_1a3e05b1463dc8c9
             "2": n_a58f3ed706de8f3c
-    )
-    inst sub_0: Sheet_fpga_power_gnd_3ce7882bdf1a11c2(
+    inst sub_0: Sheet_fpga_power_gnd_3ce7882bdf1a11c2
         connections:
             n_115bbc5d48cdc37d: n_24423c5d61e5e48f
             n_ae2d87101a5ef5a0: n_1a3e05b1463dc8c9
-    )
 
 block Sheet_fpga_ps_ddr_5b327b858b383ae3:
     ports:
         n_7c63d308334ff8da: nettype.unchecked
         n_816f530056a68505: nettype.unchecked
-    inst part_R1: Part_0439920e0e76fa98(
+    inst part_R1: Part_0439920e0e76fa98
         connections:
             "1": n_7c63d308334ff8da
             "2": n_816f530056a68505
-    )
 
 block Sheet_io_driver_8x_7ea337d85f6b6d6c:
     ports:
@@ -2639,7 +2434,7 @@ block Sheet_io_driver_8x_7ea337d85f6b6d6c:
     net n_edf464e4b001365d: nettype.unchecked
     net n_f050123ca88155ec: nettype.unchecked
     net n_f97ee9506685b3f9: nettype.unchecked
-    inst part_IC75: Part_a1164d92361ef13f(
+    inst part_IC75: Part_a1164d92361ef13f
         connections:
             "1": n_c81ba628fa3042f7
             "10": n_8f583edb54c76950
@@ -2665,8 +2460,7 @@ block Sheet_io_driver_8x_7ea337d85f6b6d6c:
             "7": n_4085eb2baddeba36
             "8": n_20c426d5a45dee57
             "9": n_d60dda2f8eaa7faa
-    )
-    inst part_IC77: Part_0b063d4f31f99885(
+    inst part_IC77: Part_0b063d4f31f99885
         connections:
             "1": n_ca764f62938b3281
             "10": n_399c7424b645a868
@@ -2685,23 +2479,19 @@ block Sheet_io_driver_8x_7ea337d85f6b6d6c:
             "7": n_eaf0d4425ecd4efc
             "8": n_a48bb57dca56092c
             "9": n_fb2289d416cba3a3
-    )
-    inst part_C406: Part_13eaf2e4fcd8dcfc(
+    inst part_C406: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_a48bb57dca56092c
             "2": n_8f8c881c1c39ee2f
-    )
-    inst part_C409: Part_13eaf2e4fcd8dcfc(
+    inst part_C409: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_a48bb57dca56092c
             "2": n_8f8c881c1c39ee2f
-    )
-    inst part_C408: Part_13eaf2e4fcd8dcfc(
+    inst part_C408: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_c81ba628fa3042f7
             "2": n_a48bb57dca56092c
-    )
-    inst part_IC76: Part_0b063d4f31f99885(
+    inst part_IC76: Part_0b063d4f31f99885
         connections:
             "1": n_edf464e4b001365d
             "10": n_399c7424b645a868
@@ -2720,13 +2510,11 @@ block Sheet_io_driver_8x_7ea337d85f6b6d6c:
             "7": n_9f904dbe873641ed
             "8": n_a48bb57dca56092c
             "9": n_507c977ddb4305a2
-    )
-    inst part_C407: Part_13eaf2e4fcd8dcfc(
+    inst part_C407: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_8f8c881c1c39ee2f
             "2": n_a48bb57dca56092c
-    )
-    inst sub_0[4]: Sheet_io_driver_5432b2ba092bad9c(
+    inst sub_0[4]: Sheet_io_driver_5432b2ba092bad9c
         connections:
             [0].n_07ca38cfc351f30f: n_f050123ca88155ec
             [0].n_0b02519288743b52: n_52d4dbcb22d80681
@@ -2780,7 +2568,6 @@ block Sheet_io_driver_8x_7ea337d85f6b6d6c:
             [3].n_936e626dac353208: n_5a3f2b22bb83ce7b
             [3].n_e5a0c357a594eca1: n_3aad8bca28ee4e8a
             [3].n_fb969003684662e5: n_f97ee9506685b3f9
-    )
 
 block Sheet_io_driver_8x_a72b2735e0670126:
     ports:
@@ -2833,7 +2620,7 @@ block Sheet_io_driver_8x_a72b2735e0670126:
     net n_edf464e4b001365d: nettype.unchecked
     net n_f050123ca88155ec: nettype.unchecked
     net n_f97ee9506685b3f9: nettype.unchecked
-    inst part_IC102: Part_a1164d92361ef13f(
+    inst part_IC102: Part_a1164d92361ef13f
         connections:
             "1": n_c81ba628fa3042f7
             "10": n_8f583edb54c76950
@@ -2859,8 +2646,7 @@ block Sheet_io_driver_8x_a72b2735e0670126:
             "7": n_4085eb2baddeba36
             "8": n_20c426d5a45dee57
             "9": n_d60dda2f8eaa7faa
-    )
-    inst part_IC104: Part_0b063d4f31f99885(
+    inst part_IC104: Part_0b063d4f31f99885
         connections:
             "1": n_ca764f62938b3281
             "10": n_399c7424b645a868
@@ -2879,23 +2665,19 @@ block Sheet_io_driver_8x_a72b2735e0670126:
             "7": n_eaf0d4425ecd4efc
             "8": n_a48bb57dca56092c
             "9": no_connect
-    )
-    inst part_C456: Part_13eaf2e4fcd8dcfc(
+    inst part_C456: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_a48bb57dca56092c
             "2": n_8f8c881c1c39ee2f
-    )
-    inst part_C459: Part_13eaf2e4fcd8dcfc(
+    inst part_C459: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_a48bb57dca56092c
             "2": n_8f8c881c1c39ee2f
-    )
-    inst part_C458: Part_13eaf2e4fcd8dcfc(
+    inst part_C458: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_c81ba628fa3042f7
             "2": n_a48bb57dca56092c
-    )
-    inst part_IC103: Part_0b063d4f31f99885(
+    inst part_IC103: Part_0b063d4f31f99885
         connections:
             "1": n_edf464e4b001365d
             "10": n_399c7424b645a868
@@ -2914,13 +2696,11 @@ block Sheet_io_driver_8x_a72b2735e0670126:
             "7": n_9f904dbe873641ed
             "8": n_a48bb57dca56092c
             "9": n_507c977ddb4305a2
-    )
-    inst part_C457: Part_13eaf2e4fcd8dcfc(
+    inst part_C457: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_8f8c881c1c39ee2f
             "2": n_a48bb57dca56092c
-    )
-    inst sub_0[4]: Sheet_io_driver_5432b2ba092bad9c(
+    inst sub_0[4]: Sheet_io_driver_5432b2ba092bad9c
         connections:
             [0].n_07ca38cfc351f30f: n_f050123ca88155ec
             [0].n_0b02519288743b52: n_52d4dbcb22d80681
@@ -2974,7 +2754,6 @@ block Sheet_io_driver_8x_a72b2735e0670126:
             [3].n_936e626dac353208: n_5a3f2b22bb83ce7b
             [3].n_e5a0c357a594eca1: n_3aad8bca28ee4e8a
             [3].n_fb969003684662e5: n_f97ee9506685b3f9
-    )
 
 block Sheet_pp_driver_8x_1f2bc27c679437ee:
     ports:
@@ -3006,7 +2785,7 @@ block Sheet_pp_driver_8x_1f2bc27c679437ee:
     net n_74f625a4405aef63: nettype.unchecked
     net n_90db872d1871b0ff: nettype.unchecked
     net n_bc02439b9ef0648a: nettype.unchecked
-    inst part_IC61: Part_a1164d92361ef13f(
+    inst part_IC61: Part_a1164d92361ef13f
         connections:
             "1": n_41bd67ac820f7482
             "10": n_cf987ed84caca067
@@ -3032,18 +2811,15 @@ block Sheet_pp_driver_8x_1f2bc27c679437ee:
             "7": n_377d8c35915186d9
             "8": n_3c15d9c3260db432
             "9": n_cf58febb506fce0e
-    )
-    inst part_C376: Part_13eaf2e4fcd8dcfc(
+    inst part_C376: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_f93c121809801999
             "2": n_78c910d01f083721
-    )
-    inst part_C377: Part_13eaf2e4fcd8dcfc(
+    inst part_C377: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_41bd67ac820f7482
             "2": n_78c910d01f083721
-    )
-    inst sub_0[4]: Sheet_pp_driver_2x_83f9b761e8c7ca66(
+    inst sub_0[4]: Sheet_pp_driver_2x_83f9b761e8c7ca66
         connections:
             [0].n_0432fa4699194587: n_90db872d1871b0ff
             [0].n_04b2563c37cfcdb4: n_0fb3ece8586c2731
@@ -3073,7 +2849,6 @@ block Sheet_pp_driver_8x_1f2bc27c679437ee:
             [3].n_7e02744ef131c89e: n_74f625a4405aef63
             [3].n_cbe0f6f5139c2236: n_d9e5c16b77e090ff
             [3].n_d0714adb8def6fcb: n_2878bb93e3a368ee
-    )
 
 block Sheet_vme_buffers_addr_75e49d9b14759195:
     ports:
@@ -3170,22 +2945,19 @@ block Sheet_vme_buffers_addr_75e49d9b14759195:
         n_f9d45012e80fba9a: nettype.unchecked
         n_fb5b31a60144e7d4: nettype.unchecked
         n_ff95ba90e1a8481c: nettype.unchecked
-    inst part_C254: Part_13eaf2e4fcd8dcfc(
+    inst part_C254: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_845020e9358d0d0b
             "2": n_08506f7d277782e5
-    )
-    inst part_C307: Part_13eaf2e4fcd8dcfc(
+    inst part_C307: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_08506f7d277782e5
             "2": n_845020e9358d0d0b
-    )
-    inst part_R98: Part_c873a1fcb9ddaba5(
+    inst part_R98: Part_c873a1fcb9ddaba5
         connections:
             "1": n_ad7b20fcad62b575
             "2": n_845020e9358d0d0b
-    )
-    inst part_IC37: Part_065fd6eece3791aa(
+    inst part_IC37: Part_065fd6eece3791aa
         connections:
             "1": n_845020e9358d0d0b
             "10": n_845020e9358d0d0b
@@ -3235,58 +3007,47 @@ block Sheet_vme_buffers_addr_75e49d9b14759195:
             "7": n_08506f7d277782e5
             "8": n_08506f7d277782e5
             "9": n_808781ef9364c26d
-    )
-    inst part_C251: Part_13eaf2e4fcd8dcfc(
+    inst part_C251: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_845020e9358d0d0b
             "2": n_08506f7d277782e5
-    )
-    inst part_R40: Part_c873a1fcb9ddaba5(
+    inst part_R40: Part_c873a1fcb9ddaba5
         connections:
             "1": n_ff95ba90e1a8481c
             "2": n_845020e9358d0d0b
-    )
-    inst part_C236: Part_13eaf2e4fcd8dcfc(
+    inst part_C236: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_845020e9358d0d0b
             "2": n_08506f7d277782e5
-    )
-    inst part_C237: Part_13eaf2e4fcd8dcfc(
+    inst part_C237: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_845020e9358d0d0b
             "2": n_08506f7d277782e5
-    )
-    inst part_C244: Part_13eaf2e4fcd8dcfc(
+    inst part_C244: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_08506f7d277782e5
             "2": n_845020e9358d0d0b
-    )
-    inst part_R89: Part_c873a1fcb9ddaba5(
+    inst part_R89: Part_c873a1fcb9ddaba5
         connections:
             "1": n_16eca174d34737bc
             "2": n_08506f7d277782e5
-    )
-    inst part_C308: Part_13eaf2e4fcd8dcfc(
+    inst part_C308: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_845020e9358d0d0b
             "2": n_08506f7d277782e5
-    )
-    inst part_R90: Part_c873a1fcb9ddaba5(
+    inst part_R90: Part_c873a1fcb9ddaba5
         connections:
             "1": n_a7e0b0891b15602b
             "2": n_845020e9358d0d0b
-    )
-    inst part_C252: Part_13eaf2e4fcd8dcfc(
+    inst part_C252: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_08506f7d277782e5
             "2": n_845020e9358d0d0b
-    )
-    inst part_C306: Part_13eaf2e4fcd8dcfc(
+    inst part_C306: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_08506f7d277782e5
             "2": n_845020e9358d0d0b
-    )
-    inst part_IC38: Part_065fd6eece3791aa(
+    inst part_IC38: Part_065fd6eece3791aa
         connections:
             "1": n_845020e9358d0d0b
             "10": n_845020e9358d0d0b
@@ -3336,83 +3097,67 @@ block Sheet_vme_buffers_addr_75e49d9b14759195:
             "7": n_08506f7d277782e5
             "8": n_845020e9358d0d0b
             "9": n_f18a8060c283a737
-    )
-    inst part_C318: Part_13eaf2e4fcd8dcfc(
+    inst part_C318: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_08506f7d277782e5
             "2": n_845020e9358d0d0b
-    )
-    inst part_C305: Part_13eaf2e4fcd8dcfc(
+    inst part_C305: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_845020e9358d0d0b
             "2": n_08506f7d277782e5
-    )
-    inst part_C269: Part_13eaf2e4fcd8dcfc(
+    inst part_C269: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_08506f7d277782e5
             "2": n_845020e9358d0d0b
-    )
-    inst part_C243: Part_13eaf2e4fcd8dcfc(
+    inst part_C243: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_845020e9358d0d0b
             "2": n_08506f7d277782e5
-    )
-    inst part_C301: Part_13eaf2e4fcd8dcfc(
+    inst part_C301: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_845020e9358d0d0b
             "2": n_08506f7d277782e5
-    )
-    inst part_C235: Part_13eaf2e4fcd8dcfc(
+    inst part_C235: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_845020e9358d0d0b
             "2": n_08506f7d277782e5
-    )
-    inst part_R92: Part_c873a1fcb9ddaba5(
+    inst part_R92: Part_c873a1fcb9ddaba5
         connections:
             "1": n_72aad2805a803ddf
             "2": n_08506f7d277782e5
-    )
-    inst part_C253: Part_13eaf2e4fcd8dcfc(
+    inst part_C253: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_08506f7d277782e5
             "2": n_845020e9358d0d0b
-    )
-    inst part_C240: Part_13eaf2e4fcd8dcfc(
+    inst part_C240: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_08506f7d277782e5
             "2": n_845020e9358d0d0b
-    )
-    inst part_C249: Part_13eaf2e4fcd8dcfc(
+    inst part_C249: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_08506f7d277782e5
             "2": n_845020e9358d0d0b
-    )
-    inst part_C242: Part_13eaf2e4fcd8dcfc(
+    inst part_C242: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_845020e9358d0d0b
             "2": n_08506f7d277782e5
-    )
-    inst part_C234: Part_13eaf2e4fcd8dcfc(
+    inst part_C234: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_845020e9358d0d0b
             "2": n_08506f7d277782e5
-    )
-    inst part_C241: Part_13eaf2e4fcd8dcfc(
+    inst part_C241: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_08506f7d277782e5
             "2": n_845020e9358d0d0b
-    )
-    inst part_C238: Part_13eaf2e4fcd8dcfc(
+    inst part_C238: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_08506f7d277782e5
             "2": n_845020e9358d0d0b
-    )
-    inst part_C239: Part_13eaf2e4fcd8dcfc(
+    inst part_C239: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_08506f7d277782e5
             "2": n_845020e9358d0d0b
-    )
-    inst part_IC28: Part_065fd6eece3791aa(
+    inst part_IC28: Part_065fd6eece3791aa
         connections:
             "1": n_ad7b20fcad62b575
             "10": n_845020e9358d0d0b
@@ -3462,13 +3207,11 @@ block Sheet_vme_buffers_addr_75e49d9b14759195:
             "7": n_08506f7d277782e5
             "8": n_845020e9358d0d0b
             "9": n_3421493192c1cd34
-    )
-    inst part_C250: Part_13eaf2e4fcd8dcfc(
+    inst part_C250: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_845020e9358d0d0b
             "2": n_08506f7d277782e5
-    )
-    inst part_IC36: Part_065fd6eece3791aa(
+    inst part_IC36: Part_065fd6eece3791aa
         connections:
             "1": n_845020e9358d0d0b
             "10": n_845020e9358d0d0b
@@ -3518,12 +3261,10 @@ block Sheet_vme_buffers_addr_75e49d9b14759195:
             "7": n_08506f7d277782e5
             "8": n_5142c68314b18e7b
             "9": n_98bc0e749b413c98
-    )
-    inst part_R95: Part_c873a1fcb9ddaba5(
+    inst part_R95: Part_c873a1fcb9ddaba5
         connections:
             "1": n_e272600a7edd0f16
             "2": n_dc912ea87161fde3
-    )
 
 block Sheet_vme_buffers_aux_a4b5ed9fddea529a:
     ports:
@@ -3572,62 +3313,51 @@ block Sheet_vme_buffers_aux_a4b5ed9fddea529a:
         n_f7d981ec213f905d: nettype.unchecked
         n_fe2707435859c803: nettype.unchecked
         n_fe76d03c33e11e41: nettype.unchecked
-    inst part_R114: Part_c873a1fcb9ddaba5(
+    inst part_R114: Part_c873a1fcb9ddaba5
         connections:
             "1": n_077498513f5889af
             "2": n_079db9beec9fafc6
-    )
-    inst part_C55: Part_13eaf2e4fcd8dcfc(
+    inst part_C55: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_5e86310e116da28a
             "2": n_079db9beec9fafc6
-    )
-    inst part_C548: Part_13eaf2e4fcd8dcfc(
+    inst part_C548: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_5e86310e116da28a
             "2": n_079db9beec9fafc6
-    )
-    inst part_C50: Part_13eaf2e4fcd8dcfc(
+    inst part_C50: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_5e86310e116da28a
             "2": n_079db9beec9fafc6
-    )
-    inst part_C23: Part_13eaf2e4fcd8dcfc(
+    inst part_C23: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_079db9beec9fafc6
             "2": n_5e86310e116da28a
-    )
-    inst part_R403: Part_c873a1fcb9ddaba5(
+    inst part_R403: Part_c873a1fcb9ddaba5
         connections:
             "1": n_5e86310e116da28a
             "2": n_44cf52f56f34c622
-    )
-    inst part_R59: Part_c873a1fcb9ddaba5(
+    inst part_R59: Part_c873a1fcb9ddaba5
         connections:
             "1": n_c83be7bcd9aa8ca9
             "2": n_5e86310e116da28a
-    )
-    inst part_C54: Part_13eaf2e4fcd8dcfc(
+    inst part_C54: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_079db9beec9fafc6
             "2": n_5e86310e116da28a
-    )
-    inst part_C70: Part_13eaf2e4fcd8dcfc(
+    inst part_C70: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_079db9beec9fafc6
             "2": n_5e86310e116da28a
-    )
-    inst part_C62: Part_13eaf2e4fcd8dcfc(
+    inst part_C62: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_5e86310e116da28a
             "2": n_079db9beec9fafc6
-    )
-    inst part_C56: Part_13eaf2e4fcd8dcfc(
+    inst part_C56: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_079db9beec9fafc6
             "2": n_5e86310e116da28a
-    )
-    inst part_IC142: Part_e96ac0a3891bc5a7(
+    inst part_IC142: Part_e96ac0a3891bc5a7
         connections:
             "1": n_079db9beec9fafc6
             "10": n_44cf52f56f34c622
@@ -3643,13 +3373,11 @@ block Sheet_vme_buffers_aux_a4b5ed9fddea529a:
             "7": n_079db9beec9fafc6
             "8": n_1acdc7806286439e
             "9": n_079db9beec9fafc6
-    )
-    inst part_C71: Part_13eaf2e4fcd8dcfc(
+    inst part_C71: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_5e86310e116da28a
             "2": n_079db9beec9fafc6
-    )
-    inst part_IC9: Part_065fd6eece3791aa(
+    inst part_IC9: Part_065fd6eece3791aa
         connections:
             "1": n_079db9beec9fafc6
             "10": n_079db9beec9fafc6
@@ -3699,48 +3427,39 @@ block Sheet_vme_buffers_aux_a4b5ed9fddea529a:
             "7": n_5e86310e116da28a
             "8": n_5e86310e116da28a
             "9": n_cb97a8a66ecf2a8e
-    )
-    inst part_C51: Part_13eaf2e4fcd8dcfc(
+    inst part_C51: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_5e86310e116da28a
             "2": n_079db9beec9fafc6
-    )
-    inst part_R61: Part_c873a1fcb9ddaba5(
+    inst part_R61: Part_c873a1fcb9ddaba5
         connections:
             "1": n_0c0f228fdb6ab285
             "2": n_5e86310e116da28a
-    )
-    inst part_R315: Part_c873a1fcb9ddaba5(
+    inst part_R315: Part_c873a1fcb9ddaba5
         connections:
             "1": n_047db1cd747e76e6
             "2": n_079db9beec9fafc6
-    )
-    inst part_C57: Part_13eaf2e4fcd8dcfc(
+    inst part_C57: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_079db9beec9fafc6
             "2": n_5e86310e116da28a
-    )
-    inst part_R60: Part_c873a1fcb9ddaba5(
+    inst part_R60: Part_c873a1fcb9ddaba5
         connections:
             "1": n_d6d66c8d3086f2c6
             "2": n_5e86310e116da28a
-    )
-    inst part_R55: Part_c873a1fcb9ddaba5(
+    inst part_R55: Part_c873a1fcb9ddaba5
         connections:
             "1": n_f144673a4cdb20dc
             "2": n_5e86310e116da28a
-    )
-    inst part_R67: Part_c873a1fcb9ddaba5(
+    inst part_R67: Part_c873a1fcb9ddaba5
         connections:
             "1": n_a80ec96ffa2a821c
             "2": n_5e86310e116da28a
-    )
-    inst part_R402: Part_c873a1fcb9ddaba5(
+    inst part_R402: Part_c873a1fcb9ddaba5
         connections:
             "1": n_84d9c4424efc9491
             "2": n_f7d981ec213f905d
-    )
-    inst part_IC11: Part_065fd6eece3791aa(
+    inst part_IC11: Part_065fd6eece3791aa
         connections:
             "1": n_079db9beec9fafc6
             "10": n_079db9beec9fafc6
@@ -3790,27 +3509,22 @@ block Sheet_vme_buffers_aux_a4b5ed9fddea529a:
             "7": n_5e86310e116da28a
             "8": n_079db9beec9fafc6
             "9": n_7ee737341585e877
-    )
-    inst part_C22: Part_13eaf2e4fcd8dcfc(
+    inst part_C22: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_079db9beec9fafc6
             "2": n_5e86310e116da28a
-    )
-    inst part_C549: Part_13eaf2e4fcd8dcfc(
+    inst part_C549: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_5e86310e116da28a
             "2": n_079db9beec9fafc6
-    )
-    inst part_R56: Part_c873a1fcb9ddaba5(
+    inst part_R56: Part_c873a1fcb9ddaba5
         connections:
             "1": n_fe76d03c33e11e41
             "2": n_5e86310e116da28a
-    )
-    inst part_C63: Part_13eaf2e4fcd8dcfc(
+    inst part_C63: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_5e86310e116da28a
             "2": n_079db9beec9fafc6
-    )
 
 block Sheet_vme_buffers_data_685706616232175b:
     ports:
@@ -3908,72 +3622,59 @@ block Sheet_vme_buffers_data_685706616232175b:
         n_f9b5849414ab7f37: nettype.unchecked
         n_fb3fb2d1be84bd24: nettype.unchecked
         n_fe3c4d5ac7cfa0a7: nettype.unchecked
-    inst part_R189: Part_c873a1fcb9ddaba5(
+    inst part_R189: Part_c873a1fcb9ddaba5
         connections:
             "1": n_3fd91bb3ca3365e0
             "2": n_f9b5849414ab7f37
-    )
-    inst part_C143: Part_13eaf2e4fcd8dcfc(
+    inst part_C143: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_b049f5d9ca5df6ea
             "2": n_f9b5849414ab7f37
-    )
-    inst part_C186: Part_13eaf2e4fcd8dcfc(
+    inst part_C186: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_f9b5849414ab7f37
             "2": n_b049f5d9ca5df6ea
-    )
-    inst part_R101: Part_c873a1fcb9ddaba5(
+    inst part_R101: Part_c873a1fcb9ddaba5
         connections:
             "1": n_79eefa08ecd50d88
             "2": n_f9b5849414ab7f37
-    )
-    inst part_C168: Part_13eaf2e4fcd8dcfc(
+    inst part_C168: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_f9b5849414ab7f37
             "2": n_b049f5d9ca5df6ea
-    )
-    inst part_R264: Part_c873a1fcb9ddaba5(
+    inst part_R264: Part_c873a1fcb9ddaba5
         connections:
             "1": n_9cba1002f01e3e06
             "2": n_f9b5849414ab7f37
-    )
-    inst part_C139: Part_13eaf2e4fcd8dcfc(
+    inst part_C139: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_b049f5d9ca5df6ea
             "2": n_60be54fa3c41b6b9
-    )
-    inst part_R223: Part_c873a1fcb9ddaba5(
+    inst part_R223: Part_c873a1fcb9ddaba5
         connections:
             "1": n_fb3fb2d1be84bd24
             "2": n_f9b5849414ab7f37
-    )
-    inst part_C138: Part_13eaf2e4fcd8dcfc(
+    inst part_C138: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_b049f5d9ca5df6ea
             "2": n_60be54fa3c41b6b9
-    )
-    inst part_C144: Part_13eaf2e4fcd8dcfc(
+    inst part_C144: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_b049f5d9ca5df6ea
             "2": n_f9b5849414ab7f37
-    )
-    inst part_R329: Part_c873a1fcb9ddaba5(
+    inst part_R329: Part_c873a1fcb9ddaba5
         connections:
             "1": n_ddca3d844bdacfed
             "2": n_f9b5849414ab7f37
-    )
-    inst part_C187: Part_13eaf2e4fcd8dcfc(
+    inst part_C187: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_f9b5849414ab7f37
             "2": n_b049f5d9ca5df6ea
-    )
-    inst part_R263: Part_c873a1fcb9ddaba5(
+    inst part_R263: Part_c873a1fcb9ddaba5
         connections:
             "1": n_0925182bce1cd5b5
             "2": n_f9b5849414ab7f37
-    )
-    inst part_IC25: Part_e672138531ba7468(
+    inst part_IC25: Part_e672138531ba7468
         connections:
             "1": n_528f4a028eb6cf72
             "10": n_b049f5d9ca5df6ea
@@ -4023,13 +3724,11 @@ block Sheet_vme_buffers_data_685706616232175b:
             "7": n_f9b5849414ab7f37
             "8": n_b779e734399b6096
             "9": n_a1b5cdd52105cdea
-    )
-    inst part_R102: Part_c873a1fcb9ddaba5(
+    inst part_R102: Part_c873a1fcb9ddaba5
         connections:
             "1": n_f69d6f3783ce8a7f
             "2": n_f9b5849414ab7f37
-    )
-    inst part_IC41: Part_e96ac0a3891bc5a7(
+    inst part_IC41: Part_e96ac0a3891bc5a7
         connections:
             "1": n_79eefa08ecd50d88
             "10": n_00064cc1dc71902b
@@ -4045,13 +3744,11 @@ block Sheet_vme_buffers_data_685706616232175b:
             "7": n_b049f5d9ca5df6ea
             "8": n_3b5291ec60d0efc5
             "9": n_b049f5d9ca5df6ea
-    )
-    inst part_C141: Part_13eaf2e4fcd8dcfc(
+    inst part_C141: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_f9b5849414ab7f37
             "2": n_b049f5d9ca5df6ea
-    )
-    inst part_IC47: Part_e96ac0a3891bc5a7(
+    inst part_IC47: Part_e96ac0a3891bc5a7
         connections:
             "1": n_fb3fb2d1be84bd24
             "10": n_0925182bce1cd5b5
@@ -4067,33 +3764,27 @@ block Sheet_vme_buffers_data_685706616232175b:
             "7": n_b049f5d9ca5df6ea
             "8": n_b835c6bd722120f9
             "9": n_b049f5d9ca5df6ea
-    )
-    inst part_C124: Part_13eaf2e4fcd8dcfc(
+    inst part_C124: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_b049f5d9ca5df6ea
             "2": n_f9b5849414ab7f37
-    )
-    inst part_R99: Part_c873a1fcb9ddaba5(
+    inst part_R99: Part_c873a1fcb9ddaba5
         connections:
             "1": n_249fc013aa181547
             "2": n_f9b5849414ab7f37
-    )
-    inst part_C142: Part_13eaf2e4fcd8dcfc(
+    inst part_C142: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_f9b5849414ab7f37
             "2": n_b049f5d9ca5df6ea
-    )
-    inst part_C125: Part_13eaf2e4fcd8dcfc(
+    inst part_C125: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_b049f5d9ca5df6ea
             "2": n_f9b5849414ab7f37
-    )
-    inst part_C145: Part_13eaf2e4fcd8dcfc(
+    inst part_C145: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_b049f5d9ca5df6ea
             "2": n_60be54fa3c41b6b9
-    )
-    inst part_IC50: Part_e96ac0a3891bc5a7(
+    inst part_IC50: Part_e96ac0a3891bc5a7
         connections:
             "1": n_9cba1002f01e3e06
             "10": n_ddca3d844bdacfed
@@ -4109,28 +3800,23 @@ block Sheet_vme_buffers_data_685706616232175b:
             "7": n_b049f5d9ca5df6ea
             "8": n_1538884a8578115f
             "9": n_b049f5d9ca5df6ea
-    )
-    inst part_C166: Part_13eaf2e4fcd8dcfc(
+    inst part_C166: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_f9b5849414ab7f37
             "2": n_b049f5d9ca5df6ea
-    )
-    inst part_C147: Part_13eaf2e4fcd8dcfc(
+    inst part_C147: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_b049f5d9ca5df6ea
             "2": n_60be54fa3c41b6b9
-    )
-    inst part_R204: Part_c873a1fcb9ddaba5(
+    inst part_R204: Part_c873a1fcb9ddaba5
         connections:
             "1": n_00064cc1dc71902b
             "2": n_f9b5849414ab7f37
-    )
-    inst part_C173: Part_13eaf2e4fcd8dcfc(
+    inst part_C173: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_f9b5849414ab7f37
             "2": n_b049f5d9ca5df6ea
-    )
-    inst part_IC17: Part_e672138531ba7468(
+    inst part_IC17: Part_e672138531ba7468
         connections:
             "1": n_528f4a028eb6cf72
             "10": n_b049f5d9ca5df6ea
@@ -4180,13 +3866,11 @@ block Sheet_vme_buffers_data_685706616232175b:
             "7": n_f9b5849414ab7f37
             "8": n_dea13400e96d667a
             "9": n_7daff1d58ca112ce
-    )
-    inst part_C167: Part_13eaf2e4fcd8dcfc(
+    inst part_C167: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_f9b5849414ab7f37
             "2": n_b049f5d9ca5df6ea
-    )
-    inst part_IC39: Part_e96ac0a3891bc5a7(
+    inst part_IC39: Part_e96ac0a3891bc5a7
         connections:
             "1": n_f69d6f3783ce8a7f
             "10": n_3fd91bb3ca3365e0
@@ -4202,7 +3886,6 @@ block Sheet_vme_buffers_data_685706616232175b:
             "7": n_b049f5d9ca5df6ea
             "8": n_4144c4cee2d9dfad
             "9": n_b049f5d9ca5df6ea
-    )
 
 block Sheet_vme_buffers_p0_hwbyte_5cc2a107429a601f:
     ports:
@@ -4308,7 +3991,7 @@ block Sheet_vme_buffers_p0_hwbyte_5cc2a107429a601f:
     net n_cf1e9a7da831503e: nettype.unchecked
     net n_d3e3b8af2d26587f: nettype.unchecked
     net n_f6c312a2773317aa: nettype.unchecked
-    inst part_IC123: Part_e672138531ba7468(
+    inst part_IC123: Part_e672138531ba7468
         connections:
             "1": n_4ec50ea68d9ed611
             "10": n_6e8e63ad89f2e2a7
@@ -4358,68 +4041,55 @@ block Sheet_vme_buffers_p0_hwbyte_5cc2a107429a601f:
             "7": n_4ec50ea68d9ed611
             "8": n_ba8a7bb2f6e8be42
             "9": n_49394cb8eb6b8f6c
-    )
-    inst part_R116: Part_ad88739b62611ac9(
+    inst part_R116: Part_ad88739b62611ac9
         connections:
             "1": n_77bda139b207e3c4
             "2": n_24ad2d909c516038
-    )
-    inst part_R249: Part_ad88739b62611ac9(
+    inst part_R249: Part_ad88739b62611ac9
         connections:
             "1": n_48bde241e7d615fc
             "2": n_adec4182f09fead3
-    )
-    inst part_C226: Part_13eaf2e4fcd8dcfc(
+    inst part_C226: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_6e8e63ad89f2e2a7
             "2": n_4ec50ea68d9ed611
-    )
-    inst part_R221: Part_ad88739b62611ac9(
+    inst part_R221: Part_ad88739b62611ac9
         connections:
             "1": n_f6c312a2773317aa
             "2": n_547cfae1510734ac
-    )
-    inst part_R243: Part_ad88739b62611ac9(
+    inst part_R243: Part_ad88739b62611ac9
         connections:
             "1": n_d3e3b8af2d26587f
             "2": n_e019fa32275b03ed
-    )
-    inst part_R239: Part_ad88739b62611ac9(
+    inst part_R239: Part_ad88739b62611ac9
         connections:
             "1": n_cf1e9a7da831503e
             "2": n_ccd3b4e7f44c39d2
-    )
-    inst part_R246: Part_ad88739b62611ac9(
+    inst part_R246: Part_ad88739b62611ac9
         connections:
             "1": n_cde82863bca2119d
             "2": n_70a3c10df0fb4910
-    )
-    inst part_R242: Part_ad88739b62611ac9(
+    inst part_R242: Part_ad88739b62611ac9
         connections:
             "1": n_ba671f7a8e9ca07c
             "2": n_cf7b9f70cef827d7
-    )
-    inst part_R240: Part_ad88739b62611ac9(
+    inst part_R240: Part_ad88739b62611ac9
         connections:
             "1": n_41558fa569534624
             "2": n_a221bab639fb3299
-    )
-    inst part_R241: Part_ad88739b62611ac9(
+    inst part_R241: Part_ad88739b62611ac9
         connections:
             "1": n_96803ed30174f1fe
             "2": n_103852f5fd1eeca7
-    )
-    inst part_R233: Part_ad88739b62611ac9(
+    inst part_R233: Part_ad88739b62611ac9
         connections:
             "1": n_165d41e72492d4a4
             "2": n_cfe56b7b45bfa4e2
-    )
-    inst part_R236: Part_ad88739b62611ac9(
+    inst part_R236: Part_ad88739b62611ac9
         connections:
             "1": n_a24a21468dba7eb3
             "2": n_8caa26c68bb16a84
-    )
-    inst part_IC59: Part_e672138531ba7468(
+    inst part_IC59: Part_e672138531ba7468
         connections:
             "1": n_4ec50ea68d9ed611
             "10": n_6e8e63ad89f2e2a7
@@ -4469,167 +4139,134 @@ block Sheet_vme_buffers_p0_hwbyte_5cc2a107429a601f:
             "7": n_4ec50ea68d9ed611
             "8": n_593d1614d395e760
             "9": n_cde82863bca2119d
-    )
-    inst part_R229: Part_ad88739b62611ac9(
+    inst part_R229: Part_ad88739b62611ac9
         connections:
             "1": n_93282065e7e71699
             "2": n_38e5491c8007c7cd
-    )
-    inst part_R256: Part_ad88739b62611ac9(
+    inst part_R256: Part_ad88739b62611ac9
         connections:
             "1": n_b4291c5812eb8262
             "2": n_4f78f6a487c49e7b
-    )
-    inst part_R252: Part_ad88739b62611ac9(
+    inst part_R252: Part_ad88739b62611ac9
         connections:
             "1": n_11352aecf4e86f03
             "2": n_a3dc841d9d54ed64
-    )
-    inst part_R232: Part_ad88739b62611ac9(
+    inst part_R232: Part_ad88739b62611ac9
         connections:
             "1": n_c21391dbe5fe7c82
             "2": n_181663433dbcae8e
-    )
-    inst part_R247: Part_ad88739b62611ac9(
+    inst part_R247: Part_ad88739b62611ac9
         connections:
             "1": n_1ec7bfc9a85ba7dd
             "2": n_f55f6bd45c09e694
-    )
-    inst part_C373: Part_13eaf2e4fcd8dcfc(
+    inst part_C373: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_4ec50ea68d9ed611
             "2": n_6e8e63ad89f2e2a7
-    )
-    inst part_R248: Part_ad88739b62611ac9(
+    inst part_R248: Part_ad88739b62611ac9
         connections:
             "1": n_640e29a0c6d3a5fc
             "2": n_07db82e5779a1054
-    )
-    inst part_R237: Part_ad88739b62611ac9(
+    inst part_R237: Part_ad88739b62611ac9
         connections:
             "1": n_ba8a7bb2f6e8be42
             "2": n_4536077223bb84fb
-    )
-    inst part_R250: Part_ad88739b62611ac9(
+    inst part_R250: Part_ad88739b62611ac9
         connections:
             "1": n_a0137e0ed0aee476
             "2": n_449c452d594f0378
-    )
-    inst part_R235: Part_ad88739b62611ac9(
+    inst part_R235: Part_ad88739b62611ac9
         connections:
             "1": n_58db8a9bfdb7c8d0
             "2": n_5a26beb9b310988e
-    )
-    inst part_R259: Part_ad88739b62611ac9(
+    inst part_R259: Part_ad88739b62611ac9
         connections:
             "1": n_515de200b0518c96
             "2": n_a26b7bfd0750e1a0
-    )
-    inst part_R148: Part_c873a1fcb9ddaba5(
+    inst part_R148: Part_c873a1fcb9ddaba5
         connections:
             "1": n_731687c2b13a3c84
             "2": n_4ec50ea68d9ed611
-    )
-    inst part_R230: Part_ad88739b62611ac9(
+    inst part_R230: Part_ad88739b62611ac9
         connections:
             "1": n_6628c52a09346cc3
             "2": n_2104957abe80418a
-    )
-    inst part_C371: Part_13eaf2e4fcd8dcfc(
+    inst part_C371: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_6e8e63ad89f2e2a7
             "2": n_4ec50ea68d9ed611
-    )
-    inst part_R231: Part_ad88739b62611ac9(
+    inst part_R231: Part_ad88739b62611ac9
         connections:
             "1": n_7dc60d2a459c5558
             "2": n_7c03a5353264819c
-    )
-    inst part_C370: Part_13eaf2e4fcd8dcfc(
+    inst part_C370: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_6e8e63ad89f2e2a7
             "2": n_4ec50ea68d9ed611
-    )
-    inst part_R133: Part_c873a1fcb9ddaba5(
+    inst part_R133: Part_c873a1fcb9ddaba5
         connections:
             "1": n_adda001c345bf16b
             "2": n_4ec50ea68d9ed611
-    )
-    inst part_R234: Part_ad88739b62611ac9(
+    inst part_R234: Part_ad88739b62611ac9
         connections:
             "1": n_92726b1c2d40f1e0
             "2": n_05238df5d4eac78f
-    )
-    inst part_R224: Part_ad88739b62611ac9(
+    inst part_R224: Part_ad88739b62611ac9
         connections:
             "1": n_22a85747be87c2d4
             "2": n_2e73d5034183ee8e
-    )
-    inst part_R257: Part_ad88739b62611ac9(
+    inst part_R257: Part_ad88739b62611ac9
         connections:
             "1": n_11d4ebc72584f934
             "2": n_784660c42e4f6b46
-    )
-    inst part_R244: Part_ad88739b62611ac9(
+    inst part_R244: Part_ad88739b62611ac9
         connections:
             "1": n_bc742ff6c6c29398
             "2": n_6b31de43188adea4
-    )
-    inst part_C229: Part_13eaf2e4fcd8dcfc(
+    inst part_C229: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_4ec50ea68d9ed611
             "2": n_6e8e63ad89f2e2a7
-    )
-    inst part_C228: Part_13eaf2e4fcd8dcfc(
+    inst part_C228: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_4ec50ea68d9ed611
             "2": n_6e8e63ad89f2e2a7
-    )
-    inst part_R245: Part_ad88739b62611ac9(
+    inst part_R245: Part_ad88739b62611ac9
         connections:
             "1": n_593d1614d395e760
             "2": n_33014f52139c8f7d
-    )
-    inst part_R225: Part_ad88739b62611ac9(
+    inst part_R225: Part_ad88739b62611ac9
         connections:
             "1": n_bda91015a1cf91bd
             "2": n_f26ffe361dfdaea4
-    )
-    inst part_C227: Part_13eaf2e4fcd8dcfc(
+    inst part_C227: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_6e8e63ad89f2e2a7
             "2": n_4ec50ea68d9ed611
-    )
-    inst part_R258: Part_ad88739b62611ac9(
+    inst part_R258: Part_ad88739b62611ac9
         connections:
             "1": n_b053242caca91496
             "2": n_1cc53a11efdbca17
-    )
-    inst part_R228: Part_ad88739b62611ac9(
+    inst part_R228: Part_ad88739b62611ac9
         connections:
             "1": n_3a01b024d1ba55e3
             "2": n_8264fb3ee50b7284
-    )
-    inst part_C372: Part_13eaf2e4fcd8dcfc(
+    inst part_C372: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_4ec50ea68d9ed611
             "2": n_6e8e63ad89f2e2a7
-    )
-    inst part_R238: Part_ad88739b62611ac9(
+    inst part_R238: Part_ad88739b62611ac9
         connections:
             "1": n_49394cb8eb6b8f6c
             "2": n_df2a670fae03ca3f
-    )
-    inst part_R186: Part_c873a1fcb9ddaba5(
+    inst part_R186: Part_c873a1fcb9ddaba5
         connections:
             "1": n_82d52dd38a292444
             "2": n_4ec50ea68d9ed611
-    )
-    inst part_R171: Part_c873a1fcb9ddaba5(
+    inst part_R171: Part_c873a1fcb9ddaba5
         connections:
             "1": n_f64d9daf54366dd3
             "2": n_4ec50ea68d9ed611
-    )
 
 block Sheet_vme_buffers_userio_p2_9f8cbbbdf5e39d66:
     ports:
@@ -4708,42 +4345,35 @@ block Sheet_vme_buffers_userio_p2_9f8cbbbdf5e39d66:
         n_f9f4b87d97376d3c: nettype.unchecked
         n_fc267d1c6a4ada9d: nettype.unchecked
         n_fde43e0749854b9f: nettype.unchecked
-    inst part_C72: Part_13eaf2e4fcd8dcfc(
+    inst part_C72: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_bfe03cd7607d51d5
             "2": n_da68cb7de5cd0b9b
-    )
-    inst part_C111: Part_13eaf2e4fcd8dcfc(
+    inst part_C111: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_bfe03cd7607d51d5
             "2": n_c0e886654e77a662
-    )
-    inst part_C87: Part_13eaf2e4fcd8dcfc(
+    inst part_C87: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_bfe03cd7607d51d5
             "2": n_c0e886654e77a662
-    )
-    inst part_C88: Part_13eaf2e4fcd8dcfc(
+    inst part_C88: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_bfe03cd7607d51d5
             "2": n_da68cb7de5cd0b9b
-    )
-    inst part_C73: Part_13eaf2e4fcd8dcfc(
+    inst part_C73: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_bfe03cd7607d51d5
             "2": n_da68cb7de5cd0b9b
-    )
-    inst part_C109: Part_13eaf2e4fcd8dcfc(
+    inst part_C109: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_bfe03cd7607d51d5
             "2": n_da68cb7de5cd0b9b
-    )
-    inst part_C74: Part_13eaf2e4fcd8dcfc(
+    inst part_C74: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_bfe03cd7607d51d5
             "2": n_c0e886654e77a662
-    )
-    inst part_IC42: Part_e672138531ba7468(
+    inst part_IC42: Part_e672138531ba7468
         connections:
             "1": n_e9d77d6c2cd8755b
             "10": n_bfe03cd7607d51d5
@@ -4793,8 +4423,7 @@ block Sheet_vme_buffers_userio_p2_9f8cbbbdf5e39d66:
             "7": n_da68cb7de5cd0b9b
             "8": n_40b4eafdeb38f643
             "9": n_139cef20684b92da
-    )
-    inst part_IC16: Part_e672138531ba7468(
+    inst part_IC16: Part_e672138531ba7468
         connections:
             "1": n_99a0691d33ed92c6
             "10": n_bfe03cd7607d51d5
@@ -4844,12 +4473,10 @@ block Sheet_vme_buffers_userio_p2_9f8cbbbdf5e39d66:
             "7": n_da68cb7de5cd0b9b
             "8": n_f7ddfc1ab6b3411f
             "9": n_0502e4eee8eb2987
-    )
-    inst part_C110: Part_13eaf2e4fcd8dcfc(
+    inst part_C110: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_bfe03cd7607d51d5
             "2": n_c0e886654e77a662
-    )
 
 block Sheet_vme_p0_cab08eab99eb66b7:
     ports:
@@ -4898,7 +4525,7 @@ block Sheet_vme_p0_cab08eab99eb66b7:
         n_ee8337d19a42b221: nettype.unchecked
         n_f6b04badd8f25f5e: nettype.unchecked
         n_f6c4fcfe04e739f7: nettype.unchecked
-    inst part_J15: Part_ee3db045bd3e705a(
+    inst part_J15: Part_ee3db045bd3e705a
         connections:
             "A1": no_connect
             "A10": no_connect
@@ -5005,7 +4632,6 @@ block Sheet_vme_p0_cab08eab99eb66b7:
             "F5": n_a923b92939176ab3
             "F7": n_a923b92939176ab3
             "F9": n_a923b92939176ab3
-    )
 
 block Sheet_vme_p1_p2_5ff9d8e56b763557:
     ports:
@@ -5156,15 +4782,11 @@ block Sheet_vme_p1_p2_5ff9d8e56b763557:
     net n_9d111899a0994c00: nettype.unchecked
     net n_a81249433db0a129: nettype.unchecked
     net n_f49fc9edd709944e: nettype.unchecked
-    inst part_SCREW1: Part_99848fd5988574b7(
-    )
-    inst part_WASHER3: Part_b138724c3c5b0615(
-    )
-    inst part_NUT5: Part_7164d784d24517a3(
-    )
-    inst part_NUT6: Part_7164d784d24517a3(
-    )
-    inst part_P1: Part_e61f839494a1cb13(
+    inst part_SCREW1: Part_99848fd5988574b7
+    inst part_WASHER3: Part_b138724c3c5b0615
+    inst part_NUT5: Part_7164d784d24517a3
+    inst part_NUT6: Part_7164d784d24517a3
+    inst part_P1: Part_e61f839494a1cb13
         connections:
             "A1": n_8ed3d254a8d601bf
             "A10": n_a49f1f0c98905c46
@@ -5328,24 +4950,15 @@ block Sheet_vme_p1_p2_5ff9d8e56b763557:
             "Z7": no_connect
             "Z8": n_a8bb41e1e0856373
             "Z9": no_connect
-    )
-    inst part_NUT7: Part_7164d784d24517a3(
-    )
-    inst part_SCREW4: Part_99848fd5988574b7(
-    )
-    inst part_NUT8: Part_7164d784d24517a3(
-    )
-    inst part_WASHER1: Part_b138724c3c5b0615(
-    )
-    inst part_WASHER4: Part_b138724c3c5b0615(
-    )
-    inst part_WASHER2: Part_b138724c3c5b0615(
-    )
-    inst part_SCREW3: Part_99848fd5988574b7(
-    )
-    inst part_SCREW2: Part_99848fd5988574b7(
-    )
-    inst part_P2: Part_4acae32b3eb1dd87(
+    inst part_NUT7: Part_7164d784d24517a3
+    inst part_SCREW4: Part_99848fd5988574b7
+    inst part_NUT8: Part_7164d784d24517a3
+    inst part_WASHER1: Part_b138724c3c5b0615
+    inst part_WASHER4: Part_b138724c3c5b0615
+    inst part_WASHER2: Part_b138724c3c5b0615
+    inst part_SCREW3: Part_99848fd5988574b7
+    inst part_SCREW2: Part_99848fd5988574b7
+    inst part_P2: Part_4acae32b3eb1dd87
         connections:
             "A1": n_f3431697d8b2fe6c
             "A10": n_c34d388253201b88
@@ -5509,7 +5122,6 @@ block Sheet_vme_p1_p2_5ff9d8e56b763557:
             "Z7": no_connect
             "Z8": n_a8bb41e1e0856373
             "Z9": no_connect
-    )
 
 block Sheet_sfp__ddf1dda4667bee5a:
     ports:
@@ -5532,7 +5144,7 @@ block Sheet_sfp__ddf1dda4667bee5a:
     net n_95cce74ac137cc75: nettype.unchecked
     net n_c12b6005ddb511d0: nettype.unchecked
     net n_c1cb44a376ccb4e7: nettype.unchecked
-    inst part_J5: Part_f731ad7e9d78328b(
+    inst part_J5: Part_f731ad7e9d78328b
         connections:
             "1": n_b9a1bf5b9e5c1561
             "10": n_b9a1bf5b9e5c1561
@@ -5554,137 +5166,110 @@ block Sheet_sfp__ddf1dda4667bee5a:
             "7": n_2578dc873206444b
             "8": n_40796da1bb43f8b7
             "9": n_95cce74ac137cc75
-    )
-    inst part_C102: Part_6ea1a874fc30e514(
+    inst part_C102: Part_6ea1a874fc30e514
         connections:
             "1": n_b9a1bf5b9e5c1561
             "2": n_c12b6005ddb511d0
-    )
-    inst part_R31: Part_4a07a4c8407eef01(
+    inst part_R31: Part_4a07a4c8407eef01
         connections:
             "1": n_2ccb5dcf14398644
             "2": n_5bc401ddcd02401f
-    )
-    inst part_L3: Part_9a588512ddfa8501(
+    inst part_L3: Part_9a588512ddfa8501
         connections:
             "1": n_c1cb44a376ccb4e7
             "2": n_5bc401ddcd02401f
-    )
-    inst part_C3: Part_6ea1a874fc30e514(
+    inst part_C3: Part_6ea1a874fc30e514
         connections:
             "1": n_b9a1bf5b9e5c1561
             "2": n_c1cb44a376ccb4e7
-    )
-    inst part_R19: Part_4a07a4c8407eef01(
+    inst part_R19: Part_4a07a4c8407eef01
         connections:
             "1": n_40796da1bb43f8b7
             "2": n_5bc401ddcd02401f
-    )
-    inst part_C8: Part_13eaf2e4fcd8dcfc(
+    inst part_C8: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_5bc401ddcd02401f
             "2": n_b9a1bf5b9e5c1561
-    )
-    inst part_C64: Part_13eaf2e4fcd8dcfc(
+    inst part_C64: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_b177813df542027e
             "2": n_3be94672cce87bd1
-    )
-    inst part_C12: Part_6ea1a874fc30e514(
+    inst part_C12: Part_6ea1a874fc30e514
         connections:
             "1": n_b9a1bf5b9e5c1561
             "2": n_c1cb44a376ccb4e7
-    )
-    inst part_C6: Part_6ea1a874fc30e514(
+    inst part_C6: Part_6ea1a874fc30e514
         connections:
             "1": n_b9a1bf5b9e5c1561
             "2": n_5bc401ddcd02401f
-    )
-    inst part_C61: Part_13eaf2e4fcd8dcfc(
+    inst part_C61: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_b41f7f540ccebf13
             "2": n_0b88e406a6f36e2c
-    )
-    inst part_R254: Part_4a07a4c8407eef01(
+    inst part_R254: Part_4a07a4c8407eef01
         connections:
             "1": n_be9075ba2fbc25e6
             "2": n_5bc401ddcd02401f
-    )
-    inst part_C89: Part_13eaf2e4fcd8dcfc(
+    inst part_C89: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_4fa9433cd8559e5f
             "2": n_0cb1dc870a255440
-    )
-    inst part_C5: Part_13eaf2e4fcd8dcfc(
+    inst part_C5: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_c1cb44a376ccb4e7
             "2": n_b9a1bf5b9e5c1561
-    )
-    inst part_R18: Part_4a07a4c8407eef01(
+    inst part_R18: Part_4a07a4c8407eef01
         connections:
             "1": n_2578dc873206444b
             "2": n_5bc401ddcd02401f
-    )
-    inst part_C103: Part_13eaf2e4fcd8dcfc(
+    inst part_C103: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_c12b6005ddb511d0
             "2": n_b9a1bf5b9e5c1561
-    )
-    inst part_R17: Part_4a07a4c8407eef01(
+    inst part_R17: Part_4a07a4c8407eef01
         connections:
             "1": n_95cce74ac137cc75
             "2": n_5bc401ddcd02401f
-    )
-    inst part_C11: Part_6ea1a874fc30e514(
+    inst part_C11: Part_6ea1a874fc30e514
         connections:
             "1": n_b9a1bf5b9e5c1561
             "2": n_c12b6005ddb511d0
-    )
-    inst part_R30: Part_4a07a4c8407eef01(
+    inst part_R30: Part_4a07a4c8407eef01
         connections:
             "1": n_a6120a2938e0ca7b
             "2": n_5bc401ddcd02401f
-    )
-    inst part_C10: Part_6ea1a874fc30e514(
+    inst part_C10: Part_6ea1a874fc30e514
         connections:
             "1": n_b9a1bf5b9e5c1561
             "2": n_c12b6005ddb511d0
-    )
-    inst part_R255: Part_4a07a4c8407eef01(
+    inst part_R255: Part_4a07a4c8407eef01
         connections:
             "1": n_279356c4509d9d2d
             "2": n_5bc401ddcd02401f
-    )
-    inst part_C13: Part_6ea1a874fc30e514(
+    inst part_C13: Part_6ea1a874fc30e514
         connections:
             "1": n_b9a1bf5b9e5c1561
             "2": n_c1cb44a376ccb4e7
-    )
-    inst part_C4: Part_6ea1a874fc30e514(
+    inst part_C4: Part_6ea1a874fc30e514
         connections:
             "1": n_b9a1bf5b9e5c1561
             "2": n_c1cb44a376ccb4e7
-    )
-    inst part_C9: Part_6ea1a874fc30e514(
+    inst part_C9: Part_6ea1a874fc30e514
         connections:
             "1": n_b9a1bf5b9e5c1561
             "2": n_c12b6005ddb511d0
-    )
-    inst part_L4: Part_9a588512ddfa8501(
+    inst part_L4: Part_9a588512ddfa8501
         connections:
             "1": n_c12b6005ddb511d0
             "2": n_5bc401ddcd02401f
-    )
-    inst part_C60: Part_13eaf2e4fcd8dcfc(
+    inst part_C60: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_53e45e444f1a9bed
             "2": n_7b853c64b7625bbf
-    )
-    inst part_C7: Part_6ea1a874fc30e514(
+    inst part_C7: Part_6ea1a874fc30e514
         connections:
             "1": n_b9a1bf5b9e5c1561
             "2": n_5bc401ddcd02401f
-    )
 
 block Sheet_clocks_899b181622ae2e1e:
     ports:
@@ -5744,22 +5329,19 @@ block Sheet_clocks_899b181622ae2e1e:
     net n_e02fe14664b84815: nettype.unchecked
     net n_ea49d5788a688029: nettype.unchecked
     net n_fbb45dc4b644a930: nettype.unchecked
-    inst part_C261: Part_5a10aac218ff7739(
+    inst part_C261: Part_5a10aac218ff7739
         connections:
             "1": n_e535330571e9ea69
             "2": n_b6b7015d879ac191
-    )
-    inst part_R38: Part_c7a438f06260b2f3(
+    inst part_R38: Part_c7a438f06260b2f3
         connections:
             "1": n_b8bbb150c008e694
             "2": n_d6326bf99b2a5f9b
-    )
-    inst part_C162: Part_13eaf2e4fcd8dcfc(
+    inst part_C162: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_e535330571e9ea69
             "2": n_b7f22c6d2fb8f50e
-    )
-    inst part_IC18: Part_f954fe6104bfa36b(
+    inst part_IC18: Part_f954fe6104bfa36b
         connections:
             "1": no_connect
             "10": no_connect
@@ -5806,8 +5388,7 @@ block Sheet_clocks_899b181622ae2e1e:
             "7": no_connect
             "8": n_b6b7015d879ac191
             "9": n_b6b7015d879ac191
-    )
-    inst part_OSC3: Part_7cc747135c8c30ef(
+    inst part_OSC3: Part_7cc747135c8c30ef
         connections:
             "1": n_e02fe14664b84815
             "2": n_b6b7015d879ac191
@@ -5815,100 +5396,81 @@ block Sheet_clocks_899b181622ae2e1e:
             "4": n_9fa3862bd41acc50
             "5": no_connect
             "6": n_b6b7015d879ac191
-    )
-    inst part_J8: Part_1466e8a6b8c3ce97(
+    inst part_J8: Part_1466e8a6b8c3ce97
         connections:
             "1": n_d6326bf99b2a5f9b
             "2": n_e535330571e9ea69
-    )
-    inst part_R86: Part_09fc7daae788e8e5(
+    inst part_R86: Part_09fc7daae788e8e5
         connections:
             "1": n_c47d40742545492c
             "2": n_0407c1282ce96ad3
-    )
-    inst part_C75: Part_13eaf2e4fcd8dcfc(
+    inst part_C75: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_e535330571e9ea69
             "2": n_e02fe14664b84815
-    )
-    inst part_C123: Part_5a10aac218ff7739(
+    inst part_C123: Part_5a10aac218ff7739
         connections:
             "1": n_e535330571e9ea69
             "2": n_dcbc7d59ceb2beee
-    )
-    inst part_R27: Part_cc4ecc6cb394cf6d(
+    inst part_R27: Part_cc4ecc6cb394cf6d
         connections:
             "1": n_6a76f98a100c68da
             "2": n_7d87989d68d3bd14
-    )
-    inst part_R199: Part_b2c18ec6a5526ad6(
+    inst part_R199: Part_b2c18ec6a5526ad6
         connections:
             "1": n_a3bd9333a68d7d0e
             "2": n_7dc0f8986d1c5715
-    )
-    inst part_C122: Part_5a10aac218ff7739(
+    inst part_C122: Part_5a10aac218ff7739
         connections:
             "1": n_e535330571e9ea69
             "2": n_b6b7015d879ac191
-    )
-    inst part_C68: Part_5a10aac218ff7739(
+    inst part_C68: Part_5a10aac218ff7739
         connections:
             "1": n_e535330571e9ea69
             "2": n_b6b7015d879ac191
-    )
-    inst part_L14: Part_9a588512ddfa8501(
+    inst part_L14: Part_9a588512ddfa8501
         connections:
             "1": n_fbb45dc4b644a930
             "2": n_b6b7015d879ac191
-    )
-    inst part_C165: Part_13eaf2e4fcd8dcfc(
+    inst part_C165: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_e535330571e9ea69
             "2": n_7f697d5f76e59b42
-    )
-    inst part_C116: Part_f57d90e8e549d22c(
+    inst part_C116: Part_f57d90e8e549d22c
         connections:
             "1": n_e535330571e9ea69
             "2": n_93246775eabdd957
-    )
-    inst part_C129: Part_5a10aac218ff7739(
+    inst part_C129: Part_5a10aac218ff7739
         connections:
             "1": n_e535330571e9ea69
             "2": n_dcbc7d59ceb2beee
-    )
-    inst part_OSC1: Part_a57a0c9e63d3b220(
+    inst part_OSC1: Part_a57a0c9e63d3b220
         connections:
             "1": n_9c157aef96c97a99
             "2": n_e535330571e9ea69
             "3": n_6a76f98a100c68da
             "4": n_9c157aef96c97a99
-    )
-    inst part_C353: Part_13eaf2e4fcd8dcfc(
+    inst part_C353: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_414e20dfe99514eb
             "2": n_ba8da0945b00bd9c
-    )
-    inst part_C262: Part_5a10aac218ff7739(
+    inst part_C262: Part_5a10aac218ff7739
         connections:
             "1": n_e535330571e9ea69
             "2": n_b6b7015d879ac191
-    )
-    inst part_C268: Part_13eaf2e4fcd8dcfc(
+    inst part_C268: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_e535330571e9ea69
             "2": n_9c157aef96c97a99
-    )
-    inst part_R57: Part_0439920e0e76fa98(
+    inst part_R57: Part_0439920e0e76fa98
         connections:
             "1": n_0407c1282ce96ad3
             "2": n_e02fe14664b84815
-    )
-    inst part_R417: Part_4a07a4c8407eef01(
+    inst part_R417: Part_4a07a4c8407eef01
         connections:
             "1": n_e535330571e9ea69
             "2": n_06fc66145fa4594b
-    )
-    inst part_IC20: Part_0d8a8f0ff68d7ccb(
+    inst part_IC20: Part_0d8a8f0ff68d7ccb
         connections:
             "1": n_9c157aef96c97a99
             "2": n_b7b64817ca8ebb04
@@ -5918,33 +5480,27 @@ block Sheet_clocks_899b181622ae2e1e:
             "6": n_b8bbb150c008e694
             "7": n_9c157aef96c97a99
             "8": n_9c157aef96c97a99
-    )
-    inst part_L7: Part_f45b2a9e8c316c6f(
+    inst part_L7: Part_f45b2a9e8c316c6f
         connections:
             "1": n_9c157aef96c97a99
             "2": n_93246775eabdd957
-    )
-    inst part_L13: Part_9a588512ddfa8501(
+    inst part_L13: Part_9a588512ddfa8501
         connections:
             "1": n_9c157aef96c97a99
             "2": n_fbb45dc4b644a930
-    )
-    inst part_R202: Part_3b83f361dcd21fda(
+    inst part_R202: Part_3b83f361dcd21fda
         connections:
             "1": n_7f697d5f76e59b42
             "2": n_414e20dfe99514eb
-    )
-    inst part_R200: Part_3b83f361dcd21fda(
+    inst part_R200: Part_3b83f361dcd21fda
         connections:
             "1": n_b7f22c6d2fb8f50e
             "2": n_7dc0f8986d1c5715
-    )
-    inst part_C59: Part_13eaf2e4fcd8dcfc(
+    inst part_C59: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_7dc0f8986d1c5715
             "2": n_77c8b810ae430e48
-    )
-    inst part_IC60: Part_f954fe6104bfa36b(
+    inst part_IC60: Part_f954fe6104bfa36b
         connections:
             "1": no_connect
             "10": no_connect
@@ -5991,23 +5547,19 @@ block Sheet_clocks_899b181622ae2e1e:
             "7": no_connect
             "8": n_b6b7015d879ac191
             "9": n_b6b7015d879ac191
-    )
-    inst part_C264: Part_5a10aac218ff7739(
+    inst part_C264: Part_5a10aac218ff7739
         connections:
             "1": n_e535330571e9ea69
             "2": n_b6b7015d879ac191
-    )
-    inst part_C18: Part_791404574f7166f2(
+    inst part_C18: Part_791404574f7166f2
         connections:
             "1": n_e535330571e9ea69
             "2": n_b6b7015d879ac191
-    )
-    inst part_C16: Part_791404574f7166f2(
+    inst part_C16: Part_791404574f7166f2
         connections:
             "1": n_e535330571e9ea69
             "2": n_fbb45dc4b644a930
-    )
-    inst part_TR2: Part_9906dca997f8c18b(
+    inst part_TR2: Part_9906dca997f8c18b
         connections:
             "1": n_e535330571e9ea69
             "2": no_connect
@@ -6015,85 +5567,69 @@ block Sheet_clocks_899b181622ae2e1e:
             "4": n_0f3a9e99d920850e
             "5": no_connect
             "6": n_6f0c34f4a4dcbf21
-    )
-    inst part_OSC4: Part_a52979fe25eb350f(
+    inst part_OSC4: Part_a52979fe25eb350f
         connections:
             "1": n_8b89257ac38cfd0b
             "3": n_e535330571e9ea69
             "4": n_a3bd9333a68d7d0e
             "6": n_93246775eabdd957
-    )
-    inst part_R66: Part_09fc7daae788e8e5(
+    inst part_R66: Part_09fc7daae788e8e5
         connections:
             "1": n_055405b794f685d2
             "2": n_ae925559b6aa654c
-    )
-    inst part_C246: Part_13eaf2e4fcd8dcfc(
+    inst part_C246: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_0f3a9e99d920850e
             "2": n_21e17ddff17bcd8e
-    )
-    inst part_C151: Part_5a10aac218ff7739(
+    inst part_C151: Part_5a10aac218ff7739
         connections:
             "1": n_e535330571e9ea69
             "2": n_dcbc7d59ceb2beee
-    )
-    inst part_C258: Part_5a10aac218ff7739(
+    inst part_C258: Part_5a10aac218ff7739
         connections:
             "1": n_e535330571e9ea69
             "2": n_b6b7015d879ac191
-    )
-    inst part_C17: Part_791404574f7166f2(
+    inst part_C17: Part_791404574f7166f2
         connections:
             "1": n_e535330571e9ea69
             "2": n_b6b7015d879ac191
-    )
-    inst part_C260: Part_847f74bb3c195e6e(
+    inst part_C260: Part_847f74bb3c195e6e
         connections:
             "1": n_e535330571e9ea69
             "2": n_b6b7015d879ac191
-    )
-    inst part_C65: Part_13eaf2e4fcd8dcfc(
+    inst part_C65: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_e535330571e9ea69
             "2": n_ea49d5788a688029
-    )
-    inst part_R201: Part_b2c18ec6a5526ad6(
+    inst part_R201: Part_b2c18ec6a5526ad6
         connections:
             "1": n_9fa3862bd41acc50
             "2": n_414e20dfe99514eb
-    )
-    inst part_C118: Part_13eaf2e4fcd8dcfc(
+    inst part_C118: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_e535330571e9ea69
             "2": n_9c157aef96c97a99
-    )
-    inst part_C66: Part_13eaf2e4fcd8dcfc(
+    inst part_C66: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_e535330571e9ea69
             "2": n_90166c911292ba2e
-    )
-    inst part_C256: Part_5a10aac218ff7739(
+    inst part_C256: Part_5a10aac218ff7739
         connections:
             "1": n_e535330571e9ea69
             "2": n_b6b7015d879ac191
-    )
-    inst part_J9: Part_1466e8a6b8c3ce97(
+    inst part_J9: Part_1466e8a6b8c3ce97
         connections:
             "1": n_03dba842290d8d0e
             "2": n_e535330571e9ea69
-    )
-    inst part_C15: Part_791404574f7166f2(
+    inst part_C15: Part_791404574f7166f2
         connections:
             "1": n_e535330571e9ea69
             "2": n_fbb45dc4b644a930
-    )
-    inst part_C152: Part_5a10aac218ff7739(
+    inst part_C152: Part_5a10aac218ff7739
         connections:
             "1": n_e535330571e9ea69
             "2": n_dcbc7d59ceb2beee
-    )
-    inst part_IC12: Part_073321736033f646(
+    inst part_IC12: Part_073321736033f646
         connections:
             "1": no_connect
             "2": n_b6b7015d879ac191
@@ -6103,108 +5639,87 @@ block Sheet_clocks_899b181622ae2e1e:
             "6": n_8ceea13cfbb0fe2e
             "7": no_connect
             "8": no_connect
-    )
-    inst part_C248: Part_13eaf2e4fcd8dcfc(
+    inst part_C248: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_6f0c34f4a4dcbf21
             "2": n_fe9ce0c4e751b7c7
-    )
-    inst part_C247: Part_13eaf2e4fcd8dcfc(
+    inst part_C247: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_03dba842290d8d0e
             "2": n_32fd3e56f0cc8ca4
-    )
-    inst part_C257: Part_5a10aac218ff7739(
+    inst part_C257: Part_5a10aac218ff7739
         connections:
             "1": n_e535330571e9ea69
             "2": n_b6b7015d879ac191
-    )
-    inst part_C117: Part_a1ca94919b927083(
+    inst part_C117: Part_a1ca94919b927083
         connections:
             "1": n_93246775eabdd957
             "2": n_e535330571e9ea69
-    )
-    inst part_R94: Part_09fc7daae788e8e5(
+    inst part_R94: Part_09fc7daae788e8e5
         connections:
             "1": n_8ceea13cfbb0fe2e
             "2": n_abfac2b768c79d4b
-    )
-    inst part_C265: Part_2087bba1beb2a1c1(
+    inst part_C265: Part_2087bba1beb2a1c1
         connections:
             "1": n_47187e15c811a222
             "2": n_1c44b968c861668c
-    )
-    inst part_C149: Part_5a10aac218ff7739(
+    inst part_C149: Part_5a10aac218ff7739
         connections:
             "1": n_e535330571e9ea69
             "2": n_dcbc7d59ceb2beee
-    )
-    inst part_C76: Part_13eaf2e4fcd8dcfc(
+    inst part_C76: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_e535330571e9ea69
             "2": n_8b89257ac38cfd0b
-    )
-    inst part_C121: Part_5a10aac218ff7739(
+    inst part_C121: Part_5a10aac218ff7739
         connections:
             "1": n_e535330571e9ea69
             "2": n_b6b7015d879ac191
-    )
-    inst part_C77: Part_30982e4816588ab1(
+    inst part_C77: Part_30982e4816588ab1
         connections:
             "1": n_e535330571e9ea69
             "2": n_b6b7015d879ac191
-    )
-    inst part_C267: Part_13eaf2e4fcd8dcfc(
+    inst part_C267: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_e535330571e9ea69
             "2": n_b6b7015d879ac191
-    )
-    inst part_C263: Part_5a10aac218ff7739(
+    inst part_C263: Part_5a10aac218ff7739
         connections:
             "1": n_e535330571e9ea69
             "2": n_dcbc7d59ceb2beee
-    )
-    inst part_C69: Part_5a10aac218ff7739(
+    inst part_C69: Part_5a10aac218ff7739
         connections:
             "1": n_e535330571e9ea69
             "2": n_b6b7015d879ac191
-    )
-    inst part_C259: Part_5a10aac218ff7739(
+    inst part_C259: Part_5a10aac218ff7739
         connections:
             "1": n_e535330571e9ea69
             "2": n_b6b7015d879ac191
-    )
-    inst part_C255: Part_5a10aac218ff7739(
+    inst part_C255: Part_5a10aac218ff7739
         connections:
             "1": n_e535330571e9ea69
             "2": n_b6b7015d879ac191
-    )
-    inst part_J4: Part_1466e8a6b8c3ce97(
+    inst part_J4: Part_1466e8a6b8c3ce97
         connections:
             "1": n_18e769c06f30ea06
             "2": n_e535330571e9ea69
-    )
-    inst part_R58: Part_0439920e0e76fa98(
+    inst part_R58: Part_0439920e0e76fa98
         connections:
             "1": n_ae925559b6aa654c
             "2": n_8b89257ac38cfd0b
-    )
-    inst part_C115: Part_5a10aac218ff7739(
+    inst part_C115: Part_5a10aac218ff7739
         connections:
             "1": n_e535330571e9ea69
             "2": n_dcbc7d59ceb2beee
-    )
-    inst part_R65: Part_09fc7daae788e8e5(
+    inst part_R65: Part_09fc7daae788e8e5
         connections:
             "1": n_9fa3862bd41acc50
             "2": n_6e205b3fd1a07da6
-    )
-    inst part_R39: Part_c7a438f06260b2f3(
+    inst part_R39: Part_c7a438f06260b2f3
         connections:
             "1": n_2d183180f5a4453b
             "2": n_18e769c06f30ea06
-    )
-    inst part_IC10: Part_3c764e4d84d593f6(
+    inst part_IC10: Part_3c764e4d84d593f6
         connections:
             "1": n_ae925559b6aa654c
             "10": n_abfac2b768c79d4b
@@ -6217,22 +5732,18 @@ block Sheet_clocks_899b181622ae2e1e:
             "7": n_055405b794f685d2
             "8": n_c47d40742545492c
             "9": n_b6b7015d879ac191
-    )
-    inst part_C266: Part_2087bba1beb2a1c1(
+    inst part_C266: Part_2087bba1beb2a1c1
         connections:
             "1": n_dfd57668403296b5
             "2": n_832f4022ed7e2567
-    )
-    inst part_C218: Part_13eaf2e4fcd8dcfc(
+    inst part_C218: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_e535330571e9ea69
             "2": n_b6b7015d879ac191
-    )
-    inst part_C78: Part_30982e4816588ab1(
+    inst part_C78: Part_30982e4816588ab1
         connections:
             "1": n_e535330571e9ea69
             "2": n_8ceea13cfbb0fe2e
-    )
 
 block Sheet_ddr4_ps_91d8c5ec15eb342b:
     ports:
@@ -6318,17 +5829,15 @@ block Sheet_ddr4_ps_91d8c5ec15eb342b:
     net n_6a3cf0f9d1d58981: nettype.unchecked
     net n_a3abcac023047541: nettype.unchecked
     net n_ec5bb3d5713b4d19: nettype.unchecked
-    inst part_R107: Part_351aa1858693f827(
+    inst part_R107: Part_351aa1858693f827
         connections:
             "1": n_4bf2a511198f3b21
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_C174: Part_30982e4816588ab1(
+    inst part_C174: Part_30982e4816588ab1
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_d32a1c62debc7e50
-    )
-    inst part_IC5: Part_44e5995244a01670(
+    inst part_IC5: Part_44e5995244a01670
         connections:
             "A1": n_d32a1c62debc7e50
             "A2": n_b06b8e9c3013d84e
@@ -6426,28 +5935,23 @@ block Sheet_ddr4_ps_91d8c5ec15eb342b:
             "T7": no_connect
             "T8": n_e556b26ea902a9a4
             "T9": n_d32a1c62debc7e50
-    )
-    inst part_R75: Part_351aa1858693f827(
+    inst part_R75: Part_351aa1858693f827
         connections:
             "1": n_a41200dac6b423e4
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_R80: Part_351aa1858693f827(
+    inst part_R80: Part_351aa1858693f827
         connections:
             "1": n_47f59e16b12b20cf
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_C131: Part_ba925ca09275dc0d(
+    inst part_C131: Part_ba925ca09275dc0d
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_R44: Part_b43bb8d6d213d3ab(
+    inst part_R44: Part_b43bb8d6d213d3ab
         connections:
             "1": n_d32a1c62debc7e50
             "2": n_a3abcac023047541
-    )
-    inst part_IC13: Part_44e5995244a01670(
+    inst part_IC13: Part_44e5995244a01670
         connections:
             "A1": n_d32a1c62debc7e50
             "A2": n_b06b8e9c3013d84e
@@ -6545,327 +6049,262 @@ block Sheet_ddr4_ps_91d8c5ec15eb342b:
             "T7": no_connect
             "T8": n_e556b26ea902a9a4
             "T9": n_d32a1c62debc7e50
-    )
-    inst part_C156: Part_ba925ca09275dc0d(
+    inst part_C156: Part_ba925ca09275dc0d
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_25293bd1c67fd842
-    )
-    inst part_C185: Part_dd94017c2914707e(
+    inst part_C185: Part_dd94017c2914707e
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_d32a1c62debc7e50
-    )
-    inst part_C198: Part_2f4e3bd734ae70f0(
+    inst part_C198: Part_2f4e3bd734ae70f0
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_d32a1c62debc7e50
-    )
-    inst part_R85: Part_351aa1858693f827(
+    inst part_R85: Part_351aa1858693f827
         connections:
             "1": n_a6550f1619958431
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_R70: Part_351aa1858693f827(
+    inst part_R70: Part_351aa1858693f827
         connections:
             "1": n_d2dd92a6d0797346
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_R119: Part_b43bb8d6d213d3ab(
+    inst part_R119: Part_b43bb8d6d213d3ab
         connections:
             "1": n_d32a1c62debc7e50
             "2": n_ec5bb3d5713b4d19
-    )
-    inst part_R82: Part_351aa1858693f827(
+    inst part_R82: Part_351aa1858693f827
         connections:
             "1": n_ff40165c6f3c7bae
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_C127: Part_30982e4816588ab1(
+    inst part_C127: Part_30982e4816588ab1
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_C199: Part_2f4e3bd734ae70f0(
+    inst part_C199: Part_2f4e3bd734ae70f0
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_d32a1c62debc7e50
-    )
-    inst part_R79: Part_351aa1858693f827(
+    inst part_R79: Part_351aa1858693f827
         connections:
             "1": n_8183932f220a2057
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_C200: Part_dd94017c2914707e(
+    inst part_C200: Part_dd94017c2914707e
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_d32a1c62debc7e50
-    )
-    inst part_R113: Part_4a07a4c8407eef01(
+    inst part_R113: Part_4a07a4c8407eef01
         connections:
             "1": n_e14cf1d25b9962fe
             "2": n_d32a1c62debc7e50
-    )
-    inst part_C225: Part_ba925ca09275dc0d(
+    inst part_C225: Part_ba925ca09275dc0d
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_ec5bb3d5713b4d19
-    )
-    inst part_C180: Part_dd94017c2914707e(
+    inst part_C180: Part_dd94017c2914707e
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_d32a1c62debc7e50
-    )
-    inst part_R83: Part_351aa1858693f827(
+    inst part_R83: Part_351aa1858693f827
         connections:
             "1": n_e556b26ea902a9a4
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_C128: Part_ba925ca09275dc0d(
+    inst part_C128: Part_ba925ca09275dc0d
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_R81: Part_351aa1858693f827(
+    inst part_R81: Part_351aa1858693f827
         connections:
             "1": n_075c2dfc9cf42af0
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_R111: Part_86a170aa7c8ebb8a(
+    inst part_R111: Part_86a170aa7c8ebb8a
         connections:
             "1": n_258c490f91376326
             "2": n_515a754b1327c5c9
-    )
-    inst part_C153: Part_ba925ca09275dc0d(
+    inst part_C153: Part_ba925ca09275dc0d
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_25293bd1c67fd842
-    )
-    inst part_R34: Part_0439920e0e76fa98(
+    inst part_R34: Part_0439920e0e76fa98
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_6a3cf0f9d1d58981
-    )
-    inst part_R106: Part_351aa1858693f827(
+    inst part_R106: Part_351aa1858693f827
         connections:
             "1": n_d5102ade466cdf08
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_R76: Part_351aa1858693f827(
+    inst part_R76: Part_351aa1858693f827
         connections:
             "1": n_21e0671ce6c1dd72
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_C194: Part_30982e4816588ab1(
+    inst part_C194: Part_30982e4816588ab1
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_d32a1c62debc7e50
-    )
-    inst part_R108: Part_351aa1858693f827(
+    inst part_R108: Part_351aa1858693f827
         connections:
             "1": n_148c5a9cba76eea9
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_R77: Part_351aa1858693f827(
+    inst part_R77: Part_351aa1858693f827
         connections:
             "1": n_1513e1d1cd4e7d9f
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_R74: Part_351aa1858693f827(
+    inst part_R74: Part_351aa1858693f827
         connections:
             "1": n_9d91f41cc47c56b3
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_C175: Part_30982e4816588ab1(
+    inst part_C175: Part_30982e4816588ab1
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_d32a1c62debc7e50
-    )
-    inst part_R105: Part_351aa1858693f827(
+    inst part_R105: Part_351aa1858693f827
         connections:
             "1": n_11a1972c8b6d1677
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_R110: Part_351aa1858693f827(
+    inst part_R110: Part_351aa1858693f827
         connections:
             "1": n_9f3f972b468f2b48
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_C99: Part_2087bba1beb2a1c1(
+    inst part_C99: Part_2087bba1beb2a1c1
         connections:
             "1": n_515a754b1327c5c9
             "2": n_d32a1c62debc7e50
-    )
-    inst part_C150: Part_30982e4816588ab1(
+    inst part_C150: Part_30982e4816588ab1
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_25293bd1c67fd842
-    )
-    inst part_C183: Part_2f4e3bd734ae70f0(
+    inst part_C183: Part_2f4e3bd734ae70f0
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_d32a1c62debc7e50
-    )
-    inst part_R194: Part_b43bb8d6d213d3ab(
+    inst part_R194: Part_b43bb8d6d213d3ab
         connections:
             "1": n_a3abcac023047541
             "2": n_b06b8e9c3013d84e
-    )
-    inst part_C112: Part_ba925ca09275dc0d(
+    inst part_C112: Part_ba925ca09275dc0d
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_C155: Part_30982e4816588ab1(
+    inst part_C155: Part_30982e4816588ab1
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_25293bd1c67fd842
-    )
-    inst part_R84: Part_351aa1858693f827(
+    inst part_R84: Part_351aa1858693f827
         connections:
             "1": n_fd12bc3b135bcd5c
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_R96: Part_351aa1858693f827(
+    inst part_R96: Part_351aa1858693f827
         connections:
             "1": n_c83ea46e0f2f8435
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_C182: Part_2f4e3bd734ae70f0(
+    inst part_C182: Part_2f4e3bd734ae70f0
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_d32a1c62debc7e50
-    )
-    inst part_R112: Part_86a170aa7c8ebb8a(
+    inst part_R112: Part_86a170aa7c8ebb8a
         connections:
             "1": n_a85997f4d3ada488
             "2": n_515a754b1327c5c9
-    )
-    inst part_C113: Part_ba925ca09275dc0d(
+    inst part_C113: Part_ba925ca09275dc0d
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_C202: Part_2f4e3bd734ae70f0(
+    inst part_C202: Part_2f4e3bd734ae70f0
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_d32a1c62debc7e50
-    )
-    inst part_C130: Part_ba925ca09275dc0d(
+    inst part_C130: Part_ba925ca09275dc0d
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_C184: Part_dd94017c2914707e(
+    inst part_C184: Part_dd94017c2914707e
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_d32a1c62debc7e50
-    )
-    inst part_C146: Part_30982e4816588ab1(
+    inst part_C146: Part_30982e4816588ab1
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_C178: Part_2f4e3bd734ae70f0(
+    inst part_C178: Part_2f4e3bd734ae70f0
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_d32a1c62debc7e50
-    )
-    inst part_C181: Part_dd94017c2914707e(
+    inst part_C181: Part_dd94017c2914707e
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_d32a1c62debc7e50
-    )
-    inst part_C179: Part_2f4e3bd734ae70f0(
+    inst part_C179: Part_2f4e3bd734ae70f0
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_d32a1c62debc7e50
-    )
-    inst part_R97: Part_351aa1858693f827(
+    inst part_R97: Part_351aa1858693f827
         connections:
             "1": n_d6174b8d8c7653bc
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_C205: Part_dd94017c2914707e(
+    inst part_C205: Part_dd94017c2914707e
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_d32a1c62debc7e50
-    )
-    inst part_R71: Part_351aa1858693f827(
+    inst part_R71: Part_351aa1858693f827
         connections:
             "1": n_3fa79fbf52926666
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_C204: Part_dd94017c2914707e(
+    inst part_C204: Part_dd94017c2914707e
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_d32a1c62debc7e50
-    )
-    inst part_C195: Part_30982e4816588ab1(
+    inst part_C195: Part_30982e4816588ab1
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_d32a1c62debc7e50
-    )
-    inst part_R72: Part_351aa1858693f827(
+    inst part_R72: Part_351aa1858693f827
         connections:
             "1": n_2ff57802958f276b
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_C232: Part_ba925ca09275dc0d(
+    inst part_C232: Part_ba925ca09275dc0d
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_R195: Part_b43bb8d6d213d3ab(
+    inst part_R195: Part_b43bb8d6d213d3ab
         connections:
             "1": n_ec5bb3d5713b4d19
             "2": n_b06b8e9c3013d84e
-    )
-    inst part_C203: Part_2f4e3bd734ae70f0(
+    inst part_C203: Part_2f4e3bd734ae70f0
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_d32a1c62debc7e50
-    )
-    inst part_R73: Part_351aa1858693f827(
+    inst part_R73: Part_351aa1858693f827
         connections:
             "1": n_eacb5ada68bccd31
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_R78: Part_351aa1858693f827(
+    inst part_R78: Part_351aa1858693f827
         connections:
             "1": n_2572137b4534fdfb
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_C201: Part_dd94017c2914707e(
+    inst part_C201: Part_dd94017c2914707e
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_d32a1c62debc7e50
-    )
-    inst part_R109: Part_351aa1858693f827(
+    inst part_R109: Part_351aa1858693f827
         connections:
             "1": n_1fafb8d711d2eb17
             "2": n_05b9e0b5b855aa57
-    )
-    inst part_R23: Part_0439920e0e76fa98(
+    inst part_R23: Part_0439920e0e76fa98
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_29091e9cb458b715
-    )
-    inst part_R115: Part_4a07a4c8407eef01(
+    inst part_R115: Part_4a07a4c8407eef01
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_b5802629d8d25249
-    )
-    inst part_C224: Part_ba925ca09275dc0d(
+    inst part_C224: Part_ba925ca09275dc0d
         connections:
             "1": n_b06b8e9c3013d84e
             "2": n_a3abcac023047541
-    )
-    inst part_R91: Part_351aa1858693f827(
+    inst part_R91: Part_351aa1858693f827
         connections:
             "1": n_d1c35f5271df7261
             "2": n_05b9e0b5b855aa57
-    )
 
 block Sheet_flash_b0a2d2ea1aa3b4dc:
     ports:
@@ -6885,7 +6324,7 @@ block Sheet_flash_b0a2d2ea1aa3b4dc:
         n_e91e34862f373c52: nettype.unchecked
         n_f19eddcebb27439b: nettype.unchecked
         n_f2d8dcab4899abb4: nettype.unchecked
-    inst part_IC21: Part_ddb1c70824077ae6(
+    inst part_IC21: Part_ddb1c70824077ae6
         connections:
             "1": n_e91e34862f373c52
             "10": n_1cee79957c6dc162
@@ -6903,8 +6342,7 @@ block Sheet_flash_b0a2d2ea1aa3b4dc:
             "7": n_f19eddcebb27439b
             "8": n_d403286a7acb6ae8
             "9": n_f2d8dcab4899abb4
-    )
-    inst part_IC19: Part_ddb1c70824077ae6(
+    inst part_IC19: Part_ddb1c70824077ae6
         connections:
             "1": n_d31742805b0952ff
             "10": n_1cee79957c6dc162
@@ -6922,58 +6360,47 @@ block Sheet_flash_b0a2d2ea1aa3b4dc:
             "7": n_beb2b645fa0f6007
             "8": n_e48203404be2a787
             "9": n_bc69ff45c877dd0e
-    )
-    inst part_C351: Part_13eaf2e4fcd8dcfc(
+    inst part_C351: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_1cee79957c6dc162
             "2": n_6570b4c2f038a4c9
-    )
-    inst part_R12: Part_4a07a4c8407eef01(
+    inst part_R12: Part_4a07a4c8407eef01
         connections:
             "1": n_bc69ff45c877dd0e
             "2": n_6570b4c2f038a4c9
-    )
-    inst part_R16: Part_4a07a4c8407eef01(
+    inst part_R16: Part_4a07a4c8407eef01
         connections:
             "1": n_e91e34862f373c52
             "2": n_6570b4c2f038a4c9
-    )
-    inst part_R13: Part_4a07a4c8407eef01(
+    inst part_R13: Part_4a07a4c8407eef01
         connections:
             "1": n_d31742805b0952ff
             "2": n_6570b4c2f038a4c9
-    )
-    inst part_R226: Part_4a07a4c8407eef01(
+    inst part_R226: Part_4a07a4c8407eef01
         connections:
             "1": n_9ae5104692ee9c3d
             "2": n_6570b4c2f038a4c9
-    )
-    inst part_R8: Part_4a07a4c8407eef01(
+    inst part_R8: Part_4a07a4c8407eef01
         connections:
             "1": n_beb2b645fa0f6007
             "2": n_6570b4c2f038a4c9
-    )
-    inst part_C159: Part_13eaf2e4fcd8dcfc(
+    inst part_C159: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_6570b4c2f038a4c9
             "2": n_1cee79957c6dc162
-    )
-    inst part_R14: Part_4a07a4c8407eef01(
+    inst part_R14: Part_4a07a4c8407eef01
         connections:
             "1": n_f19eddcebb27439b
             "2": n_6570b4c2f038a4c9
-    )
-    inst part_C158: Part_13eaf2e4fcd8dcfc(
+    inst part_C158: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_6570b4c2f038a4c9
             "2": n_1cee79957c6dc162
-    )
-    inst part_R15: Part_4a07a4c8407eef01(
+    inst part_R15: Part_4a07a4c8407eef01
         connections:
             "1": n_f2d8dcab4899abb4
             "2": n_6570b4c2f038a4c9
-    )
-    inst part_IC35: Part_00f812a8749c2f46(
+    inst part_IC35: Part_00f812a8749c2f46
         connections:
             "1": n_9ae5104692ee9c3d
             "2": n_1cee79957c6dc162
@@ -6981,18 +6408,15 @@ block Sheet_flash_b0a2d2ea1aa3b4dc:
             "4": n_1cee79957c6dc162
             "5": n_6570b4c2f038a4c9
             "6": n_6570b4c2f038a4c9
-    )
-    inst part_R169: Part_4a07a4c8407eef01(
+    inst part_R169: Part_4a07a4c8407eef01
         connections:
             "1": n_3efbbb3602b7250c
             "2": n_6570b4c2f038a4c9
-    )
-    inst part_C350: Part_13eaf2e4fcd8dcfc(
+    inst part_C350: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_1cee79957c6dc162
             "2": n_6570b4c2f038a4c9
-    )
-    inst part_IC34: Part_11439de977d17f5d(
+    inst part_IC34: Part_11439de977d17f5d
         connections:
             "1": n_1cee79957c6dc162
             "2": n_1cee79957c6dc162
@@ -7002,7 +6426,6 @@ block Sheet_flash_b0a2d2ea1aa3b4dc:
             "6": n_9ae5104692ee9c3d
             "7": n_1cee79957c6dc162
             "8": n_6570b4c2f038a4c9
-    )
 
 block Sheet_fp_connectors_39ad9bc9e2407803:
     ports:
@@ -7047,7 +6470,7 @@ block Sheet_fp_connectors_39ad9bc9e2407803:
         n_f6cc19eb9bd084d9: nettype.unchecked
         n_fde8376855531b43: nettype.unchecked
     net n_8edfc564763be2a3: nettype.unchecked
-    inst part_JFP2: Part_7046178a5e5b896f(
+    inst part_JFP2: Part_7046178a5e5b896f
         connections:
             "1": n_d7f5490345518278
             "10": n_85b781e20900d425
@@ -7059,13 +6482,11 @@ block Sheet_fp_connectors_39ad9bc9e2407803:
             "7": n_f6cc19eb9bd084d9
             "8": n_cf0f5ea3b37298ce
             "9": n_2ce4f7a540a24699
-    )
-    inst part_C545: Part_5efab228b6994abc(
+    inst part_C545: Part_5efab228b6994abc
         connections:
             "1": n_8edfc564763be2a3
             "2": n_d7f5490345518278
-    )
-    inst part_JFP5: Part_7046178a5e5b896f(
+    inst part_JFP5: Part_7046178a5e5b896f
         connections:
             "1": n_d7f5490345518278
             "10": n_40191ad768b35667
@@ -7077,8 +6498,7 @@ block Sheet_fp_connectors_39ad9bc9e2407803:
             "7": n_0f3aa49a8964fb65
             "8": n_c79e459e2b405d06
             "9": n_0d6f35d673ad0ce6
-    )
-    inst part_JFP1: Part_7046178a5e5b896f(
+    inst part_JFP1: Part_7046178a5e5b896f
         connections:
             "1": n_d7f5490345518278
             "10": n_d7f5490345518278
@@ -7090,13 +6510,11 @@ block Sheet_fp_connectors_39ad9bc9e2407803:
             "7": n_585f0a4fefbc832b
             "8": n_8edfc564763be2a3
             "9": n_d7f5490345518278
-    )
-    inst part_F2: Part_fa02ad3c79e5933a(
+    inst part_F2: Part_fa02ad3c79e5933a
         connections:
             "1": n_687ed14427a3da47
             "2": n_8edfc564763be2a3
-    )
-    inst part_JFP4: Part_7046178a5e5b896f(
+    inst part_JFP4: Part_7046178a5e5b896f
         connections:
             "1": n_d7f5490345518278
             "10": n_aea815ae83acf79a
@@ -7108,8 +6526,7 @@ block Sheet_fp_connectors_39ad9bc9e2407803:
             "7": n_5a68f17e4d5dd2f7
             "8": n_8dd0fee8ee66501c
             "9": n_14c92f7f2ac9ac3a
-    )
-    inst part_JFP3: Part_7046178a5e5b896f(
+    inst part_JFP3: Part_7046178a5e5b896f
         connections:
             "1": n_d7f5490345518278
             "10": n_53e1a6c6f0f32b16
@@ -7121,7 +6538,6 @@ block Sheet_fp_connectors_39ad9bc9e2407803:
             "7": n_b883d9bf246e5ffc
             "8": n_b6b335b055f23fb5
             "9": n_4c099636107fe22d
-    )
 
 block Sheet_fpga_3c599f0e50a39a0a:
     ports:
@@ -7511,7 +6927,7 @@ block Sheet_fpga_3c599f0e50a39a0a:
     net n_d5709c9b273d3a04: nettype.unchecked
     net n_d9aafec72b830404: nettype.unchecked
     net n_e44af0114a53a708: nettype.unchecked
-    inst sub_0: Sheet_fpga_config_c48334d4c8ede89c(
+    inst sub_0: Sheet_fpga_config_c48334d4c8ede89c
         connections:
             n_0c70d7ab6b414420: n_91084a0432f00838
             n_18c6a131c04d2223: n_9e3d12f3e6e35c61
@@ -7532,13 +6948,11 @@ block Sheet_fpga_3c599f0e50a39a0a:
             n_de9f8eb7ad338cd0: n_63e5009f547f2a55
             n_e3c957e882cfadd8: n_bd1a60a9256b9c39
             n_f0f8d2431f477d2d: n_ad3cabb254f7f3c0
-    )
-    inst sub_1: Sheet_fpga_hd_banks_fdb051eeeb08c271(
+    inst sub_1: Sheet_fpga_hd_banks_fdb051eeeb08c271
         connections:
             n_4d904d5e9efcf006: n_a7c234db11b90573
             n_5cf0f0b85f9f26ff: n_a3f668f5e8c6b5ce
-    )
-    inst sub_2: Sheet_fpga_hp_banks_37367e6d5795ec5a(
+    inst sub_2: Sheet_fpga_hp_banks_37367e6d5795ec5a
         connections:
             n_0093fa998c939ea6: n_c9db9674320b8026
             n_0157fd884bd800a7: n_e10e642cc9f5db7b
@@ -7921,8 +7335,7 @@ block Sheet_fpga_3c599f0e50a39a0a:
             n_fdbc925ff3acf649: n_5369df9ce01c675f
             n_ff852d394b44a928: n_c120d571ed366db7
             n_ffae7835307fc2f9: n_1a4ff701eb1c812a
-    )
-    inst sub_3: Sheet_fpga_mgts_fc203d2a891825b4(
+    inst sub_3: Sheet_fpga_mgts_fc203d2a891825b4
         connections:
             n_0664b22f76e0d754: n_ca9795ea6bd8adb8
             n_0a15a4ba3b962db6: n_3cc54b093427a3de
@@ -7948,8 +7361,7 @@ block Sheet_fpga_3c599f0e50a39a0a:
             n_d4b8f41a2b5aa1d8: n_60d5aade3bb47c78
             n_d90db0d6945efd23: n_d1e8d55ba986813e
             n_f2b49ae5a76af7eb: n_2c9c5fae04c4f720
-    )
-    inst sub_4: Sheet_fpga_power_f164fc135491fabe(
+    inst sub_4: Sheet_fpga_power_f164fc135491fabe
         connections:
             n_1a3e05b1463dc8c9: n_916f1fae30eba2e8
             n_24423c5d61e5e48f: n_d2639c2e2171205d
@@ -7960,12 +7372,10 @@ block Sheet_fpga_3c599f0e50a39a0a:
             n_d4bdb95a95c78e58: n_1ba2759cb4ec9c20
             n_ec89425d79195f85: n_d83543a37068d960
             n_eeffb693f928942e: n_ad3cabb254f7f3c0
-    )
-    inst sub_5: Sheet_fpga_ps_ddr_5b327b858b383ae3(
+    inst sub_5: Sheet_fpga_ps_ddr_5b327b858b383ae3
         connections:
             n_7c63d308334ff8da: n_916f1fae30eba2e8
             n_816f530056a68505: n_83a4891555b10ca7
-    )
 
 block Sheet_io_driver_32x_87558df7891562a6:
     ports:
@@ -8047,22 +7457,19 @@ block Sheet_io_driver_32x_87558df7891562a6:
     net n_d487a43bffb4692c: nettype.unchecked
     net n_d4fd636a86aeef0b: nettype.unchecked
     net n_f05fc082cde13be8: nettype.unchecked
-    inst part_R452: Part_ad88739b62611ac9(
+    inst part_R452: Part_ad88739b62611ac9
         connections:
             "1": n_0506168b2fb87625
             "2": n_972102168af88975
-    )
-    inst part_R449: Part_ad88739b62611ac9(
+    inst part_R449: Part_ad88739b62611ac9
         connections:
             "1": n_6077f447fae163c5
             "2": n_d4fd636a86aeef0b
-    )
-    inst part_R450: Part_ad88739b62611ac9(
+    inst part_R450: Part_ad88739b62611ac9
         connections:
             "1": n_98f119f70abead3a
             "2": n_f05fc082cde13be8
-    )
-    inst sub_0[3]: Sheet_io_driver_8x_7ea337d85f6b6d6c(
+    inst sub_0[3]: Sheet_io_driver_8x_7ea337d85f6b6d6c
         connections:
             [0].n_11404f57cc85f19a: n_21b1f32ee01e9374
             [0].n_20c426d5a45dee57: n_6b39f2b54d31631e
@@ -8139,8 +7546,7 @@ block Sheet_io_driver_32x_87558df7891562a6:
             [2].n_dcc6e0afb6181b9d: n_9c1d2a07e50bb201
             [2].n_e9f5613feeb987e8: n_595b0eba61abd55c
             [2].n_fb2289d416cba3a3: n_bd3c73f466d38a6c
-    )
-    inst sub_1: Sheet_io_driver_8x_a72b2735e0670126(
+    inst sub_1: Sheet_io_driver_8x_a72b2735e0670126
         connections:
             n_11404f57cc85f19a: n_f661f0618b20c0c4
             n_20c426d5a45dee57: n_8b1d5ee74f5c4013
@@ -8166,7 +7572,6 @@ block Sheet_io_driver_32x_87558df7891562a6:
             n_d9cfce2450a2f5af: n_11d335f6141883e6
             n_dcc6e0afb6181b9d: n_987ed033caa4680f
             n_e9f5613feeb987e8: n_1eca83ba9b4fed09
-    )
 
 block Sheet_pp_driver_32x_687173f6e92faaaf:
     ports:
@@ -8238,12 +7643,11 @@ block Sheet_pp_driver_32x_687173f6e92faaaf:
         n_ea11246b3f6fdd22: nettype.unchecked
         n_f47af564ad8a4d8b: nettype.unchecked
         n_f8dd0d6594d7d7c6: nettype.unchecked
-    inst part_R316: Part_c873a1fcb9ddaba5(
+    inst part_R316: Part_c873a1fcb9ddaba5
         connections:
             "1": n_1e3f584a88cfc544
             "2": n_bdab315f893d9248
-    )
-    inst sub_0[4]: Sheet_pp_driver_8x_1f2bc27c679437ee(
+    inst sub_0[4]: Sheet_pp_driver_8x_1f2bc27c679437ee
         connections:
             [0].n_04517141950ecd34: n_0108f079d32bbc5d
             [0].n_0fb3ece8586c2731: n_1c70dd8313621aeb
@@ -8325,7 +7729,6 @@ block Sheet_pp_driver_32x_687173f6e92faaaf:
             [3].n_cf987ed84caca067: n_1ecf94a2d3a5b278
             [3].n_d9e5c16b77e090ff: n_5d635660916fee0a
             [3].n_f93c121809801999: n_bdab315f893d9248
-    )
 
 block Sheet_pcie_connector_ef8524597db4781b:
     ports:
@@ -8341,32 +7744,27 @@ block Sheet_pcie_connector_ef8524597db4781b:
     net n_5075a1e954bb36e3: nettype.unchecked
     net n_5d3f6f1f13cf1c93: nettype.unchecked
     net n_a71ef535f6ef19c0: nettype.unchecked
-    inst part_C515: Part_13eaf2e4fcd8dcfc(
+    inst part_C515: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_a71ef535f6ef19c0
             "2": n_afaaa64ec304d6fa
-    )
-    inst part_C513: Part_13eaf2e4fcd8dcfc(
+    inst part_C513: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_5d3f6f1f13cf1c93
             "2": n_177dae994fcd55ba
-    )
-    inst part_R446: Part_4a07a4c8407eef01(
+    inst part_R446: Part_4a07a4c8407eef01
         connections:
             "1": n_f8c49f5d6da4c7c5
             "2": n_95fa9437cab3f53e
-    )
-    inst part_C514: Part_13eaf2e4fcd8dcfc(
+    inst part_C514: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_49c33555e3fcbc0a
             "2": n_8c1025be77ed0dc7
-    )
-    inst part_C516: Part_13eaf2e4fcd8dcfc(
+    inst part_C516: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_5075a1e954bb36e3
             "2": n_d002c84581305b45
-    )
-    inst part_J13: Part_a68cdabbbdcf144d(
+    inst part_J13: Part_a68cdabbbdcf144d
         connections:
             "A1": n_3dee7ffd20cf1907
             "A2": n_3d86e1450492d3f3
@@ -8405,7 +7803,6 @@ block Sheet_pcie_connector_ef8524597db4781b:
             "D8": no_connect
             "D9": no_connect
             "SHIELD": n_f8c49f5d6da4c7c5
-    )
 
 block Sheet_power_supply_1_12e8319b2b53df0d:
     ports:
@@ -8439,92 +7836,75 @@ block Sheet_power_supply_1_12e8319b2b53df0d:
     net n_f2c86b124beeab7a: nettype.unchecked
     net n_f426c49e130b7837: nettype.unchecked
     net n_fc4267b489d6c9a8: nettype.unchecked
-    inst part_C348: Part_13eaf2e4fcd8dcfc(
+    inst part_C348: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_8769b8cebb451af3
             "2": n_bc4025b17c83c7dc
-    )
-    inst part_R205: Part_0516cb23722596c4(
+    inst part_R205: Part_0516cb23722596c4
         connections:
             "1": n_712c2c3de79cbc0a
             "2": n_4eae9d6b3e1dcaeb
-    )
-    inst part_C221: Part_1ef9ba2d901e1efe(
+    inst part_C221: Part_1ef9ba2d901e1efe
         connections:
             "1": n_70a6b6bc2c03a8b5
             "2": n_8769b8cebb451af3
-    )
-    inst part_C293: Part_2087bba1beb2a1c1(
+    inst part_C293: Part_2087bba1beb2a1c1
         connections:
             "1": n_8769b8cebb451af3
             "2": n_ce3a204e922be7e3
-    )
-    inst part_D10: Part_4d6a2d1ea626e092(
+    inst part_D10: Part_4d6a2d1ea626e092
         connections:
             "1": n_8769b8cebb451af3
             "3": n_4c3dfee230ccea0d
-    )
-    inst part_L9: Part_c98ab8bd38164c35(
+    inst part_L9: Part_c98ab8bd38164c35
         connections:
             "1": n_c392fa46600c317c
             "2": n_349ffef014272eab
-    )
-    inst part_D7: Part_633bcdd49b38b66d(
+    inst part_D7: Part_633bcdd49b38b66d
         connections:
             "1": n_83cdcb223e24122e
             "2": n_8769b8cebb451af3
-    )
-    inst part_R207: Part_f1445f282dbcd9e8(
+    inst part_R207: Part_f1445f282dbcd9e8
         connections:
             "1": n_fc4267b489d6c9a8
             "2": n_8769b8cebb451af3
-    )
-    inst part_C275: Part_5a10aac218ff7739(
+    inst part_C275: Part_5a10aac218ff7739
         connections:
             "1": n_712c2c3de79cbc0a
             "2": n_8769b8cebb451af3
-    )
-    inst part_C327: Part_5a10aac218ff7739(
+    inst part_C327: Part_5a10aac218ff7739
         connections:
             "1": n_68aaae5a888bb858
             "2": n_8769b8cebb451af3
-    )
-    inst part_C329: Part_5a10aac218ff7739(
+    inst part_C329: Part_5a10aac218ff7739
         connections:
             "1": n_68aaae5a888bb858
             "2": n_8769b8cebb451af3
-    )
-    inst part_C169: Part_e1cba54d8b57dc6e(
+    inst part_C169: Part_e1cba54d8b57dc6e
         connections:
             "1": n_68aaae5a888bb858
             "2": n_8769b8cebb451af3
-    )
-    inst part_C326: Part_f57d90e8e549d22c(
+    inst part_C326: Part_f57d90e8e549d22c
         connections:
             "1": n_68aaae5a888bb858
             "2": n_8769b8cebb451af3
-    )
-    inst part_C272: Part_791404574f7166f2(
+    inst part_C272: Part_791404574f7166f2
         connections:
             "1": n_349ffef014272eab
             "2": n_8769b8cebb451af3
-    )
-    inst part_W1: Part_47aafe88781dfd1d(
+    inst part_W1: Part_47aafe88781dfd1d
         connections:
             "1": n_86433e15b0927687
             "2": n_8769b8cebb451af3
-    )
-    inst part_C171: Part_5a10aac218ff7739(
+    inst part_C171: Part_5a10aac218ff7739
         connections:
             "1": n_68aaae5a888bb858
             "2": n_8769b8cebb451af3
-    )
-    inst part_C325: Part_5a10aac218ff7739(
+    inst part_C325: Part_5a10aac218ff7739
         connections:
             "1": n_68aaae5a888bb858
             "2": n_8769b8cebb451af3
-    )
-    inst part_IC30: Part_422d6616ef75b83d(
+    inst part_IC30: Part_422d6616ef75b83d
         connections:
             "1": n_68aaae5a888bb858
             "10": n_dd79057c38f8df4e
@@ -8583,164 +7963,132 @@ block Sheet_power_supply_1_12e8319b2b53df0d:
             "7": n_e8cd182524638898
             "8": n_dd79057c38f8df4e
             "9": n_dd79057c38f8df4e
-    )
-    inst part_R208: Part_b2c4ae2be6c4fe54(
+    inst part_R208: Part_b2c4ae2be6c4fe54
         connections:
             "1": n_8769b8cebb451af3
             "2": n_ce3a204e922be7e3
-    )
-    inst part_R251: Part_c17f164debb5390b(
+    inst part_R251: Part_c17f164debb5390b
         connections:
             "1": n_68aaae5a888bb858
             "2": n_4cfd6ce46512e337
-    )
-    inst part_J3: Part_9254a2d28e073ca4(
+    inst part_J3: Part_9254a2d28e073ca4
         connections:
             "1": n_8769b8cebb451af3
             "2": n_83cdcb223e24122e
             "3": n_08e802edff96508d
-    )
-    inst part_D8: Part_633bcdd49b38b66d(
+    inst part_D8: Part_633bcdd49b38b66d
         connections:
             "1": n_08e802edff96508d
             "2": n_8769b8cebb451af3
-    )
-    inst part_C285: Part_99793edc56170941(
+    inst part_C285: Part_99793edc56170941
         connections:
             "1": n_70a6b6bc2c03a8b5
             "2": n_8769b8cebb451af3
-    )
-    inst part_C289: Part_a889572501b72846(
+    inst part_C289: Part_a889572501b72846
         connections:
             "1": n_e8cd182524638898
             "2": n_5f393960cf569c6a
-    )
-    inst part_C1: Part_e1cba54d8b57dc6e(
+    inst part_C1: Part_e1cba54d8b57dc6e
         connections:
             "1": n_68aaae5a888bb858
             "2": n_8769b8cebb451af3
-    )
-    inst part_L12: Part_7971d589cd1c84c0(
+    inst part_L12: Part_7971d589cd1c84c0
         connections:
             "1": n_e8cd182524638898
             "2": n_70a6b6bc2c03a8b5
-    )
-    inst part_C286: Part_99793edc56170941(
+    inst part_C286: Part_99793edc56170941
         connections:
             "1": n_4eae9d6b3e1dcaeb
             "2": n_8769b8cebb451af3
-    )
-    inst part_C303: Part_791404574f7166f2(
+    inst part_C303: Part_791404574f7166f2
         connections:
             "1": n_70a6b6bc2c03a8b5
             "2": n_8769b8cebb451af3
-    )
-    inst part_C281: Part_791404574f7166f2(
+    inst part_C281: Part_791404574f7166f2
         connections:
             "1": n_f3cecbdf83bc66bf
             "2": n_8769b8cebb451af3
-    )
-    inst part_C330: Part_f57d90e8e549d22c(
+    inst part_C330: Part_f57d90e8e549d22c
         connections:
             "1": n_68aaae5a888bb858
             "2": n_8769b8cebb451af3
-    )
-    inst part_C328: Part_f57d90e8e549d22c(
+    inst part_C328: Part_f57d90e8e549d22c
         connections:
             "1": n_68aaae5a888bb858
             "2": n_8769b8cebb451af3
-    )
-    inst part_R209: Part_b2c4ae2be6c4fe54(
+    inst part_R209: Part_b2c4ae2be6c4fe54
         connections:
             "1": n_8769b8cebb451af3
             "2": n_39c40207f5f3946e
-    )
-    inst part_R26: Part_4a07a4c8407eef01(
+    inst part_R26: Part_4a07a4c8407eef01
         connections:
             "1": n_83cdcb223e24122e
             "2": n_bc4025b17c83c7dc
-    )
-    inst part_C282: Part_a889572501b72846(
+    inst part_C282: Part_a889572501b72846
         connections:
             "1": n_dd79057c38f8df4e
             "2": n_4c5b5037cbb814ef
-    )
-    inst part_C273: Part_0b8237692d3a1064(
+    inst part_C273: Part_0b8237692d3a1064
         connections:
             "1": n_349ffef014272eab
             "2": n_8769b8cebb451af3
-    )
-    inst part_LD3: Part_73115d0fbf63110a(
+    inst part_LD3: Part_73115d0fbf63110a
         connections:
             "1": n_8769b8cebb451af3
             "2": n_4cfd6ce46512e337
-    )
-    inst part_C294: Part_2087bba1beb2a1c1(
+    inst part_C294: Part_2087bba1beb2a1c1
         connections:
             "1": n_8769b8cebb451af3
             "2": n_39c40207f5f3946e
-    )
-    inst part_C324: Part_f57d90e8e549d22c(
+    inst part_C324: Part_f57d90e8e549d22c
         connections:
             "1": n_68aaae5a888bb858
             "2": n_8769b8cebb451af3
-    )
-    inst part_C331: Part_5a10aac218ff7739(
+    inst part_C331: Part_5a10aac218ff7739
         connections:
             "1": n_68aaae5a888bb858
             "2": n_8769b8cebb451af3
-    )
-    inst part_C245: Part_1ef9ba2d901e1efe(
+    inst part_C245: Part_1ef9ba2d901e1efe
         connections:
             "1": n_70a6b6bc2c03a8b5
             "2": n_8769b8cebb451af3
-    )
-    inst part_C2: Part_e1cba54d8b57dc6e(
+    inst part_C2: Part_e1cba54d8b57dc6e
         connections:
             "1": n_68aaae5a888bb858
             "2": n_8769b8cebb451af3
-    )
-    inst part_C154: Part_5efab228b6994abc(
+    inst part_C154: Part_5efab228b6994abc
         connections:
             "1": n_70a6b6bc2c03a8b5
             "2": n_8769b8cebb451af3
-    )
-    inst part_R37: Part_cd9d9cd9a611bae7(
+    inst part_R37: Part_cd9d9cd9a611bae7
         connections:
             "1": n_c392fa46600c317c
             "2": n_f2c86b124beeab7a
-    )
-    inst part_R227: Part_c873a1fcb9ddaba5(
+    inst part_R227: Part_c873a1fcb9ddaba5
         connections:
             "1": n_bc4025b17c83c7dc
             "2": n_a5baf9e1eeba2969
-    )
-    inst part_C270: Part_a889572501b72846(
+    inst part_C270: Part_a889572501b72846
         connections:
             "1": n_8333ed5b6b991c88
             "2": n_86ebcea0af54662d
-    )
-    inst part_C271: Part_a889572501b72846(
+    inst part_C271: Part_a889572501b72846
         connections:
             "1": n_349ffef014272eab
             "2": n_f2c86b124beeab7a
-    )
-    inst part_R212: Part_c873a1fcb9ddaba5(
+    inst part_R212: Part_c873a1fcb9ddaba5
         connections:
             "1": n_712c2c3de79cbc0a
             "2": n_86433e15b0927687
-    )
-    inst part_C304: Part_791404574f7166f2(
+    inst part_C304: Part_791404574f7166f2
         connections:
             "1": n_70a6b6bc2c03a8b5
             "2": n_8769b8cebb451af3
-    )
-    inst part_R253: Part_662690f13c06def6(
+    inst part_R253: Part_662690f13c06def6
         connections:
             "1": n_0174f06f2311a247
             "2": n_4c3dfee230ccea0d
-    )
-    inst part_IC29: Part_168fe68aed3d2b71(
+    inst part_IC29: Part_168fe68aed3d2b71
         connections:
             "1": no_connect
             "10": n_c392fa46600c317c
@@ -8768,42 +8116,34 @@ block Sheet_power_supply_1_12e8319b2b53df0d:
             "7": n_8769b8cebb451af3
             "8": n_c392fa46600c317c
             "9": n_c392fa46600c317c
-    )
-    inst part_C284: Part_5efab228b6994abc(
+    inst part_C284: Part_5efab228b6994abc
         connections:
             "1": n_70a6b6bc2c03a8b5
             "2": n_8769b8cebb451af3
-    )
-    inst part_R25: Part_4a07a4c8407eef01(
+    inst part_R25: Part_4a07a4c8407eef01
         connections:
             "1": n_08e802edff96508d
             "2": n_bc4025b17c83c7dc
-    )
-    inst part_C287: Part_99793edc56170941(
+    inst part_C287: Part_99793edc56170941
         connections:
             "1": n_712c2c3de79cbc0a
             "2": n_8769b8cebb451af3
-    )
-    inst part_C283: Part_791404574f7166f2(
+    inst part_C283: Part_791404574f7166f2
         connections:
             "1": n_70a6b6bc2c03a8b5
             "2": n_8769b8cebb451af3
-    )
-    inst part_R206: Part_f5310bbdafecb1af(
+    inst part_R206: Part_f5310bbdafecb1af
         connections:
             "1": n_fc4267b489d6c9a8
             "2": n_f3cecbdf83bc66bf
-    )
-    inst part_C276: Part_99793edc56170941(
+    inst part_C276: Part_99793edc56170941
         connections:
             "1": n_ecdcecf6a88258b0
             "2": n_8769b8cebb451af3
-    )
-    inst part_L11: Part_7971d589cd1c84c0(
+    inst part_L11: Part_7971d589cd1c84c0
         connections:
             "1": n_dd79057c38f8df4e
             "2": n_70a6b6bc2c03a8b5
-    )
 
 block Sheet_power_supply_2_f0f038fbc2fd2898:
     ports:
@@ -8832,162 +8172,131 @@ block Sheet_power_supply_2_f0f038fbc2fd2898:
     net n_d15178fee6b18d22: nettype.unchecked
     net n_e20aa8b1850208f5: nettype.unchecked
     net n_e8ac0e8c0dff4c9c: nettype.unchecked
-    inst part_C231: Part_99793edc56170941(
+    inst part_C231: Part_99793edc56170941
         connections:
             "1": n_45c38ff0932c8270
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_R214: Part_5150a7b722cf91a3(
+    inst part_R214: Part_5150a7b722cf91a3
         connections:
             "1": n_03328c955d019772
             "2": n_9a2bcfe78689467f
-    )
-    inst part_C311: Part_99793edc56170941(
+    inst part_C311: Part_99793edc56170941
         connections:
             "1": n_83508192ecbadd7e
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_C312: Part_5efab228b6994abc(
+    inst part_C312: Part_5efab228b6994abc
         connections:
             "1": n_7d53ed756d6f58d1
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_C339: Part_5a10aac218ff7739(
+    inst part_C339: Part_5a10aac218ff7739
         connections:
             "1": n_0b3f8cc826a7d8d6
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_C335: Part_5a10aac218ff7739(
+    inst part_C335: Part_5a10aac218ff7739
         connections:
             "1": n_0b3f8cc826a7d8d6
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_L17: Part_c005a53b101815f3(
+    inst part_L17: Part_c005a53b101815f3
         connections:
             "1": n_811c405f82e7c9ed
             "2": n_7d53ed756d6f58d1
-    )
-    inst part_C333: Part_5a10aac218ff7739(
+    inst part_C333: Part_5a10aac218ff7739
         connections:
             "1": n_0b3f8cc826a7d8d6
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_C300: Part_a889572501b72846(
+    inst part_C300: Part_a889572501b72846
         connections:
             "1": n_143d03dba9e0c5b4
             "2": n_3a7d570b379cbe1d
-    )
-    inst part_C295: Part_2087bba1beb2a1c1(
+    inst part_C295: Part_2087bba1beb2a1c1
         connections:
             "1": n_b6a3af4cd92bf736
             "2": n_e20aa8b1850208f5
-    )
-    inst part_C298: Part_a889572501b72846(
+    inst part_C298: Part_a889572501b72846
         connections:
             "1": n_d15178fee6b18d22
             "2": n_b239779a3110feb0
-    )
-    inst part_R216: Part_ad4f7eaaa454e7f0(
+    inst part_R216: Part_ad4f7eaaa454e7f0
         connections:
             "1": n_b6a3af4cd92bf736
             "2": n_747225f63da5c247
-    )
-    inst part_C299: Part_a889572501b72846(
+    inst part_C299: Part_a889572501b72846
         connections:
             "1": n_811c405f82e7c9ed
             "2": n_030762ff43d2373d
-    )
-    inst part_C347: Part_13eaf2e4fcd8dcfc(
+    inst part_C347: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_b6a3af4cd92bf736
             "2": n_ef8427c11d63a520
-    )
-    inst part_C336: Part_59b3028a6e3898d3(
+    inst part_C336: Part_59b3028a6e3898d3
         connections:
             "1": n_0b3f8cc826a7d8d6
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_C290: Part_99793edc56170941(
+    inst part_C290: Part_99793edc56170941
         connections:
             "1": n_bb16eb068d0ee705
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_C120: Part_a889572501b72846(
+    inst part_C120: Part_a889572501b72846
         connections:
             "1": n_2809e8875997ae18
             "2": n_e8ac0e8c0dff4c9c
-    )
-    inst part_C317: Part_99793edc56170941(
+    inst part_C317: Part_99793edc56170941
         connections:
             "1": n_b72cc477367e6ae1
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_C338: Part_59b3028a6e3898d3(
+    inst part_C338: Part_59b3028a6e3898d3
         connections:
             "1": n_0b3f8cc826a7d8d6
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_C334: Part_59b3028a6e3898d3(
+    inst part_C334: Part_59b3028a6e3898d3
         connections:
             "1": n_0b3f8cc826a7d8d6
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_L15: Part_c005a53b101815f3(
+    inst part_L15: Part_c005a53b101815f3
         connections:
             "1": n_2809e8875997ae18
             "2": n_45c38ff0932c8270
-    )
-    inst part_R215: Part_f1445f282dbcd9e8(
+    inst part_R215: Part_f1445f282dbcd9e8
         connections:
             "1": n_03328c955d019772
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_C291: Part_791404574f7166f2(
+    inst part_C291: Part_791404574f7166f2
         connections:
             "1": n_9a2bcfe78689467f
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_C332: Part_59b3028a6e3898d3(
+    inst part_C332: Part_59b3028a6e3898d3
         connections:
             "1": n_0b3f8cc826a7d8d6
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_C292: Part_2087bba1beb2a1c1(
+    inst part_C292: Part_2087bba1beb2a1c1
         connections:
             "1": n_b6a3af4cd92bf736
             "2": n_747225f63da5c247
-    )
-    inst part_R217: Part_ad4f7eaaa454e7f0(
+    inst part_R217: Part_ad4f7eaaa454e7f0
         connections:
             "1": n_b6a3af4cd92bf736
             "2": n_e20aa8b1850208f5
-    )
-    inst part_C337: Part_5a10aac218ff7739(
+    inst part_C337: Part_5a10aac218ff7739
         connections:
             "1": n_0b3f8cc826a7d8d6
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_C160: Part_1ef9ba2d901e1efe(
+    inst part_C160: Part_1ef9ba2d901e1efe
         connections:
             "1": n_45c38ff0932c8270
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_C161: Part_791404574f7166f2(
+    inst part_C161: Part_791404574f7166f2
         connections:
             "1": n_45c38ff0932c8270
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_C315: Part_5efab228b6994abc(
+    inst part_C315: Part_5efab228b6994abc
         connections:
             "1": n_b72cc477367e6ae1
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_C288: Part_99793edc56170941(
+    inst part_C288: Part_99793edc56170941
         connections:
             "1": n_c32a0ee55b8ac0e5
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_IC31: Part_422d6616ef75b83d(
+    inst part_IC31: Part_422d6616ef75b83d
         connections:
             "1": n_0b3f8cc826a7d8d6
             "10": n_811c405f82e7c9ed
@@ -9046,47 +8355,38 @@ block Sheet_power_supply_2_f0f038fbc2fd2898:
             "7": n_143d03dba9e0c5b4
             "8": n_811c405f82e7c9ed
             "9": n_811c405f82e7c9ed
-    )
-    inst part_C309: Part_1ef9ba2d901e1efe(
+    inst part_C309: Part_1ef9ba2d901e1efe
         connections:
             "1": n_83508192ecbadd7e
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_R213: Part_0516cb23722596c4(
+    inst part_R213: Part_0516cb23722596c4
         connections:
             "1": n_b8f523089bf0a4e5
             "2": n_c32a0ee55b8ac0e5
-    )
-    inst part_C310: Part_791404574f7166f2(
+    inst part_C310: Part_791404574f7166f2
         connections:
             "1": n_83508192ecbadd7e
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_C313: Part_791404574f7166f2(
+    inst part_C313: Part_791404574f7166f2
         connections:
             "1": n_7d53ed756d6f58d1
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_L18: Part_c005a53b101815f3(
+    inst part_L18: Part_c005a53b101815f3
         connections:
             "1": n_143d03dba9e0c5b4
             "2": n_b72cc477367e6ae1
-    )
-    inst part_C314: Part_99793edc56170941(
+    inst part_C314: Part_99793edc56170941
         connections:
             "1": n_7d53ed756d6f58d1
             "2": n_b6a3af4cd92bf736
-    )
-    inst part_L16: Part_f393ce32db47c837(
+    inst part_L16: Part_f393ce32db47c837
         connections:
             "1": n_d15178fee6b18d22
             "2": n_83508192ecbadd7e
-    )
-    inst part_C316: Part_791404574f7166f2(
+    inst part_C316: Part_791404574f7166f2
         connections:
             "1": n_b72cc477367e6ae1
             "2": n_b6a3af4cd92bf736
-    )
 
 block Sheet_power_supply_3_5635d3ce00646c37:
     ports:
@@ -9111,47 +8411,39 @@ block Sheet_power_supply_3_5635d3ce00646c37:
     net n_dc64b32fca722e3b: nettype.unchecked
     net n_dd8064b7d9eb0662: nettype.unchecked
     net n_f1531a7b35c0f7c7: nettype.unchecked
-    inst part_R134: Part_2f31cf7cb3f588a3(
+    inst part_R134: Part_2f31cf7cb3f588a3
         connections:
             "1": n_9f80924142c96dfa
             "2": n_97c755df877a1b86
-    )
-    inst part_C126: Part_7f1f5d903574cd40(
+    inst part_C126: Part_7f1f5d903574cd40
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_97c755df877a1b86
-    )
-    inst part_R127: Part_c873a1fcb9ddaba5(
+    inst part_R127: Part_c873a1fcb9ddaba5
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_84c4736c0e5ed1dd
-    )
-    inst part_R416: Part_b71a0cac668012ca(
+    inst part_R416: Part_b71a0cac668012ca
         connections:
             "1": n_685d6f8d7cd9742d
             "2": n_c291d21ca58b7cc4
-    )
-    inst part_R125: Part_c873a1fcb9ddaba5(
+    inst part_R125: Part_c873a1fcb9ddaba5
         connections:
             "1": n_84c4736c0e5ed1dd
             "2": n_08f97c73eaddabf1
-    )
-    inst part_C212: Part_5efab228b6994abc(
+    inst part_C212: Part_5efab228b6994abc
         connections:
             "1": n_3029c468725de28a
             "2": n_2a4e4b22da48684e
-    )
-    inst part_C214: Part_30982e4816588ab1(
+    inst part_C214: Part_30982e4816588ab1
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_f1af3fe8e96d4f73
-    )
-    inst part_C134: Part_791404574f7166f2(
+    inst part_C134: Part_791404574f7166f2
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_9f80924142c96dfa
-    )
-    inst part_IC24: Part_baca32acb2d4f5f6(
+    inst part_IC24: Part_baca32acb2d4f5f6
         connections:
             "1": n_84c4736c0e5ed1dd
             "10": n_3029c468725de28a
@@ -9164,28 +8456,23 @@ block Sheet_power_supply_3_5635d3ce00646c37:
             "7": n_3029c468725de28a
             "8": n_2a4e4b22da48684e
             "9": n_435917c15fe5421b
-    )
-    inst part_R64: Part_4a07a4c8407eef01(
+    inst part_R64: Part_4a07a4c8407eef01
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_03576cbf45907814
-    )
-    inst part_R120: Part_c873a1fcb9ddaba5(
+    inst part_R120: Part_c873a1fcb9ddaba5
         connections:
             "1": n_685d6f8d7cd9742d
             "2": n_cfda145b70cca37a
-    )
-    inst part_C319: Part_5efab228b6994abc(
+    inst part_C319: Part_5efab228b6994abc
         connections:
             "1": n_3029c468725de28a
             "2": n_2a4e4b22da48684e
-    )
-    inst part_C296: Part_791404574f7166f2(
+    inst part_C296: Part_791404574f7166f2
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_685d6f8d7cd9742d
-    )
-    inst part_IC22: Part_7c4adeea17c0aa03(
+    inst part_IC22: Part_7c4adeea17c0aa03
         connections:
             "1": n_3029c468725de28a
             "10": n_f1af3fe8e96d4f73
@@ -9198,28 +8485,23 @@ block Sheet_power_supply_3_5635d3ce00646c37:
             "7": no_connect
             "8": n_03576cbf45907814
             "9": n_f1af3fe8e96d4f73
-    )
-    inst part_C197: Part_791404574f7166f2(
+    inst part_C197: Part_791404574f7166f2
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_c291d21ca58b7cc4
-    )
-    inst part_L1: Part_f4ba5f898223794d(
+    inst part_L1: Part_f4ba5f898223794d
         connections:
             "1": n_0ec8477e82e56329
             "2": n_685d6f8d7cd9742d
-    )
-    inst part_R165: Part_ae43f930869cff95(
+    inst part_R165: Part_ae43f930869cff95
         connections:
             "1": n_84b50c4bfa07ca59
             "2": n_dc64b32fca722e3b
-    )
-    inst part_R211: Part_8103a27293ca4b45(
+    inst part_R211: Part_8103a27293ca4b45
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_dd8064b7d9eb0662
-    )
-    inst part_IC40: Part_1ee281693363d3dd(
+    inst part_IC40: Part_1ee281693363d3dd
         connections:
             "1": n_c291d21ca58b7cc4
             "10": n_9b02180f51f50bbd
@@ -9263,18 +8545,15 @@ block Sheet_power_supply_3_5635d3ce00646c37:
             "7": no_connect
             "8": no_connect
             "9": no_connect
-    )
-    inst part_C193: Part_791404574f7166f2(
+    inst part_C193: Part_791404574f7166f2
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_c291d21ca58b7cc4
-    )
-    inst part_C206: Part_a1ca94919b927083(
+    inst part_C206: Part_a1ca94919b927083
         connections:
             "1": n_c291d21ca58b7cc4
             "2": n_2a4e4b22da48684e
-    )
-    inst part_IC32: Part_d12e9c58b691079d(
+    inst part_IC32: Part_d12e9c58b691079d
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_5321390995a90b70
@@ -9285,102 +8564,82 @@ block Sheet_power_supply_3_5635d3ce00646c37:
             "7": n_0ec8477e82e56329
             "8": n_cfda145b70cca37a
             "9": n_2a4e4b22da48684e
-    )
-    inst part_R210: Part_32ce9dc3984aadb8(
+    inst part_R210: Part_32ce9dc3984aadb8
         connections:
             "1": n_685d6f8d7cd9742d
             "2": n_dd8064b7d9eb0662
-    )
-    inst part_C140: Part_13eaf2e4fcd8dcfc(
+    inst part_C140: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_f1531a7b35c0f7c7
-    )
-    inst part_C135: Part_5a10aac218ff7739(
+    inst part_C135: Part_5a10aac218ff7739
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_08f97c73eaddabf1
-    )
-    inst part_C349: Part_e1cba54d8b57dc6e(
+    inst part_C349: Part_e1cba54d8b57dc6e
         connections:
             "1": n_5321390995a90b70
             "2": n_2a4e4b22da48684e
-    )
-    inst part_C211: Part_5a10aac218ff7739(
+    inst part_C211: Part_5a10aac218ff7739
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_c291d21ca58b7cc4
-    )
-    inst part_R181: Part_7d9ebd0af30e5f43(
+    inst part_R181: Part_7d9ebd0af30e5f43
         connections:
             "1": n_dc64b32fca722e3b
             "2": n_36be1f6800e6e79f
-    )
-    inst part_C133: Part_791404574f7166f2(
+    inst part_C133: Part_791404574f7166f2
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_9f80924142c96dfa
-    )
-    inst part_C323: Part_5a10aac218ff7739(
+    inst part_C323: Part_5a10aac218ff7739
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_3029c468725de28a
-    )
-    inst part_C322: Part_791404574f7166f2(
+    inst part_C322: Part_791404574f7166f2
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_3029c468725de28a
-    )
-    inst part_C136: Part_2087bba1beb2a1c1(
+    inst part_C136: Part_2087bba1beb2a1c1
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_84c4736c0e5ed1dd
-    )
-    inst part_C220: Part_5a10aac218ff7739(
+    inst part_C220: Part_5a10aac218ff7739
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_685d6f8d7cd9742d
-    )
-    inst part_C320: Part_791404574f7166f2(
+    inst part_C320: Part_791404574f7166f2
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_3029c468725de28a
-    )
-    inst part_C196: Part_791404574f7166f2(
+    inst part_C196: Part_791404574f7166f2
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_c291d21ca58b7cc4
-    )
-    inst part_C213: Part_5a10aac218ff7739(
+    inst part_C213: Part_5a10aac218ff7739
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_3029c468725de28a
-    )
-    inst part_C321: Part_791404574f7166f2(
+    inst part_C321: Part_791404574f7166f2
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_3029c468725de28a
-    )
-    inst part_C188: Part_791404574f7166f2(
+    inst part_C188: Part_791404574f7166f2
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_c291d21ca58b7cc4
-    )
-    inst part_R100: Part_5940e1aa689faca0(
+    inst part_R100: Part_5940e1aa689faca0
         connections:
             "1": n_84b50c4bfa07ca59
             "2": n_0cd8e4ee51af79c4
-    )
-    inst part_C132: Part_5a10aac218ff7739(
+    inst part_C132: Part_5a10aac218ff7739
         connections:
             "1": n_2a4e4b22da48684e
             "2": n_3029c468725de28a
-    )
-    inst part_R62: Part_c873a1fcb9ddaba5(
+    inst part_R62: Part_c873a1fcb9ddaba5
         connections:
             "1": n_03576cbf45907814
             "2": n_f1af3fe8e96d4f73
-    )
 
 block Sheet_slow_gpio_ed66275ad4088a7a:
     ports:
@@ -9424,27 +8683,23 @@ block Sheet_slow_gpio_ed66275ad4088a7a:
     net n_7f31707dde86b4c2: nettype.unchecked
     net n_89eae7dbeab86048: nettype.unchecked
     net n_faa7d5449bcbd828: nettype.unchecked
-    inst part_R463: Part_ad88739b62611ac9(
+    inst part_R463: Part_ad88739b62611ac9
         connections:
             "1": n_b4184bff08774b95
             "2": n_7f31707dde86b4c2
-    )
-    inst part_C277: Part_13eaf2e4fcd8dcfc(
+    inst part_C277: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_1e2c7016214d7f90
             "2": n_1a4feb13f9198e12
-    )
-    inst part_R462: Part_ad88739b62611ac9(
+    inst part_R462: Part_ad88739b62611ac9
         connections:
             "1": n_bd6bfe0f0b525525
             "2": n_7a0e6b932e7e2018
-    )
-    inst part_C278: Part_13eaf2e4fcd8dcfc(
+    inst part_C278: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_1e2c7016214d7f90
             "2": n_1a4feb13f9198e12
-    )
-    inst part_IC51: Part_0b063d4f31f99885(
+    inst part_IC51: Part_0b063d4f31f99885
         connections:
             "1": n_ed321a0e7f239cff
             "10": n_a2ceffc09042625d
@@ -9463,13 +8718,11 @@ block Sheet_slow_gpio_ed66275ad4088a7a:
             "7": no_connect
             "8": n_1a4feb13f9198e12
             "9": no_connect
-    )
-    inst part_R460: Part_ad88739b62611ac9(
+    inst part_R460: Part_ad88739b62611ac9
         connections:
             "1": n_66fcf4b41c50727f
             "2": n_89eae7dbeab86048
-    )
-    inst part_IC52: Part_d4d48155b69372f3(
+    inst part_IC52: Part_d4d48155b69372f3
         connections:
             "1": n_1a4feb13f9198e12
             "10": n_fdd6c994b8b7df8b
@@ -9487,13 +8740,11 @@ block Sheet_slow_gpio_ed66275ad4088a7a:
             "7": n_7a0e6b932e7e2018
             "8": n_1a4feb13f9198e12
             "9": n_a2ceffc09042625d
-    )
-    inst part_C279: Part_13eaf2e4fcd8dcfc(
+    inst part_C279: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_1e2c7016214d7f90
             "2": n_1a4feb13f9198e12
-    )
-    inst part_IC56: Part_d4d48155b69372f3(
+    inst part_IC56: Part_d4d48155b69372f3
         connections:
             "1": n_faa7d5449bcbd828
             "10": n_9f431f56dcc675f0
@@ -9511,13 +8762,11 @@ block Sheet_slow_gpio_ed66275ad4088a7a:
             "7": n_7a0e6b932e7e2018
             "8": n_1a4feb13f9198e12
             "9": n_a2ceffc09042625d
-    )
-    inst part_C345: Part_13eaf2e4fcd8dcfc(
+    inst part_C345: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_1e2c7016214d7f90
             "2": n_1a4feb13f9198e12
-    )
-    inst part_IC55: Part_d4d48155b69372f3(
+    inst part_IC55: Part_d4d48155b69372f3
         connections:
             "1": n_36f18aeb797b3d27
             "10": n_46d22d80bbc8508c
@@ -9535,7 +8784,6 @@ block Sheet_slow_gpio_ed66275ad4088a7a:
             "7": n_7a0e6b932e7e2018
             "8": n_1a4feb13f9198e12
             "9": n_a2ceffc09042625d
-    )
 
 block Sheet_user_interface_8ba02595d44583eb:
     ports:
@@ -9557,19 +8805,17 @@ block Sheet_user_interface_8ba02595d44583eb:
     net n_94d0ee84954416b1: nettype.unchecked
     net n_ba37e2db829c0609: nettype.unchecked
     net n_bbd851bdf04a2d96: nettype.unchecked
-    inst part_R371: Part_c873a1fcb9ddaba5(
+    inst part_R371: Part_c873a1fcb9ddaba5
         connections:
             "1": n_d0d3082c342665f3
             "2": n_8d4529dcb0b744fb
-    )
-    inst part_IC4: Part_ffbf0d0c733cc617(
+    inst part_IC4: Part_ffbf0d0c733cc617
         connections:
             "1": n_1104ccc42c05cc4b
             "2": n_bbd851bdf04a2d96
             "3": n_ba37e2db829c0609
             "4": n_2219de0f6f403c6d
-    )
-    inst part_IC3: Part_e4afe4683ef80861(
+    inst part_IC3: Part_e4afe4683ef80861
         connections:
             "1": no_connect
             "10": no_connect
@@ -9596,28 +8842,23 @@ block Sheet_user_interface_8ba02595d44583eb:
             "7": n_2219de0f6f403c6d
             "8": n_2219de0f6f403c6d
             "9": no_connect
-    )
-    inst part_C53: Part_13eaf2e4fcd8dcfc(
+    inst part_C53: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_94d0ee84954416b1
             "2": n_1104ccc42c05cc4b
-    )
-    inst part_R344: Part_c873a1fcb9ddaba5(
+    inst part_R344: Part_c873a1fcb9ddaba5
         connections:
             "1": n_d0d3082c342665f3
             "2": n_ca656f158160cbab
-    )
-    inst part_R385: Part_c873a1fcb9ddaba5(
+    inst part_R385: Part_c873a1fcb9ddaba5
         connections:
             "1": n_d0d3082c342665f3
             "2": n_8246ce0a078a430a
-    )
-    inst part_R358: Part_c873a1fcb9ddaba5(
+    inst part_R358: Part_c873a1fcb9ddaba5
         connections:
             "1": n_d0d3082c342665f3
             "2": n_e8b21f2c7c1b37f4
-    )
-    inst part_SW2: Part_a78a5b36d78eb1ab(
+    inst part_SW2: Part_a78a5b36d78eb1ab
         connections:
             "1": n_8246ce0a078a430a
             "10": n_1104ccc42c05cc4b
@@ -9635,23 +8876,19 @@ block Sheet_user_interface_8ba02595d44583eb:
             "7": n_e672fba98675ef66
             "8": n_ee55a260afed454a
             "9": n_1104ccc42c05cc4b
-    )
-    inst part_R372: Part_c873a1fcb9ddaba5(
+    inst part_R372: Part_c873a1fcb9ddaba5
         connections:
             "1": n_d0d3082c342665f3
             "2": n_f6a81c1e0e434f3d
-    )
-    inst part_R330: Part_c873a1fcb9ddaba5(
+    inst part_R330: Part_c873a1fcb9ddaba5
         connections:
             "1": n_d0d3082c342665f3
             "2": n_ee55a260afed454a
-    )
-    inst part_R357: Part_c873a1fcb9ddaba5(
+    inst part_R357: Part_c873a1fcb9ddaba5
         connections:
             "1": n_d0d3082c342665f3
             "2": n_07e64458b5102173
-    )
-    inst part_J2: Part_45671e622e86c8ee(
+    inst part_J2: Part_45671e622e86c8ee
         connections:
             "1": n_2219de0f6f403c6d
             "2": n_ba37e2db829c0609
@@ -9659,22 +8896,18 @@ block Sheet_user_interface_8ba02595d44583eb:
             "4": no_connect
             "5": n_1104ccc42c05cc4b
             "6": n_1104ccc42c05cc4b
-    )
-    inst part_C148: Part_5a10aac218ff7739(
+    inst part_C148: Part_5a10aac218ff7739
         connections:
             "1": n_2219de0f6f403c6d
             "2": n_1104ccc42c05cc4b
-    )
-    inst part_R343: Part_c873a1fcb9ddaba5(
+    inst part_R343: Part_c873a1fcb9ddaba5
         connections:
             "1": n_d0d3082c342665f3
             "2": n_e672fba98675ef66
-    )
-    inst part_C52: Part_5a10aac218ff7739(
+    inst part_C52: Part_5a10aac218ff7739
         connections:
             "1": n_94d0ee84954416b1
             "2": n_1104ccc42c05cc4b
-    )
 
 block Sheet_vme_interface_987aea2b0779be44:
     ports:
@@ -10099,37 +9332,31 @@ block Sheet_vme_interface_987aea2b0779be44:
     net n_fb410cd93e9ca14b: nettype.unchecked
     net n_fe66c250d6b4963d: nettype.unchecked
     net n_fe8e9e7dd6ec2c87: nettype.unchecked
-    inst part_C219: Part_13eaf2e4fcd8dcfc(
+    inst part_C219: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_2c0039d0af0e4f07
             "2": n_5443529abe6a44dd
-    )
-    inst part_R69: Part_c873a1fcb9ddaba5(
+    inst part_R69: Part_c873a1fcb9ddaba5
         connections:
             "1": n_a1599680ed7f13a2
             "2": n_5443529abe6a44dd
-    )
-    inst part_R456: Part_ad88739b62611ac9(
+    inst part_R456: Part_ad88739b62611ac9
         connections:
             "1": n_b47c8c688a0009c5
             "2": n_64c77249eac16eed
-    )
-    inst part_R260: Part_c873a1fcb9ddaba5(
+    inst part_R260: Part_c873a1fcb9ddaba5
         connections:
             "1": n_492abdb780023840
             "2": n_5443529abe6a44dd
-    )
-    inst part_R266: Part_c873a1fcb9ddaba5(
+    inst part_R266: Part_c873a1fcb9ddaba5
         connections:
             "1": n_d3d54d4f099fceac
             "2": n_2c0039d0af0e4f07
-    )
-    inst part_R124: Part_c873a1fcb9ddaba5(
+    inst part_R124: Part_c873a1fcb9ddaba5
         connections:
             "1": n_2c0039d0af0e4f07
             "2": n_d5916662375a55a9
-    )
-    inst part_IC64: Part_0b063d4f31f99885(
+    inst part_IC64: Part_0b063d4f31f99885
         connections:
             "1": n_d643f66eacf5aded
             "10": n_bfedc73e27a0b106
@@ -10148,8 +9375,7 @@ block Sheet_vme_interface_987aea2b0779be44:
             "7": n_08f9504ef32f8f2b
             "8": n_2c0039d0af0e4f07
             "9": no_connect
-    )
-    inst part_IC15: Part_e96ac0a3891bc5a7(
+    inst part_IC15: Part_e96ac0a3891bc5a7
         connections:
             "1": n_492abdb780023840
             "10": n_492abdb780023840
@@ -10165,18 +9391,15 @@ block Sheet_vme_interface_987aea2b0779be44:
             "7": n_2c0039d0af0e4f07
             "8": n_4b5b30fd1e687a15
             "9": n_2718fcfde9981493
-    )
-    inst part_R455: Part_ad88739b62611ac9(
+    inst part_R455: Part_ad88739b62611ac9
         connections:
             "1": n_26f57a572df268ba
             "2": n_b013c3d29a48ace0
-    )
-    inst part_C390: Part_13eaf2e4fcd8dcfc(
+    inst part_C390: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_2c0039d0af0e4f07
             "2": n_5443529abe6a44dd
-    )
-    inst part_IC49: Part_0b063d4f31f99885(
+    inst part_IC49: Part_0b063d4f31f99885
         connections:
             "1": n_4cf0473bbc5d45f9
             "10": n_bfedc73e27a0b106
@@ -10195,23 +9418,19 @@ block Sheet_vme_interface_987aea2b0779be44:
             "7": n_95988e1fcec995a9
             "8": n_2c0039d0af0e4f07
             "9": n_9c68c7e2940e6b6c
-    )
-    inst part_R87: Part_697f5f2b5a7d7024(
+    inst part_R87: Part_697f5f2b5a7d7024
         connections:
             "1": n_2aa4307f6eeb760d
             "2": n_d0c73e6cf140725e
-    )
-    inst part_C388: Part_13eaf2e4fcd8dcfc(
+    inst part_C388: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_2c0039d0af0e4f07
             "2": n_5443529abe6a44dd
-    )
-    inst part_R122: Part_c873a1fcb9ddaba5(
+    inst part_R122: Part_c873a1fcb9ddaba5
         connections:
             "1": n_2c0039d0af0e4f07
             "2": n_bf72f98c3cdfb959
-    )
-    inst part_IC48: Part_0b063d4f31f99885(
+    inst part_IC48: Part_0b063d4f31f99885
         connections:
             "1": n_1676d599469303b8
             "10": n_bfedc73e27a0b106
@@ -10230,28 +9449,23 @@ block Sheet_vme_interface_987aea2b0779be44:
             "7": n_e99e814c958612de
             "8": n_2c0039d0af0e4f07
             "9": n_0b038150231c3d35
-    )
-    inst part_C389: Part_13eaf2e4fcd8dcfc(
+    inst part_C389: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_2c0039d0af0e4f07
             "2": n_5443529abe6a44dd
-    )
-    inst part_R387: Part_ad88739b62611ac9(
+    inst part_R387: Part_ad88739b62611ac9
         connections:
             "1": n_a916a4f78438ae0b
             "2": n_61c06e648c1f7181
-    )
-    inst part_C512: Part_13eaf2e4fcd8dcfc(
+    inst part_C512: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_2c0039d0af0e4f07
             "2": n_5443529abe6a44dd
-    )
-    inst part_R88: Part_697f5f2b5a7d7024(
+    inst part_R88: Part_697f5f2b5a7d7024
         connections:
             "1": n_1c016ff75f7e8b91
             "2": n_e7d7ee03edde9434
-    )
-    inst part_IC26: Part_e1e3ae68e8e364a3(
+    inst part_IC26: Part_e1e3ae68e8e364a3
         connections:
             "1": n_a745a9ac83085d95
             "2": n_d6f39f9721f58288
@@ -10261,48 +9475,39 @@ block Sheet_vme_interface_987aea2b0779be44:
             "6": n_1c016ff75f7e8b91
             "7": n_e7d7ee03edde9434
             "8": n_5443529abe6a44dd
-    )
-    inst part_R104: Part_c873a1fcb9ddaba5(
+    inst part_R104: Part_c873a1fcb9ddaba5
         connections:
             "1": n_e377ec24cc150415
             "2": n_5443529abe6a44dd
-    )
-    inst part_C114: Part_13eaf2e4fcd8dcfc(
+    inst part_C114: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_2c0039d0af0e4f07
             "2": n_5443529abe6a44dd
-    )
-    inst part_R192: Part_c873a1fcb9ddaba5(
+    inst part_R192: Part_c873a1fcb9ddaba5
         connections:
             "1": n_2c0039d0af0e4f07
             "2": n_cf4837c61d4ef6c1
-    )
-    inst part_C222: Part_13eaf2e4fcd8dcfc(
+    inst part_C222: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_2c0039d0af0e4f07
             "2": n_5443529abe6a44dd
-    )
-    inst part_C215: Part_13eaf2e4fcd8dcfc(
+    inst part_C215: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_2c0039d0af0e4f07
             "2": n_5443529abe6a44dd
-    )
-    inst part_C217: Part_13eaf2e4fcd8dcfc(
+    inst part_C217: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_2c0039d0af0e4f07
             "2": n_5443529abe6a44dd
-    )
-    inst part_R399: Part_ad88739b62611ac9(
+    inst part_R399: Part_ad88739b62611ac9
         connections:
             "1": n_3ff13b3815893b5d
             "2": n_5d1d5f16095b70e3
-    )
-    inst part_C392: Part_13eaf2e4fcd8dcfc(
+    inst part_C392: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_2c0039d0af0e4f07
             "2": n_5443529abe6a44dd
-    )
-    inst part_IC67: Part_492c64e6f1cbd681(
+    inst part_IC67: Part_492c64e6f1cbd681
         connections:
             "1": n_5443529abe6a44dd
             "2": n_2718fcfde9981493
@@ -10312,8 +9517,7 @@ block Sheet_vme_interface_987aea2b0779be44:
             "6": n_137a0b5845f29273
             "7": n_7a5dc47ec5d33fc9
             "8": n_16c7437f889504eb
-    )
-    inst part_IC63: Part_0b063d4f31f99885(
+    inst part_IC63: Part_0b063d4f31f99885
         connections:
             "1": n_7d4fb6c7321527f5
             "10": n_bfedc73e27a0b106
@@ -10332,23 +9536,19 @@ block Sheet_vme_interface_987aea2b0779be44:
             "7": n_3d507fb01e9b0df9
             "8": n_2c0039d0af0e4f07
             "9": n_a6839c084d6d1ab5
-    )
-    inst part_C391: Part_13eaf2e4fcd8dcfc(
+    inst part_C391: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_2c0039d0af0e4f07
             "2": n_5443529abe6a44dd
-    )
-    inst part_R126: Part_c873a1fcb9ddaba5(
+    inst part_R126: Part_c873a1fcb9ddaba5
         connections:
             "1": n_2c0039d0af0e4f07
             "2": n_6385d1a40ef45bb1
-    )
-    inst part_R265: Part_c873a1fcb9ddaba5(
+    inst part_R265: Part_c873a1fcb9ddaba5
         connections:
             "1": n_2718fcfde9981493
             "2": n_2c0039d0af0e4f07
-    )
-    inst part_IC58: Part_492c64e6f1cbd681(
+    inst part_IC58: Part_492c64e6f1cbd681
         connections:
             "1": n_5443529abe6a44dd
             "2": n_6385d1a40ef45bb1
@@ -10358,13 +9558,11 @@ block Sheet_vme_interface_987aea2b0779be44:
             "6": n_2e76ceea737ddf27
             "7": n_d27016fd778649ba
             "8": n_67ac289214f6274b
-    )
-    inst part_R396: Part_ad88739b62611ac9(
+    inst part_R396: Part_ad88739b62611ac9
         connections:
             "1": n_8e5c6432fa1fa605
             "2": n_cb6979069e583b5d
-    )
-    inst part_IC66: Part_0b063d4f31f99885(
+    inst part_IC66: Part_0b063d4f31f99885
         connections:
             "1": n_a08cd0d5e7f87197
             "10": n_bfedc73e27a0b106
@@ -10383,8 +9581,7 @@ block Sheet_vme_interface_987aea2b0779be44:
             "7": n_c98d8f2abac2a76a
             "8": n_2c0039d0af0e4f07
             "9": no_connect
-    )
-    inst part_IC27: Part_e1e3ae68e8e364a3(
+    inst part_IC27: Part_e1e3ae68e8e364a3
         connections:
             "1": n_5b76cce31121ac0a
             "2": n_a1599680ed7f13a2
@@ -10394,35 +9591,29 @@ block Sheet_vme_interface_987aea2b0779be44:
             "6": n_2aa4307f6eeb760d
             "7": n_d0c73e6cf140725e
             "8": n_5443529abe6a44dd
-    )
-    inst part_C216: Part_13eaf2e4fcd8dcfc(
+    inst part_C216: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_2c0039d0af0e4f07
             "2": n_5443529abe6a44dd
-    )
-    inst part_D29: Part_0a3ef2dceedc94e9(
+    inst part_D29: Part_0a3ef2dceedc94e9
         connections:
             "1": n_e7d7ee03edde9434
             "2": n_1c016ff75f7e8b91
             "3": n_2c0039d0af0e4f07
-    )
-    inst part_R117: Part_c873a1fcb9ddaba5(
+    inst part_R117: Part_c873a1fcb9ddaba5
         connections:
             "1": n_d6f39f9721f58288
             "2": n_5443529abe6a44dd
-    )
-    inst part_R68: Part_c873a1fcb9ddaba5(
+    inst part_R68: Part_c873a1fcb9ddaba5
         connections:
             "1": n_2c0039d0af0e4f07
             "2": n_1676d599469303b8
-    )
-    inst part_D30: Part_0a3ef2dceedc94e9(
+    inst part_D30: Part_0a3ef2dceedc94e9
         connections:
             "1": n_d0c73e6cf140725e
             "2": n_2aa4307f6eeb760d
             "3": n_2c0039d0af0e4f07
-    )
-    inst part_IC1: Part_0b063d4f31f99885(
+    inst part_IC1: Part_0b063d4f31f99885
         connections:
             "1": n_5595ef9e1b091c06
             "10": n_bfedc73e27a0b106
@@ -10441,13 +9632,11 @@ block Sheet_vme_interface_987aea2b0779be44:
             "7": no_connect
             "8": n_2c0039d0af0e4f07
             "9": n_fb410cd93e9ca14b
-    )
-    inst part_C223: Part_13eaf2e4fcd8dcfc(
+    inst part_C223: Part_13eaf2e4fcd8dcfc
         connections:
             "1": n_2c0039d0af0e4f07
             "2": n_5443529abe6a44dd
-    )
-    inst part_IC65: Part_0b063d4f31f99885(
+    inst part_IC65: Part_0b063d4f31f99885
         connections:
             "1": n_513683d162153e92
             "10": n_bfedc73e27a0b106
@@ -10466,23 +9655,19 @@ block Sheet_vme_interface_987aea2b0779be44:
             "7": n_e45d1abf62302f15
             "8": n_2c0039d0af0e4f07
             "9": no_connect
-    )
-    inst part_R458: Part_ad88739b62611ac9(
+    inst part_R458: Part_ad88739b62611ac9
         connections:
             "1": n_e8e7cdba22ac4d4b
             "2": n_eaf8b88fc1afec11
-    )
-    inst part_R103: Part_c873a1fcb9ddaba5(
+    inst part_R103: Part_c873a1fcb9ddaba5
         connections:
             "1": n_bfedc73e27a0b106
             "2": n_2c0039d0af0e4f07
-    )
-    inst part_R121: Part_c873a1fcb9ddaba5(
+    inst part_R121: Part_c873a1fcb9ddaba5
         connections:
             "1": n_2c0039d0af0e4f07
             "2": n_2aa440dad1e0b143
-    )
-    inst part_IC57: Part_492c64e6f1cbd681(
+    inst part_IC57: Part_492c64e6f1cbd681
         connections:
             "1": n_5443529abe6a44dd
             "2": n_d5916662375a55a9
@@ -10492,13 +9677,11 @@ block Sheet_vme_interface_987aea2b0779be44:
             "6": n_9b5723d58ce2f34c
             "7": n_f49aa710dee5c846
             "8": n_b4b8d1aac715ce3b
-    )
-    inst part_R386: Part_ad88739b62611ac9(
+    inst part_R386: Part_ad88739b62611ac9
         connections:
             "1": n_f9c9964110a566ba
             "2": n_fe8e9e7dd6ec2c87
-    )
-    inst sub_0: Sheet_vme_buffers_addr_75e49d9b14759195(
+    inst sub_0: Sheet_vme_buffers_addr_75e49d9b14759195
         connections:
             n_0217be4031757268: n_2402f672b0933d1c
             n_054b00bf1b61ec3e: n_dedb59b6e92c960a
@@ -10593,8 +9776,7 @@ block Sheet_vme_interface_987aea2b0779be44:
             n_f9d45012e80fba9a: n_cef69fe289e0794f
             n_fb5b31a60144e7d4: n_7a8eaa1ec0215e96
             n_ff95ba90e1a8481c: n_9eb71ec2e39bea2f
-    )
-    inst sub_1: Sheet_vme_buffers_aux_a4b5ed9fddea529a(
+    inst sub_1: Sheet_vme_buffers_aux_a4b5ed9fddea529a
         connections:
             n_047db1cd747e76e6: n_9be2fae0301ce4ce
             n_077498513f5889af: n_d8c1e9fa1591ff71
@@ -10641,8 +9823,7 @@ block Sheet_vme_interface_987aea2b0779be44:
             n_f7d981ec213f905d: n_18cfb67f80ee36cc
             n_fe2707435859c803: n_cd50c32371b53ad5
             n_fe76d03c33e11e41: n_79524ea92a908d01
-    )
-    inst sub_2: Sheet_vme_buffers_data_685706616232175b(
+    inst sub_2: Sheet_vme_buffers_data_685706616232175b
         connections:
             n_00064cc1dc71902b: n_c973fc0245ec36b2
             n_009772a417cfe4e2: n_df0cc107af87b868
@@ -10738,8 +9919,7 @@ block Sheet_vme_interface_987aea2b0779be44:
             n_f9b5849414ab7f37: n_5443529abe6a44dd
             n_fb3fb2d1be84bd24: n_813d5c92edd36bf4
             n_fe3c4d5ac7cfa0a7: n_66b85f1d459efd12
-    )
-    inst sub_3: Sheet_vme_buffers_p0_hwbyte_5cc2a107429a601f(
+    inst sub_3: Sheet_vme_buffers_p0_hwbyte_5cc2a107429a601f
         connections:
             n_05238df5d4eac78f: n_24e300bcb6165f2b
             n_07b816f878b2c9fe: n_aeb95ca214dc3bd6
@@ -10811,8 +9991,7 @@ block Sheet_vme_interface_987aea2b0779be44:
             n_f55f6bd45c09e694: n_32b5dead249b1eb1
             n_f64d9daf54366dd3: n_5de9501e462f19e4
             n_f7cfcbc5dc021823: n_938d85eeb4fa495f
-    )
-    inst sub_4: Sheet_vme_buffers_userio_p2_9f8cbbbdf5e39d66(
+    inst sub_4: Sheet_vme_buffers_userio_p2_9f8cbbbdf5e39d66
         connections:
             n_04b361684aa42fe6: n_819566f92ae9f3d2
             n_0502e4eee8eb2987: n_09d39a7c0bb86569
@@ -10889,8 +10068,7 @@ block Sheet_vme_interface_987aea2b0779be44:
             n_f9f4b87d97376d3c: n_985b02cad85efac2
             n_fc267d1c6a4ada9d: n_7de7424f6d001b52
             n_fde43e0749854b9f: n_4d47f03f6a8f6571
-    )
-    inst sub_5: Sheet_vme_p0_cab08eab99eb66b7(
+    inst sub_5: Sheet_vme_p0_cab08eab99eb66b7
         connections:
             n_0dad684486af3801: n_f49aa710dee5c846
             n_1c9f4b01300f9de4: n_32b5dead249b1eb1
@@ -10937,8 +10115,7 @@ block Sheet_vme_interface_987aea2b0779be44:
             n_ee8337d19a42b221: n_3b76052bdb89a561
             n_f6b04badd8f25f5e: n_853eb0b5ba010aa2
             n_f6c4fcfe04e739f7: n_a258c6cd030524c3
-    )
-    inst sub_6: Sheet_vme_p1_p2_5ff9d8e56b763557(
+    inst sub_6: Sheet_vme_p1_p2_5ff9d8e56b763557
         connections:
             n_01b136001af89174: n_0e870104145522d5
             n_02709c8b668a0d47: n_88c49f992e1e372d
@@ -11081,7 +10258,6 @@ block Sheet_vme_interface_987aea2b0779be44:
             n_fd361278695abed2: n_d43472e2915261f1
             n_ffa38c8af8b50d05: n_2ed9916ec1639317
             n_ffb4d3e543f1793c: n_2ced3c5136a23fef
-    )
 
 board WrenFull:
     net n_0043d5c653baaf56: nettype.unchecked
@@ -11543,22 +10719,18 @@ board WrenFull:
     net n_ff07d66684917e6a: nettype.unchecked
     net n_ff2971fbc8f68612: nettype.unchecked
     net n_ffd6a0ce5211ea6c: nettype.unchecked
-    inst part_FTG5: Part_e2dcabf097ada228(
-    )
-    inst part_R401: Part_34d3031216686311(
+    inst part_FTG5: Part_e2dcabf097ada228
+    inst part_R401: Part_34d3031216686311
         connections:
             "1": n_9647b13b1f5948ff
             "2": n_907a0ae43f748680
-    )
-    inst part_TP3: Part_1afe4aaf25b1bda8(
+    inst part_TP3: Part_1afe4aaf25b1bda8
         connections:
             "1": n_96beb36b329fe6c8
-    )
-    inst part_TP5: Part_1afe4aaf25b1bda8(
+    inst part_TP5: Part_1afe4aaf25b1bda8
         connections:
             "1": n_0bb1aae6fc68a511
-    )
-    inst part_Cage3: Part_913618de94353e29(
+    inst part_Cage3: Part_913618de94353e29
         connections:
             "1": n_9647b13b1f5948ff
             "10": n_9647b13b1f5948ff
@@ -11580,8 +10752,7 @@ board WrenFull:
             "7": n_9647b13b1f5948ff
             "8": n_9647b13b1f5948ff
             "9": n_9647b13b1f5948ff
-    )
-    inst part_Cage1: Part_0bd1c53d1ddf6f71(
+    inst part_Cage1: Part_0bd1c53d1ddf6f71
         connections:
             "1": n_9647b13b1f5948ff
             "10": n_9647b13b1f5948ff
@@ -11613,22 +10784,16 @@ board WrenFull:
             "7": n_9647b13b1f5948ff
             "8": n_9647b13b1f5948ff
             "9": n_9647b13b1f5948ff
-    )
-    inst part_FTG1: Part_e2dcabf097ada228(
-    )
-    inst part_FTG4: Part_e2dcabf097ada228(
-    )
-    inst part_TP4: Part_1afe4aaf25b1bda8(
+    inst part_FTG1: Part_e2dcabf097ada228
+    inst part_FTG4: Part_e2dcabf097ada228
+    inst part_TP4: Part_1afe4aaf25b1bda8
         connections:
             "1": n_4217e26e04cc01b9
-    )
-    inst part_B3: Part_dd4a3c8bed171455(
+    inst part_B3: Part_dd4a3c8bed171455
         connections:
             "1": n_0bb1aae6fc68a511
-    )
-    inst part_FTG3: Part_e2dcabf097ada228(
-    )
-    inst part_J6: Part_1175846c1ff369bb(
+    inst part_FTG3: Part_e2dcabf097ada228
+    inst part_J6: Part_1175846c1ff369bb
         connections:
             "1": n_1bd1542e02cc27d8
             "10": n_86ce5f801cb2d170
@@ -11671,57 +10836,44 @@ board WrenFull:
             "7": n_25f55d470ad92926
             "8": n_817b8435b5fa22d5
             "9": n_6775b23905822663
-    )
-    inst part_FTG6: Part_e2dcabf097ada228(
-    )
-    inst part_TP2: Part_1afe4aaf25b1bda8(
+    inst part_FTG6: Part_e2dcabf097ada228
+    inst part_TP2: Part_1afe4aaf25b1bda8
         connections:
             "1": n_0bb1aae6fc68a511
-    )
-    inst part_B1: Part_dd4a3c8bed171455(
+    inst part_B1: Part_dd4a3c8bed171455
         connections:
             "1": n_0bb1aae6fc68a511
-    )
-    inst part_F1: Part_fa02ad3c79e5933a(
+    inst part_F1: Part_fa02ad3c79e5933a
         connections:
             "1": n_b00f3b99b4792490
             "2": n_10959d541effd901
-    )
-    inst part_R400: Part_34d3031216686311(
+    inst part_R400: Part_34d3031216686311
         connections:
             "1": n_0bb1aae6fc68a511
             "2": n_4217e26e04cc01b9
-    )
-    inst part_R398: Part_34d3031216686311(
+    inst part_R398: Part_34d3031216686311
         connections:
             "1": n_0bb1aae6fc68a511
             "2": n_3284731bac58b4e9
-    )
-    inst part_C369: Part_5efab228b6994abc(
+    inst part_C369: Part_5efab228b6994abc
         connections:
             "1": n_10959d541effd901
             "2": n_9647b13b1f5948ff
-    )
-    inst part_TP6: Part_1afe4aaf25b1bda8(
+    inst part_TP6: Part_1afe4aaf25b1bda8
         connections:
             "1": n_907a0ae43f748680
-    )
-    inst part_B2: Part_dd4a3c8bed171455(
+    inst part_B2: Part_dd4a3c8bed171455
         connections:
             "1": n_0bb1aae6fc68a511
-    )
-    inst part_R397: Part_34d3031216686311(
+    inst part_R397: Part_34d3031216686311
         connections:
             "1": n_9647b13b1f5948ff
             "2": n_96beb36b329fe6c8
-    )
-    inst part_FTG2: Part_e2dcabf097ada228(
-    )
-    inst part_TP1: Part_1afe4aaf25b1bda8(
+    inst part_FTG2: Part_e2dcabf097ada228
+    inst part_TP1: Part_1afe4aaf25b1bda8
         connections:
             "1": n_3284731bac58b4e9
-    )
-    inst sub_0: Sheet_clocks_899b181622ae2e1e(
+    inst sub_0: Sheet_clocks_899b181622ae2e1e
         connections:
             n_055405b794f685d2: n_40db43f1b06e904f
             n_06fc66145fa4594b: n_a1577d67f1d69cb4
@@ -11749,8 +10901,7 @@ board WrenFull:
             n_dfd57668403296b5: n_57023363bbcb7399
             n_e535330571e9ea69: n_9647b13b1f5948ff
             n_fe9ce0c4e751b7c7: n_e7ed410aa0b35eb8
-    )
-    inst sub_1: Sheet_ddr4_ps_91d8c5ec15eb342b(
+    inst sub_1: Sheet_ddr4_ps_91d8c5ec15eb342b
         connections:
             n_04f7c5fad31ac26a: n_510cdf7467df2761
             n_05b9e0b5b855aa57: n_2c75f9a5f3d5273d
@@ -11829,8 +10980,7 @@ board WrenFull:
             n_f15f833f75016e8a: n_b58628aa8c6ca375
             n_fd12bc3b135bcd5c: n_e6266587c39a5582
             n_ff40165c6f3c7bae: n_7b4860b99ac6e3ce
-    )
-    inst sub_2: Sheet_flash_b0a2d2ea1aa3b4dc(
+    inst sub_2: Sheet_flash_b0a2d2ea1aa3b4dc
         connections:
             n_02a61a74dbf77e41: n_a97426e42a8b9f0c
             n_1cee79957c6dc162: n_9647b13b1f5948ff
@@ -11848,8 +10998,7 @@ board WrenFull:
             n_e91e34862f373c52: n_b6588d83009dde6e
             n_f19eddcebb27439b: n_d18b96e2bfd52a8d
             n_f2d8dcab4899abb4: n_1073b07999b893db
-    )
-    inst sub_3: Sheet_fp_connectors_39ad9bc9e2407803(
+    inst sub_3: Sheet_fp_connectors_39ad9bc9e2407803
         connections:
             n_031920a7f2173309: n_9d5bc3e9e52cf7fb
             n_0d6f35d673ad0ce6: n_041a94f906dc1d01
@@ -11891,8 +11040,7 @@ board WrenFull:
             n_f6cb53ee4511f7e9: n_9814a043775bfeda
             n_f6cc19eb9bd084d9: n_158b18cb147655f2
             n_fde8376855531b43: n_1c291e0e03abdb35
-    )
-    inst sub_4: Sheet_fpga_3c599f0e50a39a0a(
+    inst sub_4: Sheet_fpga_3c599f0e50a39a0a
         connections:
             n_00dec3fce3c0300e: n_c0f8da07d1315c68
             n_02da0c191ba4ad7b: n_094bffda5e9f5841
@@ -12250,8 +11398,7 @@ board WrenFull:
             n_fd4228eea7cd418b: n_a5d39f084a217235
             n_fe97773911ed3cde: n_e6325a533bf48cf0
             n_ff9d9138deca6e00: n_3802da80bf1a3ddc
-    )
-    inst sub_5: Sheet_io_driver_32x_87558df7891562a6(
+    inst sub_5: Sheet_io_driver_32x_87558df7891562a6
         connections:
             n_0058a3ce3aac486b: n_3ab8f2a082093ce1
             n_04fbf81229f78762: n_4335bf873affff54
@@ -12325,8 +11472,7 @@ board WrenFull:
             n_e71284851d4b7ba8: n_9fdb6dc28b48770b
             n_ea85a9da2c617f33: n_e31057831525ab8b
             n_f661f0618b20c0c4: n_c700ce423907c1b5
-    )
-    inst sub_6: Sheet_pcie_connector_ef8524597db4781b(
+    inst sub_6: Sheet_pcie_connector_ef8524597db4781b
         connections:
             n_177dae994fcd55ba: n_c1dd65b7458fdd40
             n_3d86e1450492d3f3: n_c3752a386827fb53
@@ -12336,8 +11482,7 @@ board WrenFull:
             n_afaaa64ec304d6fa: n_3df111587b88d437
             n_d002c84581305b45: n_eb45c06af41baad7
             n_f8c49f5d6da4c7c5: n_9647b13b1f5948ff
-    )
-    inst sub_7: Sheet_power_supply_1_12e8319b2b53df0d(
+    inst sub_7: Sheet_power_supply_1_12e8319b2b53df0d
         connections:
             n_08e802edff96508d: n_71f76132d7e46401
             n_349ffef014272eab: n_f43731a87ffddda9
@@ -12349,8 +11494,7 @@ board WrenFull:
             n_a5baf9e1eeba2969: n_7ebbf3416b0ced52
             n_bc4025b17c83c7dc: n_549e9c1606517c07
             n_f3cecbdf83bc66bf: n_545c4d9f66cb2b61
-    )
-    inst sub_8: Sheet_power_supply_2_f0f038fbc2fd2898(
+    inst sub_8: Sheet_power_supply_2_f0f038fbc2fd2898
         connections:
             n_0b3f8cc826a7d8d6: n_527c6a01dd846061
             n_3c9ab810be8c889b: n_7ebbf3416b0ced52
@@ -12364,8 +11508,7 @@ board WrenFull:
             n_b72cc477367e6ae1: n_bbd87c42b790cfa1
             n_b8f523089bf0a4e5: n_23f8a866f49a2564
             n_ef8427c11d63a520: n_549e9c1606517c07
-    )
-    inst sub_9: Sheet_power_supply_3_5635d3ce00646c37(
+    inst sub_9: Sheet_power_supply_3_5635d3ce00646c37
         connections:
             n_08f97c73eaddabf1: n_c2e3583bb9666f0a
             n_2a4e4b22da48684e: n_9647b13b1f5948ff
@@ -12376,8 +11519,7 @@ board WrenFull:
             n_9f80924142c96dfa: n_2c75f9a5f3d5273d
             n_c291d21ca58b7cc4: n_b00f3b99b4792490
             n_f1af3fe8e96d4f73: n_53d191e2dca5750f
-    )
-    inst sub_10: Sheet_pp_driver_32x_687173f6e92faaaf(
+    inst sub_10: Sheet_pp_driver_32x_687173f6e92faaaf
         connections:
             n_00ce33bc4e3cf3ce: n_c171c05a6dd01ab3
             n_0108f079d32bbc5d: n_1bd1542e02cc27d8
@@ -12447,8 +11589,7 @@ board WrenFull:
             n_ea11246b3f6fdd22: n_fcd0b714b2da6ab2
             n_f47af564ad8a4d8b: n_14056809d62f4b42
             n_f8dd0d6594d7d7c6: n_0c049c9161b6a067
-    )
-    inst sub_11[2]: Sheet_sfp__ddf1dda4667bee5a(
+    inst sub_11[2]: Sheet_sfp__ddf1dda4667bee5a
         connections:
             [0].n_279356c4509d9d2d: n_4477035b08fd64ee
             [0].n_2ccb5dcf14398644: n_c1ca63b01e47d166
@@ -12472,8 +11613,7 @@ board WrenFull:
             [1].n_b41f7f540ccebf13: n_36565ef460eb8bb0
             [1].n_b9a1bf5b9e5c1561: n_9647b13b1f5948ff
             [1].n_be9075ba2fbc25e6: n_6d4403f05c3de9e0
-    )
-    inst sub_12: Sheet_slow_gpio_ed66275ad4088a7a(
+    inst sub_12: Sheet_slow_gpio_ed66275ad4088a7a
         connections:
             n_062c8d986c06f97f: n_b851a8bf593148e5
             n_0f434cdf37ba8a98: n_aeecb1d815ae911a
@@ -12510,8 +11650,7 @@ board WrenFull:
             n_f11252f0f0ef108e: n_320568c89147cd97
             n_fdd6c994b8b7df8b: n_c71006d033c9da3b
             n_fe775773ea46a5cc: n_f248319df9011947
-    )
-    inst sub_13: Sheet_user_interface_8ba02595d44583eb(
+    inst sub_13: Sheet_user_interface_8ba02595d44583eb
         connections:
             n_00b14ce3c636d33c: n_918a707c5c141cdc
             n_07e64458b5102173: n_35aca467c8342524
@@ -12527,8 +11666,7 @@ board WrenFull:
             n_e8b21f2c7c1b37f4: n_8b9402364373024a
             n_ee55a260afed454a: n_c71006d033c9da3b
             n_f6a81c1e0e434f3d: n_18d47c0c3ea5e05f
-    )
-    inst sub_14: Sheet_vme_interface_987aea2b0779be44(
+    inst sub_14: Sheet_vme_interface_987aea2b0779be44
         connections:
             n_00429652ad2106b7: n_fa6d07da302b5c0a
             n_05dde51582168420: n_690f32983381df9c
@@ -12707,4 +11845,3 @@ board WrenFull:
             n_fbacb5570287799b: n_998526a90ea246c8
             n_fe51d804d07741a9: n_0ca4c91b34200df1
             n_ff1fa25e97c2e2a9: n_c4dcad99ea4bd91e
-    )

@@ -64,7 +64,7 @@ board B:
 
 def test_incomplete_connection_section_inherited_aliases(tmp_path):
     suggestions = complete(
-        tmp_path, PRELUDE + "    inst r: Specialized(\n        connections:\n            |"
+        tmp_path, PRELUDE + "    inst r: Specialized\n        connections:\n            |"
     )
     assert set(suggestions) == {"01", "signal", "rx#", "odd-pin"}
     assert suggestions["odd-pin"].text == '"odd-pin"'
@@ -74,7 +74,7 @@ def test_incomplete_connection_section_inherited_aliases(tmp_path):
 def test_pin_replaces_whole_token_and_preserves_colon(tmp_path):
     suggestions = complete(
         tmp_path,
-        PRELUDE + "    inst r: Receiver(\n        connections:\n            si|gnal: net\n    )\n",
+        PRELUDE + "    inst r: Receiver\n        connections:\n            si|gnal: net\n",
     )
     item = suggestions["signal"]
     assert item.end - item.start == len("signal")
@@ -82,18 +82,18 @@ def test_pin_replaces_whole_token_and_preserves_colon(tmp_path):
 
 def test_array_element_pin_prefix(tmp_path):
     suggestions = complete(
-        tmp_path, PRELUDE + "    inst r[2]: Receiver(\n        connections:\n            [0].rx|"
+        tmp_path, PRELUDE + "    inst r[2]: Receiver\n        connections:\n            [0].rx|"
     )
     assert set(suggestions) == {"rx#"}
 
 
 def test_no_pin_completion_in_params_or_after_closed_instance(tmp_path):
     assert not complete(
-        tmp_path, PRELUDE + "    inst r: Receiver(\n        params:\n            si|"
+        tmp_path, PRELUDE + "    inst r: Receiver\n        params:\n            si|"
     )
     assert not complete(tmp_path, PRELUDE + "    inst r: Receiver()\n    si|")
     assert not complete(
-        tmp_path, PRELUDE + "    inst r: Receiver(\n        connections:\n            signal: si|"
+        tmp_path, PRELUDE + "    inst r: Receiver\n        connections:\n            signal: si|"
     )
 
 
@@ -128,7 +128,7 @@ def test_imported_components_and_aliases_use_unsaved_library(tmp_path):
     make(tmp_path, "")
     path = tmp_path / "main.nosch"
     source = (
-        "from lib import Other\nboard B:\n    inst r: Other(\n        connections:\n            "
+        "from lib import Other\nboard B:\n    inst r: Other\n        connections:\n            "
     )
     library = "from noscheme import role\ncomponent Other:\n    pins:\n        new:\n            role: role.passive\n"
     buffers = {path: source, tmp_path / "lib.nosch": library}
@@ -155,15 +155,13 @@ component Derived extends Part:
 def test_footprint_strings_in_incomplete_instance(tmp_path):
     prelude = "from noscheme import role\n" + FOOTPRINTS + "board B:\n"
     for value in ['"|', '"Test:|"', '"Test:|old"', "|"]:
-        source = (
-            prelude + "    inst p: Derived(\n        metadata:\n            footprint: " + value
-        )
+        source = prelude + "    inst p: Derived\n        metadata:\n            footprint: " + value
         choices = complete(tmp_path, source)
         assert list(choices) == ["Test:Z_default", "Test:A"]
         item = choices["Test:A"]
         original = source.replace("|", "")
         assert original[: item.start] + item.text + original[item.end :] == (
-            prelude + '    inst p: Derived(\n        metadata:\n            footprint: "Test:A"'
+            prelude + '    inst p: Derived\n        metadata:\n            footprint: "Test:A"'
         )
 
 
@@ -181,7 +179,7 @@ def test_footprint_in_specialization_and_custom_exclusion(tmp_path):
 
 def test_footprint_prefix_and_no_hints_still_allow_strings(tmp_path):
     source = "from noscheme import role\n" + FOOTPRINTS + "board B:\n"
-    source += '    inst p: Part(\n        metadata:\n            footprint: "Test:A|"\n    )'
+    source += '    inst p: Part\n        metadata:\n            footprint: "Test:A|"\n    )'
     assert list(complete(tmp_path, source)) == ["Test:A"]
     assert not complete(tmp_path, source.replace("Test:A|", "Other:Custom|"))
 
@@ -189,7 +187,7 @@ def test_footprint_prefix_and_no_hints_still_allow_strings(tmp_path):
 def test_nested_custom_metadata_does_not_offer_footprints(tmp_path):
     source = "from noscheme import role\n" + FOOTPRINTS + "board B:\n"
     source += (
-        "    inst p: Part(\n        metadata:\n            custom:\n"
+        "    inst p: Part\n        metadata:\n            custom:\n"
         '                metadata:\n                    footprint: "|'
     )
     assert not complete(tmp_path, source)

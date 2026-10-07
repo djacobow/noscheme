@@ -31,7 +31,7 @@ board Test:
     global net #ground: nettype.ground
     net signal#: nettype.digital[2][4]
     net values: Parallel[2]
-    inst parts[2][4]: Specialized(
+    inst parts[2][4]: Specialized
         connections:
             [0][1].A1: signal#[0][1]
             1..4: signal#[0:2]
@@ -43,9 +43,7 @@ board Test:
             pins:
                 1..20:
                     external_role: role.digital_input
-    )
-    inst blocks[2]: Block(
+    inst blocks[2]: Block
         connections:
             [0].bus[1].data[2]: signal#[0][0]
-    )
 // Parsing does not imply this fixture is electrically or shape-valid.

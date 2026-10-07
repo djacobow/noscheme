@@ -184,7 +184,7 @@ board B:
         'a, b, value="{0}".format(4700)',
     ],
 )
-def test_inline_instance_rename_preserves_identity_and_comments(tmp_path, arguments):
+def test_compact_instance_rename_keeps_arguments_and_adds_identity(tmp_path, arguments):
     from noscheme.lsp_rename import RenameSession
     from test_lsp_rename import apply
 
@@ -194,13 +194,11 @@ def test_inline_instance_rename_preserves_identity_and_comments(tmp_path, argume
     session = RenameSession(tmp_path, {})
     text = session.sources[path]
     result = apply(session.rename(path, text.index("r: R"), "renamed"), session.sources)
-    assert "inst renamed: R(\n" in result[path]
-    assert 'identity: "r"' in result[path]
-    assert "connections:" in result[path]
-    assert "params:" in result[path]
-    if "keep" in arguments:
-        assert "/* keep, this */" in result[path]
-        assert "// keep this too" in result[path]
+    # Arguments, including comments, stay as written; a metadata section follows.
+    assert (
+        f'inst renamed: R({arguments})\n        metadata:\n            identity: "r"'
+        in result[path]
+    )
     # RenameSession validates elaboration and physical identities before returning edits.
     assert path.read_text() == text
 
@@ -252,3 +250,80 @@ def test_converter_marks_only_symmetric_passive_symbols(tmp_path):
         if 'interchangeable: ["1", "2"]' in block
     }
     assert marked == {"R", "L", "Ferrite_Bead", "C", "C_Nonpolarized", "D_TVS"}
+
+
+def test_arguments_and_sections_describe_one_instance(tmp_path):
+    source = SOURCE.replace(
+        "    inst esd: Tvs(a, no_connect, gnd: g)\n",
+        """    inst esd: Tvs(
+        a,
+        no_connect,
+    )
+        connections:
+            gnd: g
+        metadata:
+            custom:
+                dnp: true
+""",
+    )
+    circuit = compile_source(tmp_path, source)
+    assert nets(circuit) == nets(compile_source(tmp_path, SOURCE))
+    esd = next(p for p in circuit["parts"] if p["identity"] == "esd")
+    assert esd["metadata"]["custom"]["value"]["dnp"]["value"] is True
+
+
+@pytest.mark.parametrize(
+    "addition,code",
+    [
+        ("        params:\n            value: 1k\n", "syntax.duplicate"),
+        ("        connections:\n            1: b\n", "connection"),
+    ],
+)
+def test_arguments_and_sections_cannot_bind_twice(tmp_path, addition, code):
+    source = SOURCE.replace(
+        "    inst r: R(a, b, value=4.7k)\n", "    inst r: R(a, b, value=4.7k)\n" + addition
+    )
+    with pytest.raises(DiagnosticError) as error:
+        compile_source(tmp_path, source)
+    assert any(d.code.startswith(code) for d in error.value.diagnostics)
+
+
+def test_elements_override_argument_parameters(tmp_path):
+    source = SOURCE.replace(
+        "    inst caps[2]: R(a,\n        b, value=1k)\n",
+        """    inst caps[2]: R(a, b, value=1k)
+        elements:
+            [1]:
+                params:
+                    value: 2.2k
+""",
+    )
+    parts = compile_source(tmp_path, source)["parts"]
+    values = {p["identity"]: p["value"]["value"] for p in parts if p["value"]}
+    assert (values["caps[0]"], values["caps[1]"]) == ("1kOhm", "2.2kOhm")
+
+
+def test_bare_instances_still_need_required_parameters(tmp_path):
+    for spelling in ("R", "R()"):
+        source = SOURCE.replace("R(a, b, value=4.7k)", spelling)
+        with pytest.raises(DiagnosticError, match="value"):
+            compile_source(tmp_path, source)
+
+
+def test_rename_adds_identity_to_an_existing_metadata_section(tmp_path):
+    from noscheme.lsp_rename import RenameSession
+    from test_lsp_rename import apply
+
+    source = SOURCE.replace(
+        "    inst r: R(a, b, value=4.7k)\n",
+        '    inst r: R(a, b, value=4.7k)\n        metadata:\n            custom:\n                note: "x"\n',
+    )
+    make(tmp_path, source)
+    path = tmp_path / "main.nosch"
+    session = RenameSession(tmp_path, {})
+    text = session.sources[path]
+    result = apply(session.rename(path, text.index("r: R"), "renamed"), session.sources)[path]
+    assert (
+        '    inst renamed: R(a, b, value=4.7k)\n        metadata:\n            identity: "r"\n'
+        "            custom:\n" in result
+    )

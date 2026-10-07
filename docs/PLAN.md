@@ -1284,3 +1284,19 @@ was considered and declined as too much type machinery for now.
 - [x] Removed migration diagnostics for retired fields and the `f` import (private
   single-developer repository: breaking changes need no compatibility messages).
   Old names are now ordinary unknown-field or unknown-import errors.
+
+### Instance arguments and sections (October 7, 2026)
+
+- [x] An instance's parentheses are an ordinary argument list, and its sections
+  follow the instance line as indented blocks, like a net's fields. The two forms
+  combine; no newline after `(` changes the meaning, and `inst x: T` needs no
+  parentheses. Arguments merge into the instance's own sections, so a duplicate
+  pin or parameter is reported as such; element overrides apply to argument
+  parameters as to any common parameter.
+- [x] Removed the instance-parenthesis terminals and the indenter workaround.
+  Rename adds `identity` to an existing `metadata:` section or appends one, leaving
+  arguments and comments untouched.
+- [x] Migrated every example, document, and test source mechanically (section-form
+  instances drop `(` and their `)` line); the WREN extractor emits the new form and
+  its regeneration matches the migrated file byte for byte. The prototype grammar in
+  tools/experiments follows the same rule, so the shared corpus parses with both.

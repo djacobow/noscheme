@@ -28,7 +28,7 @@ board B:
     global net shared: interfaces.Buses
     net local: interfaces.Buses[2]
     net scalar: nettype.digital
-    inst p[2]: interfaces.Specialized(
+    inst p[2]: interfaces.Specialized
         connections:
 """
 
@@ -59,7 +59,7 @@ def test_members_on_both_sides_and_array_selections(tmp_path, line):
 
 
 def test_member_prefix_replaces_tail_preserving_connection(tmp_path):
-    source, choices = complete(tmp_path, "bus.sd[0].s|ck: scalar\n    )\n")
+    source, choices = complete(tmp_path, "bus.sd[0].s|ck: scalar\n")
     assert [item.label for item in choices] == ["sck"]
     item = choices[0]
     assert source[item.start : item.end] == "sck"
@@ -96,7 +96,7 @@ def test_unsaved_imported_bundle_and_later_definition(tmp_path):
 
 
 def test_navigation_and_hover_for_nested_members_on_both_sides(tmp_path):
-    source = PREFIX + "            [0].bus.sd[0].sck: global.shared.sd[0].sck\n    )\n"
+    source = PREFIX + "            [0].bus.sd[0].sck: global.shared.sd[0].sck\n"
     make_project(tmp_path, source, {"interfaces": LIBRARY})
     path = tmp_path / "main.nosch"
     result = analyze(path, tmp_path, {path: source})
@@ -121,7 +121,7 @@ def test_completion_on_block_public_bundle_port(tmp_path):
 block Local:
     ports:
         signals: interfaces.Buses
-    inst p: interfaces.Peripheral(
+    inst p: interfaces.Peripheral
         connections:
             bus.sd[0].sck: signals.sd[1].
 """

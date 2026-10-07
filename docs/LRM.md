@@ -138,7 +138,8 @@ it never grants access to a component or block's private internals.
 
 Indentation defines blocks and must use spaces; indentation tabs are errors.
 Four spaces per level is the repository convention. Blank and comment-only lines
-do not declare blocks. Instance parentheses retain significant indentation.
+do not declare blocks. Newlines inside parentheses and brackets, including an
+instance's argument list, are not layout.
 Statements and mapping entries use newlines, not semicolons.
 
 `:` separates names from types, bindings, or metadata values. `=` appears in
@@ -300,13 +301,12 @@ block SeriesResistor:
     ports:
         input: nettype.passive
         output: nettype.passive
-    inst resistor: Resistor(
+    inst resistor: Resistor
         connections:
             1: input
             2: output
         params:
             value: resistance
-    )
 ```
 
 Ports declare internal connections; do not separately declare a net of the same
@@ -474,7 +474,7 @@ derives a quantity from a displayed value.
 Definition-body fragment:
 
 ```nosch
-inst series: Resistor(
+inst series: Resistor
     connections:
         1: source
         2: destination
@@ -483,16 +483,18 @@ inst series: Resistor(
     metadata:
         identity: "series-resistor"
         ref: "R7"
-)
 ```
 
-`connections`, `params`, `metadata`, and `elements` may be omitted when unnecessary. Omit an
-empty section rather than writing its header without entries. The parentheses
-contain the instance's contract; there is no additional instance implementation
-body. Connections bind by name, except for the explicit interchangeable-pin
-group supported by the compact form below. Parameters always bind by name.
+An instance line names the instance and its type. It may carry an argument list in
+parentheses (below), and it may be followed by indented `connections`, `params`,
+`metadata`, and `elements` sections. Either, both, or neither may be present:
+`inst holder: Holder` and `inst holder: Holder()` are the same instance. Omit an
+empty section rather than writing its header without entries; omitting arguments
+waives nothing, so required parameters and connection policies still apply.
+Connections bind by name, except for the explicit interchangeable-pin group
+described below. Parameters always bind by name.
 
-#### Compact instances and interchangeable pins
+#### Instance arguments and interchangeable pins
 
 A component may declare one group of electrically interchangeable physical pins:
 
@@ -525,7 +527,7 @@ These fragments assume the referenced types and nets exist. `Capacitor` declares
 two interchangeable pins; `Protection` declares two interchangeable signal pins
 and a separate pin aliased `gnd`.
 
-The compact form has three argument kinds, separated by commas:
+An argument list has three kinds of argument, separated by commas:
 
 - A positional net reference binds the next pin in the declared interchangeable
   group. If any positional connections are supplied, they must cover the whole
@@ -536,11 +538,28 @@ The compact form has three argument kinds, separated by commas:
   bound twice, including through a positional argument and an alias.
 - `parameter=expression` supplies a named parameter in the caller's scope.
 
-The first argument must start on the same line as `(`. Following arguments may
-continue on later lines; a trailing comma is allowed. Positional references may
-include globals, bundle fields, and array indices/slices, with the same broadcast
-rules as section-form connections. Use the section form for instance metadata,
-element overrides, or endpoint lists/ranges. The two forms cannot be mixed.
+Newlines inside the parentheses are not layout, so arguments may be written on
+one line or across several, and a trailing comma is allowed. Positional
+references may include globals, bundle fields, and array indices/slices, with the
+same broadcast rules as section connections. Endpoint lists and ranges need a
+`connections:` section.
+
+Arguments and sections describe one instance, and neither overrides the other.
+Named connections join the instance's connections and `name=value` arguments its
+parameters, so binding a pin or parameter twice, in either place or through an
+alias or a positional net, is an error. An `elements:` entry overrides argument
+parameters like any common parameter. Arguments with a `metadata:` or `elements:`
+section suit a part that needs one setting a line cannot hold:
+
+```nosch
+inst high: Resistor(bus.high, split, value=60.4R)
+    metadata:
+        custom:
+            dnp: true
+```
+
+Prefer keeping all of a part's connections in one place, either its arguments or
+its `connections:` section, so its wiring reads at a glance.
 
 Positional nets map deterministically to the listed physical pins, in list order.
 Reordering the arguments or the group changes pad assignments in the exported
@@ -553,7 +572,7 @@ An array instance may contain an `elements:` section. Each entry selects exactly
 one element, with one nonnegative integer literal per dimension:
 
 ```nosch
-inst pulls[2]: Pullup(
+inst pulls[2]: Pullup
     connections:
         supply: supply
         signal: bus
@@ -566,7 +585,6 @@ inst pulls[2]: Pullup(
             metadata:
                 custom:
                     placement: "Beside the controller"
-)
 ```
 
 An entry contains `params:` and/or `metadata:`. Element parameters replace common
@@ -668,10 +686,9 @@ Definition-body fragment:
 ```nosch
 net signals: nettype.digital[4]
 net matrix: nettype.passive[2][3]
-inst receivers[4]: Receiver(
+inst receivers[4]: Receiver
     connections:
         input: signals
-)
 ```
 
 Dimensions must be positive integers. Arrays are zero-based. `matrix[1][2]`
@@ -698,12 +715,11 @@ There is no `each` keyword. Shared connections undergo normal ERC.
 Leading selectors choose elements of an instance array. Instance fragment:
 
 ```nosch
-inst indicators[3]: Indicator(
+inst indicators[3]: Indicator
     connections:
         [0].drive: status
         [1].drive: activity
         [2].drive: fault
-)
 ```
 
 A bare `drive` selects the port across the whole instance array. `[1].data[2]`
@@ -1797,7 +1813,7 @@ component Header:
 board Demo:
     global net gnd: nettype.ground
     net signal: nettype.digital
-    inst connector: Header(
+    inst connector: Header
         connections:
             1: signal
             2: global.gnd
@@ -1805,14 +1821,12 @@ board Demo:
             pins:
                 1: role.digital_output
                 2: role.ground
-    )
-    inst load: Resistor(
+    inst load: Resistor
         connections:
             1: signal
             2: global.gnd
         params:
             value: 10k
-    )
 ```
 
 Place this `noscheme.toml` beside it:

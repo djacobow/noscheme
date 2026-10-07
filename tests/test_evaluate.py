@@ -204,10 +204,9 @@ def test_binding_order_forwarding_and_override(tmp_path):
         value: label
 """,
         """board B:
-    inst c: C(
+    inst c: C
         params:
             b: 4
-    )
 """,
     )
     report, warnings = evaluate_project(*resolve_project(p))
@@ -227,10 +226,9 @@ def test_binding_order_forwarding_and_override(tmp_path):
     ],
 )
 def test_binding_errors(tmp_path, params, args, code):
-    body = "board B:\n    inst c: C(\n"
+    body = "board B:\n    inst c: C\n"
     if args:
         body += "        params:\n            " + args + "\n"
-    body += "    )\n"
     p = make(tmp_path, "component C:\n    params:\n        " + params + "\n", body)
     with pytest.raises(DiagnosticError) as exc:
         evaluate_project(*resolve_project(p))
@@ -242,7 +240,7 @@ def test_override_does_not_evaluate_bad_default(tmp_path):
     p = make(
         tmp_path,
         "component C:\n    params:\n        x: number = 1 / 0\n",
-        "board B:\n    inst c: C(\n        params:\n            x: 2\n    )\n",
+        "board B:\n    inst c: C\n        params:\n            x: 2\n",
     )
     assert (
         evaluate_project(*resolve_project(p))[0]["instances"][1]["parameters"]["x"]["value"] == "2"
@@ -284,10 +282,9 @@ def test_instance_value_override_uses_caller_scope(tmp_path):
 block Wrapper:
     params:
         x: string = "caller"
-    inst c: C(
+    inst c: C
         metadata:
             value: x
-    )
 """,
         "board B:\n    inst w: Wrapper()\n",
     )
@@ -331,7 +328,7 @@ def test_connection_index_evaluation_and_warning(tmp_path):
     p = make(
         tmp_path,
         'component C:\n    pins:\n        1:\n            custom:\n                note: "pin"\n',
-        "board B:\n    net n: nettype.passive[4]\n    inst c: C(\n        connections:\n            1: n[3.0]\n    )\n",
+        "board B:\n    net n: nettype.passive[4]\n    inst c: C\n        connections:\n            1: n[3.0]\n",
     )
     report, warnings = evaluate_project(*resolve_project(p))
     assert report["instances"][0]["connection_selections"]["c"][0]["start"] == 3

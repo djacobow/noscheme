@@ -32,9 +32,9 @@ pin_selection: pin_key [".." pin_key]
 ?pin_key: NAME | INT | STRING | PINS | PARAMS
 net_decl: global_modifier? "net" NAME ":" expr _NL [_INDENT field+ _DEDENT]
 global_modifier: "global"
-instance: "inst" NAME index* ":" name_path _INST_LPAR inline_arguments _RPAR _NL
-        | "inst" NAME index* ":" name_path _INST_LPAR [_NL [_INDENT inst_section+ _DEDENT]] _INST_RPAR _NL
-// One-line instances: positional nets for interchangeable pins, pin: net, param=value.
+// Parentheses hold arguments: positional nets for interchangeable pins, pin: net, and
+// param=value. Indented sections follow the instance line; both may be used together.
+instance: "inst" NAME index* ":" name_path [_LPAR [inline_arguments] _RPAR] _NL [_INDENT inst_section+ _DEDENT]
 inline_arguments: inline_argument ("," inline_argument)* [","]
 ?inline_argument: reference -> positional_argument
                 | (NAME | INT | STRING) ":" target -> inline_binding
@@ -88,8 +88,6 @@ NUMBER.2: /(?:[0-9]+\.[0-9]+(?:[eE][+-]?[0-9]+)?|[0-9]+[eE][+-]?[0-9]+)/
 INT: /[0-9]+/
 NAME: /[A-Za-z_#][A-Za-z0-9_#]*/
 STRING: /"(?:[^"\\\r\n]|\\[^\r\n])*"/
-_INST_LPAR: "("
-_INST_RPAR: ")"
 _LPAR: "("
 _RPAR: ")"
 _LSQB: "["

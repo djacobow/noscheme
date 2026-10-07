@@ -11,7 +11,7 @@ component Part:
 
 board Board:
     // Whole-line comments should not introduce indentation.
-    inst item: Part(
+    inst item: Part
         /* another comment */
         params:
             value: f.kOhm(
@@ -29,4 +29,3 @@ board Board:
                     "a", // inside a list
                     "b"
                 ]
-    )

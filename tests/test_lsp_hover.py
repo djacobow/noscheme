@@ -31,14 +31,13 @@ SOURCE = """import parts
 from noscheme import nettype, role
 board B:
     net power: nettype.passive
-    inst resistors[2]: parts.Pullup(
+    inst resistors[2]: parts.Pullup
         connections:
             terminal: power
         params:
             value: "10kOhm"
         metadata:
             footprint: "Test:0805"
-    )
 """
 
 

@@ -6,7 +6,7 @@ from indicator import Indicator
 board Blink:
     global net gnd: nettype.ground
     global net v5: nettype.power
-    inst input: Header(
+    inst input: Header
         connections:
             1: global.v5
             2: global.gnd
@@ -14,5 +14,4 @@ board Blink:
             pins:
                 1: role.power_output
                 2: role.ground
-    )
     inst indicators[2]: Indicator(supply: global.v5)

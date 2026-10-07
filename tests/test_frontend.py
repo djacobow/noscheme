@@ -51,10 +51,9 @@ def test_quoted_physical_pins_and_metadata_keys_are_not_reserved():
             true: false
 board B:
     net inst: nettype.passive
-    inst net: P(
+    inst net: P
         connections:
             "global": inst
-    )
 """)
 
 
@@ -121,7 +120,7 @@ def test_expression_associativity_and_postfix():
 
 def test_endpoint_indices_ranges_and_caller_scope():
     m = parse(
-        "board B:\n    inst r[2]: R(\n        connections:\n            [1].bus[2].data: global.n[0:4]\n            11..20: pins\n    )\n"
+        "board B:\n    inst r[2]: R\n        connections:\n            [1].bus[2].data: global.n[0:4]\n            11..20: pins\n"
     )
     inst = m.items[0].body[0]
     first, second = inst.sections[0].entries
@@ -140,7 +139,7 @@ def test_endpoint_indices_ranges_and_caller_scope():
         'component C:\n    pins:\n        1:\n            aliases: [a]\n        "1":\n            aliases: [b]\n',
         "component C:\n    metadata:\n        custom:\n            item: 1\n            item: 2\n",
         "component C:\n    pins:\n        1:\n            role: r\n    pins:\n        2:\n            role: r\n",
-        'board B:\n    inst r: R(\n        params:\n            value: "a"\n            value: "b"\n    )\n',
+        'board B:\n    inst r: R\n        params:\n            value: "a"\n            value: "b"\n',
     ],
 )
 def test_duplicates_report_both_locations(source):

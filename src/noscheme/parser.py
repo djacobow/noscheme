@@ -4,6 +4,7 @@ No expression execution, name resolution, electrical checking, or CAD export.
 """
 
 from bisect import bisect_right
+from dataclasses import replace
 from .analysis_cache import cached_parse
 import json
 from lark import Token, Tree
@@ -219,33 +220,35 @@ class Builder:
         selectors = tuple(self.index(x) if isinstance(x, Tree) else self.name(x) for x in c)
         return a.Endpoint(self.span(node), tuple(leading), head, selectors)
 
-    def inline_instance(self, span, name, dimensions, component, arguments):
-        """Desugar `inst r: R(a, b, 1: c, value=4.7k)` into ordinary sections."""
-        positional, bindings, parameters = [], [], []
-        for argument in arguments.children:
+    def instance_arguments(self, arguments, sections):
+        """Merge `R(a, b, 1: c, value=4.7k)` into the instance's own sections.
+
+        Arguments and sections describe one instance, so inline bindings join its
+        connections and inline parameters its params; a duplicate is reported as
+        such rather than as a second section.
+        """
+        positional, entries = [], {"connections": [], "params": []}
+        for argument in arguments.children if arguments is not None else ():
             c = argument.children
             if argument.data == "positional_argument":
                 positional.append(self.expr(c[0]))
             elif argument.data == "inline_binding":
-                bindings.append(
+                entries["connections"].append(
                     a.Binding(self.span(argument), self.endpoint(c[0]), self.expr(c[1]))
                 )
             else:
-                parameters.append(a.Argument(self.span(argument), self.name(c[0]), self.expr(c[1])))
-        sections = tuple(
-            a.Section(self.span(arguments), kind, tuple(entries))
-            for kind, entries in (("connections", bindings), ("params", parameters))
-            if entries
+                entries["params"].append(
+                    a.Argument(self.span(argument), self.name(c[0]), self.expr(c[1]))
+                )
+        merged = []
+        for section in sections:
+            inline = entries.pop(section.name, [])
+            merged.append(replace(section, entries=(*inline, *section.entries)))
+        span = self.span(arguments) if arguments is not None else None
+        merged.extend(
+            a.Section(span, kind, tuple(found)) for kind, found in entries.items() if found
         )
-        return a.Instance(
-            span,
-            self.name(name),
-            tuple(dimensions),
-            tuple(self.name(x) for x in component.children),
-            sections,
-            tuple(positional),
-            inline=True,
-        )
+        return tuple(merged), tuple(positional)
 
     def field(self, node):
         c = node.children
@@ -314,14 +317,15 @@ class Builder:
                 dimensions.append(self.index(c[i]))
                 i += 1
             rest = c[i + 1 :]
-            if rest and rest[0].data == "inline_arguments":
-                return self.inline_instance(span, c[0], dimensions, c[i], rest[0])
+            arguments = rest.pop(0) if rest and rest[0].data == "inline_arguments" else None
+            sections, positional = self.instance_arguments(arguments, [self.build(x) for x in rest])
             return a.Instance(
                 span,
                 self.name(c[0]),
                 tuple(dimensions),
                 tuple(self.name(x) for x in c[i].children),
-                tuple(self.build(x) for x in rest),
+                sections,
+                positional,
             )
         if kind == "element_override":
             indices = tuple(self.index(x) for x in c if x.data == "index")

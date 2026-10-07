@@ -22,18 +22,16 @@ SOURCE = """component Resistor:
         footprint: "Resistor_SMD:R_0603_1608Metric"
 board B:
     net a: nettype.passive
-    inst default: Resistor(
+    inst default: Resistor
         connections:
             1: a
             2: a
-    )
-    inst rkm: Resistor(
+    inst rkm: Resistor
         connections:
             1: a
             2: a
         params:
             value: 22k1
-    )
 """
 
 
@@ -120,18 +118,15 @@ block Holder:
         chosen: resistance = 22k
         count: number = 3
     inst bare: Part()
-    inst caller_quantity: Part(
+    inst caller_quantity: Part
         metadata:
             value: chosen
-    )
-    inst caller_number: Part(
+    inst caller_number: Part
         metadata:
             value: count
-    )
-    inst literal: Part(
+    inst literal: Part
         metadata:
             value: 4.7k
-    )
 board B:
     inst holder: Holder()
 """

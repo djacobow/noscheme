@@ -1,4 +1,3 @@
 board Board:
     inst a: Part(
-        params:
-            value: 1
+        // The argument list is never closed.

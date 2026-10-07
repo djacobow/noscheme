@@ -53,7 +53,7 @@ board STM32H523Reference:
         expansion_spi: expansion_spi, expansion_gpio: expansion_gpio, led_drive: led_drive,
         buttons#: buttons#, boot0: boot0, uart_tx: uart_tx, uart_rx: uart_rx)
 
-    inst usb_c: peripherals.UsbC(
+    inst usb_c: peripherals.UsbC
         connections:
             vbus: global.v5
             ground: global.gnd
@@ -65,7 +65,6 @@ board STM32H523Reference:
                     cases:
                         usb: "source"
                         header5v: "absent"
-    )
 
     inst regulator: peripherals.Ldo3v3(input: global.v5, output: global.v3v3, ground: global.gnd)
 
@@ -75,7 +74,7 @@ board STM32H523Reference:
     inst swd: peripherals.CortexDebug(reference: global.v3v3, ground: global.gnd, debug: debug)
 
     // OLED header order: 3.3 V, ground, SCL, SDA; match the module cable to it.
-    inst oled_decouple: Capacitor0603(
+    inst oled_decouple: Capacitor0603
         connections:
             1: global.v3v3
             2: global.gnd
@@ -84,10 +83,9 @@ board STM32H523Reference:
         metadata:
             custom:
                 placement: "Place beside display header supply pin."
-    )
     inst oled_bulk: Capacitor0603(global.v3v3, global.gnd, value=4.7u)
 
-    inst oled_header: Header1x4(
+    inst oled_header: Header1x4
         connections:
             1: global.v3v3
             2: global.gnd
@@ -100,7 +98,6 @@ board STM32H523Reference:
                 // Assumes the display module adds no pull-ups; model them here if it does.
                 3: [role.open_drain, bias.none]
                 4: [role.open_drain, bias.none]
-    )
 
     inst oled_scl_pullup: I2CPullup(1: global.v3v3, 2: oled.scl)
     inst oled_sda_pullup: I2CPullup(1: global.v3v3, 2: oled.sda)
@@ -109,7 +106,7 @@ board STM32H523Reference:
 
     // Illustrative header order: 4 power/ground + 2 I2C + 4 SPI + 10 other GPIO.
     // Bus pins are also GPIO-capable MCU pins, giving 16 GPIO connections total.
-    inst expansion: Header2x10(
+    inst expansion: Header2x10
         connections:
             1: global.gnd
             2: global.gnd
@@ -141,14 +138,13 @@ board STM32H523Reference:
                 9: role.digital_output
                 10: role.digital_input
                 11..20: role.digital_bidirectional
-    )
     // Connector roles above describe the external equipment's endpoints.
     // Example SPI roles assume the board is controller; other uses need ERC configurations.
     inst expansion_scl_pullup: I2CPullup(1: global.v3v3, 2: expansion_i2c.scl)
     inst expansion_sda_pullup: I2CPullup(1: global.v3v3, 2: expansion_i2c.sda)
 
     // TX/RX are named from the MCU's perspective. Each header gets its own UART.
-    inst uart_headers[2]: UartHeaderJST3(
+    inst uart_headers[2]: UartHeaderJST3
         connections:
             gnd: global.gnd
             tx: uart_tx
@@ -158,11 +154,10 @@ board STM32H523Reference:
                 1: role.ground
                 2: role.digital_input
                 3: role.digital_output
-    )
 
     // Two active-low buttons with independent pull-ups and common ground.
     inst buttons[2]: PushButton(buttons#, global.gnd)
-    inst button_pullups[2]: InputBias0603(
+    inst button_pullups[2]: InputBias0603
         connections:
             1: global.v3v3
             2: buttons#
@@ -173,13 +168,12 @@ board STM32H523Reference:
                     pull_resistance: 10k
                     checks:
                         reference: std.bias_reference("1")
-    )
     // NRST uses the MCU internal pull-up and the existing 100 nF reset capacitor.
     inst reset_button: PushButton(debug.reset#, global.gnd)
 
     // Shunt installed: BOOT0 high. Shunt absent: resistor pulls BOOT0 low.
     inst boot_header: Header1x2(1: global.v3v3, 2: boot0)
-    inst boot_pulldown: InputBias0603(
+    inst boot_pulldown: InputBias0603
         connections:
             1: boot0
             2: global.gnd
@@ -190,15 +184,13 @@ board STM32H523Reference:
                     pull_resistance: 10k
                     checks:
                         reference: std.bias_reference("2")
-    )
     // Bias annotations are explicit; passive parts alone do not imply propagation.
 
-    inst indicators[3]: Indicator(
+    inst indicators[3]: Indicator
         connections:
             [0].drive: led_drive[0]
             [1].drive: led_drive[1]
             [2].drive: led_drive[2]
-    )
     // Equivalent whole-array binding: drive: led_drive.
     // Use one form or the other; overlapping bindings are errors.
 

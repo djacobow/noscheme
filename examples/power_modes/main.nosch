@@ -16,7 +16,7 @@ block Supply:
     metadata:
         erc_choices:
             power_mode: ["source", "load", "absent"]
-    inst connector: Header(
+    inst connector: Header
         connections:
             1: supply
             2: global.gnd
@@ -30,7 +30,6 @@ block Supply:
                             load: role.power_input
                             absent: role.passive
                 2: role.ground
-    )
 
 board PowerModes:
     metadata:
@@ -43,7 +42,7 @@ board PowerModes:
                 power_source: "header"
     global net gnd: nettype.ground
     net v5: nettype.power
-    inst usb: Supply(
+    inst usb: Supply
         connections:
             supply: v5
         metadata:
@@ -53,8 +52,7 @@ board PowerModes:
                     cases:
                         usb: "source"
                         header: "absent"
-    )
-    inst expansion: Supply(
+    inst expansion: Supply
         connections:
             supply: v5
         metadata:
@@ -64,8 +62,7 @@ board PowerModes:
                     cases:
                         usb: "load"
                         header: "source"
-    )
-    inst load: Header(
+    inst load: Header
         connections:
             1: v5
             2: global.gnd
@@ -73,4 +70,3 @@ board PowerModes:
             pins:
                 1: role.power_input
                 2: role.ground
-    )

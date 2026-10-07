@@ -221,25 +221,23 @@ def extract(netlist, source, output):
             if not n["port"] and used_here:
                 lines += [f"    net {n['key']}: nettype.unchecked"]
         for _, ref in items:
-            lines += [f"    inst {local_names[ref]}: {ref_types[ref]}("]
+            lines += [f"    inst {local_names[ref]}: {ref_types[ref]}"]
             if pin_bindings[ref]:
                 lines += ["        connections:"]
             lines += [
                 f"            {json.dumps(pin)}: {net}"
                 for pin, net in sorted(pin_bindings[ref].items())
             ]
-            lines += ["    )"]
         for group_index, (kind, children) in enumerate(sorted(groups.items())):
             label = "sub_" + str(group_index)
             array = len(children) > 1
-            lines += [f"    inst {label}{'[' + str(len(children)) + ']' if array else ''}: {kind}("]
+            lines += [f"    inst {label}{'[' + str(len(children)) + ']' if array else ''}: {kind}"]
             if any(links for _, _, links in children):
                 lines += ["        connections:"]
             for i, (_, ch, links) in enumerate(children):
                 child_names[ch] = label + (f"[{i}]" if array else "")
                 for port, net in sorted(links.items()):
                     lines += [f"            {'[' + str(i) + '].' if array else ''}{port}: {net}"]
-            lines += ["    )"]
         node["child_names"] = child_names
         definitions[type_name] = {
             "lines": lines,

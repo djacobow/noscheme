@@ -44,7 +44,7 @@ block UsbC:
         ground: nettype.ground
         data: USB2
     net cc: nettype.passive[2]
-    inst connector: UsbCConnector(
+    inst connector: UsbCConnector
         connections:
             [A1, A12, B1, B12, SH]: ground
             [A4, A9, B4, B9]: vbus
@@ -62,7 +62,6 @@ block UsbC:
                             source: role.power_output
                             absent: role.passive
                 [A6, A7]: role.digital_bidirectional
-    )
     inst cc_pulldowns[2]: Resistor0603(cc, ground, value=5.1k)
 
 block Ldo3v3:
@@ -82,7 +81,7 @@ block MicroSD:
         bus: SPI
         detect#: nettype.digital
     net unused_dat: nettype.passive[2]
-    inst socket: MicroSDConnector(
+    inst socket: MicroSDConnector
         connections:
             1: unused_dat[0]
             2: bus.cs#
@@ -99,12 +98,11 @@ block MicroSD:
                 4: role.power_input
                 6: role.ground
                 7: role.digital_output
-    )
     // DAT1/DAT2 are unused by SPI but each has a physical pull-up to supply.
     // These passive nets have no resistance budget; their two-terminal wiring
     // is explicit even though no bias metadata is needed for current checks.
     inst unused_dat_pullups[2]: InputBias0603(supply, unused_dat)
-    inst cs_pullup: InputBias0603(
+    inst cs_pullup: InputBias0603
         connections:
             1: supply
             2: bus.cs#
@@ -115,8 +113,7 @@ block MicroSD:
                     pull_resistance: 10k
                     checks:
                         reference: std.bias_reference("1")
-    )
-    inst miso_pullup: InputBias0603(
+    inst miso_pullup: InputBias0603
         connections:
             1: supply
             2: bus.miso
@@ -127,8 +124,7 @@ block MicroSD:
                     pull_resistance: 10k
                     checks:
                         reference: std.bias_reference("1")
-    )
-    inst detect_pullup: InputBias0603(
+    inst detect_pullup: InputBias0603
         connections:
             1: supply
             2: detect#
@@ -139,8 +135,7 @@ block MicroSD:
                     pull_resistance: 10k
                     checks:
                         reference: std.bias_reference("1")
-    )
-    inst decouple: Capacitor0603(
+    inst decouple: Capacitor0603
         connections:
             1: supply
             2: ground
@@ -149,7 +144,6 @@ block MicroSD:
         metadata:
             custom:
                 placement: "Place adjacent to microSD VDD pad."
-    )
     inst bulk: Capacitor0603(supply, ground, value=4.7u)
 
 block CortexDebug:
@@ -157,7 +151,7 @@ block CortexDebug:
         reference: nettype.power
         ground: nettype.ground
         debug: SWD
-    inst header: CortexHeader(
+    inst header: CortexHeader
         connections:
             1: reference
             2: debug.swdio
@@ -174,4 +168,3 @@ block CortexDebug:
                 4: role.digital_output
                 6: role.digital_input
                 10: role.open_drain
-    )

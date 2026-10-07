@@ -16,10 +16,9 @@ board B:
     net supply: nettype.power
         min_voltage: 3.3 * 0.95
         max_voltage: 3.3 * 1.05
-    inst input: Input(
+    inst input: Input
         connections:
             1: supply
-    )
 """
 
 

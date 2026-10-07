@@ -19,14 +19,13 @@ block Unit:
     ports:
         bus: Bus
     net wires: nettype.passive[count]
-    inst p[count]: Part(
+    inst p[count]: Part
         connections:
             signal: bus.data
         params:
             value: "{0}".format(count)
         metadata:
             value: "{0}".format(count)
-    )
 block Derived extends Unit:
     ports:
         bus:
@@ -38,20 +37,17 @@ from library import Unit as Alias
 from noscheme import nettype
 board B:
     net wire: library.Bus
-    inst a: library.Unit(
+    inst a: library.Unit
         connections:
             bus: wire
         params:
             count: 3
-    )
-    inst b: Alias(
+    inst b: Alias
         connections:
             bus.data: wire.data
-    )
-    inst c: library.Derived(
+    inst c: library.Derived
         connections:
             bus: wire
-    )
 block Unrelated:
     ports:
         bus: library.Bus
@@ -79,7 +75,7 @@ def test_component_aliases_imports_and_qualified_uses(tmp_path):
     assert texts(spans) == ["Unit", "Unit", "Alias", "library.Unit", "Alias"]
     all_spans = result.references_at(lib, offset, True)
     assert len(all_spans) == len(spans) + 1
-    assert result.references_at(path, SOURCE.index("Alias("), False) == spans
+    assert result.references_at(path, SOURCE.index("Alias\n"), False) == spans
     assert len({(s.filename, s.start_pos, s.end_pos) for s in spans}) == len(spans)
 
 
@@ -148,14 +144,12 @@ component Part:
             role: role.passive
 board B:
     net n: nettype.passive
-    inst p: Part(
+    inst p: Part
         connections:
             1..2: n
-    )
-    inst q: Part(
+    inst q: Part
         connections:
             2: n
-    )
 """
     make_project(tmp_path, source)
     path = tmp_path / "main.nosch"

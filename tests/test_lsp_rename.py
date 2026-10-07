@@ -32,18 +32,18 @@ def test_definition_rename_preserves_explicit_alias_and_qualification(tmp_path):
     assert "block Assembly:" in result[lib]
     assert "extends Assembly:" in result[lib]
     assert "from library import Assembly as Alias" in result[tmp_path / "main.nosch"]
-    assert "inst a: library.Assembly(" in result[tmp_path / "main.nosch"]
-    assert "inst b: Alias(" in result[tmp_path / "main.nosch"]
+    assert "inst a: library.Assembly" in result[tmp_path / "main.nosch"]
+    assert "inst b: Alias" in result[tmp_path / "main.nosch"]
     assert lib.read_text() == LIBRARY
 
 
 def test_alias_rename_keeps_imported_symbol(tmp_path):
     s = session(tmp_path)
     path = tmp_path / "main.nosch"
-    result = apply(s.rename(path, SOURCE.index("Alias("), "LocalUnit"), s.sources)
+    result = apply(s.rename(path, SOURCE.index("Alias\n"), "LocalUnit"), s.sources)
     assert "from library import Unit as LocalUnit" in result[path]
-    assert "inst b: LocalUnit(" in result[path]
-    assert "inst a: library.Unit(" in result[path]
+    assert "inst b: LocalUnit" in result[path]
+    assert "inst a: library.Unit" in result[path]
     assert result[tmp_path / "library.nosch"] == LIBRARY
 
 
@@ -73,7 +73,7 @@ def test_scoped_symbols_and_inherited_ports(tmp_path, file, needle, new, count):
     ("file", "needle", "new"),
     [
         ("main", "wire:", "a"),  # Instance in the same scope.
-        ("main", "Alias(", "library"),  # Existing module namespace.
+        ("main", "Alias\n", "library"),  # Existing module namespace.
         ("library", "Unit:", "Part"),
         ("library", "count:", "bus"),  # Existing port.
         ("library", "data:", "a.b"),
@@ -148,14 +148,13 @@ block Unit:
             role: role.digital_input
 board B:
     net n: nettype.digital
-    inst p: Unit(
+    inst p: Unit
         connections:
             input: n
         metadata:
             pins:
                 input:
                     role: role.digital_input
-    )
 """
     make_project(tmp_path, source)
     s = RenameSession(tmp_path, {})
@@ -196,10 +195,9 @@ component Pin:
         1:
             role: role.passive
 block Unit:
-    inst p: Pin(
+    inst p: Pin
         connections:
             1: global.supply
-    )
 """
     make_project(tmp_path, source, {"child": child})
     s = RenameSession(tmp_path, {})
@@ -233,11 +231,11 @@ def test_board_block_rename_preserves_descendants_and_array_identities(tmp_path,
     "body",
     [
         "    inst old: Part() // keep trailing ) comment\n",
-        "    inst old: Part(\n    )\n",
-        '    inst old[2][3]: Part(\n        params:\n            value: "keep ) string"\n    )\n',
-        '    inst old: Part(\n        metadata:\n            // Keep this comment.\n            value: "keep me"\n    )\n',
-        '    inst old: Part(\n        metadata:\n            identity: "already_stable"\n    )\n',
-        '    inst old[2]: Part(\n        elements:\n            [1]:\n                params:\n                    value: "2k"\n    )\n',
+        "    inst old: Part\n",
+        '    inst old[2][3]: Part\n        params:\n            value: "keep ) string"\n',
+        '    inst old: Part\n        metadata:\n            // Keep this comment.\n            value: "keep me"\n',
+        '    inst old: Part\n        metadata:\n            identity: "already_stable"\n',
+        '    inst old[2]: Part\n        elements:\n            [1]:\n                params:\n                    value: "2k"\n',
     ],
 )
 def test_board_instance_identity_insertion_formats_and_existing_identity(tmp_path, body):
@@ -266,12 +264,12 @@ def test_board_instance_identity_insertion_formats_and_existing_identity(tmp_pat
 
 
 def test_board_rename_preserves_newlines_and_nonstandard_indentation(tmp_path):
-    source = 'from library import Part\r\nboard B:\r\n  inst old: Part(\r\n    params:\r\n      value: "a"\r\n  )\r\n'
+    source = 'from library import Part\r\nboard B:\r\n  inst old: Part\r\n    params:\r\n      value: "a"\r\n'
     session(tmp_path, source)
     path = tmp_path / "main.nosch"
     s = RenameSession(tmp_path, {path: source})
     result = apply(s.rename(path, source.index("old"), "new"), s.sources)[path]
-    assert '\r\n    metadata:\r\n      identity: "old"\r\n  )' in result
+    assert 'value: "a"\r\n    metadata:\r\n      identity: "old"\r\n' in result
     assert result.replace("\r\n", "").count("\n") == 0
 
 
@@ -287,13 +285,12 @@ board B:
             incompatible_role:
                 reason: "old is intentionally grounded"
                 pins: ["old[0].1", "old[1].1"]
-    inst old[2]: Part(
+    inst old[2]: Part
         connections:
             1: gnd
         metadata:
             custom:
                 note: "old"
-    )
 """
     s = session(tmp_path, source)
     path = tmp_path / "main.nosch"
@@ -313,10 +310,9 @@ def test_board_rename_keeps_export_uuid_and_reference_without_writing_state(tmp_
 
     source = """from library import Part
 board B:
-    inst old[2]: Part(
+    inst old[2]: Part
         metadata:
             footprint: "Test:OnePad"
-    )
 """
     s = session(tmp_path, source)
     path = tmp_path / "main.nosch"

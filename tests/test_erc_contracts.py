@@ -62,10 +62,9 @@ def test_selectable_roles_are_not_guessed(tmp_path):
         source
         + """board B:
     net n: nettype.digital
-    inst p[2]: P(
+    inst p[2]: P
         connections:
             1: n
-    )
 """,
     )
     assert codes(c) == ["incomplete_roles"]
@@ -89,29 +88,25 @@ def hierarchy(
         signal: nettype.{inner_type}
             role: role.{contract}
             unused: unused.never
-    inst p: {internal}(
+    inst p: {internal}
         connections:
             1: signal
-    )
 block Forward:
     ports:
         signal: nettype.{inner_type}
             role: role.{contract}
             unused: unused.never
-    inst child: W(
+    inst child: W
         connections:
             signal: signal
-    )
 board B:
     net n: nettype.{outer_type}
-    inst w: Forward(
+    inst w: Forward
         connections:
             signal: n
-    )
-    inst receiver: Receiver(
+    inst receiver: Receiver
         connections:
             1: n
-    )
 """
     )
 
@@ -137,7 +132,7 @@ def test_output_contract_does_not_invent_a_driver(tmp_path):
 
 def test_caller_driver_does_not_satisfy_inner_output_contract(tmp_path):
     source = hierarchy(internal="Receiver").replace(
-        "inst receiver: Receiver(", "inst receiver: Driver("
+        "inst receiver: Receiver", "inst receiver: Driver"
     )
     c = compile_source(tmp_path, source)
     assert codes(c).count("port_role") == 2
@@ -183,15 +178,14 @@ def test_port_connection_contracts_need_an_outside_endpoint(tmp_path, binding, p
     ports:
         signal: nettype.passive
             unused: unused.{policy}
-    inst p[2]: P(
+    inst p[2]: P
         connections:
             1: signal
-    )
 board B:
     net n: nettype.passive
         placeholder: true
-    inst w: W(
-{clause}    )
+    inst w: W
+{clause}
 """
     )
     found = codes(compile_source(tmp_path, source))
@@ -207,18 +201,16 @@ def test_explicit_external_port_supplies_real_endpoint_once(tmp_path):
         signal: nettype.digital
 board B:
     net n: nettype.digital
-    inst e: External(
+    inst e: External
         connections:
             signal: n
         metadata:
             pins:
                 signal:
                     external_role: role.digital_output
-    )
-    inst p: P(
+    inst p: P
         connections:
             1: n
-    )
 """,
     )
     assert codes(c) == []
@@ -241,7 +233,7 @@ def test_outer_waiver_suppresses_only_compatibility_check(tmp_path):
 
 
 def test_arrayed_ports_count_only_their_own_internal_driver(tmp_path):
-    source = hierarchy().replace("inst w: Forward(", "inst w[2]: Forward(")
+    source = hierarchy().replace("inst w: Forward", "inst w[2]: Forward")
     c = compile_source(tmp_path, source)
     assert codes(c) == ["multiple_drivers"]
     d = check_circuit(c)[0]
@@ -259,20 +251,17 @@ def test_bundle_array_port_contracts_are_checked_per_leaf(tmp_path):
 block W:
     ports:
         bus: Bus[2]
-    inst driver[2]: Driver(
+    inst driver[2]: Driver
         connections:
             1: bus[0:2].signal
-    )
 board B:
     net bus: Bus[2]
-    inst w: W(
+    inst w: W
         connections:
             bus: bus
-    )
-    inst receiver[2]: Receiver(
+    inst receiver[2]: Receiver
         connections:
             1: bus[0:2].signal
-    )
 """
     )
     c = compile_source(tmp_path, source)
@@ -317,7 +306,7 @@ def test_port_policies_cannot_be_waived(tmp_path):
 @pytest.mark.parametrize("rail,source_role", [("power", "power_output"), ("ground", "ground")])
 def test_explicit_input_ports_accept_rail_ties_through_nested_blocks(tmp_path, rail, source_role):
     source = hierarchy(contract="digital_input", internal="Receiver", outer_type=rail)
-    source = source.replace("inst receiver: Receiver(", "inst receiver: Driver(")
+    source = source.replace("inst receiver: Receiver", "inst receiver: Driver")
     source = source.replace("role: role.digital_output", f"role: role.{source_role}")
     c = compile_source(tmp_path, source)
     assert codes(c) == []
@@ -325,7 +314,7 @@ def test_explicit_input_ports_accept_rail_ties_through_nested_blocks(tmp_path, r
 
 def test_rail_tie_requires_explicit_input_contract_at_every_public_boundary(tmp_path):
     source = hierarchy(contract="digital_input", internal="Receiver", outer_type="ground")
-    source = source.replace("inst receiver: Receiver(", "inst receiver: Driver(")
+    source = source.replace("inst receiver: Receiver", "inst receiver: Driver")
     source = source.replace("role: role.digital_output", "role: role.ground")
     source = source.replace(
         "signal: nettype.digital\n            role: role.digital_input",

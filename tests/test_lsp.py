@@ -21,10 +21,9 @@ component Receiver:
             role: role.digital_input
 board B:
     net bus: nettype.tristate
-    inst receivers[2]: Receiver(
+    inst receivers[2]: Receiver
         connections:
             signal: bus
-    )
 """
 
 
@@ -216,7 +215,7 @@ def test_unsaved_import_and_new_file_use_source_overlay(project):
     assert "parts" in loaded.modules
     result = analyze(path, project, buffers)
     assert not any(d.severity == "error" for d in result.diagnostics)
-    ref = result.reference_at(path, source.index("Receiver("))
+    ref = result.reference_at(path, source.index("Receiver\n"))
     assert Path(ref.target.filename) == library
     assert not library.exists()
 
@@ -240,9 +239,13 @@ def test_project_discovery_handles_sibling_configuration(project):
 
 def test_utf16_diagnostics_and_incremental_edits(client, project):
     path = project / "main.nosch"
-    text = SOURCE.replace(
-        "component Receiver:\n", 'component Receiver:\n    params:\n        value: string = ""\n'
-    ).replace("    )\n", '        params:\n            value: "😀{0}".format(missing)\n    )\n')
+    text = (
+        SOURCE.replace(
+            "component Receiver:\n",
+            'component Receiver:\n    params:\n        value: string = ""\n',
+        )
+        + '        params:\n            value: "😀{0}".format(missing)\n'
+    )
     line_number, line = next(
         (i, line) for i, line in enumerate(text.splitlines()) if "missing" in line
     )
@@ -314,7 +317,7 @@ def test_open_dependency_edits_recheck_board_and_close_restores_disk(client, pro
 @pytest.mark.parametrize(
     "old,new,label",
     [
-        ("Receiver(", "Rec", "Receiver"),
+        ("receivers[2]: Receiver", "receivers[2]: Rec", "Receiver"),
         ("signal: bus", "si", "signal"),
         ("role.digital_input", "role.digital_", "digital_input"),
     ],
@@ -347,10 +350,9 @@ def test_footprint_completion_protocol(client, project):
         custom:
             kicad_footprint_candidates: ["Test:A"]
 board B:
-    inst p: Part(
+    inst p: Part
         metadata:
             footprint: "Test:"
-    )
 """
     open_document(client, path, text)
     result = client.request(
@@ -432,8 +434,8 @@ def test_bundle_member_protocol_completion_navigation_and_hover(client, project)
     path = project / "main.nosch"
     text = (
         "import interfaces\nboard B:\n    net wire: interfaces.Bus\n"
-        "    inst p: interfaces.Port(\n        connections:\n"
-        "            bus.sck: wire.sck\n    )\n"
+        "    inst p: interfaces.Port\n        connections:\n"
+        "            bus.sck: wire.sck\n"
     )
     open_document(client, path, text)
     for column in [16, 26]:
@@ -483,7 +485,7 @@ def test_find_references_protocol_cross_file_and_unsaved_buffers(client, project
     library.write_text(LIBRARY)
     path = project / "main.nosch"
     open_document(client, path, REFERENCE_SOURCE)
-    offset = REFERENCE_SOURCE.index("library.Unit(") + len("library.")
+    offset = REFERENCE_SOURCE.index("library.Unit\n") + len("library.")
     prefix = REFERENCE_SOURCE[:offset]
     params = {
         "textDocument": {"uri": path.as_uri()},
@@ -495,7 +497,7 @@ def test_find_references_protocol_cross_file_and_unsaved_buffers(client, project
     assert {use["uri"] for use in uses} == {path.as_uri(), library.as_uri()}
     params["context"]["includeDeclaration"] = True
     assert len(client.request("textDocument/references", params)) == 6
-    changed = REFERENCE_SOURCE.replace("inst b: Alias(", "inst b: library.Derived(")
+    changed = REFERENCE_SOURCE.replace("inst b: Alias", "inst b: library.Derived")
     client.send(
         "textDocument/didChange",
         {
@@ -551,7 +553,7 @@ def test_rename_protocol_prepare_edits_and_collision(client, project):
         "position": {"line": 12, "character": 13},  # Alias in the instance type.
     }
     # Locate the position from the fixture to keep the protocol check legible.
-    prefix = REFERENCE_SOURCE[: REFERENCE_SOURCE.index("Alias(")]
+    prefix = REFERENCE_SOURCE[: REFERENCE_SOURCE.index("Alias\n")]
     params["position"] = {"line": prefix.count("\n"), "character": len(prefix.rsplit("\n", 1)[-1])}
     prepared = client.request("textDocument/prepareRename", params)
     assert prepared["placeholder"] == "Alias"
@@ -735,16 +737,14 @@ block Bus:
         line: nettype.passive
             checks:
                 load: std.sum(capacitance, max=capacitance * 10)
-    inst p: P(
+    inst p: P
         connections:
             1: line
-    )
 board B:
     net n: nettype.passive
-    inst bus: Bus(
+    inst bus: Bus
         connections:
             line: n
-    )
 """
     make(tmp_path, "")
     path = tmp_path / "main.nosch"

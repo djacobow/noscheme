@@ -20,12 +20,11 @@ component Specialized extends P:
     defaults:
         resistance: 4700
 board B:
-    inst p: Specialized(
+    inst p: Specialized
         connections:
             1: no_connect
         params:
             unused_arg: 2
-    )
 """
 
 
@@ -56,14 +55,13 @@ def test_element_expression_and_dimensions_are_uses(tmp_path):
     params:
         count: number = 2
         resistance: number = 3300
-    inst p[count]: P(
+    inst p[count]: P
         connections:
             1: no_connect
         elements:
             [0]:
                 params:
                     resistance: resistance
-    )
 board B:""",
     )
     make(tmp_path, source)

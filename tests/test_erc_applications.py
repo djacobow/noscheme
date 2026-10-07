@@ -21,10 +21,9 @@ board B:
         checks:
             contention: std.count(std.active_digital_driver, max=1)
             presence: std.any(std.active_digital_driver)
-    inst devices[2]: Endpoint(
+    inst devices[2]: Endpoint
         connections:
             1: bus
-    )
 """
 
 
@@ -89,8 +88,7 @@ def test_reductions_optional_members_and_empty_sets():
 
 
 def test_unknown_selector_does_not_turn_optional_resistor_into_short(tmp_path):
-    source = (
-        """from noscheme import bias, std
+    source = """from noscheme import bias, std
 component Pull:
     pins:
         1:
@@ -105,16 +103,9 @@ board B:
     net bus: nettype.passive
         checks:
             strength: std.parallel(pull_resistance, where=bias.pull_up, min=2000)
-    inst known: Pull(connections:
-        1: bus
-    )
-    inst maybe: Maybe(connections:
-        1: bus
-    )
-""".replace("Pull(connections:", "Pull(\n        connections:")
-        .replace("Maybe(connections:", "Maybe(\n        connections:")
-        .replace("        1: bus", "            1: bus")
-    )
+    inst known: Pull(1: bus)
+    inst maybe: Maybe(1: bus)
+"""
     c = circuit(tmp_path, source)
     del c["parts"][1]["pins"]["1"]["metadata"]["bias"]
     result = check_circuit(c)
@@ -230,7 +221,7 @@ component Child extends Base:
                 limit: test.limit(maximum=10)
 board B:
     net bus: nettype.passive
-    inst load: Child(
+    inst load: Child
         connections:
             1: bus
         metadata:
@@ -238,7 +229,6 @@ board B:
                 1:
                     checks:
                         limit: test.limit(maximum=5)
-    )
 """
     from test_circuit import make
     from noscheme.resolve import resolve_project
@@ -388,10 +378,9 @@ component Part:
                 limit: bounded(maximum=5)
 board B:
     net bus: nettype.passive
-    inst load: Part(
+    inst load: Part
         connections:
             1: bus
-    )
 """
     make(tmp_path, source)
     (tmp_path / "checks.py").write_text(
@@ -424,18 +413,16 @@ block Inner:
         bus: nettype.digital
             checks:
                 contention: std.count(std.active_digital_driver, max=0)
-    inst endpoint: Endpoint(
+    inst endpoint: Endpoint
         connections:
             1: bus
-    )
 board B:
     net bus: nettype.digital
         waivers:
             contention: "Reviewed: the inner limit is a test fixture."
-    inst inner: Inner(
+    inst inner: Inner
         connections:
             bus: bus
-    )
 """
 
 

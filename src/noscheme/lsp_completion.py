@@ -19,7 +19,9 @@ TYPE_PREFIX = r"[A-Za-z0-9_#.]*"
 DEFINITION = re.compile(
     rf"^(component|block|board|bundle|nettype)\s+({IDENTIFIER})(?=\s|:)[^\n]*:", re.M
 )
-INSTANCE = re.compile(rf"^([ \t]*)inst\s+{IDENTIFIER}(?:\[[^\n]*?\])*\s*:\s*({TYPE_PATH})\s*\(")
+INSTANCE = re.compile(rf"^([ \t]*)inst\s+{IDENTIFIER}(?:\[[^\n]*?\])*\s*:\s*({TYPE_PATH})")
+# An instance line whose argument list is open at the end of the match.
+ARGUMENTS = re.compile(INSTANCE.pattern + r"\s*\(")
 
 
 @dataclass(frozen=True)
@@ -399,19 +401,17 @@ def recovered_project(path, config, sources, masked, owner):
 
 
 def inline_completion(path, config, sources, offset, masked):
-    """Offer pins/parameters and bundle members inside unfinished compact instances."""
+    """Offer pins/parameters and bundle members inside an instance's argument list."""
     owners = list(DEFINITION.finditer(masked, 0, offset))
     if not owners or owners[-1][1] not in {"board", "block"}:
         return []
     owner = owners[-1]
-    instances = list(re.finditer(INSTANCE.pattern, masked[owner.end() : offset], re.M))
+    instances = list(re.finditer(ARGUMENTS.pattern, masked[owner.end() : offset], re.M))
     if not instances:
         return []
     active = instances[-1]
     opening = owner.end() + active.end()
     arguments = masked[opening:offset]
-    if arguments.lstrip(" \t").startswith("\n"):
-        return []  # Section form, including unfinished connections sections.
     depth = 0
     for char in arguments:
         if char in "([":

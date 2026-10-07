@@ -8,7 +8,7 @@ block Column:
     ports:
         rows: Rows
         segments: Segments
-    inst digits[6]: Display(
+    inst digits[6]: Display
         connections:
             A: segments.a
             B: segments.b
@@ -24,7 +24,6 @@ block Column:
             [3].[3, 8]: rows.row3
             [4].[3, 8]: rows.row4
             [5].[3, 8]: rows.row5
-    )
 
 // Corresponds to the original Eagle module 2COL-7SEG.
 block TwoColumns:

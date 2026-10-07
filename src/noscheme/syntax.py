@@ -23,31 +23,11 @@ class NoschemeIndenter(Indenter):
     NL_type = "_NL"
     INDENT_type = "_INDENT"
     DEDENT_type = "_DEDENT"
-    # Instance delimiters are distinct terminals selected by the contextual
-    # lexer. Expressions/lists and compact instance arguments suppress indentation;
-    # section-form instances retain layout.
+    # Newlines inside parentheses and brackets, including instance arguments, are
+    # not layout; an instance's sections are indented after its line.
     OPEN_PAREN_types = ["_LPAR", "_LSQB"]
     CLOSE_PAREN_types = ["_RPAR", "_RSQB"]
     tab_len = 8  # Tabs in indentation are rejected before parsing.
-
-    def _process(self, stream):
-        # An instance's "(" followed by arguments, not a newline, opens an ordinary
-        # parenthesized list closed by ")"; newlines inside it are not layout.
-        previous = None
-        for token in stream:
-            if (
-                previous is not None
-                and previous.type == "_INST_LPAR"
-                and token.type not in {self.NL_type, "_INST_RPAR"}
-            ):
-                self.paren_level += 1
-            previous = token
-            yield token
-
-    def process(self, stream):
-        self.paren_level = 0
-        self.indent_level = [0]
-        return super()._process(self._process(stream))
 
     def handle_NL(self, token):
         try:

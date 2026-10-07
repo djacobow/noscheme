@@ -88,12 +88,11 @@ block Base:
         value: string = "10Ohm"
     ports:
         a: nettype.passive
-    inst r: R(
+    inst r: R
         connections:
             1: a
         params:
             value: value
-    )
 """
         },
     )
@@ -195,26 +194,26 @@ block Hidden:
 @pytest.mark.parametrize(
     "instance,code",
     [
-        ("inst c: C(\n        connections:\n            9: n\n    )", "resolve.private"),
-        ("inst h: Hidden(\n        connections:\n            private: n\n    )", "resolve.private"),
-        ("inst c: C(\n        connections:\n            1: missing\n    )", "resolve.net"),
+        ("inst c: C\n        connections:\n            9: n", "resolve.private"),
+        ("inst h: Hidden\n        connections:\n            private: n", "resolve.private"),
+        ("inst c: C\n        connections:\n            1: missing", "resolve.net"),
         (
-            "inst c: C(\n        connections:\n            1: h.private\n    )\n    inst h: Hidden()",
+            "inst c: C\n        connections:\n            1: h.private\n    inst h: Hidden()",
             "resolve.net",
         ),
         (
-            "inst c: C(\n        metadata:\n            pins:\n                1:\n                    unused: unused.always\n    )",
+            "inst c: C\n        metadata:\n            pins:\n                1:\n                    unused: unused.always",
             "metadata.unknown",
         ),
         (
-            "inst c: C(\n        metadata:\n            pins:\n                1:\n                    role: role.digital_output\n    )",
+            "inst c: C\n        metadata:\n            pins:\n                1:\n                    role: role.digital_output",
             "metadata.constraint",
         ),
         (
-            "inst c: C(\n        metadata:\n            pins:\n                1:\n                    role: role.passive\n                A:\n                    role: role.passive\n    )",
+            "inst c: C\n        metadata:\n            pins:\n                1:\n                    role: role.passive\n                A:\n                    role: role.passive",
             "resolve.duplicate-pin",
         ),
-        ("inst c: C(\n        params:\n            extra: 1\n    )", "resolve.argument"),
+        ("inst c: C\n        params:\n            extra: 1", "resolve.argument"),
     ],
 )
 def test_instance_privacy_and_constraints(tmp_path, instance, code):
@@ -230,14 +229,13 @@ def test_valid_role_selection_and_global_deferred(tmp_path):
             PRELUDE
             + BASE
             + BOARD
-            + """    inst c: C(
+            + """    inst c: C
         connections:
             A: global.gnd
         metadata:
             pins:
                 1:
                     role: role.digital_input
-    )
 """,
         )
     )
@@ -254,10 +252,9 @@ block Wrapper:
             placeholder: true
 block Use:
     net n: Bus
-    inst w: Wrapper(
+    inst w: Wrapper
         connections:
             bus.data: n.data
-    )
 """,
     )
     assert definitions["main", "Bus"].interface["data"].type

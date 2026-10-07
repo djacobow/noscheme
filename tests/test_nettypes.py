@@ -37,19 +37,17 @@ board B:
     net extra: I2CLine
         checks:
             pull: std.parallel(min=5000)
-    inst p[3]: Pull(
+    inst p[3]: Pull
         connections:
             [0].1: bus.scl
             [1].1: bus.sda
             [2].1: extra
-    )
-    inst d[2]: Dev(
+    inst d[2]: Dev
         connections:
             [0].1: bus.scl
             [0].2: bus.sda
             [1].1: extra
             [1].2: no_connect
-    )
 """
 
 
@@ -73,11 +71,10 @@ def test_port_type_checks_run_on_the_flattened_net_even_when_outer_net_is_unchec
             """block Receiver:
     ports:
         line: I2CLine
-    inst device: Dev(
+    inst device: Dev
         connections:
             1: line
             2: no_connect
-    )
 board B:""",
         )
         .replace(
@@ -87,8 +84,8 @@ board B:""",
         .replace("            [1].1: extra\n            [1].2: no_connect\n", "")
     )
     source = source.replace(
-        "    inst d[2]: Dev(",
-        "    inst receiver: Receiver(\n        connections:\n            line: extra\n    )\n    inst d[2]: Dev(",
+        "    inst d[2]: Dev",
+        "    inst receiver: Receiver\n        connections:\n            line: extra\n    inst d[2]: Dev",
     )
     applications = {d.application for d in apply_erc(compile_source(tmp_path, source))}
     # The outer unchecked type skips only standard policies; the port type's checks remain.
@@ -145,16 +142,15 @@ def test_same_type_application_runs_once_per_net(tmp_path):
         """block Receiver:
     ports:
         line: I2CLine
-    inst device: Dev(
+    inst device: Dev
         connections:
             1: line
             2: no_connect
-    )
 board B:""",
     ).replace("            [1].1: extra\n            [1].2: no_connect\n", "")
     source = source.replace(
-        "    inst d[2]: Dev(",
-        "    inst receiver: Receiver(\n        connections:\n            line: extra\n    )\n    inst d[2]: Dev(",
+        "    inst d[2]: Dev",
+        "    inst receiver: Receiver\n        connections:\n            line: extra\n    inst d[2]: Dev",
     ).replace("        checks:\n            pull: std.parallel(min=5000)\n", "")
     tight = source.replace("min=1500, max=10000", "min=5000, max=10000")
 
@@ -189,16 +185,14 @@ component P:
 block Holder:
     ports:
         line: Line
-    inst p: P(
+    inst p: P
         connections:
             1: line
-    )
 board B:
     net outer: nettype.passive
-    inst holder: Holder(
+    inst holder: Holder
         connections:
             line: outer
-    )
 """
 
 PLUGIN = """def register(r):

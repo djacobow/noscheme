@@ -29,14 +29,12 @@ board B:
             pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=2500, max=5000)
             capacitance: std.sum(capacitance, net=wiring_capacitance, max=20p)
         wiring_capacitance: 2p
-    inst pull[2]: Pull(
+    inst pull[2]: Pull
         connections:
             1: bus
-    )
-    inst device: Device(
+    inst device: Device
         connections:
             1: bus
-    )
 """
 
 
@@ -85,10 +83,10 @@ def test_known_minimum_violation_with_unknown_additional_pull(tmp_path):
             bias: bias.pull_up
             capacitance: 0p
 board B:
-    inst unknown: Unknown(
+    inst unknown: Unknown
         connections:
             1: bus
-    )""",
+""",
     )
     result = [d for d in check(tmp_path, source) if d.application.endswith(":pull_up")]
     assert {d.severity for d in result} == {"error", "warning"}
@@ -292,15 +290,14 @@ def test_inner_port_capacitance_limit_counts_physical_pins_once(tmp_path):
         bus: nettype.open_drain
             checks:
                 capacitance: std.sum(capacitance, net=wiring_capacitance, max=20p)
-    inst inner: Device(
+    inst inner: Device
         connections:
             1: bus
-    )
 board B:""",
-    ).replace("inst device: Device(", "inst device: Receiver(")
+    ).replace("inst device: Device", "inst device: Receiver")
     source = source.replace(
-        "    inst device: Receiver(\n        connections:\n            1: bus",
-        "    inst device: Receiver(\n        connections:\n            bus: bus",
+        "    inst device: Receiver\n        connections:\n            1: bus",
+        "    inst device: Receiver\n        connections:\n            bus: bus",
     )
     assert [d.code for d in check(tmp_path, source)] == ["erc.std.parallel"]
 

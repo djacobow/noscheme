@@ -25,7 +25,7 @@ def codes(circuit):
 @pytest.mark.parametrize("binding", ["", "        connections:\n            1: no_connect\n"])
 def test_forbidden_pin_allows_omission_or_explicit_disconnect(tmp_path, binding):
     c = compile_source(
-        tmp_path, component("do_not_connect") + f"board B:\n    inst p: P(\n{binding}    )\n"
+        tmp_path, component("do_not_connect") + f"board B:\n    inst p: P\n{binding}"
     )
     assert codes(c) == []
 
@@ -33,10 +33,9 @@ def test_forbidden_pin_allows_omission_or_explicit_disconnect(tmp_path, binding)
 def test_forbidden_pin_rejects_even_empty_net_and_unchecked_type(tmp_path):
     board = """board B:
     net n: nettype.unchecked
-    inst p: P(
+    inst p: P
         connections:
             1: n
-    )
 """
     # An instance cannot relabel a forbidden pin as a passive contact.
     overlay = board.replace(
@@ -64,9 +63,7 @@ def test_forbidden_pin_rejects_even_empty_net_and_unchecked_type(tmp_path):
 )
 def test_unused_policies(tmp_path, unused, binding, expected):
     clause = "        connections:\n            " + binding + "\n" if binding else ""
-    c = compile_source(
-        tmp_path, component(unused=unused) + f"board B:\n    inst p: P(\n{clause}    )\n"
-    )
+    c = compile_source(tmp_path, component(unused=unused) + f"board B:\n    inst p: P\n{clause}")
     assert codes(c) == expected
 
 
@@ -77,10 +74,9 @@ def test_placeholder_cannot_satisfy_required_pin(tmp_path):
         + """board B:
     net n: nettype.passive
         placeholder: true
-    inst p: P(
+    inst p: P
         connections:
             1: n
-    )
 """,
     )
     assert codes(c) == ["required_connection"]
@@ -94,14 +90,12 @@ def pair(tmp_path, role1, role2, nettype="digital", metadata1="", metadata2=""):
         parts
         + f"""board B:
     net n: nettype.{nettype}
-    inst a: A(
+    inst a: A
         connections:
             1: n
-    )
-    inst z: Z(
+    inst z: Z
         connections:
             1: n
-    )
 """,
     )
 
@@ -140,10 +134,9 @@ def test_cli_reports_errors_but_compiles_and_exports(tmp_path, capsys):
         component("do_not_connect")
         + """board B:
     net n: nettype.passive
-    inst p: P(
+    inst p: P
         connections:
             1: n
-    )
 """,
     )
     assert main(["check", "--project", str(tmp_path), "--diagnostics", "json"]) == 1
@@ -194,10 +187,9 @@ def test_net_waiver_preserves_diagnostics_and_reason_in_reports(tmp_path):
     net n: nettype.digital
         waivers:
             missing_driver: "Driver is on the far side of a series resistor."
-    inst p[2]: P(
+    inst p[2]: P
         connections:
             1: n
-    )
 """,
     )
     assert apply_erc(c) == ()
@@ -269,10 +261,9 @@ def test_waiver_never_suppresses_mandatory_pin_connection(tmp_path):
     net n: nettype.digital
         waivers:
             missing_driver: "External driver pending."
-    inst p: P(
+    inst p: P
         connections:
             1: n
-    )
 """,
     )
     assert codes(c) == ["required_connection"]
@@ -298,16 +289,14 @@ def test_waivers_follow_outermost_net_through_hierarchy(tmp_path, placement):
         + f"""block W:
     ports:
         signal: nettype.digital
-{inner}    inst loads[2]: P(
+{inner}    inst loads[2]: P
         connections:
             1: signal
-    )
 board B:
     net shared: nettype.digital
-{outer}    inst w: W(
+{outer}    inst w: W
         connections:
             signal: shared
-    )
 """,
     )
     found = [d.code for d in apply_erc(c)]

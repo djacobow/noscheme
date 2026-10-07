@@ -1,6 +1,6 @@
 {
   "indent.nosch": {"line": 3, "column": 3},
-  "closing.nosch": {"line": 5, "column": 1},
+  "closing.nosch": {"line": 4, "column": 1},
   "binding.nosch": {"line": 4, "column": 15},
   "string.nosch": {"line": 3, "column": 25},
   "comment.nosch": {"line": 1, "column": 1}

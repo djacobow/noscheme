@@ -53,7 +53,7 @@ block MCU_H523:
         waivers:
             multiple_drivers: "VCAP pins 48 and 98 belong to the same internal regulator (AN5711)."
     // Signal aliases come from KiCad; grouped supplies keep physical pad numbers.
-    inst chip: STM32H523Board(
+    inst chip: STM32H523Board
         connections:
             PE2: expansion_gpio[0]
             PE3: expansion_gpio[1]
@@ -100,8 +100,7 @@ block MCU_H523:
             PB6: oled.scl
             PB7: oled.sda
             BOOT0: boot0
-    )
-    inst decouple_pin_6: Capacitor0603(
+    inst decouple_pin_6: Capacitor0603
         connections:
             1: supply
             2: ground
@@ -110,8 +109,7 @@ block MCU_H523:
         metadata:
             custom:
                 placement: "Place beside MCU pad 6, short return to ground."
-    )
-    inst decouple_pin_11: Capacitor0603(
+    inst decouple_pin_11: Capacitor0603
         connections:
             1: supply
             2: ground
@@ -120,8 +118,7 @@ block MCU_H523:
         metadata:
             custom:
                 placement: "Place beside MCU pad 11, short return to ground."
-    )
-    inst decouple_pin_21: Capacitor0603(
+    inst decouple_pin_21: Capacitor0603
         connections:
             1: supply
             2: ground
@@ -130,8 +127,7 @@ block MCU_H523:
         metadata:
             custom:
                 placement: "Place beside MCU pad 21, short return to ground."
-    )
-    inst decouple_pin_22: Capacitor0603(
+    inst decouple_pin_22: Capacitor0603
         connections:
             1: supply
             2: ground
@@ -140,8 +136,7 @@ block MCU_H523:
         metadata:
             custom:
                 placement: "Place beside MCU pad 22, short return to ground."
-    )
-    inst decouple_pin_28: Capacitor0603(
+    inst decouple_pin_28: Capacitor0603
         connections:
             1: supply
             2: ground
@@ -150,8 +145,7 @@ block MCU_H523:
         metadata:
             custom:
                 placement: "Place beside MCU pad 28, short return to ground."
-    )
-    inst decouple_pin_50: Capacitor0603(
+    inst decouple_pin_50: Capacitor0603
         connections:
             1: supply
             2: ground
@@ -160,8 +154,7 @@ block MCU_H523:
         metadata:
             custom:
                 placement: "Place beside MCU pad 50, short return to ground."
-    )
-    inst decouple_pin_73: Capacitor0603(
+    inst decouple_pin_73: Capacitor0603
         connections:
             1: supply
             2: ground
@@ -170,8 +163,7 @@ block MCU_H523:
         metadata:
             custom:
                 placement: "Place beside MCU pad 73, short return to ground."
-    )
-    inst decouple_pin_75: Capacitor0603(
+    inst decouple_pin_75: Capacitor0603
         connections:
             1: supply
             2: ground
@@ -180,8 +172,7 @@ block MCU_H523:
         metadata:
             custom:
                 placement: "Place beside MCU pad 75, short return to ground."
-    )
-    inst decouple_pin_100: Capacitor0603(
+    inst decouple_pin_100: Capacitor0603
         connections:
             1: supply
             2: ground
@@ -190,9 +181,8 @@ block MCU_H523:
         metadata:
             custom:
                 placement: "Place beside MCU pad 100, short return to ground."
-    )
     inst supply_bulk: Capacitor0603(supply, ground, value=4.7u)
-    inst analog_bulk: Capacitor0603(
+    inst analog_bulk: Capacitor0603
         connections:
             1: supply
             2: ground
@@ -201,8 +191,7 @@ block MCU_H523:
         metadata:
             custom:
                 placement: "Place beside MCU pad 22."
-    )
-    inst reference_bulk: Capacitor0603(
+    inst reference_bulk: Capacitor0603
         connections:
             1: supply
             2: ground
@@ -211,8 +200,7 @@ block MCU_H523:
         metadata:
             custom:
                 placement: "Place beside MCU pad 21."
-    )
-    inst usb_bulk: Capacitor0603(
+    inst usb_bulk: Capacitor0603
         connections:
             1: supply
             2: ground
@@ -221,8 +209,7 @@ block MCU_H523:
         metadata:
             custom:
                 placement: "Place beside MCU pad 73."
-    )
-    inst vcap_pin_48: Capacitor0603(
+    inst vcap_pin_48: Capacitor0603
         connections:
             1: vcap
             2: ground
@@ -231,8 +218,7 @@ block MCU_H523:
         metadata:
             custom:
                 placement: "Place beside MCU pad 48; low ESR, do not connect VCAP to 3.3 V."
-    )
-    inst vcap_pin_98: Capacitor0603(
+    inst vcap_pin_98: Capacitor0603
         connections:
             1: vcap
             2: ground
@@ -241,9 +227,8 @@ block MCU_H523:
         metadata:
             custom:
                 placement: "Place beside MCU pad 98; low ESR, do not connect VCAP to 3.3 V."
-    )
     inst crystal: CrystalHC49(osc_in, osc_out)
-    inst crystal_load_in: Capacitor0603(
+    inst crystal_load_in: Capacitor0603
         connections:
             1: osc_in
             2: ground
@@ -252,8 +237,7 @@ block MCU_H523:
         metadata:
             custom:
                 placement: "C0G; provisional for CL18pF crystal, tune for PCB stray capacitance."
-    )
-    inst crystal_load_out: Capacitor0603(
+    inst crystal_load_out: Capacitor0603
         connections:
             1: osc_out
             2: ground
@@ -262,5 +246,4 @@ block MCU_H523:
         metadata:
             custom:
                 placement: "C0G; provisional for CL18pF crystal, tune for PCB stray capacitance."
-    )
     inst reset_cap: Capacitor0603(debug.reset#, ground, value=100n)

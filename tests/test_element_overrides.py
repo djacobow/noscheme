@@ -15,7 +15,7 @@ SOURCE = """component Cap:
         value: capacitance
 board B:
     net rail: nettype.passive
-    inst caps[2]: Cap(
+    inst caps[2]: Cap
         connections:
             1: rail
             2: no_connect
@@ -33,7 +33,6 @@ board B:
                     pins:
                         1:
                             capacitance: 2p + 3p
-    )
 """
 
 
@@ -83,9 +82,10 @@ def test_invalid_element_selectors(tmp_path, selector, code):
 
 
 def test_duplicate_elements_and_scalar_overrides_rejected(tmp_path):
-    duplicate = SOURCE.replace(
-        "    )\n",
-        "            [1]:\n                params:\n                    capacitance: 330n\n    )\n",
+    # The caps instance is last, so its elements section ends the source.
+    duplicate = (
+        SOURCE
+        + "            [1]:\n                params:\n                    capacitance: 330n\n"
     )
     with pytest.raises(DiagnosticError, match="array.element-overlap"):
         compile_source(tmp_path, duplicate)
@@ -146,17 +146,16 @@ def test_overrides_apply_to_child_parts_of_block_arrays(tmp_path):
         capacitance: capacitance = 100n
     ports:
         signal: nettype.passive
-    inst cap: Cap(
+    inst cap: Cap
         params:
             capacitance: capacitance
         connections:
             1: signal
             2: no_connect
-    )
 board B:
 """,
         )
-        .replace("caps[2]: Cap(", "caps[2]: Unit(")
+        .replace("caps[2]: Cap", "caps[2]: Unit")
         .replace("            1: rail\n            2: no_connect", "            signal: rail")
     )
     source = source.replace(

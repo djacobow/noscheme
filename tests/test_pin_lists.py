@@ -26,10 +26,10 @@ def design(key="[VDD, 2..3, 7]", rhs="n", extra="", dimensions=""):
         PART
         + f"""board B:
     net n: nettype.passive
-    inst p{dimensions}: P(
+    inst p{dimensions}: P
         connections:
             {key}: {rhs}
-{extra}    )
+{extra}
 """
     )
 
@@ -88,7 +88,7 @@ def test_component_specialization_lists_override_existing_pins(tmp_path, selecti
             unused: unused.never
 board B:""",
         )
-        .replace("inst p: P(", "inst p: Specialized(")
+        .replace("inst p: P", "inst p: Specialized")
     )
     source = source.replace("[1, 2..3, 7]:", selection + ":")
     circuit = compile_source(tmp_path, source)
@@ -199,10 +199,9 @@ def test_singleton_exact_physical_names(tmp_path, pin):
             role: role.passive
 board B:
     net n: nettype.passive
-    inst p: P(
+    inst p: P
         connections:
             [{pin}]: n
-    )
 """
     circuit = compile_source(tmp_path, source)
     assert circuit["parts"][0]["pins"][pin.strip('"')]["net"] == "n"
