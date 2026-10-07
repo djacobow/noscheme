@@ -24,5 +24,6 @@ code --install-extension ../../build/noscheme-0.1.0.vsix --force
 
 Run **Developer: Reload Window**, then open a `.nosch` file.
 Use F12 for definition, Shift-F12 for references, F2 for rename, Ctrl-Space
-for completion, Shift-Alt-F to format, and mouse hover for documentation. Diagnostics appear in
+for completion, Shift-Alt-F to format, and mouse hover for documentation.
+NoScheme files default to two-space indentation. Diagnostics appear in
 Problems (Ctrl-Shift-M). The NoScheme output channel contains server messages.

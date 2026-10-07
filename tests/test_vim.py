@@ -18,20 +18,20 @@ def test_noscheme_runtime(tmp_path, editor):
     source = [
         "net buttons#: nettype.digital",
         "net #reset: nettype.digital // TODO test",
-        "    bias: bias.pull_up",
-        '    value: "https://example/*ok*/\\\\path"',
+        "  bias: bias.pull_up",
+        '  value: "https://example/*ok*/\\\\path"',
         "/* block /* does not nest */ net visible: nettype.digital",
         "net sizes: 10.5e-2 << 1",
         "inst bank[2]: Device",
-        "    connections:",
-        "        01..03: no_connect",
+        "  connections:",
+        "    01..03: no_connect",
         "inst probe: Device(1: n)",
         "net# is_an_identifier",
         "/* multiline",
         "net hidden: nettype.digital",
         "*/",
         "component Resistor:",
-        "    value: num.round(4.7k) + 4k7",
+        "  value: num.round(4.7k) + 4k7",
     ]
     design = tmp_path / "sample.nosch"
     design.write_text("\n".join(source) + "\n")
@@ -45,7 +45,7 @@ def test_noscheme_runtime(tmp_path, editor):
         "call assert_equal('noscheme', &filetype)",
         "call assert_equal('noscheme', b:current_syntax)",
         "call assert_equal('// %s', &l:commentstring)",
-        "call assert_equal(4, &l:shiftwidth)",
+        "call assert_equal(2, &l:shiftwidth)",
         "call assert_true(&l:expandtab)",
         "call assert_equal('#reset', matchstr('#reset', '\\k\\+'))",
     ]

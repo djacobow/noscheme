@@ -2,57 +2,57 @@
 from noscheme import role, unused, nettype, bias, std
 
 component Pullup:
-    params:
-        value: resistance = 4.7k
-    pins:
-        1:
-            aliases: [supply]
-            role: role.passive
-            unused: unused.never
-        2:
-            aliases: [signal]
-            role: role.passive
-            unused: unused.never
-            bias: bias.pull_up
-            checks:
-                reference: std.bias_reference("supply")
-            pull_resistance: value
-    metadata:
-        ref_prefix: "R"
-        footprint: "Resistor_SMD:R_0603_1608Metric"
+  params:
+    value: resistance = 4.7k
+  pins:
+    1:
+      aliases: [supply]
+      role: role.passive
+      unused: unused.never
+    2:
+      aliases: [signal]
+      role: role.passive
+      unused: unused.never
+      bias: bias.pull_up
+      checks:
+        reference: std.bias_reference("supply")
+      pull_resistance: value
+  metadata:
+    ref_prefix: "R"
+    footprint: "Resistor_SMD:R_0603_1608Metric"
 
 component Endpoint:
-    pins:
-        1:
-            role: role.open_drain
-            bias: bias.none
-            min_voltage: -0.3
-            max_voltage: 3.6
-            unused: unused.never
-        2: [role.power_output, unused.never]
-    metadata:
-        custom:
-            description: "Abstract external source and open-drain endpoint"
+  pins:
+    1:
+      role: role.open_drain
+      bias: bias.none
+      min_voltage: -0.3
+      max_voltage: 3.6
+      unused: unused.never
+    2: [role.power_output, unused.never]
+  metadata:
+    custom:
+      description: "Abstract external source and open-drain endpoint"
 
 board Demo:
-    net supply: nettype.power
-        min_voltage: 3.3 * 0.95
-        max_voltage: 3.3 * 1.05
-    net bus: nettype.open_drain
-        min_voltage: 0
-        max_voltage: 3.3 * 1.05
-        checks:
-            pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=1k)
-    inst pulls[2]: Pullup(supply: supply, signal: bus)
-        elements:
-            [0]:
-                params:
-                    value: 2.2k
-                metadata:
-                    custom:
-                        placement: "At the bus controller"
-            [1]:
-                metadata:
-                    custom:
-                        placement: "At the remote connector"
-    inst endpoint: Endpoint(1: bus, 2: supply)
+  net supply: nettype.power
+    min_voltage: 3.3 * 0.95
+    max_voltage: 3.3 * 1.05
+  net bus: nettype.open_drain
+    min_voltage: 0
+    max_voltage: 3.3 * 1.05
+    checks:
+      pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=1k)
+  inst pulls[2]: Pullup(supply: supply, signal: bus)
+    elements:
+      [0]:
+        params:
+          value: 2.2k
+        metadata:
+          custom:
+            placement: "At the bus controller"
+      [1]:
+        metadata:
+          custom:
+            placement: "At the remote connector"
+  inst endpoint: Endpoint(1: bus, 2: supply)

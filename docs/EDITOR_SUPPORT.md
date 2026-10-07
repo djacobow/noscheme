@@ -44,7 +44,7 @@ vim.cmd("syntax enable")
 Highlighting covers declarations, sections, metadata keys, qualified enums and
 helpers, numbers, strings, and both comment forms. `#` is part of an identifier,
 not a comment marker, and block comments do not nest. The filetype plugin sets
-four-space indentation with spaces, word motions that include `#`, and `//`
+two-space indentation with spaces, word motions that include `#`, and `//`
 comment formatting. Completion and whole-file formatting come from the language server.
 To override indentation, put your preferences in `after/ftplugin/noscheme.vim`
 under your Vim/Neovim configuration directory.
@@ -362,8 +362,8 @@ For example, renaming `inst sensor: Sensor()` to `probe` produces:
 
 ```nosch
 inst probe: Sensor
-    metadata:
-        identity: "sensor"
+  metadata:
+    identity: "sensor"
 ```
 
 The server elaborates the original and proposed board in memory and checks that

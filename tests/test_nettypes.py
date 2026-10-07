@@ -9,45 +9,45 @@ from test_circuit import compile_source
 
 SOURCE = """from noscheme import std, bias
 nettype I2CLine extends nettype.open_drain:
-    wiring_capacitance: 5p
-    checks:
-        pull: std.parallel(pull_resistance, where=bias.pull_up, min=1500, max=10000)
-        load: std.sum(capacitance, net=wiring_capacitance, max=400p)
+  wiring_capacitance: 5p
+  checks:
+    pull: std.parallel(pull_resistance, where=bias.pull_up, min=1500, max=10000)
+    load: std.sum(capacitance, net=wiring_capacitance, max=400p)
 nettype FastI2CLine extends I2CLine:
-    checks:
-        load: std.sum(max=10p)
+  checks:
+    load: std.sum(max=10p)
 bundle I2C:
-    scl: I2CLine
-    sda: FastI2CLine
+  scl: I2CLine
+  sda: FastI2CLine
 component Pull:
-    pins:
-        1:
-            role: role.passive
-            bias: bias.pull_up
-            pull_resistance: 4700
-            capacitance: 2p
+  pins:
+    1:
+      role: role.passive
+      bias: bias.pull_up
+      pull_resistance: 4700
+      capacitance: 2p
 component Dev:
-    pins:
-        1..2:
-            role: role.open_drain
-            bias: bias.none
-            capacitance: 10p
+  pins:
+    1..2:
+      role: role.open_drain
+      bias: bias.none
+      capacitance: 10p
 board B:
-    net bus: I2C
-    net extra: I2CLine
-        checks:
-            pull: std.parallel(min=5000)
-    inst p[3]: Pull
-        connections:
-            [0].1: bus.scl
-            [1].1: bus.sda
-            [2].1: extra
-    inst d[2]: Dev
-        connections:
-            [0].1: bus.scl
-            [0].2: bus.sda
-            [1].1: extra
-            [1].2: no_connect
+  net bus: I2C
+  net extra: I2CLine
+    checks:
+      pull: std.parallel(min=5000)
+  inst p[3]: Pull
+    connections:
+      [0].1: bus.scl
+      [1].1: bus.sda
+      [2].1: extra
+  inst d[2]: Dev
+    connections:
+      [0].1: bus.scl
+      [0].2: bus.sda
+      [1].1: extra
+      [1].2: no_connect
 """
 
 
@@ -69,23 +69,23 @@ def test_port_type_checks_run_on_the_flattened_net_even_when_outer_net_is_unchec
         SOURCE.replace(
             "board B:",
             """block Receiver:
-    ports:
-        line: I2CLine
-    inst device: Dev
-        connections:
-            1: line
-            2: no_connect
+  ports:
+    line: I2CLine
+  inst device: Dev
+    connections:
+      1: line
+      2: no_connect
 board B:""",
         )
         .replace(
-            "    net extra: I2CLine\n        checks:\n            pull: std.parallel(min=5000)\n",
-            "    net extra: nettype.unchecked\n",
+            "  net extra: I2CLine\n    checks:\n      pull: std.parallel(min=5000)\n",
+            "  net extra: nettype.unchecked\n",
         )
-        .replace("            [1].1: extra\n            [1].2: no_connect\n", "")
+        .replace("      [1].1: extra\n      [1].2: no_connect\n", "")
     )
     source = source.replace(
-        "    inst d[2]: Dev",
-        "    inst receiver: Receiver\n        connections:\n            line: extra\n    inst d[2]: Dev",
+        "  inst d[2]: Dev",
+        "  inst receiver: Receiver\n    connections:\n      line: extra\n  inst d[2]: Dev",
     )
     applications = {d.application for d in apply_erc(compile_source(tmp_path, source))}
     # The outer unchecked type skips only standard policies; the port type's checks remain.
@@ -111,12 +111,12 @@ board B:""",
         (("load: std.sum(max=10p)", "load: std.parallel(max=10)"), "erc.application_checker"),
         (
             (
-                "    checks:\n        load: std.sum(max=10p)",
-                "    ports:\n        x: nettype.passive",
+                "  checks:\n    load: std.sum(max=10p)",
+                "  ports:\n    x: nettype.passive",
             ),
             "syntax.section-context",
         ),
-        (("    wiring_capacitance: 5p\n", '    footprint: "x"\n'), "metadata.unknown"),
+        (("  wiring_capacitance: 5p\n", '  footprint: "x"\n'), "metadata.unknown"),
     ],
 )
 def test_invalid_net_types(tmp_path, edit, code):
@@ -132,7 +132,7 @@ def test_net_type_inheritance_cycle(tmp_path):
 
 
 def test_nettype_is_contextual():
-    tree = parse("board B:\n    net nettype: nettype.passive\n", "main.nosch")
+    tree = parse("board B:\n  net nettype: nettype.passive\n", "main.nosch")
     assert tree.items[0].body[0].name.text == "nettype"
 
 
@@ -140,18 +140,18 @@ def test_same_type_application_runs_once_per_net(tmp_path):
     source = SOURCE.replace(
         "board B:",
         """block Receiver:
-    ports:
-        line: I2CLine
-    inst device: Dev
-        connections:
-            1: line
-            2: no_connect
+  ports:
+    line: I2CLine
+  inst device: Dev
+    connections:
+      1: line
+      2: no_connect
 board B:""",
-    ).replace("            [1].1: extra\n            [1].2: no_connect\n", "")
+    ).replace("      [1].1: extra\n      [1].2: no_connect\n", "")
     source = source.replace(
-        "    inst d[2]: Dev",
-        "    inst receiver: Receiver\n        connections:\n            line: extra\n    inst d[2]: Dev",
-    ).replace("        checks:\n            pull: std.parallel(min=5000)\n", "")
+        "  inst d[2]: Dev",
+        "  inst receiver: Receiver\n    connections:\n      line: extra\n  inst d[2]: Dev",
+    ).replace("    checks:\n      pull: std.parallel(min=5000)\n", "")
     tight = source.replace("min=1500, max=10000", "min=5000, max=10000")
 
     def pulls(source):
@@ -164,8 +164,8 @@ board B:""",
     assert pulls(tight) == ["net:extra:pull"]
     # An overridden argument is a different assertion and runs separately.
     override = tight.replace(
-        "    net extra: I2CLine\n",
-        "    net extra: I2CLine\n        checks:\n            pull: std.parallel(min=6000)\n",
+        "  net extra: I2CLine\n",
+        "  net extra: I2CLine\n    checks:\n      pull: std.parallel(min=6000)\n",
     )
     assert pulls(override) == [
         "net:extra:pull",
@@ -175,32 +175,32 @@ board B:""",
 
 OWNER = """import test
 nettype Line extends nettype.passive:
-    checks:
-        limit: test.port_limit(max=0)
+  checks:
+    limit: test.port_limit(max=0)
 component P:
-    pins:
-        1:
-            role: role.passive
-            unused: unused.always
+  pins:
+    1:
+      role: role.passive
+      unused: unused.always
 block Holder:
-    ports:
-        line: Line
-    inst p: P
-        connections:
-            1: line
+  ports:
+    line: Line
+  inst p: P
+    connections:
+      1: line
 board B:
-    net outer: nettype.passive
-    inst holder: Holder
-        connections:
-            line: outer
+  net outer: nettype.passive
+  inst holder: Holder
+    connections:
+      line: outer
 """
 
 PLUGIN = """def register(r):
-    r.net_rule("test.port_limit", limit, parameters={"max": "number"})
-    r.net_rule("test.net_limit", limit, parameters={"max": "number"}, net_only=True)
+  r.net_rule("test.port_limit", limit, parameters={"max": "number"})
+  r.net_rule("test.net_limit", limit, parameters={"max": "number"}, net_only=True)
 def limit(ctx, *, max):
-    if ctx.owner["kind"] == "port" and len(ctx.pins) > max:
-        yield ctx.error("port has too many endpoints")
+  if ctx.owner["kind"] == "port" and len(ctx.pins) > max:
+    yield ctx.error("port has too many endpoints")
 """
 
 
@@ -222,5 +222,5 @@ def test_only_net_only_rules_are_deduplicated(tmp_path, rule, deduplicated):
     assert limits(OWNER) == ["net:holder.line:limit"]
     # The board net uses the type too. An owner-dependent rule keeps the port's
     # application; a net-only rule runs once, on the outer net.
-    shared = OWNER.replace("    net outer: nettype.passive", "    net outer: Line")
+    shared = OWNER.replace("  net outer: nettype.passive", "  net outer: Line")
     assert limits(shared) == ([] if deduplicated else ["net:holder.line:limit"])

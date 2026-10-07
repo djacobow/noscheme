@@ -61,10 +61,10 @@ def test_selectable_roles_are_not_guessed(tmp_path):
         tmp_path,
         source
         + """board B:
-    net n: nettype.digital
-    inst p[2]: P
-        connections:
-            1: n
+  net n: nettype.digital
+  inst p[2]: P
+    connections:
+      1: n
 """,
     )
     assert codes(c) == ["incomplete_roles"]
@@ -84,29 +84,29 @@ def hierarchy(
     return (
         PARTS
         + f"""block W:
-    ports:
-        signal: nettype.{inner_type}
-            role: role.{contract}
-            unused: unused.never
-    inst p: {internal}
-        connections:
-            1: signal
+  ports:
+    signal: nettype.{inner_type}
+      role: role.{contract}
+      unused: unused.never
+  inst p: {internal}
+    connections:
+      1: signal
 block Forward:
-    ports:
-        signal: nettype.{inner_type}
-            role: role.{contract}
-            unused: unused.never
-    inst child: W
-        connections:
-            signal: signal
+  ports:
+    signal: nettype.{inner_type}
+      role: role.{contract}
+      unused: unused.never
+  inst child: W
+    connections:
+      signal: signal
 board B:
-    net n: nettype.{outer_type}
-    inst w: Forward
-        connections:
-            signal: n
-    inst receiver: Receiver
-        connections:
-            1: n
+  net n: nettype.{outer_type}
+  inst w: Forward
+    connections:
+      signal: n
+  inst receiver: Receiver
+    connections:
+      1: n
 """
     )
 
@@ -171,20 +171,20 @@ def test_all_type_constraints_share_one_role_selection(tmp_path):
     ],
 )
 def test_port_connection_contracts_need_an_outside_endpoint(tmp_path, binding, policy, expected):
-    clause = "        connections:\n            " + binding + "\n" if binding else ""
+    clause = "    connections:\n      " + binding + "\n" if binding else ""
     source = (
         component("passive")
         + f"""block W:
-    ports:
-        signal: nettype.passive
-            unused: unused.{policy}
-    inst p[2]: P
-        connections:
-            1: signal
+  ports:
+    signal: nettype.passive
+      unused: unused.{policy}
+  inst p[2]: P
+    connections:
+      1: signal
 board B:
-    net n: nettype.passive
-        placeholder: true
-    inst w: W
+  net n: nettype.passive
+    placeholder: true
+  inst w: W
 {clause}
 """
     )
@@ -197,20 +197,20 @@ def test_explicit_external_port_supplies_real_endpoint_once(tmp_path):
         tmp_path,
         component("digital_input")
         + """block External:
-    ports:
-        signal: nettype.digital
+  ports:
+    signal: nettype.digital
 board B:
-    net n: nettype.digital
-    inst e: External
-        connections:
-            signal: n
-        metadata:
-            pins:
-                signal:
-                    external_role: role.digital_output
-    inst p: P
-        connections:
-            1: n
+  net n: nettype.digital
+  inst e: External
+    connections:
+      signal: n
+    metadata:
+      pins:
+        signal:
+          external_role: role.digital_output
+  inst p: P
+    connections:
+      1: n
 """,
     )
     assert codes(c) == []
@@ -245,23 +245,23 @@ def test_bundle_array_port_contracts_are_checked_per_leaf(tmp_path):
     source = (
         PARTS
         + """bundle Bus:
-    signal: nettype.digital
-        role: role.digital_output
-        unused: unused.never
+  signal: nettype.digital
+    role: role.digital_output
+    unused: unused.never
 block W:
-    ports:
-        bus: Bus[2]
-    inst driver[2]: Driver
-        connections:
-            1: bus[0:2].signal
+  ports:
+    bus: Bus[2]
+  inst driver[2]: Driver
+    connections:
+      1: bus[0:2].signal
 board B:
-    net bus: Bus[2]
-    inst w: W
-        connections:
-            bus: bus
-    inst receiver[2]: Receiver
-        connections:
-            1: bus[0:2].signal
+  net bus: Bus[2]
+  inst w: W
+    connections:
+      bus: bus
+  inst receiver[2]: Receiver
+    connections:
+      1: bus[0:2].signal
 """
     )
     c = compile_source(tmp_path, source)
@@ -279,8 +279,8 @@ def test_unselected_internal_roles_cannot_conceal_definite_contract_violation(tm
 
 def test_port_contract_uncertainty_is_reported_without_inventing_driver(tmp_path):
     source = hierarchy().replace(
-        "role: role.digital_output\n            unused: unused.explicit",
-        "role: [role.digital_output, role.digital_input]\n            unused: unused.explicit",
+        "role: role.digital_output\n      unused: unused.explicit",
+        "role: [role.digital_output, role.digital_input]\n      unused: unused.explicit",
     )
     c = compile_source(tmp_path, source)
     assert codes(c).count("incomplete_port_role") == 2
@@ -295,9 +295,9 @@ def test_port_policies_cannot_be_waived(tmp_path):
             compile_source(
                 tmp_path,
                 f"""board B:
-    net n: nettype.digital
-        waivers:
-            {check}: "Not allowed"
+  net n: nettype.digital
+    waivers:
+      {check}: "Not allowed"
 """,
             )
         assert exc.value.diagnostics[0].code == "metadata.waiver"
@@ -317,7 +317,7 @@ def test_rail_tie_requires_explicit_input_contract_at_every_public_boundary(tmp_
     source = source.replace("inst receiver: Receiver", "inst receiver: Driver")
     source = source.replace("role: role.digital_output", "role: role.ground")
     source = source.replace(
-        "signal: nettype.digital\n            role: role.digital_input",
+        "signal: nettype.digital\n      role: role.digital_input",
         "signal: nettype.digital",
         1,
     )

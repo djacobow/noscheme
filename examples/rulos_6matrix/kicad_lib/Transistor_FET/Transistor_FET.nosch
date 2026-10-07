@@ -1,34 +1,34 @@
 from noscheme import role
 
 component Q_PMOS_GSD:
-    params:
-        value: string = "Q_PMOS_GSD"
-    pins:
-        "1":
-            aliases: ["G"]
-            role: role.digital_input
-            custom:
-                kicad_pin_types: ["input"]
-        "2":
-            aliases: ["S"]
-            role: role.passive
-            custom:
-                kicad_pin_types: ["passive"]
-        "3":
-            aliases: ["D"]
-            role: role.passive
-            custom:
-                kicad_pin_types: ["passive"]
-    metadata:
-        ref_prefix: "Q"
-        custom:
-            kicad_symbol: "Transistor_FET:Q_PMOS_GSD"
-            kicad_duplicate_pin_numbers_are_jumpers: "no"
-            kicad_footprint_candidates: []
-            kicad_properties:
-                "Datasheet": ""
-                "Description": "P-MOSFET transistor, gate/source/drain"
-                "Footprint": ""
-                "Reference": "Q"
-                "Value": "Q_PMOS_GSD"
-                "ki_keywords": "transistor PMOS P-MOS P-MOSFET"
+  params:
+    value: string = "Q_PMOS_GSD"
+  pins:
+    "1":
+      aliases: ["G"]
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "2":
+      aliases: ["S"]
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "3":
+      aliases: ["D"]
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+  metadata:
+    ref_prefix: "Q"
+    custom:
+      kicad_symbol: "Transistor_FET:Q_PMOS_GSD"
+      kicad_duplicate_pin_numbers_are_jumpers: "no"
+      kicad_footprint_candidates: []
+      kicad_properties:
+        "Datasheet": ""
+        "Description": "P-MOSFET transistor, gate/source/drain"
+        "Footprint": ""
+        "Reference": "Q"
+        "Value": "Q_PMOS_GSD"
+        "ki_keywords": "transistor PMOS P-MOS P-MOSFET"

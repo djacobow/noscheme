@@ -3,70 +3,70 @@
 from noscheme import role, nettype, unused
 
 component Header:
-    pins:
-        1..2: [role.passive, unused.never]
-    metadata:
-        ref_prefix: "J"
-        footprint: "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical"
+  pins:
+    1..2: [role.passive, unused.never]
+  metadata:
+    ref_prefix: "J"
+    footprint: "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical"
 
 block Supply:
-    ports:
-        supply: nettype.power
-            unused: unused.never
+  ports:
+    supply: nettype.power
+      unused: unused.never
+  metadata:
+    erc_choices:
+      power_mode: ["source", "load", "absent"]
+  inst connector: Header
+    connections:
+      1: supply
+      2: global.gnd
     metadata:
-        erc_choices:
-            power_mode: ["source", "load", "absent"]
-    inst connector: Header
-        connections:
-            1: supply
-            2: global.gnd
-        metadata:
-            pins:
-                1:
-                    role:
-                        choice: "power_mode"
-                        cases:
-                            source: role.power_output
-                            load: role.power_input
-                            absent: role.passive
-                2: role.ground
+      pins:
+        1:
+          role:
+            choice: "power_mode"
+            cases:
+              source: role.power_output
+              load: role.power_input
+              absent: role.passive
+        2: role.ground
 
 board PowerModes:
+  metadata:
+    erc_choices:
+      power_source: ["usb", "header"]
+    configurations:
+      usb_powered:
+        power_source: "usb"
+      header_powered:
+        power_source: "header"
+  global net gnd: nettype.ground
+  net v5: nettype.power
+  inst usb: Supply
+    connections:
+      supply: v5
     metadata:
-        erc_choices:
-            power_source: ["usb", "header"]
-        configurations:
-            usb_powered:
-                power_source: "usb"
-            header_powered:
-                power_source: "header"
-    global net gnd: nettype.ground
-    net v5: nettype.power
-    inst usb: Supply
-        connections:
-            supply: v5
-        metadata:
-            erc_choices:
-                power_mode:
-                    choice: "power_source"
-                    cases:
-                        usb: "source"
-                        header: "absent"
-    inst expansion: Supply
-        connections:
-            supply: v5
-        metadata:
-            erc_choices:
-                power_mode:
-                    choice: "power_source"
-                    cases:
-                        usb: "load"
-                        header: "source"
-    inst load: Header
-        connections:
-            1: v5
-            2: global.gnd
-        metadata:
-            pins:
-                1: role.power_input
-                2: role.ground
+      erc_choices:
+        power_mode:
+          choice: "power_source"
+          cases:
+            usb: "source"
+            header: "absent"
+  inst expansion: Supply
+    connections:
+      supply: v5
+    metadata:
+      erc_choices:
+        power_mode:
+          choice: "power_source"
+          cases:
+            usb: "load"
+            header: "source"
+  inst load: Header
+    connections:
+      1: v5
+      2: global.gnd
+    metadata:
+      pins:
+        1: role.power_input
+        2: role.ground

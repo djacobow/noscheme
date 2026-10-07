@@ -7,47 +7,47 @@ from test_circuit import compile_source
 
 SOURCE = """from noscheme import bias
 component Contact:
-    pins:
-        1..2: [role.passive, unused.never]
-        3:
+  pins:
+    1..2: [role.passive, unused.never]
+    3:
 component Chip:
-    pins:
-        1: [role.ground, role.power_input]
-        2: role.open_drain
-            capacitance: 5p
+  pins:
+    1: [role.ground, role.power_input]
+    2: role.open_drain
+      capacitance: 5p
 block Port:
-    ports:
-        line: nettype.passive
-    inst contact: Contact
-        connections:
-            1: line
-            2: no_connect
+  ports:
+    line: nettype.passive
+  inst contact: Contact
+    connections:
+      1: line
+      2: no_connect
 board B:
-    net a: nettype.passive
-    net b: nettype.passive
-    inst contact: Contact
-        connections:
-            1: a
-            2: b
-            3: no_connect
-        metadata:
-            pins:
-                1: [role.power_output, bias.none]
-                2: role.ground
-    inst chip: Chip
-        connections:
-            1: b
-            2: a
-        metadata:
-            pins:
-                1: role.ground
-    inst port: Port
-        connections:
-            line: a
-        metadata:
-            pins:
-                line:
-                    external_role: role.digital_input
+  net a: nettype.passive
+  net b: nettype.passive
+  inst contact: Contact
+    connections:
+      1: a
+      2: b
+      3: no_connect
+    metadata:
+      pins:
+        1: [role.power_output, bias.none]
+        2: role.ground
+  inst chip: Chip
+    connections:
+      1: b
+      2: a
+    metadata:
+      pins:
+        1: role.ground
+  inst port: Port
+    connections:
+      line: a
+    metadata:
+      pins:
+        line:
+          external_role: role.digital_input
 """
 
 
@@ -84,19 +84,19 @@ def test_instance_role_selects_or_describes_attached_equipment(tmp_path):
         ("2: role.open_drain\n", "2: 5\n", "builtin role, bias, or unused"),
         ("2: role.open_drain\n", "2: [bias.none, bias.pull_up]\n", "takes one value"),
         (
-            "2: role.open_drain\n            capacitance",
-            "2: role.open_drain\n            role: role.passive\n            capacitance",
+            "2: role.open_drain\n      capacitance",
+            "2: role.open_drain\n      role: role.passive\n      capacitance",
             "already set",
         ),
-        ("                2: role.ground\n", "                2: unused.always\n", "not allowed"),
+        ("        2: role.ground\n", "        2: unused.always\n", "not allowed"),
         (
-            "                1: role.ground\n",
-            "                1: role.passive\n",
+            "        1: role.ground\n",
+            "        1: role.passive\n",
             "permitted roles",
         ),
         (
-            "                2: role.ground\n",
-            "                2:\n                    external_role: role.ground\n",
+            "        2: role.ground\n",
+            "        2:\n          external_role: role.ground\n",
             "write role on a component pin",
         ),
     ],

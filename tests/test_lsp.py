@@ -787,7 +787,7 @@ def test_formatting_protocol_replaces_the_document_or_explains_a_refusal(client,
         "options": {"tabSize": 2, "insertSpaces": True},
     }
     (edit,) = client.request("textDocument/formatting", params)
-    assert edit["newText"] == "board B:\n    net a: T  // é\n"
+    assert edit["newText"] == "board B:\n  net a: T  // é\n"
     assert edit["range"] == {
         "start": {"line": 0, "character": 0},
         "end": {"line": 2, "character": 0},

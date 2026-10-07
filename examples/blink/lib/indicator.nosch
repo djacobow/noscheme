@@ -2,10 +2,10 @@ from noscheme import nettype
 from parts import Resistor, Led
 
 block Indicator:
-    params:
-        resistance: resistance = 1k
-    ports:
-        supply: nettype.power
-    net anode: nettype.passive
-    inst resistor: Resistor(supply, anode, value=resistance)
-    inst led: Led(anode: anode, cathode: global.gnd)
+  params:
+    resistance: resistance = 1k
+  ports:
+    supply: nettype.power
+  net anode: nettype.passive
+  inst resistor: Resistor(supply, anode, value=resistance)
+  inst led: Led(anode: anode, cathode: global.gnd)

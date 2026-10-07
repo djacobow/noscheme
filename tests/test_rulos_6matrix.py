@@ -186,8 +186,8 @@ def test_power_configuration_detects_two_external_sources(tmp_path):
     destination = copy_example(tmp_path)
     main = destination / "main.nosch"
     text = main.read_text()
-    start = text.index("    inst power_header:")
-    end = text.index("    inst logic_regulator:", start)
+    start = text.index("  inst power_header:")
+    end = text.index("  inst logic_regulator:", start)
     header = text[start:end].replace("jack: role.power_input", "jack: role.power_output")
     main.write_text(text[:start] + header + text[end:])
     project, definitions = resolve_project(destination)
@@ -204,8 +204,8 @@ def test_power_configuration_detects_two_external_sources(tmp_path):
     ("old", "new", "code"),
     [
         (
-            '"2": vcc\n        params:\n            value: 2k',
-            '"2": gnd\n        params:\n            value: 2k',
+            '"2": vcc\n    params:\n      value: 2k',
+            '"2": gnd\n    params:\n      value: 2k',
             "erc.bias_reference",
         ),
         ("value: 2k", "value: 1k", "erc.std.parallel"),
@@ -247,29 +247,29 @@ def test_electrical_limits_detect_faults(tmp_path, old, new, code):
         ),
         (
             "main.nosch",
-            "net scl: LocalI2C\n        wiring_capacitance: 50p",
-            "net scl: LocalI2C\n        wiring_capacitance: 500p",
+            "net scl: LocalI2C\n    wiring_capacitance: 50p",
+            "net scl: LocalI2C\n    wiring_capacitance: 500p",
             "erc.std.sum",
             "net:scl:capacitance",
         ),
         (
             "main.nosch",
-            "net sda_hv: BufferedI2C\n        wiring_capacitance: 100p",
-            "net sda_hv: BufferedI2C\n        wiring_capacitance: 5n",
+            "net sda_hv: BufferedI2C\n    wiring_capacitance: 100p",
+            "net sda_hv: BufferedI2C\n    wiring_capacitance: 5n",
             "erc.std.sum",
             "net:sda_hv:capacitance",
         ),
         (
             "components.nosch",
-            "            // Demo allowance at 10V, including bus activity; see README.\n            max_load_current: 20m",
-            "            max_load_current: 600m",
+            "      // Demo allowance at 10V, including bus activity; see README.\n      max_load_current: 20m",
+            "      max_load_current: 600m",
             "erc.current_overload",
             "net:v10:current_overload",
         ),
         (
             "components.nosch",
-            "            // Demo allocation for logic supply, not LED sink current.\n            max_load_current: 20m",
-            "            max_load_current: 300m",
+            "      // Demo allocation for logic supply, not LED sink current.\n      max_load_current: 20m",
+            "      max_load_current: 300m",
             "erc.current_overload",
             "net:vcc:current_overload",
         ),
@@ -296,7 +296,7 @@ def test_quantitative_budget_overloads(tmp_path, filename, old, new, code, appli
 def test_buck_budget_requires_capacity(tmp_path):
     destination = copy_example(tmp_path)
     path = destination / "components.nosch"
-    path.write_text(path.read_text().replace("            max_source_current: 3\n", ""))
+    path.write_text(path.read_text().replace("      max_source_current: 3\n", ""))
     project, definitions = resolve_project(destination)
     circuit, warnings = elaborate_project(project, definitions)
     assert not warnings
@@ -326,26 +326,26 @@ def test_logic_budget_counts_group_once_and_includes_pullups(tmp_path, capacity,
     [
         (
             "main.nosch",
-            "                    capacitance: 1n",
-            "                    capacitance: 2n",
+            "          capacitance: 1n",
+            "          capacitance: 2n",
             "error",
             ("sda_hv", "scl_hv"),
         ),
         (
             "main.nosch",
-            "                    capacitance: 1n\n",
+            "          capacitance: 1n\n",
             "",
             "warning",
             ("sda_hv", "scl_hv"),
         ),
         (
             "components.nosch",
-            "            capacitance: 10p\n    metadata:",
-            "    metadata:",
+            "      capacitance: 10p\n  metadata:",
+            "  metadata:",
             "warning",
             ("sda", "scl"),
         ),
-        ("main.nosch", "        wiring_capacitance: 50p\n", "", "warning", ("sda", "scl")),
+        ("main.nosch", "    wiring_capacitance: 50p\n", "", "warning", ("sda", "scl")),
     ],
 )
 def test_capacitance_budget_contributions(tmp_path, filename, old, new, severity, nets):

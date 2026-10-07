@@ -76,7 +76,7 @@ With KiCad's demos installed:
 ```sh
 kicad-cli sch export netlist --format kicadxml \
   -o /tmp/wren.xml /usr/share/kicad/demos/vme-wren/vme-wren.kicad_sch
-python3 examples/wren/upstream/extract.py /tmp/wren.xml
+uv run --locked python examples/wren/upstream/extract.py /tmp/wren.xml
 ```
 
 Pass `--source DIRECTORY` to select a different demo source directory. The
@@ -125,7 +125,7 @@ Open `examples/wren/full` as the editor project to exercise the larger workload.
 To regenerate all full-board files from the XML export above:
 
 ```sh
-python3 examples/wren/upstream/extract_full.py /tmp/wren.xml
+uv run --locked python examples/wren/upstream/extract_full.py /tmp/wren.xml
 ```
 
 Both extractors accept `--source`; the full importer also accepts `--output`.

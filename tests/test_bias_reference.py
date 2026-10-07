@@ -5,29 +5,29 @@ from test_circuit import compile_source
 
 SOURCE = """from noscheme import bias, std
 component Pull:
-    pins:
-        1:
-            aliases: [reference]
-            role: role.passive
-        2:
-            role: role.passive
-            bias: bias.pull_up
-            checks:
-                reference: std.bias_reference("reference")
+  pins:
+    1:
+      aliases: [reference]
+      role: role.passive
+    2:
+      role: role.passive
+      bias: bias.pull_up
+      checks:
+        reference: std.bias_reference("reference")
 component Driver:
-    pins:
-        1:
-            role: role.open_drain
+  pins:
+    1:
+      role: role.open_drain
 board B:
-    net supply: nettype.power
-    net bus: nettype.open_drain
-    inst pull: Pull
-        connections:
-            1: supply
-            2: bus
-    inst driver: Driver
-        connections:
-            1: bus
+  net supply: nettype.power
+  net bus: nettype.open_drain
+  inst pull: Pull
+    connections:
+      1: supply
+      2: bus
+  inst driver: Driver
+    connections:
+      1: bus
 """
 
 
@@ -66,19 +66,19 @@ def test_invalid_reference_is_source_located(tmp_path, old, new, reason):
 
 def test_no_reference_annotation_retains_existing_behavior(tmp_path):
     source = SOURCE.replace(
-        '            checks:\n                reference: std.bias_reference("reference")\n', ""
+        '      checks:\n        reference: std.bias_reference("reference")\n', ""
     ).replace("nettype.power", "nettype.ground")
     assert not results(tmp_path, source)
 
 
 def test_reference_check_supports_targeted_waiver(tmp_path):
     source = SOURCE.replace("nettype.power", "nettype.ground").replace(
-        "    net bus: nettype.open_drain\n",
-        """    net bus: nettype.open_drain
-        waivers:
-            reference:
-                reason: "Intentional test arrangement"
-                pins: ["pull.2"]
+        "  net bus: nettype.open_drain\n",
+        """  net bus: nettype.open_drain
+    waivers:
+      reference:
+        reason: "Intentional test arrangement"
+        pins: ["pull.2"]
 """,
     )
     assert not results(tmp_path, source)

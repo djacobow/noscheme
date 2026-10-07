@@ -42,7 +42,7 @@ def test_exact_pins_ambiguous_alias_and_inheritance(tmp_path):
     (tmp_path / "noscheme.toml").write_text(
         'language_version="0.1"\nboard="main.B"\nsource_paths=["."]\nlibrary_paths=["converted"]\noutput_dir="build"\n'
     )
-    (tmp_path / "main.nosch").write_text("from Test import Child\nboard B:\n    inst c: Child()\n")
+    (tmp_path / "main.nosch").write_text("from Test import Child\nboard B:\n  inst c: Child()\n")
     d = resolve_project(tmp_path)[1]["Test", "Child"]
     assert set(d.interface) == {"01", "1", "2"}
     assert d.aliases["A"] == "01" and "GND" not in d.aliases
@@ -187,7 +187,7 @@ def test_filter_candidates_saved_and_completed_offline(tmp_path):
         'language_version="0.1"\nboard="main.B"\nsource_paths=["."]\nlibrary_paths=["converted"]\noutput_dir="build"\n'
     )
     path = tmp_path / "main.nosch"
-    text = 'from Parts import Part\nboard B:\n    inst p: Part\n        metadata:\n            footprint: "'
+    text = 'from Parts import Part\nboard B:\n  inst p: Part\n    metadata:\n      footprint: "'
     choices = completion_items(path, tmp_path, {path: text}, len(text))
     assert [s.label for s in choices] == ["Test:Z", "Test:R2", "Test:R_2"]
 

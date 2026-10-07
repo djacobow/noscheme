@@ -9,7 +9,7 @@ from noscheme.resolve import resolve_project
 from noscheme.project import load_project
 
 
-def make(tmp_path, declarations="", board="board B:\n    net n: nettype.passive\n"):
+def make(tmp_path, declarations="", board="board B:\n  net n: nettype.passive\n"):
     (tmp_path / "noscheme.toml").write_text(
         'language_version = "0.1"\nboard = "main.B"\nsource_paths = ["."]\nlibrary_paths = []\noutput_dir = "build"\n'
     )
@@ -26,7 +26,7 @@ def evaluator(tmp_path):
 
 def expression(text):
     return (
-        parse("component C:\n    params:\n        x: number = " + text + "\n")
+        parse("component C:\n  params:\n    x: number = " + text + "\n")
         .items[0]
         .body[0]
         .entries[0]
@@ -196,17 +196,17 @@ def test_binding_order_forwarding_and_override(tmp_path):
     p = make(
         tmp_path,
         """component C:
-    params:
-        a: number = b * 2
-        b: number = 3
-        label: string = "{0}".format(a)
-    metadata:
-        value: label
+  params:
+    a: number = b * 2
+    b: number = 3
+    label: string = "{0}".format(a)
+  metadata:
+    value: label
 """,
         """board B:
-    inst c: C
-        params:
-            b: 4
+  inst c: C
+    params:
+      b: 4
 """,
     )
     report, warnings = evaluate_project(*resolve_project(p))
@@ -222,14 +222,14 @@ def test_binding_order_forwarding_and_override(tmp_path):
         ("x: number", "", "parameter.required"),
         ("x: number", 'x: "bad"', "parameter.type"),
         ("x: string = 3", "", "parameter.type"),
-        ("x: number = y\n        y: number = x", "", "parameter.cycle"),
+        ("x: number = y\n    y: number = x", "", "parameter.cycle"),
     ],
 )
 def test_binding_errors(tmp_path, params, args, code):
-    body = "board B:\n    inst c: C\n"
+    body = "board B:\n  inst c: C\n"
     if args:
-        body += "        params:\n            " + args + "\n"
-    p = make(tmp_path, "component C:\n    params:\n        " + params + "\n", body)
+        body += "    params:\n      " + args + "\n"
+    p = make(tmp_path, "component C:\n  params:\n    " + params + "\n", body)
     with pytest.raises(DiagnosticError) as exc:
         evaluate_project(*resolve_project(p))
     assert exc.value.diagnostics[0].code == code
@@ -239,8 +239,8 @@ def test_binding_errors(tmp_path, params, args, code):
 def test_override_does_not_evaluate_bad_default(tmp_path):
     p = make(
         tmp_path,
-        "component C:\n    params:\n        x: number = 1 / 0\n",
-        "board B:\n    inst c: C\n        params:\n            x: 2\n",
+        "component C:\n  params:\n    x: number = 1 / 0\n",
+        "board B:\n  inst c: C\n    params:\n      x: 2\n",
     )
     assert (
         evaluate_project(*resolve_project(p))[0]["instances"][1]["parameters"]["x"]["value"] == "2"
@@ -275,18 +275,18 @@ def test_instance_value_override_uses_caller_scope(tmp_path):
     p = make(
         tmp_path,
         """component C:
-    params:
-        x: string = "child"
-    metadata:
-        value: 1 / 0
+  params:
+    x: string = "child"
+  metadata:
+    value: 1 / 0
 block Wrapper:
-    params:
-        x: string = "caller"
-    inst c: C
-        metadata:
-            value: x
+  params:
+    x: string = "caller"
+  inst c: C
+    metadata:
+      value: x
 """,
-        "board B:\n    inst w: Wrapper()\n",
+        "board B:\n  inst w: Wrapper()\n",
     )
     report, _ = evaluate_project(*resolve_project(p))
     child = report["instances"][-1]
@@ -297,13 +297,13 @@ block Wrapper:
 def test_inherited_defaults_evaluate_in_origin_module(tmp_path):
     p = make(
         tmp_path,
-        'from lib import C\ncomponent D extends C:\n    metadata:\n        custom:\n            note: "child"\n',
-        "board B:\n    inst d: D()\n",
+        'from lib import C\ncomponent D extends C:\n  metadata:\n    custom:\n      note: "child"\n',
+        "board B:\n  inst d: D()\n",
     )
     (p / "main.nosch").write_text(
         (p / "main.nosch").read_text().replace("num, f, nettype", "nettype")
     )
-    (p / "lib.nosch").write_text("component C:\n    params:\n        value: capacitance = 10n\n")
+    (p / "lib.nosch").write_text("component C:\n  params:\n    value: capacitance = 10n\n")
     report, _ = evaluate_project(*resolve_project(p))
     assert report["instances"][1]["values"]["value"]["value"] == "10nF"
 
@@ -313,8 +313,8 @@ def test_cli_warnings_are_nonblocking(tmp_path, capsys):
 
     p = make(
         tmp_path,
-        "component C:\n    params:\n        x: number = 1\n",
-        "board B:\n    inst c[2.0]: C()\n",
+        "component C:\n  params:\n    x: number = 1\n",
+        "board B:\n  inst c[2.0]: C()\n",
     )
     assert main(["evaluate", "--project", str(p), "--diagnostics", "json"]) == 0
     result = capsys.readouterr()
@@ -327,8 +327,8 @@ def test_cli_warnings_are_nonblocking(tmp_path, capsys):
 def test_connection_index_evaluation_and_warning(tmp_path):
     p = make(
         tmp_path,
-        'component C:\n    pins:\n        1:\n            custom:\n                note: "pin"\n',
-        "board B:\n    net n: nettype.passive[4]\n    inst c: C\n        connections:\n            1: n[3.0]\n",
+        'component C:\n  pins:\n    1:\n      custom:\n        note: "pin"\n',
+        "board B:\n  net n: nettype.passive[4]\n  inst c: C\n    connections:\n      1: n[3.0]\n",
     )
     report, warnings = evaluate_project(*resolve_project(p))
     assert report["instances"][0]["connection_selections"]["c"][0]["start"] == 3
@@ -338,8 +338,8 @@ def test_connection_index_evaluation_and_warning(tmp_path):
 def test_recursive_instantiation_reports_error(tmp_path):
     p = make(
         tmp_path,
-        "block Recursive:\n    inst child: Recursive()\n",
-        "board B:\n    inst r: Recursive()\n",
+        "block Recursive:\n  inst child: Recursive()\n",
+        "board B:\n  inst r: Recursive()\n",
     )
     with pytest.raises(DiagnosticError) as exc:
         evaluate_project(*resolve_project(p))

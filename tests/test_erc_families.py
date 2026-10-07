@@ -6,14 +6,14 @@ from noscheme import erc_connections, erc_current, erc_ports, erc_compatibility,
 from test_circuit import compile_source
 
 SOURCE = """component Output:
-    pins:
-        1:
-            role: role.digital_output
+  pins:
+    1:
+      role: role.digital_output
 board B:
-    net bus: nettype.digital
-    inst outputs[2]: Output
-        connections:
-            1: bus
+  net bus: nettype.digital
+  inst outputs[2]: Output
+    connections:
+      1: bus
 """
 
 

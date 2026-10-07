@@ -10,14 +10,14 @@ def design(pins='["p[0].1"]'):
     return (
         component("power_input")
         + f"""board B:
-    net gnd: nettype.ground
-        waivers:
-            incompatible_role:
-                reason: "Ground the disabled power domain."
-                pins: {pins}
-    inst p[2]: P
-        connections:
-            1: gnd
+  net gnd: nettype.ground
+    waivers:
+      incompatible_role:
+        reason: "Ground the disabled power domain."
+        pins: {pins}
+  inst p[2]: P
+    connections:
+      1: gnd
 """
     )
 
@@ -53,7 +53,7 @@ def test_malformed_target_lists_fail_validation(tmp_path, pins):
 
 def test_targeted_waiver_is_relative_to_each_block_instance(tmp_path):
     source = design('["p[0].1", "p[1].1"]').replace("board B:", "block W:")
-    source += "board B:\n    inst w[2]: W()\n"
+    source += "board B:\n  inst w[2]: W()\n"
     circuit = compile_source(tmp_path, source)
     assert apply_erc(circuit) == ()
     assert [w["pins"] for w in circuit["erc"]["waivers"]] == [
@@ -73,17 +73,17 @@ def test_ambiguous_power_role_is_not_selected_by_ground_connection(tmp_path):
 def test_selected_ground_role_is_allowed(tmp_path):
     source = design().replace("role: role.power_input", "role: [role.power_input, role.ground]")
     # The instance is last in the design, so a new section can follow it.
-    source += "        metadata:\n            pins:\n                1: role.ground\n"
+    source += "    metadata:\n      pins:\n        1: role.ground\n"
     assert apply_erc(compile_source(tmp_path, source)) == ()
 
 
 def test_target_must_be_connected_to_the_waived_net(tmp_path):
     source = (
         design('["other.1"]')
-        + """    net other_net: nettype.passive
-    inst other[2]: P
-        connections:
-            1: other_net
+        + """  net other_net: nettype.passive
+  inst other[2]: P
+    connections:
+      1: other_net
 """
     )
     source = source.replace('["other.1"]', '["other[0].1"]')
@@ -107,20 +107,20 @@ def test_targeted_waiver_on_inner_port_still_has_invalid_scope(tmp_path):
     source = (
         component("power_input")
         + """block W:
-    ports:
-        supply: nettype.ground
-            waivers:
-                incompatible_role:
-                    reason: "Disabled domain"
-                    pins: ["p.1"]
-    inst p: P
-        connections:
-            1: supply
+  ports:
+    supply: nettype.ground
+      waivers:
+        incompatible_role:
+          reason: "Disabled domain"
+          pins: ["p.1"]
+  inst p: P
+    connections:
+      1: supply
 board B:
-    net gnd: nettype.ground
-    inst w[2]: W
-        connections:
-            supply: gnd
+  net gnd: nettype.ground
+  inst w[2]: W
+    connections:
+      supply: gnd
 """
     )
     diagnostics = apply_erc(compile_source(tmp_path, source))

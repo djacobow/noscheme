@@ -10,7 +10,7 @@ from noscheme.cli import main
 
 
 PRELUDE = "from noscheme import role, unused, nettype, num\n"
-BOARD = "\nboard B:\n    net n: nettype.passive\n"
+BOARD = "\nboard B:\n  net n: nettype.passive\n"
 
 
 def make_project(tmp_path, text, libraries=None):
@@ -31,30 +31,30 @@ def test_inheritance_merge_alias_replacement_and_defaults(tmp_path):
     definitions = resolve(
         tmp_path,
         """component Child extends Base:
-    defaults:
-        value: "2kOhm"
-    pins:
-        01:
-            aliases: [new]
-            unused: unused.always
-    metadata:
-        custom:
-            nested:
-                changed: "child"
+  defaults:
+    value: "2kOhm"
+  pins:
+    01:
+      aliases: [new]
+      unused: unused.always
+  metadata:
+    custom:
+      nested:
+        changed: "child"
 component Base:
-    params:
-        value: string = "1k"
-    pins:
-        01:
-            aliases: [old]
-            unused: unused.never
-        1:
-            role: role.passive
-    metadata:
-        custom:
-            nested:
-                retained: 1
-                changed: "base"
+  params:
+    value: string = "1k"
+  pins:
+    01:
+      aliases: [old]
+      unused: unused.never
+    1:
+      role: role.passive
+  metadata:
+    custom:
+      nested:
+        retained: 1
+        changed: "base"
 """,
     )
     parent, child = definitions["main", "Base"], definitions["main", "Child"]
@@ -73,26 +73,26 @@ def test_inherited_body_and_default_keep_original_module(tmp_path):
     p = make_project(
         tmp_path,
         PRELUDE
-        + 'from library import Base\nblock Child extends Base:\n    metadata:\n        custom:\n            note: "child"\n'
+        + 'from library import Base\nblock Child extends Base:\n  metadata:\n    custom:\n      note: "child"\n'
         + BOARD,
         {
             "library": PRELUDE
             + """component R:
-    params:
-        value: string
-    pins:
-        1:
-            role: role.passive
+  params:
+    value: string
+  pins:
+    1:
+      role: role.passive
 block Base:
+  params:
+    value: string = "10Ohm"
+  ports:
+    a: nettype.passive
+  inst r: R
+    connections:
+      1: a
     params:
-        value: string = "10Ohm"
-    ports:
-        a: nettype.passive
-    inst r: R
-        connections:
-            1: a
-        params:
-            value: value
+      value: value
 """
         },
     )
@@ -107,48 +107,48 @@ block Base:
     "text,code",
     [
         (
-            "component C extends Missing:\n    metadata:\n        custom:\n            a: 1\n",
+            "component C extends Missing:\n  metadata:\n    custom:\n      a: 1\n",
             "resolve.missing-definition",
         ),
         (
-            "component A extends Z:\n    metadata:\n        custom:\n            a: 1\ncomponent Z extends A:\n    metadata:\n        custom:\n            b: 1\n",
+            "component A extends Z:\n  metadata:\n    custom:\n      a: 1\ncomponent Z extends A:\n  metadata:\n    custom:\n      b: 1\n",
             "resolve.inheritance-cycle",
         ),
-        ("component C:\n    params:\n        x: quantity\n", "resolve.parameter-type"),
+        ("component C:\n  params:\n    x: quantity\n", "resolve.parameter-type"),
         (
-            "component C:\n    pins:\n        01..02:\n            role: role.passive\n",
+            "component C:\n  pins:\n    01..02:\n      role: role.passive\n",
             "resolve.pin-range",
         ),
         (
-            "component C:\n    pins:\n        1..2:\n            role: role.passive\n        2:\n            role: role.passive\n",
+            "component C:\n  pins:\n    1..2:\n      role: role.passive\n    2:\n      role: role.passive\n",
             "resolve.duplicate-pin",
         ),
         (
-            "component C:\n    pins:\n        1:\n            aliases: [other]\n        2:\n            aliases: [other]\n",
+            "component C:\n  pins:\n    1:\n      aliases: [other]\n    2:\n      aliases: [other]\n",
             "resolve.alias",
         ),
         (
-            'component C:\n    pins:\n        1:\n            aliases: ["2"]\n        2:\n            role: role.passive\n',
+            'component C:\n  pins:\n    1:\n      aliases: ["2"]\n    2:\n      role: role.passive\n',
             "resolve.alias",
         ),
-        ("component C:\n    metadata:\n        typo: 1\n", "metadata.unknown"),
-        ("component C:\n    metadata:\n        footprint: 5\n", "metadata.value"),
-        ("component C:\n    pins:\n        1:\n            role: passive\n", "metadata.enum"),
-        ("component C:\n    pins:\n        1:\n            role: role.typo\n", "metadata.enum"),
+        ("component C:\n  metadata:\n    typo: 1\n", "metadata.unknown"),
+        ("component C:\n  metadata:\n    footprint: 5\n", "metadata.value"),
+        ("component C:\n  pins:\n    1:\n      role: passive\n", "metadata.enum"),
+        ("component C:\n  pins:\n    1:\n      role: role.typo\n", "metadata.enum"),
         (
-            "component C:\n    pins:\n        1:\n            max_load_current: -1m\n",
+            "component C:\n  pins:\n    1:\n      max_load_current: -1m\n",
             "metadata.value",
         ),
-        ("block C:\n    ports:\n        a: Missing\n", "resolve.missing-definition"),
-        ("block C:\n    ports:\n        a: nettype.typo\n", "metadata.enum"),
+        ("block C:\n  ports:\n    a: Missing\n", "resolve.missing-definition"),
+        ("block C:\n  ports:\n    a: nettype.typo\n", "metadata.enum"),
         (
-            'component C:\n    metadata:\n        waivers:\n            x: "reason"\n',
+            'component C:\n  metadata:\n    waivers:\n      x: "reason"\n',
             "metadata.unknown",
         ),
-        ("component C:\n    params:\n        value: string = missing\n", "resolve.expression-name"),
-        ("component C:\n    params:\n        value: string = num.typo(10)\n", "resolve.helper"),
+        ("component C:\n  params:\n    value: string = missing\n", "resolve.expression-name"),
+        ("component C:\n  params:\n    value: string = num.typo(10)\n", "resolve.helper"),
         (
-            'component C:\n    params:\n        value: string = "x".__class__\n',
+            'component C:\n  params:\n    value: string = "x".__class__\n',
             "resolve.expression",
         ),
     ],
@@ -162,63 +162,63 @@ def test_definition_errors(tmp_path, text, code):
 @pytest.mark.parametrize(
     "override,code",
     [
-        ("pins:\n        2:\n            role: role.passive", "resolve.specialization"),
-        ("defaults:\n        other: 1", "resolve.default"),
-        ('pins:\n        1:\n            aliases: ["2"]', "resolve.alias"),
+        ("pins:\n    2:\n      role: role.passive", "resolve.specialization"),
+        ("defaults:\n    other: 1", "resolve.default"),
+        ('pins:\n    1:\n      aliases: ["2"]', "resolve.alias"),
     ],
 )
 def test_invalid_specialization(tmp_path, override, code):
-    base = "component Base:\n    pins:\n        1..2:\n            role: role.passive\n"
+    base = "component Base:\n  pins:\n    1..2:\n      role: role.passive\n"
     # The added-pin case must actually introduce a new pin.
     if code == "resolve.specialization":
         override = override.replace("2:", "3:")
     with pytest.raises(DiagnosticError) as exc:
-        resolve(tmp_path, base + "component Child extends Base:\n    " + override + "\n")
+        resolve(tmp_path, base + "component Child extends Base:\n  " + override + "\n")
     assert exc.value.diagnostics[0].code == code
 
 
 BASE = """component C:
-    pins:
-        1:
-            aliases: [A]
-            role: [role.digital_input, role.passive]
-            unused: unused.never
+  pins:
+    1:
+      aliases: [A]
+      role: [role.digital_input, role.passive]
+      unused: unused.never
 block Hidden:
-    ports:
-        public: nettype.passive
-            placeholder: true
-    net private: nettype.passive
+  ports:
+    public: nettype.passive
+      placeholder: true
+  net private: nettype.passive
 """
 
 
 @pytest.mark.parametrize(
     "instance,code",
     [
-        ("inst c: C\n        connections:\n            9: n", "resolve.private"),
-        ("inst h: Hidden\n        connections:\n            private: n", "resolve.private"),
-        ("inst c: C\n        connections:\n            1: missing", "resolve.net"),
+        ("inst c: C\n    connections:\n      9: n", "resolve.private"),
+        ("inst h: Hidden\n    connections:\n      private: n", "resolve.private"),
+        ("inst c: C\n    connections:\n      1: missing", "resolve.net"),
         (
-            "inst c: C\n        connections:\n            1: h.private\n    inst h: Hidden()",
+            "inst c: C\n    connections:\n      1: h.private\n  inst h: Hidden()",
             "resolve.net",
         ),
         (
-            "inst c: C\n        metadata:\n            pins:\n                1:\n                    unused: unused.always",
+            "inst c: C\n    metadata:\n      pins:\n        1:\n          unused: unused.always",
             "metadata.unknown",
         ),
         (
-            "inst c: C\n        metadata:\n            pins:\n                1:\n                    role: role.digital_output",
+            "inst c: C\n    metadata:\n      pins:\n        1:\n          role: role.digital_output",
             "metadata.constraint",
         ),
         (
-            "inst c: C\n        metadata:\n            pins:\n                1:\n                    role: role.passive\n                A:\n                    role: role.passive",
+            "inst c: C\n    metadata:\n      pins:\n        1:\n          role: role.passive\n        A:\n          role: role.passive",
             "resolve.duplicate-pin",
         ),
-        ("inst c: C\n        params:\n            extra: 1", "resolve.argument"),
+        ("inst c: C\n    params:\n      extra: 1", "resolve.argument"),
     ],
 )
 def test_instance_privacy_and_constraints(tmp_path, instance, code):
     with pytest.raises(DiagnosticError) as exc:
-        resolve_project(make_project(tmp_path, PRELUDE + BASE + BOARD + "    " + instance + "\n"))
+        resolve_project(make_project(tmp_path, PRELUDE + BASE + BOARD + "  " + instance + "\n"))
     assert exc.value.diagnostics[0].code == code
 
 
@@ -229,13 +229,13 @@ def test_valid_role_selection_and_global_deferred(tmp_path):
             PRELUDE
             + BASE
             + BOARD
-            + """    inst c: C
-        connections:
-            A: global.gnd
-        metadata:
-            pins:
-                1:
-                    role: role.digital_input
+            + """  inst c: C
+    connections:
+      A: global.gnd
+    metadata:
+      pins:
+        1:
+          role: role.digital_input
 """,
         )
     )
@@ -245,16 +245,16 @@ def test_bundles_and_nested_public_field_selection(tmp_path):
     definitions = resolve(
         tmp_path,
         """bundle Bus:
-    data: nettype.digital[4]
+  data: nettype.digital[4]
 block Wrapper:
-    ports:
-        bus: Bus
-            placeholder: true
+  ports:
+    bus: Bus
+      placeholder: true
 block Use:
-    net n: Bus
-    inst w: Wrapper
-        connections:
-            bus.data: n.data
+  net n: Bus
+  inst w: Wrapper
+    connections:
+      bus.data: n.data
 """,
     )
     assert definitions["main", "Bus"].interface["data"].type
@@ -278,9 +278,7 @@ def test_cli_resolve_is_explicit_about_remaining_stages(tmp_path, capsys):
     assert result["stage"] == "definition-resolution"
     assert "expression-evaluation" in result["remaining_stages"]
     (p / "main.nosch").write_text(
-        PRELUDE
-        + "component C extends Missing:\n    metadata:\n        custom:\n            a: 1\n"
-        + BOARD
+        PRELUDE + "component C extends Missing:\n  metadata:\n    custom:\n      a: 1\n" + BOARD
     )
     assert main(["resolve", "--project", str(p), "--diagnostics", "json"]) == 1
     assert (
@@ -290,9 +288,9 @@ def test_cli_resolve_is_explicit_about_remaining_stages(tmp_path, capsys):
 
 
 def test_no_inheritance_depth_limit(tmp_path):
-    source = "component C0:\n    metadata:\n        custom:\n            x: 0\n"
+    source = "component C0:\n  metadata:\n    custom:\n      x: 0\n"
     source += "".join(
-        f"component C{i} extends C{i - 1}:\n    metadata:\n        custom:\n            x: {i}\n"
+        f"component C{i} extends C{i - 1}:\n  metadata:\n    custom:\n      x: {i}\n"
         for i in range(1, 1050)
     )
     definitions = resolve(tmp_path, source)
@@ -302,7 +300,7 @@ def test_no_inheritance_depth_limit(tmp_path):
 def test_unimported_metadata_namespace(tmp_path):
     p = make_project(
         tmp_path,
-        "component C:\n    pins:\n        1:\n            role: role.passive\nboard B:\n    metadata:\n        custom:\n            x: 1\n",
+        "component C:\n  pins:\n    1:\n      role: role.passive\nboard B:\n  metadata:\n    custom:\n      x: 1\n",
     )
     with pytest.raises(DiagnosticError) as exc:
         resolve_project(p)
@@ -311,14 +309,14 @@ def test_unimported_metadata_namespace(tmp_path):
 
 def test_recursive_bundle(tmp_path):
     with pytest.raises(DiagnosticError) as exc:
-        resolve(tmp_path, "bundle Bus:\n    nested: Bus\n")
+        resolve(tmp_path, "bundle Bus:\n  nested: Bus\n")
     assert exc.value.diagnostics[0].code == "resolve.bundle-cycle"
 
 
 def test_custom_nested_values_and_dnp_are_not_electrical_behavior(tmp_path):
     definitions = resolve(
         tmp_path,
-        'component C:\n    metadata:\n        custom:\n            dnp: true\n            tags: ["test", 3]\n',
+        'component C:\n  metadata:\n    custom:\n      dnp: true\n      tags: ["test", 3]\n',
     )
     custom = definitions["main", "C"].metadata["custom"].value
     assert custom["dnp"].value is True
@@ -328,9 +326,7 @@ def test_custom_nested_values_and_dnp_are_not_electrical_behavior(tmp_path):
 def test_expansion_limit_is_configurable(tmp_path):
     p = make_project(
         tmp_path,
-        PRELUDE
-        + "component C:\n    pins:\n        1..4:\n            role: role.passive\n"
-        + BOARD,
+        PRELUDE + "component C:\n  pins:\n    1..4:\n      role: role.passive\n" + BOARD,
     )
     with pytest.raises(DiagnosticError) as exc:
         Resolver(load_project(p), max_pins=3).resolve_all()

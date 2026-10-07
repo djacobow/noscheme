@@ -8,35 +8,35 @@ from test_resolve import make_project
 
 LIBRARY = """from noscheme import nettype
 bundle SPI:
-    sck: nettype.digital
-    mosi: nettype.digital
+  sck: nettype.digital
+  mosi: nettype.digital
 bundle Buses:
-    sd: SPI[2]
+  sd: SPI[2]
 block Peripheral:
-    ports:
-        bus: Buses
-    net secret: SPI
+  ports:
+    bus: Buses
+  net secret: SPI
 block Specialized extends Peripheral:
-    metadata:
-        custom:
-            note: "inherited"
+  metadata:
+    custom:
+      note: "inherited"
 """
 
 PREFIX = """import interfaces
 from noscheme import nettype
 board B:
-    global net shared: interfaces.Buses
-    net local: interfaces.Buses[2]
-    net scalar: nettype.digital
-    inst p[2]: interfaces.Specialized
-        connections:
+  global net shared: interfaces.Buses
+  net local: interfaces.Buses[2]
+  net scalar: nettype.digital
+  inst p[2]: interfaces.Specialized
+    connections:
 """
 
 
 def complete(tmp_path, line, suffix=""):
     make_project(tmp_path, PREFIX, {"interfaces": LIBRARY})
     path = tmp_path / "main.nosch"
-    source = PREFIX + "            " + line
+    source = PREFIX + "      " + line
     offset = source.index("|")
     source = source.replace("|", "") + suffix
     return source, completion_items(path, tmp_path, {path: source}, offset)
@@ -85,9 +85,9 @@ def test_no_private_scalar_implicit_global_or_comment_members(tmp_path, line):
 def test_unsaved_imported_bundle_and_later_definition(tmp_path):
     make_project(tmp_path, PREFIX, {"interfaces": LIBRARY})
     path = tmp_path / "main.nosch"
-    source = PREFIX + "            bus.sd[0]."
+    source = PREFIX + "      bus.sd[0]."
     offset = len(source)
-    source += '\ncomponent Later:\n    metadata:\n        ref_prefix: "R"\n'
+    source += '\ncomponent Later:\n  metadata:\n    ref_prefix: "R"\n'
     buffers = {path: source, tmp_path / "interfaces.nosch": LIBRARY.replace("mosi:", "data#:")}
     assert {item.label for item in completion_items(path, tmp_path, buffers, offset)} == {
         "sck",
@@ -96,7 +96,7 @@ def test_unsaved_imported_bundle_and_later_definition(tmp_path):
 
 
 def test_navigation_and_hover_for_nested_members_on_both_sides(tmp_path):
-    source = PREFIX + "            [0].bus.sd[0].sck: global.shared.sd[0].sck\n"
+    source = PREFIX + "      [0].bus.sd[0].sck: global.shared.sd[0].sck\n"
     make_project(tmp_path, source, {"interfaces": LIBRARY})
     path = tmp_path / "main.nosch"
     result = analyze(path, tmp_path, {path: source})
@@ -119,13 +119,13 @@ def test_navigation_and_hover_for_nested_members_on_both_sides(tmp_path):
 def test_completion_on_block_public_bundle_port(tmp_path):
     source = """import interfaces
 block Local:
-    ports:
-        signals: interfaces.Buses
-    inst p: interfaces.Peripheral
-        connections:
-            bus.sd[0].sck: signals.sd[1].
+  ports:
+    signals: interfaces.Buses
+  inst p: interfaces.Peripheral
+    connections:
+      bus.sd[0].sck: signals.sd[1].
 """
-    source += "board B:\n    inst b: Local()\n"
+    source += "board B:\n  inst b: Local()\n"
     make_project(tmp_path, source, {"interfaces": LIBRARY})
     path = tmp_path / "main.nosch"
     offset = source.index("signals.sd[1].") + len("signals.sd[1].")

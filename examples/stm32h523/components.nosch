@@ -6,139 +6,139 @@ import Device
 // KiCad supplies pins, passive roles, reference prefix, and footprint hints.
 // Require connected pins; each instance or specialization supplies its value.
 component Resistor extends Device.R:
-    pins:
-        1..2: unused.never
+  pins:
+    1..2: unused.never
 
 component Resistor0603 extends Resistor:
-    metadata:
-        footprint: "Resistor_SMD:R_0603_1608Metric"
+  metadata:
+    footprint: "Resistor_SMD:R_0603_1608Metric"
 
 // Values are starting points for discussion, not selected from a power budget.
 component LedResistor extends Resistor0603:
-    defaults:
-        value: 1k
+  defaults:
+    value: 1k
 
 component I2CPullup extends Resistor0603:
-    pins:
-        2:
-            bias: bias.pull_up
-            pull_resistance: value
-            checks:
-                reference: std.bias_reference("1")
-    defaults:
-        value: 4.7k
-    metadata:
-        // The pull-up side is pin 2, so the pins are no longer interchangeable.
-        interchangeable: []
+  pins:
+    2:
+      bias: bias.pull_up
+      pull_resistance: value
+      checks:
+        reference: std.bias_reference("1")
+  defaults:
+    value: 4.7k
+  metadata:
+    // The pull-up side is pin 2, so the pins are no longer interchangeable.
+    interchangeable: []
 
 // Provisional values; verify input leakage and timing when selecting the MCU pins.
 component InputBias0603 extends Resistor0603:
-    defaults:
-        value: 10k
+  defaults:
+    value: 10k
 
 component PushButton:
-    pins:
-        1:
-            aliases: [signal]
-            role: role.passive
-            unused: unused.never
-        2:
-            aliases: [ground]
-            role: role.passive
-            unused: unused.never
-    metadata:
-        ref_prefix: "SW"
-        interchangeable: [1, 2]
-        value: "TS18-5-15-SL-260-SMT-TR"
-        // TL3342 matches TS18 lands; each row is one internally common contact.
-        footprint: "Button_Switch_SMD:SW_SPST_TL3342"
+  pins:
+    1:
+      aliases: [signal]
+      role: role.passive
+      unused: unused.never
+    2:
+      aliases: [ground]
+      role: role.passive
+      unused: unused.never
+  metadata:
+    ref_prefix: "SW"
+    interchangeable: [1, 2]
+    value: "TS18-5-15-SL-260-SMT-TR"
+    // TL3342 matches TS18 lands; each row is one internally common contact.
+    footprint: "Button_Switch_SMD:SW_SPST_TL3342"
 
 component Header1x2:
-    pins:
-        1..2: [role.passive, unused.never]
-    metadata:
-        ref_prefix: "J"
-        footprint: "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical_SMD_Pin1Left"
+  pins:
+    1..2: [role.passive, unused.never]
+  metadata:
+    ref_prefix: "J"
+    footprint: "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical_SMD_Pin1Left"
 
 component Led:
-    params:
-        value: string
-    pins:
-        1:
-            aliases: [cathode, K]
-            role: role.passive
-            unused: unused.never
-        2:
-            aliases: [anode, A]
-            role: role.passive
-            unused: unused.never
-    metadata:
-        ref_prefix: "D"
+  params:
+    value: string
+  pins:
+    1:
+      aliases: [cathode, K]
+      role: role.passive
+      unused: unused.never
+    2:
+      aliases: [anode, A]
+      role: role.passive
+      unused: unused.never
+  metadata:
+    ref_prefix: "D"
 
 component GreenLed0603 extends Led:
-    defaults:
-        value: "Green"
-    metadata:
-        footprint: "LED_SMD:LED_0603_1608Metric"
-        // Draft convention: 1 cathode, 2 anode; verify against selected part.
+  defaults:
+    value: "Green"
+  metadata:
+    footprint: "LED_SMD:LED_0603_1608Metric"
+    // Draft convention: 1 cathode, 2 anode; verify against selected part.
 
 block Indicator:
-    params:
-        resistance: resistance = 1k
-    ports:
-        drive: nettype.digital
-    net anode: nettype.passive
+  params:
+    resistance: resistance = 1k
+  ports:
+    drive: nettype.digital
+  net anode: nettype.passive
 
-    inst resistor: LedResistor(drive, anode, value=resistance)
-    inst led: GreenLed0603(cathode: global.gnd, anode: anode)
-    // Global ground must be declared by the containing board.
-    // No signal propagation or current calculation through the resistor.
+  inst resistor: LedResistor(drive, anode, value=resistance)
+  inst led: GreenLed0603(cathode: global.gnd, anode: anode)
+  // Global ground must be declared by the containing board.
+  // No signal propagation or current calculation through the resistor.
 
 component Header1x4:
-    pins:
-        1..4:
-    metadata:
-        ref_prefix: "J"
-        footprint: "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical_SMD_Pin1Left"
+  pins:
+    1..4:
+  metadata:
+    ref_prefix: "J"
+    footprint: "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical_SMD_Pin1Left"
 
 component Header2x10:
-    pins:
-        1..20:
-    metadata:
-        ref_prefix: "J"
-        footprint: "Connector_PinHeader_2.54mm:PinHeader_2x10_P2.54mm_Vertical_SMD"
+  pins:
+    1..20:
+  metadata:
+    ref_prefix: "J"
+    footprint: "Connector_PinHeader_2.54mm:PinHeader_2x10_P2.54mm_Vertical_SMD"
 
 component UartHeaderJST3:
-    pins:
-        MP: [role.do_not_connect, unused.always]
-        1:
-            aliases: [gnd]
-        2:
-            aliases: [tx]
-        3:
-            aliases: [rx]
-    metadata:
-        ref_prefix: "J"
-        custom:
-            connector_family: "JST"
-        footprint: "Connector_JST:JST_XH_S3B-XH-SM4-TB_1x03-1MP_P2.50mm_Horizontal"
+  pins:
+    MP: [role.do_not_connect, unused.always]
+    1:
+      aliases: [gnd]
+    2:
+      aliases: [tx]
+    3:
+      aliases: [rx]
+  metadata:
+    ref_prefix: "J"
+    custom:
+      connector_family: "JST"
+    footprint: "Connector_JST:JST_XH_S3B-XH-SM4-TB_1x03-1MP_P2.50mm_Horizontal"
 
 component Capacitor extends Device.C:
-    pins:
-        1..2: unused.never
+  pins:
+    1..2: unused.never
 
 component Capacitor0603 extends Capacitor:
-    defaults:
-        value: 100n
-    metadata:
-        footprint: "Capacitor_SMD:C_0603_1608Metric"
+  defaults:
+    value: 100n
+  metadata:
+    footprint: "Capacitor_SMD:C_0603_1608Metric"
 
 component CrystalHC49:
-    params:
-        value: string = "8MHz CL18pF"
-    pins:
-        1..2: [role.passive, unused.never]
-    metadata:
-        ref_prefix: "Y"
-        interchangeable: [1, 2]
-        footprint: "Crystal:Crystal_SMD_HC49-SD"
+  params:
+    value: string = "8MHz CL18pF"
+  pins:
+    1..2: [role.passive, unused.never]
+  metadata:
+    ref_prefix: "Y"
+    interchangeable: [1, 2]
+    footprint: "Crystal:Crystal_SMD_HC49-SD"

@@ -7,24 +7,24 @@ from test_circuit import make
 
 SOURCE = """from noscheme import num
 component P:
-    params:
-        value: string = "10k"
-        resistance: number = 10000
-        placeholder: number = 0
-        unused_arg: number = 1
-    pins:
-        1:
-            role: role.passive
-            pull_resistance: resistance
+  params:
+    value: string = "10k"
+    resistance: number = 10000
+    placeholder: number = 0
+    unused_arg: number = 1
+  pins:
+    1:
+      role: role.passive
+      pull_resistance: resistance
 component Specialized extends P:
-    defaults:
-        resistance: 4700
+  defaults:
+    resistance: 4700
 board B:
-    inst p: Specialized
-        connections:
-            1: no_connect
-        params:
-            unused_arg: 2
+  inst p: Specialized
+    connections:
+      1: no_connect
+    params:
+      unused_arg: 2
 """
 
 
@@ -52,16 +52,16 @@ def test_element_expression_and_dimensions_are_uses(tmp_path):
     source = SOURCE.replace(
         "board B:",
         """block Group:
-    params:
-        count: number = 2
-        resistance: number = 3300
-    inst p[count]: P
-        connections:
-            1: no_connect
-        elements:
-            [0]:
-                params:
-                    resistance: resistance
+  params:
+    count: number = 2
+    resistance: number = 3300
+  inst p[count]: P
+    connections:
+      1: no_connect
+    elements:
+      [0]:
+        params:
+          resistance: resistance
 board B:""",
     )
     make(tmp_path, source)

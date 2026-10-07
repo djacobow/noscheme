@@ -5,166 +5,166 @@ from interfaces import SPI, USB2, SWD
 from components import Resistor0603, InputBias0603, Capacitor0603
 
 component UsbCConnector:
-    pins:
-        [A1, A12, A4, A5, A6, A7, A8, A9, B1, B12, B4, B5, B6, B7, B8, B9, SH]: role.passive
-    metadata:
-        ref_prefix: "J"
-        footprint: "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12"
+  pins:
+    [A1, A12, A4, A5, A6, A7, A8, A9, B1, B12, B4, B5, B6, B7, B8, B9, SH]: role.passive
+  metadata:
+    ref_prefix: "J"
+    footprint: "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12"
 
 component TLV1117LV33:
-    pins:
-        "1": role.ground
-        "2": role.power_output
-        "3": role.power_input
-    metadata:
-        value: "TLV1117LV33DCYR"
-        ref_prefix: "U"
-        footprint: "Package_TO_SOT_SMD:SOT-223-3_TabPin2"
+  pins:
+    "1": role.ground
+    "2": role.power_output
+    "3": role.power_input
+  metadata:
+    value: "TLV1117LV33DCYR"
+    ref_prefix: "U"
+    footprint: "Package_TO_SOT_SMD:SOT-223-3_TabPin2"
 
 component MicroSDConnector:
-    pins:
-        [1..10, SH]: role.passive
-    metadata:
-        ref_prefix: "J"
-        footprint: "Connector_Card:microSD_HC_Hirose_DM3AT-SF-PEJM5"
+  pins:
+    [1..10, SH]: role.passive
+  metadata:
+    ref_prefix: "J"
+    footprint: "Connector_Card:microSD_HC_Hirose_DM3AT-SF-PEJM5"
 
 component CortexHeader:
-    pins:
-        1..10: role.passive
-    metadata:
-        ref_prefix: "J"
-        footprint: "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD"
+  pins:
+    1..10: role.passive
+  metadata:
+    ref_prefix: "J"
+    footprint: "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD"
 
 block UsbC:
+  metadata:
+    erc_choices:
+      power_mode: ["source", "absent"]
+  ports:
+    vbus: nettype.power
+    ground: nettype.ground
+    data: USB2
+  net cc: nettype.passive[2]
+  inst connector: UsbCConnector
+    connections:
+      [A1, A12, B1, B12, SH]: ground
+      [A4, A9, B4, B9]: vbus
+      A5: cc[0]
+      [A6, B6]: data.dp
+      [A7, B7]: data.dm
+      [A8, B8]: no_connect
+      B5: cc[1]
     metadata:
-        erc_choices:
-            power_mode: ["source", "absent"]
-    ports:
-        vbus: nettype.power
-        ground: nettype.ground
-        data: USB2
-    net cc: nettype.passive[2]
-    inst connector: UsbCConnector
-        connections:
-            [A1, A12, B1, B12, SH]: ground
-            [A4, A9, B4, B9]: vbus
-            A5: cc[0]
-            [A6, B6]: data.dp
-            [A7, B7]: data.dm
-            [A8, B8]: no_connect
-            B5: cc[1]
-        metadata:
-            pins:
-                A4:
-                    role:
-                        choice: "power_mode"
-                        cases:
-                            source: role.power_output
-                            absent: role.passive
-                [A6, A7]: role.digital_bidirectional
-    inst cc_pulldowns[2]: Resistor0603(cc, ground, value=5.1k)
+      pins:
+        A4:
+          role:
+            choice: "power_mode"
+            cases:
+              source: role.power_output
+              absent: role.passive
+        [A6, A7]: role.digital_bidirectional
+  inst cc_pulldowns[2]: Resistor0603(cc, ground, value=5.1k)
 
 block Ldo3v3:
-    ports:
-        input: nettype.power
-        output: nettype.power
-        ground: nettype.ground
-    inst regulator: TLV1117LV33(1: ground, 2: output, 3: input)
-    inst input_cap: Capacitor0603(input, ground, value=1u)
-    inst output_cap: Capacitor0603(output, ground, value=4.7u)
-    // POC: direct rails, no reverse-feed isolation or automatic power selection.
+  ports:
+    input: nettype.power
+    output: nettype.power
+    ground: nettype.ground
+  inst regulator: TLV1117LV33(1: ground, 2: output, 3: input)
+  inst input_cap: Capacitor0603(input, ground, value=1u)
+  inst output_cap: Capacitor0603(output, ground, value=4.7u)
+  // POC: direct rails, no reverse-feed isolation or automatic power selection.
 
 block MicroSD:
-    ports:
-        supply: nettype.power
-        ground: nettype.ground
-        bus: SPI
-        detect#: nettype.digital
-    net unused_dat: nettype.passive[2]
-    inst socket: MicroSDConnector
-        connections:
-            1: unused_dat[0]
-            2: bus.cs#
-            3: bus.mosi
-            4: supply
-            5: bus.sck
-            [6, 9, SH]: ground
-            7: bus.miso
-            8: unused_dat[1]
-            10: detect#
-        metadata:
-            pins:
-                [2..3, 5]: role.digital_input
-                4: role.power_input
-                6: role.ground
-                7: role.digital_output
-    // DAT1/DAT2 are unused by SPI but each has a physical pull-up to supply.
-    // These passive nets have no resistance budget; their two-terminal wiring
-    // is explicit even though no bias metadata is needed for current checks.
-    inst unused_dat_pullups[2]: InputBias0603(supply, unused_dat)
-    inst cs_pullup: InputBias0603
-        connections:
-            1: supply
-            2: bus.cs#
-        metadata:
-            pins:
-                2:
-                    bias: bias.pull_up
-                    pull_resistance: 10k
-                    checks:
-                        reference: std.bias_reference("1")
-    inst miso_pullup: InputBias0603
-        connections:
-            1: supply
-            2: bus.miso
-        metadata:
-            pins:
-                2:
-                    bias: bias.pull_up
-                    pull_resistance: 10k
-                    checks:
-                        reference: std.bias_reference("1")
-    inst detect_pullup: InputBias0603
-        connections:
-            1: supply
-            2: detect#
-        metadata:
-            pins:
-                2:
-                    bias: bias.pull_up
-                    pull_resistance: 10k
-                    checks:
-                        reference: std.bias_reference("1")
-    inst decouple: Capacitor0603
-        connections:
-            1: supply
-            2: ground
-        params:
-            value: 100n
-        metadata:
-            custom:
-                placement: "Place adjacent to microSD VDD pad."
-    inst bulk: Capacitor0603(supply, ground, value=4.7u)
+  ports:
+    supply: nettype.power
+    ground: nettype.ground
+    bus: SPI
+    detect#: nettype.digital
+  net unused_dat: nettype.passive[2]
+  inst socket: MicroSDConnector
+    connections:
+      1: unused_dat[0]
+      2: bus.cs#
+      3: bus.mosi
+      4: supply
+      5: bus.sck
+      [6, 9, SH]: ground
+      7: bus.miso
+      8: unused_dat[1]
+      10: detect#
+    metadata:
+      pins:
+        [2..3, 5]: role.digital_input
+        4: role.power_input
+        6: role.ground
+        7: role.digital_output
+  // DAT1/DAT2 are unused by SPI but each has a physical pull-up to supply.
+  // These passive nets have no resistance budget; their two-terminal wiring
+  // is explicit even though no bias metadata is needed for current checks.
+  inst unused_dat_pullups[2]: InputBias0603(supply, unused_dat)
+  inst cs_pullup: InputBias0603
+    connections:
+      1: supply
+      2: bus.cs#
+    metadata:
+      pins:
+        2:
+          bias: bias.pull_up
+          pull_resistance: 10k
+          checks:
+            reference: std.bias_reference("1")
+  inst miso_pullup: InputBias0603
+    connections:
+      1: supply
+      2: bus.miso
+    metadata:
+      pins:
+        2:
+          bias: bias.pull_up
+          pull_resistance: 10k
+          checks:
+            reference: std.bias_reference("1")
+  inst detect_pullup: InputBias0603
+    connections:
+      1: supply
+      2: detect#
+    metadata:
+      pins:
+        2:
+          bias: bias.pull_up
+          pull_resistance: 10k
+          checks:
+            reference: std.bias_reference("1")
+  inst decouple: Capacitor0603
+    connections:
+      1: supply
+      2: ground
+    params:
+      value: 100n
+    metadata:
+      custom:
+        placement: "Place adjacent to microSD VDD pad."
+  inst bulk: Capacitor0603(supply, ground, value=4.7u)
 
 block CortexDebug:
-    ports:
-        reference: nettype.power
-        ground: nettype.ground
-        debug: SWD
-    inst header: CortexHeader
-        connections:
-            1: reference
-            2: debug.swdio
-            [3, 5, 9]: ground
-            4: debug.swclk
-            6: debug.swo
-            7..8: no_connect
-            10: debug.reset#
-        metadata:
-            pins:
-                1: role.power_input
-                2: role.digital_bidirectional
-                3: role.ground
-                4: role.digital_output
-                6: role.digital_input
-                10: role.open_drain
+  ports:
+    reference: nettype.power
+    ground: nettype.ground
+    debug: SWD
+  inst header: CortexHeader
+    connections:
+      1: reference
+      2: debug.swdio
+      [3, 5, 9]: ground
+      4: debug.swclk
+      6: debug.swo
+      7..8: no_connect
+      10: debug.reset#
+    metadata:
+      pins:
+        1: role.power_input
+        2: role.digital_bidirectional
+        3: role.ground
+        4: role.digital_output
+        6: role.digital_input
+        10: role.open_drain

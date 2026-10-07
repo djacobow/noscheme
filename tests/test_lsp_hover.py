@@ -10,34 +10,34 @@ from test_resolve import make_project
 
 LIBRARY = """from noscheme import role, unused
 component Resistor:
-    params:
-        value: resistance
-    pins:
-        1:
-            aliases: [terminal]
-            role: role.passive
-            unused: unused.never
-    metadata:
-        ref_prefix: "R"
-        footprint: "Test:0603"
-        custom:
-            kicad_footprint_candidates: ["Test:0603", "Test:0805"]
+  params:
+    value: resistance
+  pins:
+    1:
+      aliases: [terminal]
+      role: role.passive
+      unused: unused.never
+  metadata:
+    ref_prefix: "R"
+    footprint: "Test:0603"
+    custom:
+      kicad_footprint_candidates: ["Test:0603", "Test:0805"]
 component Pullup extends Resistor:
-    defaults:
-        value: 4.7k
+  defaults:
+    value: 4.7k
 """
 
 SOURCE = """import parts
 from noscheme import nettype, role
 board B:
-    net power: nettype.passive
-    inst resistors[2]: parts.Pullup
-        connections:
-            terminal: power
-        params:
-            value: "10kOhm"
-        metadata:
-            footprint: "Test:0805"
+  net power: nettype.passive
+  inst resistors[2]: parts.Pullup
+    connections:
+      terminal: power
+    params:
+      value: "10kOhm"
+    metadata:
+      footprint: "Test:0805"
 """
 
 
@@ -98,9 +98,9 @@ def test_effective_pin_role_is_distinct_from_declared_options(tmp_path):
     source = SOURCE.replace(
         'footprint: "Test:0805"',
         """footprint: "Test:0805"
-            pins:
-                terminal:
-                    role: role.digital_input""",
+      pins:
+        terminal:
+          role: role.digital_input""",
     )
     path, result = setup(tmp_path, source, library)
     text = hover(result, path, source, "terminal:")

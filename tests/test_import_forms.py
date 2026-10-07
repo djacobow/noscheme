@@ -11,21 +11,21 @@ from test_resolve import make_project
 
 LIBRARY = """from noscheme import role, nettype
 component R:
-    params:
-        value: resistance = 1k
-    pins:
-        1:
-            role: role.passive
-    metadata:
-        footprint: "Test:R"
+  params:
+    value: resistance = 1k
+  pins:
+    1:
+      role: role.passive
+  metadata:
+    footprint: "Test:R"
 bundle Bus:
-    signal: nettype.passive
+  signal: nettype.passive
 block Wrapper:
-    ports:
-        bus: Bus
-    inst r: R
-        connections:
-            1: bus.signal
+  ports:
+    bus: Bus
+  inst r: R
+    connections:
+      1: bus.signal
 """
 
 SOURCE = """import Device
@@ -33,27 +33,27 @@ from Device import R as KiCadResistor, Bus as SignalBus
 import noscheme
 from noscheme import num as numbers, unused as unconnected
 component Specialized extends Device.R:
-    pins:
-        1:
-            unused: unconnected.never
-    defaults:
-        value: numbers.int(2.0) * 1k
+  pins:
+    1:
+      unused: unconnected.never
+  defaults:
+    value: numbers.int(2.0) * 1k
 board B:
-    net a: noscheme.nettype.passive
-    net bus: Device.Bus
-    net other: SignalBus
-    inst r: Device.R
-        connections:
-            1: a
-    inst s: Specialized
-        connections:
-            1: a
-    inst alias: KiCadResistor
-        connections:
-            1: a
-    inst wrapper: Device.Wrapper
-        connections:
-            bus: bus
+  net a: noscheme.nettype.passive
+  net bus: Device.Bus
+  net other: SignalBus
+  inst r: Device.R
+    connections:
+      1: a
+  inst s: Specialized
+    connections:
+      1: a
+  inst alias: KiCadResistor
+    connections:
+      1: a
+  inst wrapper: Device.Wrapper
+    connections:
+      bus: bus
 """
 
 
@@ -99,8 +99,8 @@ def test_qualified_completion_and_aliases(tmp_path):
         ("connections", "", {"1"}),
         ("metadata", 'footprint: "', {"Test:R"}),
     ]:
-        source = "import Device\nboard B:\n    inst r: Device.R\n"
-        source += f"        {section}:\n            {field}"
+        source = "import Device\nboard B:\n  inst r: Device.R\n"
+        source += f"    {section}:\n      {field}"
         assert {
             s.label for s in completion_items(path, tmp_path, {path: source}, len(source))
         } == expected
@@ -119,7 +119,7 @@ def test_import_binding_collisions(tmp_path, imports):
     with pytest.raises(DiagnosticError, match="import.duplicate-name"):
         resolve_project(
             make_project(
-                tmp_path, imports + "\nboard B:\n    inst r: Device.R()\n", {"Device": LIBRARY}
+                tmp_path, imports + "\nboard B:\n  inst r: Device.R()\n", {"Device": LIBRARY}
             )
         )
 
@@ -130,7 +130,7 @@ def test_qualified_import_does_not_allow_unqualified_or_private_access(tmp_path)
             resolve_project(
                 make_project(
                     tmp_path,
-                    f"import Device\nboard B:\n    inst r: {name}()\n",
+                    f"import Device\nboard B:\n  inst r: {name}()\n",
                     {"Device": LIBRARY},
                 )
             )
@@ -142,7 +142,7 @@ def test_dotted_module_names_and_sibling_imports(tmp_path):
     (tmp_path / "vendor/b.nosch").write_text(LIBRARY)
     source = (
         "import vendor.a\nimport vendor.b\nboard B:\n"
-        "    inst a: vendor.a.R()\n    inst b: vendor.b.R()\n"
+        "  inst a: vendor.a.R()\n  inst b: vendor.b.R()\n"
     )
     project, definitions = resolve_project(make_project(tmp_path, source))
     assert ("vendor.a", "R") in definitions
@@ -159,14 +159,12 @@ def test_dotted_module_names_and_sibling_imports(tmp_path):
         ("component", "", {"Device.R", "KiCadResistor"}),
     ],
 )
-@pytest.mark.parametrize(
-    "suffix", ["", ":\n    metadata:\n        custom:\n            note: true\n"]
-)
+@pytest.mark.parametrize("suffix", ["", ":\n  metadata:\n    custom:\n      note: true\n"])
 def test_extends_completion_recovers_incomplete_headers(tmp_path, kind, prefix, expected, suffix):
     header = f"{kind} New extends {prefix}"
     source = "import Device\nfrom Device import R as KiCadResistor\n" + header
     offset = len(source)
-    source += suffix + "\nboard B:\n    inst r: Device.R()\n"
+    source += suffix + "\nboard B:\n  inst r: Device.R()\n"
     make_project(tmp_path, source, {"Device": LIBRARY})
     path = tmp_path / "main.nosch"
     choices = completion_items(path, tmp_path, {path: source}, offset)
@@ -178,9 +176,9 @@ def test_extends_completion_recovers_incomplete_headers(tmp_path, kind, prefix, 
 def test_extends_completion_preserves_following_definition_and_replaces_tail(tmp_path):
     source = (
         "import Device\ncomponent New extends Device.R:\n"
-        "    metadata:\n        custom:\n            note: true\n"
-        'component Later:\n    metadata:\n        ref_prefix: "R"\n'
-        "board B:\n    inst r: Later()\n"
+        "  metadata:\n    custom:\n      note: true\n"
+        'component Later:\n  metadata:\n    ref_prefix: "R"\n'
+        "board B:\n  inst r: Later()\n"
     )
     make_project(tmp_path, source, {"Device": LIBRARY})
     path = tmp_path / "main.nosch"

@@ -6,31 +6,31 @@ from test_circuit import compile_source
 
 
 SOURCE = """component Supply:
-    pins:
-        1:
-            role: role.power_output
-            max_source_current: 150m
+  pins:
+    1:
+      role: role.power_output
+      max_source_current: 150m
 component MCU:
-    pins:
-        1:
-            aliases: [vdd]
-            role: role.power_input
-        2:
-            role: role.power_input
-    metadata:
-        current_loads:
-            core:
-                pins: [vdd, "2"]
-                max_load_current: 100m
+  pins:
+    1:
+      aliases: [vdd]
+      role: role.power_input
+    2:
+      role: role.power_input
+  metadata:
+    current_loads:
+      core:
+        pins: [vdd, "2"]
+        max_load_current: 100m
 board B:
-    net rail: nettype.power
-    inst supply: Supply
-        connections:
-            1: rail
-    inst mcu: MCU
-        connections:
-            1: rail
-            2: rail
+  net rail: nettype.power
+  inst supply: Supply
+    connections:
+      1: rail
+  inst mcu: MCU
+    connections:
+      1: rail
+      2: rail
 """
 
 
@@ -55,8 +55,8 @@ def test_arrays_count_each_instance_once(tmp_path):
 
 @pytest.mark.parametrize("connection", ["other", "no_connect"])
 def test_group_rejects_split_or_disconnected_pins(tmp_path, connection):
-    source = SOURCE.replace("    net rail:", "    net other: nettype.power\n    net rail:")
-    source = source.replace("            2: rail", f"            2: {connection}")
+    source = SOURCE.replace("  net rail:", "  net other: nettype.power\n  net rail:")
+    source = source.replace("      2: rail", f"      2: {connection}")
     errors = diagnostics(tmp_path, source)
     group = next(d for d in errors if d.code == "erc.current_load_group")
     assert group.severity == "error"
@@ -75,12 +75,12 @@ def test_group_rejects_split_or_disconnected_pins(tmp_path, connection):
         ("max_load_current: 100m", "max_load_current: -1m"),
         ("max_load_current: 100m", "max_load_current: true"),
         ("max_load_current: 100m", "unexpected: 100"),
-        ("                max_load_current: 100m\n", ""),
+        ("        max_load_current: 100m\n", ""),
         ("role: role.power_input", "role: role.passive"),
-        ("aliases: [vdd]", "aliases: [vdd]\n            max_load_current: 50m"),
+        ("aliases: [vdd]", "aliases: [vdd]\n      max_load_current: 50m"),
         (
             "max_load_current: 100m",
-            "max_load_current: 100m\n            extra:\n                pins: [vdd]\n                max_load_current: 10m",
+            "max_load_current: 100m\n      extra:\n        pins: [vdd]\n        max_load_current: 10m",
         ),
     ],
 )
@@ -93,14 +93,14 @@ def test_group_and_individual_loads_sum(tmp_path):
     source = SOURCE.replace(
         "board B:",
         """component Extra:
-    pins:
-        1:
-            role: role.power_input
-            max_load_current: 60m
+  pins:
+    1:
+      role: role.power_input
+      max_load_current: 60m
 board B:
-    inst extra: Extra
-        connections:
-            1: rail
+  inst extra: Extra
+    connections:
+      1: rail
 """,
     )
     assert [d.code for d in diagnostics(tmp_path, source)] == ["erc.current_overload"]
@@ -110,31 +110,31 @@ def test_inherited_group_amount_override(tmp_path):
     source = SOURCE.replace(
         "board B:",
         """component Bigger extends MCU:
-    metadata:
-        current_loads:
-            core:
-                max_load_current: 160m
+  metadata:
+    current_loads:
+      core:
+        max_load_current: 160m
 board B:""",
     ).replace("inst mcu: MCU", "inst mcu: Bigger")
     assert [d.code for d in diagnostics(tmp_path, source)] == ["erc.current_overload"]
 
 
 def test_group_requires_capacity_even_without_pin_annotations(tmp_path):
-    source = SOURCE.replace("            max_source_current: 150m\n", "")
+    source = SOURCE.replace("      max_source_current: 150m\n", "")
     assert [d.code for d in diagnostics(tmp_path, source)] == ["erc.incomplete_budget"]
 
 
 def test_effective_role_override_does_not_silently_drop_group(tmp_path):
     source = SOURCE.replace(
-        "        2:\n            role: role.power_input\n",
-        "        2:\n            role: [role.power_input, role.passive]\n",
+        "    2:\n      role: role.power_input\n",
+        "    2:\n      role: [role.power_input, role.passive]\n",
     ).replace(
-        "            2: rail",
-        """            2: rail
-        metadata:
-            pins:
-                2:
-                    role: role.passive
+        "      2: rail",
+        """      2: rail
+    metadata:
+      pins:
+        2:
+          role: role.passive
 """,
     )
     errors = diagnostics(tmp_path, source)
@@ -146,21 +146,21 @@ def test_independent_supply_groups_on_separate_rails(tmp_path):
     source = (
         SOURCE.replace('[vdd, "2"]', "[vdd]")
         .replace(
-            "                max_load_current: 100m",
-            """                max_load_current: 100m
-            analog:
-                pins: ["2"]
-                max_load_current: 20m""",
+            "        max_load_current: 100m",
+            """        max_load_current: 100m
+      analog:
+        pins: ["2"]
+        max_load_current: 20m""",
         )
         .replace(
-            "    net rail:",
-            """    net analog: nettype.power
-    inst analog_supply: Supply
-        connections:
-            1: analog
-    net rail:""",
+            "  net rail:",
+            """  net analog: nettype.power
+  inst analog_supply: Supply
+    connections:
+      1: analog
+  net rail:""",
         )
-        .replace("            2: rail", "            2: analog")
+        .replace("      2: rail", "      2: analog")
     )
     assert diagnostics(tmp_path, source) == ()
 
@@ -172,26 +172,26 @@ def test_configurations_check_effective_group_roles(tmp_path):
     source = source.replace(
         "board B:",
         '''board B:
-    metadata:
-        erc_choices:
-            mode: ["powered", "absent"]
-        configurations:
-            powered:
-                mode: "powered"
-            absent:
-                mode: "absent"''',
+  metadata:
+    erc_choices:
+      mode: ["powered", "absent"]
+    configurations:
+      powered:
+        mode: "powered"
+      absent:
+        mode: "absent"''',
     )
     source = source.replace(
-        "            2: rail",
-        """            2: rail
-        metadata:
-            pins:
-                1..2:
-                    role:
-                        choice: "mode"
-                        cases:
-                            powered: role.power_input
-                            absent: role.passive
+        "      2: rail",
+        """      2: rail
+    metadata:
+      pins:
+        1..2:
+          role:
+            choice: "mode"
+            cases:
+              powered: role.power_input
+              absent: role.passive
 """,
     )
     circuit = compile_source(tmp_path, source)

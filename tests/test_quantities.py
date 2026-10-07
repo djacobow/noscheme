@@ -12,26 +12,26 @@ from test_circuit import compile_source
 from test_convert import library, pin
 
 SOURCE = """component Resistor:
-    params:
-        value: resistance = 4.7k
-    pins:
-        1..2:
-            role: role.passive
-            pull_resistance: value
-    metadata:
-        footprint: "Resistor_SMD:R_0603_1608Metric"
+  params:
+    value: resistance = 4.7k
+  pins:
+    1..2:
+      role: role.passive
+      pull_resistance: value
+  metadata:
+    footprint: "Resistor_SMD:R_0603_1608Metric"
 board B:
-    net a: nettype.passive
-    inst default: Resistor
-        connections:
-            1: a
-            2: a
-    inst rkm: Resistor
-        connections:
-            1: a
-            2: a
-        params:
-            value: 22k1
+  net a: nettype.passive
+  inst default: Resistor
+    connections:
+      1: a
+      2: a
+  inst rkm: Resistor
+    connections:
+      1: a
+      2: a
+    params:
+      value: 22k1
 """
 
 
@@ -47,19 +47,19 @@ def test_quantity_parameters_display_with_units_in_the_netlist(tmp_path):
 
 
 def test_quantity_accepts_verbatim_text_without_numeric_meaning(tmp_path):
-    text = SOURCE.replace("            value: 22k1", '            value: "22k1 1%"')
+    text = SOURCE.replace("      value: 22k1", '      value: "22k1 1%"')
     with pytest.raises(DiagnosticError, match="expected a number"):
         compile_source(tmp_path, text)
-    text = text.replace("            pull_resistance: value\n", "")
+    text = text.replace("      pull_resistance: value\n", "")
     assert values(compile_source(tmp_path, text))["rkm"] == "22k1 1%"
 
 
 @pytest.mark.parametrize(
     "source,code",
     [
-        ("component C:\n    pins:\n        10k:\n            role: role.passive\n", "syntax"),
-        ("component C:\n    params:\n        x: number = 4.7k7\n", "syntax.number"),
-        ("component C:\n    params:\n        x: number = 10kOhm\n", "syntax"),
+        ("component C:\n  pins:\n    10k:\n      role: role.passive\n", "syntax"),
+        ("component C:\n  params:\n    x: number = 4.7k7\n", "syntax.number"),
+        ("component C:\n  params:\n    x: number = 10kOhm\n", "syntax"),
     ],
 )
 def test_scaled_literal_syntax(source, code):
@@ -69,7 +69,7 @@ def test_scaled_literal_syntax(source, code):
 
 
 def test_quoted_pin_name_may_look_like_a_scaled_number():
-    tree = parse('component C:\n    pins:\n        "10k":\n            role: role.passive\n', "m")
+    tree = parse('component C:\n  pins:\n    "10k":\n      role: role.passive\n', "m")
     assert tree.items[0].body[0].entries[0].key.first.text == "10k"
 
 
@@ -100,35 +100,35 @@ def test_passive_symbols_convert_to_quantity_values(tmp_path):
     convert_library(source, tmp_path / "out")
     text = (tmp_path / "out/Device.nosch").read_text()
     for name, kind in [("R", "resistance"), ("C", "capacitance"), ("L", "inductance")]:
-        assert f"component {name}:\n    params:\n        value: {kind}\n" in text
-    assert 'component D:\n    params:\n        value: string = "D"\n' in text
+        assert f"component {name}:\n  params:\n    value: {kind}\n" in text
+    assert 'component D:\n  params:\n    value: string = "D"\n' in text
 
 
 DISPLAY = """component Part:
-    params:
-        value: resistance = 4.7k
-    pins:
-        1:
-            role: role.passive
-            unused: unused.always
-    metadata:
-        value: value / 1k
+  params:
+    value: resistance = 4.7k
+  pins:
+    1:
+      role: role.passive
+      unused: unused.always
+  metadata:
+    value: value / 1k
 block Holder:
-    params:
-        chosen: resistance = 22k
-        count: number = 3
-    inst bare: Part()
-    inst caller_quantity: Part
-        metadata:
-            value: chosen
-    inst caller_number: Part
-        metadata:
-            value: count
-    inst literal: Part
-        metadata:
-            value: 4.7k
+  params:
+    chosen: resistance = 22k
+    count: number = 3
+  inst bare: Part()
+  inst caller_quantity: Part
+    metadata:
+      value: chosen
+  inst caller_number: Part
+    metadata:
+      value: count
+  inst literal: Part
+    metadata:
+      value: 4.7k
 board B:
-    inst holder: Holder()
+  inst holder: Holder()
 """
 
 
@@ -143,7 +143,7 @@ def test_only_bare_quantity_parameters_display_with_units(tmp_path):
         "caller_number": "3",
         "literal": "4700",
     }
-    plain = DISPLAY.replace("        value: value / 1k\n", "        value: value\n")
+    plain = DISPLAY.replace("    value: value / 1k\n", "    value: value\n")
     assert values(compile_source(tmp_path, plain))["holder.bare"] == "4.7kOhm"
 
 

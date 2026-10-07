@@ -23,6 +23,13 @@
     }
   },
   "contributes": {
+    "configurationDefaults": {
+      "[noscheme]": {
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true,
+        "editor.detectIndentation": false
+      }
+    },
     "languages": [
       {
         "id": "noscheme",

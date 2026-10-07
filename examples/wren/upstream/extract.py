@@ -7,6 +7,8 @@ import xml.etree.ElementTree as E
 from pathlib import Path
 import argparse
 
+from noscheme.formatter import format_source
+
 parser = argparse.ArgumentParser(
     description="Extract the WREN output subsystem reference from a KiCad XML netlist."
 )
@@ -137,5 +139,5 @@ for ref, name in [
     if name != "Resistor":
         text += ["        value: " + json.dumps(c.findtext("value"))]
     text += [""]
-(root / "components.nosch").write_text("\n".join(text))
+(root / "components.nosch").write_text(format_source("\n".join(text)))
 print("Extracted", len(components), "parts", len(nets), "nets", len(boundary), "boundary nets")

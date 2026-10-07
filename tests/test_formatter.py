@@ -39,69 +39,70 @@ def formats(source, expected):
 
 
 def test_spacing_and_indentation_are_canonical():
+    expected = (
+        "component R:\n  params:\n    value: number = 4k7\n    scale: number = (1 + 2) * -3\n"
+    )
     formats(
         "component  R :\n  params:\n      value :number=4k7\n      scale: number = (1+2)*-3\n",
-        "component R:\n    params:\n        value: number = 4k7\n"
-        "        scale: number = (1 + 2) * -3\n",
+        expected,
     )
+    # Two spaces per level, whatever the source used.
+    formats(expected.replace("  ", "    "), expected)
 
 
 def test_spellings_are_kept():
-    source = (
-        "board B:\n"
-        '    net a: T\n        note: "tab\\t\\u00e9"\n        values: [4.7k, 4k7, 4700, 1e3]\n'
-    )
+    source = 'board B:\n  net a: T\n    note: "tab\\t\\u00e9"\n    values: [4.7k, 4k7, 4700, 1e3]\n'
     formats(source, source)
 
 
 def test_blank_lines_separate_definitions_and_never_open_a_block():
     formats(
-        "from x import a\ncomponent A:\n\n    params:\n        v: number\n\n\n\n"
-        "        w: number\ncomponent B:\n    params:\n        v: number\n\n\n",
-        "from x import a\n\ncomponent A:\n    params:\n        v: number\n\n"
-        "        w: number\n\ncomponent B:\n    params:\n        v: number\n",
+        "from x import a\ncomponent A:\n\n  params:\n    v: number\n\n\n\n"
+        "    w: number\ncomponent B:\n  params:\n    v: number\n\n\n",
+        "from x import a\n\ncomponent A:\n  params:\n    v: number\n\n"
+        "    w: number\n\ncomponent B:\n  params:\n    v: number\n",
     )
 
 
 def test_long_arguments_break_one_per_line_with_a_trailing_comma():
     nets = ", ".join(f"net_{i}" for i in range(12))
     formats(
-        f"board B:\n    inst r: Resistor({nets}, value=4k7)\n",
-        "board B:\n    inst r: Resistor(\n"
-        + "".join(f"        net_{i},\n" for i in range(12))
-        + "        value=4k7,\n    )\n",
+        f"board B:\n  inst r: Resistor({nets}, value=4k7)\n",
+        "board B:\n  inst r: Resistor(\n"
+        + "".join(f"    net_{i},\n" for i in range(12))
+        + "    value=4k7,\n  )\n",
     )
 
 
 def test_a_trailing_comma_keeps_a_list_broken_and_its_absence_joins_it():
     formats(
-        "board B:\n    inst r: R(a,)\n    inst s: R(\n        a,\n        b\n    )\n",
-        "board B:\n    inst r: R(\n        a,\n    )\n    inst s: R(a, b)\n",
+        "board B:\n  inst r: R(a,)\n  inst s: R(\n    a,\n    b\n  )\n",
+        "board B:\n  inst r: R(\n    a,\n  )\n  inst s: R(a, b)\n",
     )
 
 
 def test_arguments_sections_and_pin_lists_keep_their_form():
     source = (
-        "board B:\n    inst r: R(a, 2: b, value=1k)\n        metadata:\n"
-        "            pins:\n                [1,]: role.passive\n                [3]: role.passive\n"
+        "board B:\n  inst r: R(a, 2: b, value=1k)\n    metadata:\n"
+        "      pins:\n        [1,]: role.passive\n        [3]: role.passive\n"
     )
     formats(source, source)
-    formats("board B:\n    inst r: R()\n", "board B:\n    inst r: R\n")
+    formats("board B:\n  inst r: R()\n", "board B:\n  inst r: R\n")
 
 
 def test_comments_stay_with_their_code():
     formats(
-        "// header\nboard B: // board\n    // first\n    net a: T // net\n"
-        "        note: 1\n        // end of net\n    inst r: R(a, // first pin\n"
-        "        b)\n// trailing\n",
-        "// header\nboard B:  // board\n    // first\n    net a: T  // net\n"
-        "        note: 1\n        // end of net\n    inst r: R(\n        a,  // first pin\n"
-        "        b,\n    )\n// trailing\n",
+        "// header\nboard B: // board\n  // first\n  net a: T // net\n"
+        "    note: 1\n    // end of net\n  inst r: R(a, // first pin\n"
+        "    b)\n// trailing\n",
+        "// header\nboard B:  // board\n  // first\n  net a: T  // net\n"
+        "    note: 1\n    // end of net\n  inst r: R(\n    a,  // first pin\n"
+        "    b,\n  )\n// trailing\n",
     )
 
 
 def test_block_comments_keep_their_text():
-    source = "/* line one\n   line two */\nboard B:\n    /* note */\n    net a: T\n"
+    source = "/* line one\n   line two */\nboard B:\n  /* note */\n  net a: T\n"
     formats(source, source)
 
 
@@ -109,11 +110,11 @@ def test_block_comments_keep_their_text():
     "source, message",
     [
         (
-            "board B:\n    net a: T\n        v: (1 + // c\n            2)\n",
+            "board B:\n  net a: T\n    v: (1 + // c\n      2)\n",
             "inside this expression",
         ),
-        ("board B:\n    net a: T\n        v: x[ // c\n            0]\n", "inside this expression"),
-        ("board B:\n    /* c */ net a: T\n", "must end its line"),
+        ("board B:\n  net a: T\n    v: x[ // c\n      0]\n", "inside this expression"),
+        ("board B:\n  /* c */ net a: T\n", "must end its line"),
     ],
 )
 def test_comments_that_cannot_be_placed_are_reported(source, message):
@@ -125,7 +126,7 @@ def test_comments_that_cannot_be_placed_are_reported(source, message):
 
 def test_syntax_errors_are_not_formatted():
     with pytest.raises(DiagnosticError) as error:
-        format_source("board B:\n    net a:\n")
+        format_source("board B:\n  net a:\n")
     assert error.value.diagnostics[0].code == "syntax.invalid"
 
 
@@ -140,8 +141,8 @@ def test_cli_checks_diffs_and_writes(tmp_path, capsys):
     (tmp_path / "build/generated.nosch").write_text("not noscheme\n")
     assert main(["format", "--check", str(tmp_path)]) == 1
     assert main(["format", "--diff", str(source)]) == 0
-    assert "+    net a: T" in capsys.readouterr().out
+    assert "+  net a: T" in capsys.readouterr().out
     assert source.read_text() == "board B:\n    net a:T\n"
     assert main(["format", str(tmp_path)]) == 0
-    assert source.read_text() == "board B:\n    net a: T\n"
+    assert source.read_text() == "board B:\n  net a: T\n"
     assert main(["format", "--check", str(tmp_path)]) == 0

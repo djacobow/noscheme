@@ -112,8 +112,8 @@ def test_alias_reexport_chain(tmp_path):
         """from middle import Alias
 from library import Unit as Separate
 board B:
-    inst a: Alias()
-    inst b: Separate()
+  inst a: Alias()
+  inst b: Separate()
 """,
         {"library": LIBRARY, "middle": "from library import Unit as Alias\n"},
     )
@@ -143,18 +143,18 @@ def test_prepare_and_rename_use_unsaved_buffers_and_hash_names(tmp_path):
 def test_port_metadata_overlay_is_renamed_with_the_port(tmp_path):
     source = """from noscheme import nettype, role
 block Unit:
-    ports:
-        input: nettype.digital
-            role: role.digital_input
+  ports:
+    input: nettype.digital
+      role: role.digital_input
 board B:
-    net n: nettype.digital
-    inst p: Unit
-        connections:
-            input: n
-        metadata:
-            pins:
-                input:
-                    role: role.digital_input
+  net n: nettype.digital
+  inst p: Unit
+    connections:
+      input: n
+    metadata:
+      pins:
+        input:
+          role: role.digital_input
 """
     make_project(tmp_path, source)
     s = RenameSession(tmp_path, {})
@@ -167,12 +167,12 @@ board B:
 def test_bundle_rename_reaches_port_named_custom(tmp_path):
     source = """from noscheme import nettype
 bundle Bus:
-    x: nettype.passive
+  x: nettype.passive
 block Unit:
-    ports:
-        custom: Bus
+  ports:
+    custom: Bus
 board B:
-    inst p: Unit()
+  inst p: Unit()
 """
     make_project(tmp_path, source)
     s = RenameSession(tmp_path, {})
@@ -186,18 +186,18 @@ def test_global_net_rename_reaches_other_modules(tmp_path):
     source = """from noscheme import nettype
 import child
 board B:
-    global net supply: nettype.passive
-    inst block: child.Unit()
+  global net supply: nettype.passive
+  inst block: child.Unit()
 """
     child = """from noscheme import role
 component Pin:
-    pins:
-        1:
-            role: role.passive
+  pins:
+    1:
+      role: role.passive
 block Unit:
-    inst p: Pin
-        connections:
-            1: global.supply
+  inst p: Pin
+    connections:
+      1: global.supply
 """
     make_project(tmp_path, source, {"child": child})
     s = RenameSession(tmp_path, {})
@@ -230,12 +230,12 @@ def test_board_block_rename_preserves_descendants_and_array_identities(tmp_path,
 @pytest.mark.parametrize(
     "body",
     [
-        "    inst old: Part() // keep trailing ) comment\n",
-        "    inst old: Part\n",
-        '    inst old[2][3]: Part\n        params:\n            value: "keep ) string"\n',
-        '    inst old: Part\n        metadata:\n            // Keep this comment.\n            value: "keep me"\n',
-        '    inst old: Part\n        metadata:\n            identity: "already_stable"\n',
-        '    inst old[2]: Part\n        elements:\n            [1]:\n                params:\n                    value: "2k"\n',
+        "  inst old: Part() // keep trailing ) comment\n",
+        "  inst old: Part\n",
+        '  inst old[2][3]: Part\n    params:\n      value: "keep ) string"\n',
+        '  inst old: Part\n    metadata:\n      // Keep this comment.\n      value: "keep me"\n',
+        '  inst old: Part\n    metadata:\n      identity: "already_stable"\n',
+        '  inst old[2]: Part\n    elements:\n      [1]:\n        params:\n          value: "2k"\n',
     ],
 )
 def test_board_instance_identity_insertion_formats_and_existing_identity(tmp_path, body):
@@ -276,21 +276,21 @@ def test_board_rename_preserves_newlines_and_nonstandard_indentation(tmp_path):
 def test_board_rename_updates_waiver_targets(tmp_path):
     source = """from noscheme import role, nettype
 component Part:
-    pins:
-        1:
-            role: role.power_input
+  pins:
+    1:
+      role: role.power_input
 board B:
-    net gnd: nettype.ground
-        waivers:
-            incompatible_role:
-                reason: "old is intentionally grounded"
-                pins: ["old[0].1", "old[1].1"]
-    inst old[2]: Part
-        connections:
-            1: gnd
-        metadata:
-            custom:
-                note: "old"
+  net gnd: nettype.ground
+    waivers:
+      incompatible_role:
+        reason: "old is intentionally grounded"
+        pins: ["old[0].1", "old[1].1"]
+  inst old[2]: Part
+    connections:
+      1: gnd
+    metadata:
+      custom:
+        note: "old"
 """
     s = session(tmp_path, source)
     path = tmp_path / "main.nosch"
@@ -310,9 +310,9 @@ def test_board_rename_keeps_export_uuid_and_reference_without_writing_state(tmp_
 
     source = """from library import Part
 board B:
-    inst old[2]: Part
-        metadata:
-            footprint: "Test:OnePad"
+  inst old[2]: Part
+    metadata:
+      footprint: "Test:OnePad"
 """
     s = session(tmp_path, source)
     path = tmp_path / "main.nosch"

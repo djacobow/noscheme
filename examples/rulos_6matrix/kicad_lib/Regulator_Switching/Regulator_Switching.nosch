@@ -1,54 +1,54 @@
 from noscheme import role
 
 component TPS563200:
-    params:
-        value: string = "TPS563200"
-    pins:
-        "1":
-            aliases: ["GND"]
-            role: [role.ground, role.power_input]
-            custom:
-                kicad_pin_types: ["power_in"]
-        "2":
-            aliases: ["SW"]
-            role: role.digital_output
-            custom:
-                kicad_pin_types: ["output"]
-        "3":
-            aliases: ["VIN"]
-            role: [role.ground, role.power_input]
-            custom:
-                kicad_pin_types: ["power_in"]
-        "4":
-            aliases: ["VFB"]
-            role: role.digital_input
-            custom:
-                kicad_pin_types: ["input"]
-        "5":
-            aliases: ["EN"]
-            role: role.digital_input
-            custom:
-                kicad_pin_types: ["input"]
-        "6":
-            aliases: ["VBST"]
-            role: role.passive
-            custom:
-                kicad_pin_types: ["passive"]
-    metadata:
-        ref_prefix: "U"
-        footprint: "Package_TO_SOT_SMD:SOT-23-6"
-        custom:
-            kicad_symbol: "Regulator_Switching:TPS563200"
-            kicad_duplicate_pin_numbers_are_jumpers: "no"
-            kicad_footprint_candidates: [
-                "Package_TO_SOT_SMD:SOT-23-6",
-                "Package_TO_SOT_SMD:SOT-23-6_Handsoldering",
-            ]
-            kicad_properties:
-                "Datasheet": "http://www.ti.com/lit/ds/symlink/tps563200.pdf"
-                "Description": "3A Synchronous Step-Down Voltage Regulator, Adjustable Output Voltage, 4.5-17V Input Voltage, SOT-23-6"
-                "Footprint": "Package_TO_SOT_SMD:SOT-23-6"
-                "Reference": "U"
-                "Value": "TPS563200"
-                "ki_fp_filters": "SOT?23*"
-                "ki_keywords": "step-down dcdc voltage regulator"
+  params:
+    value: string = "TPS563200"
+  pins:
+    "1":
+      aliases: ["GND"]
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "2":
+      aliases: ["SW"]
+      role: role.digital_output
+      custom:
+        kicad_pin_types: ["output"]
+    "3":
+      aliases: ["VIN"]
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "4":
+      aliases: ["VFB"]
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "5":
+      aliases: ["EN"]
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "6":
+      aliases: ["VBST"]
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+  metadata:
+    ref_prefix: "U"
+    footprint: "Package_TO_SOT_SMD:SOT-23-6"
+    custom:
+      kicad_symbol: "Regulator_Switching:TPS563200"
+      kicad_duplicate_pin_numbers_are_jumpers: "no"
+      kicad_footprint_candidates: [
+        "Package_TO_SOT_SMD:SOT-23-6",
+        "Package_TO_SOT_SMD:SOT-23-6_Handsoldering",
+      ]
+      kicad_properties:
+        "Datasheet": "http://www.ti.com/lit/ds/symlink/tps563200.pdf"
+        "Description": "3A Synchronous Step-Down Voltage Regulator, Adjustable Output Voltage, 4.5-17V Input Voltage, SOT-23-6"
+        "Footprint": "Package_TO_SOT_SMD:SOT-23-6"
+        "Reference": "U"
+        "Value": "TPS563200"
+        "ki_fp_filters": "SOT?23*"
+        "ki_keywords": "step-down dcdc voltage regulator"

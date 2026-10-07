@@ -6,33 +6,33 @@ from noscheme.resolve import resolve_project
 from test_circuit import compile_source, make
 
 SOURCE = """component Cap:
-    params:
-        capacitance: capacitance = 100n
-    pins:
-        1..2:
-            role: role.passive
-    metadata:
-        value: capacitance
+  params:
+    capacitance: capacitance = 100n
+  pins:
+    1..2:
+      role: role.passive
+  metadata:
+    value: capacitance
 board B:
-    net rail: nettype.passive
-    inst caps[2]: Cap
-        connections:
-            1: rail
-            2: no_connect
+  net rail: nettype.passive
+  inst caps[2]: Cap
+    connections:
+      1: rail
+      2: no_connect
+    metadata:
+      custom:
+        common: "kept"
+        placement: "default"
+    elements:
+      [1]:
+        params:
+          capacitance: 220n
         metadata:
-            custom:
-                common: "kept"
-                placement: "default"
-        elements:
-            [1]:
-                params:
-                    capacitance: 220n
-                metadata:
-                    custom:
-                        placement: "beside MCU"
-                    pins:
-                        1:
-                            capacitance: 2p + 3p
+          custom:
+            placement: "beside MCU"
+          pins:
+            1:
+              capacitance: 2p + 3p
 """
 
 
@@ -51,8 +51,8 @@ def test_element_parameters_and_metadata_merge_without_identity_changes(tmp_path
 def test_complete_multidimensional_indices_and_common_identity(tmp_path):
     source = SOURCE.replace("caps[2]", "caps[2][2]").replace("[1]:", "[1][0]:")
     source = source.replace(
-        "        metadata:\n            custom:",
-        '        metadata:\n            identity: "stable"\n            custom:',
+        "    metadata:\n      custom:",
+        '    metadata:\n      identity: "stable"\n      custom:',
         1,
     )
     circuit = compile_source(tmp_path, source)
@@ -83,10 +83,7 @@ def test_invalid_element_selectors(tmp_path, selector, code):
 
 def test_duplicate_elements_and_scalar_overrides_rejected(tmp_path):
     # The caps instance is last, so its elements section ends the source.
-    duplicate = (
-        SOURCE
-        + "            [1]:\n                params:\n                    capacitance: 330n\n"
-    )
+    duplicate = SOURCE + "      [1]:\n        params:\n          capacitance: 330n\n"
     with pytest.raises(DiagnosticError, match="array.element-overlap"):
         compile_source(tmp_path, duplicate)
     with pytest.raises(DiagnosticError, match="array.element-rank"):
@@ -96,8 +93,8 @@ def test_duplicate_elements_and_scalar_overrides_rejected(tmp_path):
 @pytest.mark.parametrize("key", ["ref", "identity"])
 def test_element_identity_overrides_rejected(tmp_path, key):
     source = SOURCE.replace(
-        "                metadata:\n",
-        f'                metadata:\n                    {key}: "C1"\n',
+        "        metadata:\n",
+        f'        metadata:\n          {key}: "C1"\n',
     )
     with pytest.raises(DiagnosticError, match="array.element-identity"):
         compile_source(tmp_path, source)
@@ -113,8 +110,8 @@ def test_evaluate_inspection_reports_explicit_variants(tmp_path):
 
 def test_each_element_can_supply_required_parameter(tmp_path):
     source = SOURCE.replace("number = 100", "number").replace(
-        "        elements:\n",
-        "        elements:\n            [0]:\n                params:\n                    capacitance: 10n\n",
+        "    elements:\n",
+        "    elements:\n      [0]:\n        params:\n          capacitance: 10n\n",
     )
     circuit = compile_source(tmp_path, source)
     assert [p["value"]["value"] for p in circuit["parts"]] == ["10nF", "220nF"]
@@ -142,24 +139,24 @@ def test_overrides_apply_to_child_parts_of_block_arrays(tmp_path):
         SOURCE.replace(
             "board B:\n",
             """block Unit:
+  params:
+    capacitance: capacitance = 100n
+  ports:
+    signal: nettype.passive
+  inst cap: Cap
     params:
-        capacitance: capacitance = 100n
-    ports:
-        signal: nettype.passive
-    inst cap: Cap
-        params:
-            capacitance: capacitance
-        connections:
-            1: signal
-            2: no_connect
+      capacitance: capacitance
+    connections:
+      1: signal
+      2: no_connect
 board B:
 """,
         )
         .replace("caps[2]: Cap", "caps[2]: Unit")
-        .replace("            1: rail\n            2: no_connect", "            signal: rail")
+        .replace("      1: rail\n      2: no_connect", "      signal: rail")
     )
     source = source.replace(
-        "                    pins:\n                        1:\n                            capacitance: 2p + 3p\n",
+        "          pins:\n            1:\n              capacitance: 2p + 3p\n",
         "",
     )
     circuit = compile_source(tmp_path, source)

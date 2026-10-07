@@ -1,64 +1,64 @@
 from noscheme import role
 
 component PCA9600D:
-    params:
-        value: string = "PCA9600D"
-    pins:
-        "1":
-            aliases: ["SX"]
-            role: role.digital_bidirectional
-            custom:
-                kicad_pin_types: ["bidirectional"]
-        "2":
-            aliases: ["RX"]
-            role: role.digital_input
-            custom:
-                kicad_pin_types: ["input"]
-        "3":
-            aliases: ["TX"]
-            role: role.open_drain
-            custom:
-                kicad_pin_types: ["open_collector"]
-        "4":
-            aliases: ["GND"]
-            role: [role.ground, role.power_input]
-            custom:
-                kicad_pin_types: ["power_in"]
-        "5":
-            aliases: ["TY"]
-            role: role.open_drain
-            custom:
-                kicad_pin_types: ["open_collector"]
-        "6":
-            aliases: ["RY"]
-            role: role.digital_input
-            custom:
-                kicad_pin_types: ["input"]
-        "7":
-            aliases: ["SY"]
-            role: role.digital_bidirectional
-            custom:
-                kicad_pin_types: ["bidirectional"]
-        "8":
-            aliases: ["VCC"]
-            role: [role.ground, role.power_input]
-            custom:
-                kicad_pin_types: ["power_in"]
-    metadata:
-        ref_prefix: "U"
-        footprint: "Package_SO:SO-8_3.9x4.9mm_P1.27mm"
-        custom:
-            kicad_symbol: "Interface:PCA9600D"
-            kicad_duplicate_pin_numbers_are_jumpers: "no"
-            kicad_footprint_candidates: [
-                "Package_SO:SO-8_3.9x4.9mm_P1.27mm",
-                "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
-            ]
-            kicad_properties:
-                "Datasheet": "https://www.nxp.com/docs/en/data-sheet/PCA9600.pdf"
-                "Description": "Dual bidirectional bus buffer, SO-8"
-                "Footprint": "Package_SO:SO-8_3.9x4.9mm_P1.27mm"
-                "Reference": "U"
-                "Value": "PCA9600D"
-                "ki_fp_filters": "SO*3.9x4.9mm*P1.27mm*"
-                "ki_keywords": "I2C buffer"
+  params:
+    value: string = "PCA9600D"
+  pins:
+    "1":
+      aliases: ["SX"]
+      role: role.digital_bidirectional
+      custom:
+        kicad_pin_types: ["bidirectional"]
+    "2":
+      aliases: ["RX"]
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "3":
+      aliases: ["TX"]
+      role: role.open_drain
+      custom:
+        kicad_pin_types: ["open_collector"]
+    "4":
+      aliases: ["GND"]
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "5":
+      aliases: ["TY"]
+      role: role.open_drain
+      custom:
+        kicad_pin_types: ["open_collector"]
+    "6":
+      aliases: ["RY"]
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "7":
+      aliases: ["SY"]
+      role: role.digital_bidirectional
+      custom:
+        kicad_pin_types: ["bidirectional"]
+    "8":
+      aliases: ["VCC"]
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+  metadata:
+    ref_prefix: "U"
+    footprint: "Package_SO:SO-8_3.9x4.9mm_P1.27mm"
+    custom:
+      kicad_symbol: "Interface:PCA9600D"
+      kicad_duplicate_pin_numbers_are_jumpers: "no"
+      kicad_footprint_candidates: [
+        "Package_SO:SO-8_3.9x4.9mm_P1.27mm",
+        "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+      ]
+      kicad_properties:
+        "Datasheet": "https://www.nxp.com/docs/en/data-sheet/PCA9600.pdf"
+        "Description": "Dual bidirectional bus buffer, SO-8"
+        "Footprint": "Package_SO:SO-8_3.9x4.9mm_P1.27mm"
+        "Reference": "U"
+        "Value": "PCA9600D"
+        "ki_fp_filters": "SO*3.9x4.9mm*P1.27mm*"
+        "ki_keywords": "I2C buffer"

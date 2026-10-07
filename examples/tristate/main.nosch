@@ -2,17 +2,17 @@
 from noscheme import role, nettype, unused
 
 component Transceiver:
-    pins:
-        data:
-            role: role.digital_bidirectional
-            tristate_capable: true
-            unused: unused.never
+  pins:
+    data:
+      role: role.digital_bidirectional
+      tristate_capable: true
+      unused: unused.never
 
 component Receiver:
-    pins:
-        data: [role.digital_input, unused.never]
+  pins:
+    data: [role.digital_input, unused.never]
 
 board SharedBus:
-    net data: nettype.tristate
-    inst devices[2]: Transceiver(data: data)
-    inst receiver: Receiver(data: data)
+  net data: nettype.tristate
+  inst devices[2]: Transceiver(data: data)
+  inst receiver: Receiver(data: data)

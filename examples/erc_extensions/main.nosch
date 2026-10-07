@@ -7,26 +7,26 @@ import demo
 // two-terminal resistor, see I2CPullup in ../stm32h523/components.nosch and
 // its instances connecting pin 1 to v3v3 in ../stm32h523/stm32h523.nosch.
 component Pull:
-    pins:
-        1:
-            role: role.passive
-            bias: bias.pull_up
-            pull_resistance: 4.7k
-            capacitance: 2p
+  pins:
+    1:
+      role: role.passive
+      bias: bias.pull_up
+      pull_resistance: 4.7k
+      capacitance: 2p
 
 component Device:
-    pins:
-        1:
-            role: role.open_drain
-            bias: bias.none
-            capacitance: 10p
+  pins:
+    1:
+      role: role.open_drain
+      bias: bias.none
+      capacitance: 10p
 
 board B:
-    net bus: nettype.open_drain
-        checks:
-            pin_count: demo.pin_count(max_pins=3)
-            pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=2k, max=5k)
-            capacitance: std.sum(capacitance, net=wiring_capacitance, max=20p)
-        wiring_capacitance: 2p
-    inst pull[2]: Pull(1: bus)
-    inst device: Device(1: bus)
+  net bus: nettype.open_drain
+    checks:
+      pin_count: demo.pin_count(max_pins=3)
+      pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=2k, max=5k)
+      capacitance: std.sum(capacitance, net=wiring_capacitance, max=20p)
+    wiring_capacitance: 2p
+  inst pull[2]: Pull(1: bus)
+  inst device: Device(1: bus)

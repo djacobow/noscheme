@@ -20,7 +20,7 @@ commands; recent work and measurements are listed first.
 ### Source formatter (October 7, 2026)
 
 - [x] `noscheme format [--check] [--diff] [PATH...]` and LSP whole-file formatting
-  print the concrete syntax tree in one canonical layout (LRM §2.5): four-space
+  print the concrete syntax tree in one canonical layout (LRM §2.5): two-space
   indentation, 100-column lines, broken lists one item per line with a trailing
   comma, a trailing comma keeping a list broken, and one blank line before
   top-level definitions. Spellings, order, pin shorthand, and the choice between
@@ -34,10 +34,12 @@ commands; recent work and measurements are listed first.
   The examples are formatted, a test keeps them so, and `convert-library` writes
   formatted output.
 - [ ] Range formatting, and optional normalization of number spellings.
-- [ ] Change the canonical indentation to two spaces per level (requested
-  October 7, 2026): formatter `INDENT`, LRM §2.1/§2.5, the Vim filetype plugin's
-  indentation, and reformat the examples, generated WREN sources, and converted
-  libraries.
+- [x] Canonical indentation is two spaces per level (changed October 7, 2026).
+  The examples, documentation examples, and most test sources were reindented; the WREN
+  extractors and `convert-library` format their output, and regenerating WREN
+  reproduces the committed files byte for byte. LSP completion and rename insert
+  text at the file's own indentation, defaulting to two spaces. The Vim filetype
+  plugin and the VS Code extension default to two-space indentation.
 
 ### LSP caching and background workers (October 6, 2026)
 

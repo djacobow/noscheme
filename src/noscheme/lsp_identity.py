@@ -3,6 +3,7 @@
 import json
 
 from . import ast as a
+from .formatter import INDENT
 from .parser import Builder
 from .syntax import mask_comments
 
@@ -27,7 +28,7 @@ def identity_edit(node, source):
     section = (
         node.sections[0].span.column - 1
         if node.sections and node.sections[0].span.line != node.span.line
-        else base + 4
+        else base + len(INDENT)
     )
     # Insert after the end of the instance's last line, past any trailing comment.
     masked = mask_comments(source, node.span.filename)

@@ -4,7 +4,7 @@ if exists('b:did_ftplugin')
 endif
 let b:did_ftplugin = 1
 
-setlocal expandtab shiftwidth=4 softtabstop=4
+setlocal expandtab shiftwidth=2 softtabstop=2
 setlocal iskeyword=65-90,97-122,48-57,_,35
 setlocal comments=s1:/*,mb:*,ex:*/,://
 setlocal commentstring=//\ %s

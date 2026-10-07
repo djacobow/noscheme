@@ -12,12 +12,12 @@ from test_circuit import compile_source, make
 
 
 PART = """component P:
-    pins:
-        1:
-            aliases: [VDD]
-            role: [role.passive, role.power_input]
-        [2..3, 7]:
-            role: [role.passive, role.power_input]
+  pins:
+    1:
+      aliases: [VDD]
+      role: [role.passive, role.power_input]
+    [2..3, 7]:
+      role: [role.passive, role.power_input]
 """
 
 
@@ -25,10 +25,10 @@ def design(key="[VDD, 2..3, 7]", rhs="n", extra="", dimensions=""):
     return (
         PART
         + f"""board B:
-    net n: nettype.passive
-    inst p{dimensions}: P
-        connections:
-            {key}: {rhs}
+  net n: nettype.passive
+  inst p{dimensions}: P
+    connections:
+      {key}: {rhs}
 {extra}
 """
     )
@@ -41,7 +41,7 @@ def design(key="[VDD, 2..3, 7]", rhs="n", extra="", dimensions=""):
         "[1..3, 7,]",
         "[1, 2, 3, 7]",
         '["1", 2..3, "7"]',
-        "[\n                VDD, // supply\n                2..3,\n                7,\n            ]",
+        "[\n        VDD, // supply\n        2..3,\n        7,\n      ]",
     ],
 )
 def test_mixed_lists_and_ranges_connect_all_selected_pins(tmp_path, key):
@@ -64,10 +64,10 @@ def test_singletons_and_bracketed_ranges(tmp_path, key, selected):
 
 def test_instance_metadata_lists_select_aliases_and_ranges(tmp_path):
     source = design(
-        extra="""        metadata:
-            pins:
-                [VDD, 2..3, 7]:
-                    role: role.passive
+        extra="""    metadata:
+      pins:
+        [VDD, 2..3, 7]:
+          role: role.passive
 """
     )
     circuit = compile_source(tmp_path, source)
@@ -83,9 +83,9 @@ def test_component_specialization_lists_override_existing_pins(tmp_path, selecti
         .replace(
             "board B:",
             """component Specialized extends P:
-    pins:
-        [1, 2..3, 7]:
-            unused: unused.never
+  pins:
+    [1, 2..3, 7]:
+      unused: unused.never
 board B:""",
         )
         .replace("inst p: P", "inst p: Specialized")
@@ -116,7 +116,7 @@ def test_invalid_or_overlapping_bindings(tmp_path, key, code):
 
 def test_overlap_between_binding_lines(tmp_path):
     with pytest.raises(DiagnosticError) as error:
-        compile_source(tmp_path, design("[1..3]", extra="            [3, 7]: n\n"))
+        compile_source(tmp_path, design("[1..3]", extra="      [3, 7]: n\n"))
     assert error.value.diagnostics[0].code == "connection.overlap"
 
 
@@ -125,10 +125,10 @@ def test_metadata_alias_overlap_rejected(tmp_path):
         compile_source(
             tmp_path,
             design(
-                extra="""        metadata:
-            pins:
-                [1, VDD]:
-                    role: role.passive
+                extra="""    metadata:
+      pins:
+        [1, VDD]:
+          role: role.passive
 """
             ),
         )
@@ -164,7 +164,7 @@ def test_shape_and_explicit_list_order_match_range_semantics(tmp_path):
 def test_instance_array_selection_and_no_connect(tmp_path):
     circuit = compile_source(
         tmp_path,
-        design("[0].[1, 3]", dimensions="[2]", extra="            [1].[1..3, 7]: no_connect\n"),
+        design("[0].[1, 3]", dimensions="[2]", extra="      [1].[1..3, 7]: no_connect\n"),
     )
     assert circuit["parts"][0]["pins"]["1"]["net"] == "n"
     assert circuit["parts"][0]["pins"]["3"]["net"] == "n"
@@ -173,9 +173,9 @@ def test_instance_array_selection_and_no_connect(tmp_path):
 
 def test_lists_do_not_apply_to_ordinary_metadata_or_parameters():
     for source in [
-        'component P:\n    metadata:\n        [value]: "x"\n',
-        "component P:\n    params:\n        [n]: number = 2\n",
-        "bundle B:\n    [a, b]: nettype.passive\n",
+        'component P:\n  metadata:\n    [value]: "x"\n',
+        "component P:\n  params:\n    [n]: number = 2\n",
+        "bundle B:\n  [a, b]: nettype.passive\n",
     ]:
         with pytest.raises(DiagnosticError) as error:
             parse(source)
@@ -194,14 +194,14 @@ def test_aggregate_selection_limit(tmp_path):
 @pytest.mark.parametrize("pin", ["pins", "01", '"global"', '"a.b"'])
 def test_singleton_exact_physical_names(tmp_path, pin):
     source = f"""component P:
-    pins:
-        [{pin}]:
-            role: role.passive
+  pins:
+    [{pin}]:
+      role: role.passive
 board B:
-    net n: nettype.passive
-    inst p: P
-        connections:
-            [{pin}]: n
+  net n: nettype.passive
+  inst p: P
+    connections:
+      [{pin}]: n
 """
     circuit = compile_source(tmp_path, source)
     assert circuit["parts"][0]["pins"][pin.strip('"')]["net"] == "n"

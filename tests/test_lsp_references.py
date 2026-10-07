@@ -5,53 +5,53 @@ from test_resolve import make_project
 
 LIBRARY = """from noscheme import role, nettype
 bundle Bus:
-    data: nettype.passive
+  data: nettype.passive
 component Part:
-    params:
-        value: string = "1k"
-    pins:
-        1:
-            aliases: [signal]
-            role: role.passive
+  params:
+    value: string = "1k"
+  pins:
+    1:
+      aliases: [signal]
+      role: role.passive
 block Unit:
+  params:
+    count: number = 2
+  ports:
+    bus: Bus
+  net wires: nettype.passive[count]
+  inst p[count]: Part
+    connections:
+      signal: bus.data
     params:
-        count: number = 2
-    ports:
-        bus: Bus
-    net wires: nettype.passive[count]
-    inst p[count]: Part
-        connections:
-            signal: bus.data
-        params:
-            value: "{0}".format(count)
-        metadata:
-            value: "{0}".format(count)
+      value: "{0}".format(count)
+    metadata:
+      value: "{0}".format(count)
 block Derived extends Unit:
-    ports:
-        bus:
-            placeholder: true
+  ports:
+    bus:
+      placeholder: true
 """
 
 SOURCE = """import library
 from library import Unit as Alias
 from noscheme import nettype
 board B:
-    net wire: library.Bus
-    inst a: library.Unit
-        connections:
-            bus: wire
-        params:
-            count: 3
-    inst b: Alias
-        connections:
-            bus.data: wire.data
-    inst c: library.Derived
-        connections:
-            bus: wire
+  net wire: library.Bus
+  inst a: library.Unit
+    connections:
+      bus: wire
+    params:
+      count: 3
+  inst b: Alias
+    connections:
+      bus.data: wire.data
+  inst c: library.Derived
+    connections:
+      bus: wire
 block Unrelated:
-    ports:
-        bus: library.Bus
-    net wire: nettype.passive
+  ports:
+    bus: library.Bus
+  net wire: nettype.passive
 """
 
 
@@ -139,17 +139,17 @@ def test_physical_pin_alias_references(tmp_path):
 def test_physical_pin_range_queries_collect_all_pins(tmp_path):
     source = """from noscheme import nettype, role
 component Part:
-    pins:
-        1..2:
-            role: role.passive
+  pins:
+    1..2:
+      role: role.passive
 board B:
-    net n: nettype.passive
-    inst p: Part
-        connections:
-            1..2: n
-    inst q: Part
-        connections:
-            2: n
+  net n: nettype.passive
+  inst p: Part
+    connections:
+      1..2: n
+  inst q: Part
+    connections:
+      2: n
 """
     make_project(tmp_path, source)
     path = tmp_path / "main.nosch"

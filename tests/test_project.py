@@ -21,7 +21,7 @@ def project(tmp_path, modules=None, **overrides):
         (tmp_path / name).mkdir(exist_ok=True)
     config = tmp_path / "noscheme.toml"
     config.write_text("\n".join(f"{key} = {json.dumps(value)}" for key, value in values.items()))
-    for relative, text in (modules or {"src/main.nosch": "board Blink:\n    net a: T\n"}).items():
+    for relative, text in (modules or {"src/main.nosch": "board Blink:\n  net a: T\n"}).items():
         path = tmp_path / relative
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text)
@@ -32,9 +32,9 @@ def test_load_graph_imports_reexports_and_config_relative_paths(tmp_path, monkey
     config = project(
         tmp_path,
         {
-            "src/main.nosch": "from parts import R\nfrom noscheme import nettype\nboard Blink:\n    net a: nettype.passive\n    inst r: R()\n",
+            "src/main.nosch": "from parts import R\nfrom noscheme import nettype\nboard Blink:\n  net a: nettype.passive\n  inst r: R()\n",
             "lib/parts.nosch": "from vendor.passives import R\n",
-            "lib/vendor/passives.nosch": "component R:\n    pins:\n        01:\n            aliases: [one]\n",
+            "lib/vendor/passives.nosch": "component R:\n  pins:\n    01:\n      aliases: [one]\n",
             "lib/unused.nosch": "invalid source must not be loaded",
         },
     )
@@ -91,57 +91,57 @@ def test_missing_keys_and_malformed_toml(tmp_path):
     "modules,code",
     [
         (
-            {"src/main.nosch": "from missing import R\nboard Blink:\n    net n: T\n"},
+            {"src/main.nosch": "from missing import R\nboard Blink:\n  net n: T\n"},
             "import.missing-module",
         ),
         (
             {
-                "src/main.nosch": "board Blink:\n    net n: T\n",
-                "lib/main.nosch": "board Blink:\n    net n: T\n",
+                "src/main.nosch": "board Blink:\n  net n: T\n",
+                "lib/main.nosch": "board Blink:\n  net n: T\n",
             },
             "import.ambiguous-module",
         ),
         (
-            {"src/main.nosch": "from noscheme import typo\nboard Blink:\n    net n: T\n"},
+            {"src/main.nosch": "from noscheme import typo\nboard Blink:\n  net n: T\n"},
             "import.missing-name",
         ),
         (
             {
-                "src/main.nosch": "from parts import Unknown\nboard Blink:\n    net n: T\n",
-                "lib/parts.nosch": 'component R:\n    metadata:\n        value: "R"\n',
+                "src/main.nosch": "from parts import Unknown\nboard Blink:\n  net n: T\n",
+                "lib/parts.nosch": 'component R:\n  metadata:\n    value: "R"\n',
             },
             "import.missing-name",
         ),
         (
-            {"src/main.nosch": "from noscheme import num, num\nboard Blink:\n    net n: T\n"},
+            {"src/main.nosch": "from noscheme import num, num\nboard Blink:\n  net n: T\n"},
             "import.duplicate-name",
         ),
         (
             {
-                "src/main.nosch": "from parts import Blink\nboard Blink:\n    net n: T\n",
-                "lib/parts.nosch": "board Blink:\n    net n: T\n",
+                "src/main.nosch": "from parts import Blink\nboard Blink:\n  net n: T\n",
+                "lib/parts.nosch": "board Blink:\n  net n: T\n",
             },
             "import.duplicate-name",
         ),
         (
-            {"src/main.nosch": "from main import Blink\nboard Blink:\n    net n: T\n"},
+            {"src/main.nosch": "from main import Blink\nboard Blink:\n  net n: T\n"},
             "import.cycle",
         ),
         (
             {
-                "src/main.nosch": "from other import X\nboard Blink:\n    net n: T\n",
+                "src/main.nosch": "from other import X\nboard Blink:\n  net n: T\n",
                 "lib/other.nosch": "from main import Blink\n",
             },
             "import.cycle",
         ),
         (
-            {"src/main.nosch": 'component Blink:\n    metadata:\n        value: "x"\n'},
+            {"src/main.nosch": 'component Blink:\n  metadata:\n    value: "x"\n'},
             "project.board",
         ),
-        ({"src/main.nosch": "board Other:\n    net n: T\n"}, "project.board"),
-        ({"src/main.nosch": "board Blink:\n    net n = T\n"}, "syntax.invalid"),
+        ({"src/main.nosch": "board Other:\n  net n: T\n"}, "project.board"),
+        ({"src/main.nosch": "board Blink:\n  net n = T\n"}, "syntax.invalid"),
         (
-            {"src/main.nosch": "from noscheme.extra import X\nboard Blink:\n    net n: T\n"},
+            {"src/main.nosch": "from noscheme.extra import X\nboard Blink:\n  net n: T\n"},
             "import.module",
         ),
     ],
@@ -159,10 +159,10 @@ def test_diamond_graph_is_not_a_cycle(tmp_path):
     project(
         tmp_path,
         {
-            "src/main.nosch": "from left import L\nfrom right import R\nboard Blink:\n    net n: T\n",
-            "src/left.nosch": 'from shared import S\ncomponent L:\n    metadata:\n        value: "L"\n',
-            "src/right.nosch": 'from shared import S\ncomponent R:\n    metadata:\n        value: "R"\n',
-            "src/shared.nosch": 'component S:\n    metadata:\n        value: "S"\n',
+            "src/main.nosch": "from left import L\nfrom right import R\nboard Blink:\n  net n: T\n",
+            "src/left.nosch": 'from shared import S\ncomponent L:\n  metadata:\n    value: "L"\n',
+            "src/right.nosch": 'from shared import S\ncomponent R:\n  metadata:\n    value: "R"\n',
+            "src/shared.nosch": 'component S:\n  metadata:\n    value: "S"\n',
         },
     )
     loaded = load_project(tmp_path)
@@ -173,7 +173,7 @@ def test_diamond_graph_is_not_a_cycle(tmp_path):
 def test_symlink_cannot_escape_search_root(tmp_path):
     project(tmp_path)
     external = tmp_path / "external.nosch"
-    external.write_text("board Blink:\n    net n: T\n")
+    external.write_text("board Blink:\n  net n: T\n")
     (tmp_path / "src/main.nosch").unlink()
     (tmp_path / "src/main.nosch").symlink_to(external)
     with pytest.raises(DiagnosticError) as exc:
@@ -197,7 +197,7 @@ def test_cli_exit_codes_and_diagnostics(tmp_path, capsys, monkeypatch):
     report = json.loads(capsys.readouterr().out)
     assert report["stage"] == "project-loading"
     assert report["board"] == "main.Blink"
-    (tmp_path / "src/main.nosch").write_text("from absent import X\nboard Blink:\n    net n: T\n")
+    (tmp_path / "src/main.nosch").write_text("from absent import X\nboard Blink:\n  net n: T\n")
     assert main(["load", "--project", str(config), "--diagnostics", "json"]) == 1
     report = json.loads(capsys.readouterr().err)
     assert report["diagnostics"][0]["span"]["line"] == 1

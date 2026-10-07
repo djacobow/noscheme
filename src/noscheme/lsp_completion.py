@@ -5,6 +5,7 @@ import json
 import re
 
 from .diagnostics import DiagnosticError
+from .formatter import INDENT
 from .parser import parse
 from .lsp_bundles import BundleLookup
 from .erc_registry import namespace, signature
@@ -232,9 +233,11 @@ def bundle_completion(path, config, sources, offset, masked):
         dummy = "__lsp_completion"
         while dummy in source:
             dummy += "_"
+        # The placeholder instance takes the body's own indentation.
+        body = re.search(r"\n([ \t]+)\S", masked[owner.end() : stop])
         recovered = (
             source[: owner.end()]
-            + f"\n    inst {dummy}: {dummy}()\n"
+            + f"\n{body[1] if body else INDENT}inst {dummy}: {dummy}\n"
             + "".join(kept)
             + source[stop:]
         )
@@ -429,7 +432,7 @@ def inline_completion(path, config, sources, offset, masked):
     if "." in argument:
         reference = re.sub(rf"^(?:{IDENTIFIER}|[0-9]+)?\s*:\s*", "", argument)
         if re.fullmatch(rf".+\.{WORD}", reference):
-            prefix = "\n" + active[1] + "    connections:\n" + active[1] + "        1: "
+            prefix = f"\n{active[1]}{INDENT}connections:\n{active[1]}{INDENT * 2}1: "
             source = sources[path]
             reference_start = offset - len(reference)
             virtual = source[:opening] + prefix + source[reference_start:]

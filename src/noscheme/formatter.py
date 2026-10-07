@@ -25,7 +25,7 @@ from .project import read_config
 from .syntax import comment_lexer, mask_comments
 
 WIDTH = 100
-INDENT = "    "
+INDENT = "  "
 BLANK = re.compile(r"\n[ \t\r]*\n")
 SECTIONS = {
     "connections": "connections",

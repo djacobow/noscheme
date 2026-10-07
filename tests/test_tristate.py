@@ -7,7 +7,7 @@ from noscheme.erc import check_circuit
 from test_circuit import compile_source
 from test_erc import pair, codes
 
-CAPABLE = "            tristate_capable: true\n"
+CAPABLE = "      tristate_capable: true\n"
 
 
 @pytest.mark.parametrize(
@@ -47,20 +47,20 @@ def test_capability_does_not_relax_ordinary_digital_net(tmp_path):
 
 
 SOURCE = """component Contact:
-    pins:
-        1:
-            role: role.passive
-            unused: unused.never
+  pins:
+    1:
+      role: role.passive
+      unused: unused.never
 board B:
-    net bus: nettype.tristate
-    inst connectors[2]: Contact
-        connections:
-            1: bus
-        metadata:
-            pins:
-                1:
-                    role: role.digital_output
-                    tristate_capable: true
+  net bus: nettype.tristate
+  inst connectors[2]: Contact
+    connections:
+      1: bus
+    metadata:
+      pins:
+        1:
+          role: role.digital_output
+          tristate_capable: true
 """
 
 
@@ -81,21 +81,21 @@ def test_capability_requires_boolean(tmp_path):
 
 def test_public_tristate_port_checks_internal_driver(tmp_path):
     source = """component Driver:
-    pins:
-        1:
-            role: role.digital_output
-            tristate_capable: true
+  pins:
+    1:
+      role: role.digital_output
+      tristate_capable: true
 block Device:
-    ports:
-        bus: nettype.tristate
-    inst output: Driver
-        connections:
-            1: bus
+  ports:
+    bus: nettype.tristate
+  inst output: Driver
+    connections:
+      1: bus
 board B:
-    net bus: nettype.tristate
-    inst devices[2]: Device
-        connections:
-            bus: bus
+  net bus: nettype.tristate
+  inst devices[2]: Device
+    connections:
+      bus: bus
 """
     assert codes(compile_source(tmp_path, source)) == []
     assert (
@@ -117,18 +117,18 @@ def test_capability_inheritance_and_override(tmp_path):
         SOURCE.replace(
             "board B:",
             """component TriContact extends Contact:
-    pins:
-        1:
-            tristate_capable: true
+  pins:
+    1:
+      tristate_capable: true
 board B:""",
         )
         .replace("connectors[2]: Contact", "connectors[2]: TriContact")
-        .replace("                    tristate_capable: true\n", "")
+        .replace("          tristate_capable: true\n", "")
     )
     assert codes(compile_source(tmp_path, source)) == []
     source = source.replace(
         "role: role.digital_output",
-        "role: role.digital_output\n                    tristate_capable: false",
+        "role: role.digital_output\n          tristate_capable: false",
     )
     assert codes(compile_source(tmp_path, source)).count("tristate_capability") == 2
 
@@ -137,8 +137,8 @@ def test_capability_waiver_is_reported(tmp_path):
     from noscheme.erc import apply_erc
 
     source = SOURCE.replace("tristate_capable: true", "tristate_capable: false").replace(
-        "    inst connectors",
-        '        waivers:\n            tristate_capability: "Reviewed external equipment."\n    inst connectors',
+        "  inst connectors",
+        '    waivers:\n      tristate_capability: "Reviewed external equipment."\n  inst connectors',
     )
     c = compile_source(tmp_path, source)
     apply_erc(c)
@@ -153,22 +153,22 @@ def test_named_configurations_use_selected_roles(tmp_path):
         SOURCE.replace(
             "board B:",
             '''board B:
-    metadata:
-        erc_choices:
-            mode: ["input", "output"]
-        configurations:
-            receiving:
-                mode: "input"
-            transmitting:
-                mode: "output"''',
+  metadata:
+    erc_choices:
+      mode: ["input", "output"]
+    configurations:
+      receiving:
+        mode: "input"
+      transmitting:
+        mode: "output"''',
         )
         .replace(
             "role: role.digital_output",
             """role:
-                        choice: "mode"
-                        cases:
-                            input: role.digital_input
-                            output: role.digital_output""",
+            choice: "mode"
+            cases:
+              input: role.digital_input
+              output: role.digital_output""",
         )
         .replace("tristate_capable: true", "tristate_capable: false")
     )

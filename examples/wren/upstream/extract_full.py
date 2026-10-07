@@ -12,6 +12,8 @@ from pathlib import Path
 import re
 import xml.etree.ElementTree as ET
 
+from noscheme.formatter import format_source
+
 
 def digest(value):
     return sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()[:16]
@@ -152,7 +154,7 @@ def extract(netlist, source, output):
             f"        footprint: {json.dumps(c['footprint'])}",
             "",
         ]
-    (output / "parts.nosch").write_text("\n".join(part_lines))
+    (output / "parts.nosch").write_text(format_source("\n".join(part_lines)))
 
     # Structural signatures allow repeated source sheets to share definitions.
     definitions, mapping = {}, {}
@@ -267,7 +269,7 @@ def extract(netlist, source, output):
             + definition["lines"]
             + [""]
         )
-    (output / "main.nosch").write_text("\n".join(lines))
+    (output / "main.nosch").write_text(format_source("\n".join(lines)))
     (output / "instance_map.json").write_text(json.dumps(mapping, indent=2, sort_keys=True) + "\n")
     (output / "noscheme.toml").write_text(
         'language_version = "0.1"\nboard = "main.WrenFull"\nsource_paths = ["."]\nlibrary_paths = []\noutput_dir = "build"\n'

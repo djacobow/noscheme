@@ -12,19 +12,19 @@ from test_circuit import make
 
 
 SOURCE = """component R:
-    params:
-        value: string = "1k"
-    pins:
-        1..2:
-            role: role.passive
+  params:
+    value: string = "1k"
+  pins:
+    1..2:
+      role: role.passive
 board B:
-    inst r: R
-        connections:
-            1: missing1
-            2: missing2
-    inst q: Nope
-        connections:
-            unknown_pin: unknown_net
+  inst r: R
+    connections:
+      1: missing1
+      2: missing2
+  inst q: Nope
+    connections:
+      unknown_pin: unknown_net
 """
 
 
@@ -47,8 +47,8 @@ def test_multiple_bad_bindings_and_unknown_sibling_instance(tmp_path):
 
 def test_arguments_and_bindings_are_independent_but_each_binding_stops(tmp_path):
     source = SOURCE.replace("1: missing1", "absent: missing1").replace(
-        "    inst r: R\n",
-        "    inst r: R\n        params:\n            missing_arg: 1\n            value: missing_value\n",
+        "  inst r: R\n",
+        "  inst r: R\n    params:\n      missing_arg: 1\n      value: missing_value\n",
     )
     make(tmp_path, source)
     errors = resolve_errors(tmp_path)
@@ -66,14 +66,14 @@ def test_independent_definitions_and_shared_body_deduplication(tmp_path):
     source = (
         SOURCE.replace("board B:", "block W:")
         + """block Derived extends W:
-    metadata:
-        custom:
-            note: "Same body"
+  metadata:
+    custom:
+      note: "Same body"
 component BadDefault:
-    params:
-        value: string = unknown_default
+  params:
+    value: string = unknown_default
 board B:
-    inst w: W()
+  inst w: W()
 """
     )
     make(tmp_path, source)
@@ -87,10 +87,10 @@ def test_bad_net_type_stops_its_body_but_not_an_independent_definition(tmp_path)
     source = (
         SOURCE
         + """block BadNet:
-    net n: MissingBundle
-    inst dependent: R
-        connections:
-            1: n.nonexistent
+  net n: MissingBundle
+  inst dependent: R
+    connections:
+      1: n.nonexistent
 """
     )
     make(tmp_path, source)

@@ -8,33 +8,33 @@ from test_circuit import compile_source
 
 SOURCE = """from noscheme import bias, std
 component Pull:
-    params:
-        resistance: resistance = 4.7k
-    pins:
-        1:
-            role: role.passive
-            bias: bias.pull_up
-            pull_resistance: resistance
-            capacitance: resistance * 1f
-    metadata:
-        value: resistance
+  params:
+    resistance: resistance = 4.7k
+  pins:
+    1:
+      role: role.passive
+      bias: bias.pull_up
+      pull_resistance: resistance
+      capacitance: resistance * 1f
+  metadata:
+    value: resistance
 component Device:
-    pins:
-        1:
-            role: role.open_drain
-            bias: bias.none
+  pins:
+    1:
+      role: role.open_drain
+      bias: bias.none
 board B:
-    net bus: nettype.open_drain
-        checks:
-            pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=1k + 1k)
-    inst pull: Pull
-        connections:
-            1: bus
-        params:
-            resistance: 3.3k
-    inst device: Device
-        connections:
-            1: bus
+  net bus: nettype.open_drain
+    checks:
+      pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=1k + 1k)
+  inst pull: Pull
+    connections:
+      1: bus
+    params:
+      resistance: 3.3k
+  inst device: Device
+    connections:
+      1: bus
 """
 
 
@@ -60,9 +60,9 @@ def test_metadata_expression_names_are_resolved_even_for_uninstantiated_parts(tm
             tmp_path,
             SOURCE
             + """component Unused:
-    pins:
-        1:
-            capacitance: missing + 1
+  pins:
+    1:
+      capacitance: missing + 1
 """,
         )
     assert any(d.code == "resolve.expression-name" for d in error.value.diagnostics)
@@ -70,18 +70,18 @@ def test_metadata_expression_names_are_resolved_even_for_uninstantiated_parts(tm
 
 def test_instance_quantities_use_caller_environment(tmp_path):
     source = SOURCE.replace(
-        "board B:\n", "block Circuit:\n    params:\n        resistance: number = 2200\n"
+        "board B:\n", "block Circuit:\n  params:\n    resistance: number = 2200\n"
     )
     source = source.replace(
-        "            resistance: 3.3k\n",
-        """            resistance: 3.3k
-        metadata:
-            pins:
-                1:
-                    pull_resistance: resistance
+        "      resistance: 3.3k\n",
+        """      resistance: 3.3k
+    metadata:
+      pins:
+        1:
+          pull_resistance: resistance
 """,
     )
-    source += "board B:\n    inst circuit: Circuit()\n"
+    source += "board B:\n  inst circuit: Circuit()\n"
     circuit = compile_source(tmp_path, source)
     pull = next(p for p in circuit["parts"] if p["identity"] == "circuit.pull")
     assert pull["value"]["value"] == "3.3kOhm"
@@ -90,21 +90,21 @@ def test_instance_quantities_use_caller_environment(tmp_path):
 
 def test_nested_current_load_expression(tmp_path):
     source = """component Load:
-    params:
-        current: current = 12m
-    pins:
-        1:
-            role: role.power_input
-    metadata:
-        current_loads:
-            supply:
-                pins: ["1"]
-                max_load_current: current * 2
+  params:
+    current: current = 12m
+  pins:
+    1:
+      role: role.power_input
+  metadata:
+    current_loads:
+      supply:
+        pins: ["1"]
+        max_load_current: current * 2
 board B:
-    net rail: nettype.power
-    inst load: Load
-        connections:
-            1: rail
+  net rail: nettype.power
+  inst load: Load
+    connections:
+      1: rail
 """
     circuit = compile_source(tmp_path, source)
     assert circuit["parts"][0]["metadata"]["current_loads"]["value"]["supply"]["value"][
@@ -116,12 +116,12 @@ def test_overridden_quantity_does_not_evaluate_shadowed_expression(tmp_path):
     source = SOURCE.replace(
         "pull_resistance: resistance", "pull_resistance: resistance / 0"
     ).replace(
-        "            resistance: 3.3k\n",
-        """            resistance: 3.3k
-        metadata:
-            pins:
-                1:
-                    pull_resistance: 2200
+        "      resistance: 3.3k\n",
+        """      resistance: 3.3k
+    metadata:
+      pins:
+        1:
+          pull_resistance: 2200
 """,
     )
     circuit = compile_source(tmp_path, source)

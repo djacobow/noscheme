@@ -95,8 +95,8 @@ import Device
 from Device import R as KiCadResistor
 
 component Resistor extends Device.R:
-    metadata:
-        footprint: "Resistor_SMD:R_0603_1608Metric"
+  metadata:
+    footprint: "Resistor_SMD:R_0603_1608Metric"
 ```
 
 `import Device` exposes definitions as `Device.R`, not bare `R`.
@@ -137,7 +137,7 @@ it never grants access to a component or block's private internals.
 ### 2.1 Layout and punctuation
 
 Indentation defines blocks and must use spaces; indentation tabs are errors.
-Four spaces per level is the canonical layout (section 2.5). Blank and comment-only lines
+Two spaces per level is the canonical layout (section 2.5). Blank and comment-only lines
 do not declare blocks. Newlines inside parentheses and brackets, including an
 instance's argument list, are not layout.
 Statements and mapping entries use newlines, not semicolons.
@@ -233,7 +233,7 @@ array indices use the numeric rules in section 4.
 `noscheme format` rewrites sources in one canonical layout; editors offer the same
 through the language server. It changes only layout, never meaning:
 
-- Four spaces per level. One space after `:` and `,` and around binary operators
+- Two spaces per level. One space after `:` and `,` and around binary operators
   and parameter-default `=`; none around `=` in arguments, `..` in pin ranges, or
   `:` in slices.
 - Lines are at most 100 characters where possible. A longer bracketed list (instance
@@ -271,13 +271,13 @@ A component describes one physical part and its pin interface:
 from noscheme import role, unused
 
 component Resistor:
-    params:
-        value: resistance
-    pins:
-        1..2: [role.passive, unused.never]
-    metadata:
-        ref_prefix: "R"
-        footprint: "Resistor_SMD:R_0603_1608Metric"
+  params:
+    value: resistance
+  pins:
+    1..2: [role.passive, unused.never]
+  metadata:
+    ref_prefix: "R"
+    footprint: "Resistor_SMD:R_0603_1608Metric"
 ```
 
 A pin entry may list builtin values instead of, or before, indented fields. Each
@@ -287,9 +287,9 @@ list, which only `role` accepts, as a definition's permitted roles:
 
 ```nosch
 pins:
-    1: [role.ground, role.power_input, unused.never]
-    2: role.open_drain
-        capacitance: 5p
+  1: [role.ground, role.power_input, unused.never]
+  2: role.open_drain
+    capacitance: 5p
 ```
 
 This also applies in specializations and instance pin overlays, and follows
@@ -305,12 +305,12 @@ Pins may declare aliases. Component-body fragment:
 
 ```nosch
 pins:
-    1:
-        aliases: [cathode, K]
-        role: role.passive
-    2:
-        aliases: [anode, A]
-        role: role.passive
+  1:
+    aliases: [cathode, K]
+    role: role.passive
+  2:
+    aliases: [anode, A]
+    role: role.passive
 ```
 
 Aliases and physical identifiers refer to the same endpoint. Every alias must
@@ -324,17 +324,17 @@ fragment, assuming `Resistor` and the builtin namespaces have been imported:
 
 ```nosch
 block SeriesResistor:
+  params:
+    resistance: resistance = 1k
+  ports:
+    input: nettype.passive
+    output: nettype.passive
+  inst resistor: Resistor
+    connections:
+      1: input
+      2: output
     params:
-        resistance: resistance = 1k
-    ports:
-        input: nettype.passive
-        output: nettype.passive
-    inst resistor: Resistor
-        connections:
-            1: input
-            2: output
-        params:
-            value: resistance
+      value: resistance
 ```
 
 Ports declare internal connections; do not separately declare a net of the same
@@ -386,9 +386,9 @@ Definition-body fragment:
 
 ```nosch
 params:
-    count: number = 2
-    value: resistance = 4.7k
-    label: string
+  count: number = 2
+  value: resistance = 4.7k
+  label: string
 ```
 
 | Quantity | Unit | Displayed as |
@@ -503,14 +503,14 @@ Definition-body fragment:
 
 ```nosch
 inst series: Resistor
-    connections:
-        1: source
-        2: destination
-    params:
-        value: 33R
-    metadata:
-        identity: "series-resistor"
-        ref: "R7"
+  connections:
+    1: source
+    2: destination
+  params:
+    value: 33R
+  metadata:
+    identity: "series-resistor"
+    ref: "R7"
 ```
 
 An instance line names the instance and its type. It may carry an argument list in
@@ -528,12 +528,12 @@ A component may declare one group of electrically interchangeable physical pins:
 
 ```nosch
 component Resistor:
-    params:
-        value: resistance
-    pins:
-        1..2: role.passive
-    metadata:
-        interchangeable: [1, 2]
+  params:
+    value: resistance
+  pins:
+    1..2: role.passive
+  metadata:
+    interchangeable: [1, 2]
 ```
 
 The list accepts physical pin IDs or aliases, including bare integer spellings.
@@ -581,9 +581,9 @@ section suit a part that needs one setting a line cannot hold:
 
 ```nosch
 inst high: Resistor(bus.high, split, value=60.4R)
-    metadata:
-        custom:
-            dnp: true
+  metadata:
+    custom:
+      dnp: true
 ```
 
 Prefer keeping all of a part's connections in one place, either its arguments or
@@ -601,18 +601,18 @@ one element, with one nonnegative integer literal per dimension:
 
 ```nosch
 inst pulls[2]: Pullup
-    connections:
-        supply: supply
-        signal: bus
-    params:
-        value: 4.7k
-    elements:
-        [0]:
-            params:
-                value: 2.2k
-            metadata:
-                custom:
-                    placement: "Beside the controller"
+  connections:
+    supply: supply
+    signal: bus
+  params:
+    value: 4.7k
+  elements:
+    [0]:
+      params:
+        value: 2.2k
+      metadata:
+        custom:
+          placement: "Beside the controller"
 ```
 
 An entry contains `params:` and/or `metadata:`. Element parameters replace common
@@ -684,8 +684,8 @@ A required child port also needs an endpoint outside its block instance.
 from noscheme import nettype
 
 bundle I2C:
-    scl: nettype.open_drain
-    sda: nettype.open_drain
+  scl: nettype.open_drain
+  sda: nettype.open_drain
 ```
 
 A bundle is a named net type with named fields. A port or net can use `I2C` as
@@ -697,8 +697,8 @@ Connection-section fragment:
 
 ```nosch
 connections:
-    bus.scl: control.scl
-    bus.sda: control.sda
+  bus.scl: control.scl
+  bus.sda: control.sda
 ```
 
 Field-level bindings can connect different bundle types explicitly. Crossed
@@ -715,8 +715,8 @@ Definition-body fragment:
 net signals: nettype.digital[4]
 net matrix: nettype.passive[2][3]
 inst receivers[4]: Receiver
-    connections:
-        input: signals
+  connections:
+    input: signals
 ```
 
 Dimensions must be positive integers. Arrays are zero-based. `matrix[1][2]`
@@ -744,10 +744,10 @@ Leading selectors choose elements of an instance array. Instance fragment:
 
 ```nosch
 inst indicators[3]: Indicator
-    connections:
-        [0].drive: status
-        [1].drive: activity
-        [2].drive: fault
+  connections:
+    [0].drive: status
+    [1].drive: activity
+    [2].drive: fault
 ```
 
 A bare `drive` selects the port across the whole instance array. `[1].data[2]`
@@ -759,7 +759,7 @@ Connection-section fragment:
 
 ```nosch
 connections:
-    11..20: gpio[0:10]
+  11..20: gpio[0:10]
 ```
 
 The ten pins match the ten net elements in ascending order. This explicit range
@@ -774,9 +774,9 @@ pin identifiers, aliases, inclusive ranges, or a mixture:
 
 ```nosch
 connections:
-    [11, 28, 50, 75, 100]: supply
-    [7..9, 23..24, 35]: no_connect
-    [VDD, 2..3, "07"]: supply
+  [11, 28, 50, 75, 100]: supply
+  [7..9, 23..24, 35]: no_connect
+  [VDD, 2..3, "07"]: supply
 ```
 
 `[m..n]` has the same inclusive numeric bounds as `m..n`; `[1]` and `[1,]` are
@@ -793,9 +793,9 @@ For example, a specialization may set shared supply metadata with:
 
 ```nosch
 pins:
-    [11, 28, 50, 75, 100]:
-        role: role.power_input
-        unused: unused.never
+  [11, 28, 50, 75, 100]:
+    role: role.power_input
+    unused: unused.never
 ```
 
 Pin lists do not apply to block ports, bundle declarations, parameters, or
@@ -812,11 +812,11 @@ cannot specialize definitions. Definition fragment:
 
 ```nosch
 component Pullup extends Resistor:
-    defaults:
-        value: 4.7k
-    metadata:
-        custom:
-            purpose: "pull-up"
+  defaults:
+    value: 4.7k
+  metadata:
+    custom:
+      purpose: "pull-up"
 ```
 
 Specializations may override metadata and defaults for existing parameters.
@@ -927,15 +927,15 @@ Use one numeric parameter for a displayed value and a physical quantity:
 
 ```nosch
 component Pullup:
-    params:
-        value: resistance = 4.7k
-    pins:
-        1:
-            role: role.passive
-        2:
-            role: role.passive
-            bias: bias.pull_up
-            pull_resistance: value
+  params:
+    value: resistance = 4.7k
+  pins:
+    1:
+      role: role.passive
+    2:
+      role: role.passive
+      bias: bias.pull_up
+      pull_resistance: value
 ```
 
 Import `role` and `bias` from `noscheme` for this fragment. The part displays
@@ -1013,18 +1013,18 @@ builtin electrical type or another net type:
 from noscheme import nettype, bias, std
 
 nettype I2CLine extends nettype.open_drain:
-    wiring_capacitance: 5p
-    checks:
-        pull: std.parallel(pull_resistance, where=bias.pull_up, min=1.5k, max=10k)
-        load: std.sum(capacitance, net=wiring_capacitance, max=400p)
+  wiring_capacitance: 5p
+  checks:
+    pull: std.parallel(pull_resistance, where=bias.pull_up, min=1.5k, max=10k)
+    load: std.sum(capacitance, net=wiring_capacitance, max=400p)
 
 nettype FastI2CLine extends I2CLine:
-    checks:
-        load: std.sum(max=200p)
+  checks:
+    load: std.sum(max=200p)
 
 bundle I2C:
-    scl: I2CLine
-    sda: I2CLine
+  scl: I2CLine
+  sda: I2CLine
 ```
 
 A net type is used wherever a net type is expected: nets, ports, and bundle
@@ -1117,10 +1117,10 @@ For a component with several supply pins, component metadata may group them:
 
 ```nosch
 metadata:
-    current_loads:
-        core:
-            pins: [vdd, "2", "3"]
-            max_load_current: 100m
+  current_loads:
+    core:
+      pins: [vdd, "2", "3"]
+      max_load_current: 100m
 ```
 
 Members are aliases, quoted physical pin IDs, or bare integer pin spellings. Groups must be nonempty, resolve
@@ -1134,10 +1134,10 @@ A block supply port can declare an aggregate; block-body fragment:
 
 ```nosch
 ports:
-    supply: nettype.power
-        role: role.power_input
-        aggregate_load:
-            max_load_current: 100m
+  supply: nettype.power
+    role: role.power_input
+    aggregate_load:
+      max_load_current: 100m
 ```
 
 The parent counts this amount once instead of descendant loads on that net.
@@ -1166,10 +1166,10 @@ example, with `bias` and `std` imported:
 
 ```nosch
 net bus: nettype.open_drain
-    wiring_capacitance: 2p
-    checks:
-        pull_strength: std.parallel(pull_resistance, where=bias.pull_up, min=1.5k, max=10k)
-        capacitance: std.sum(capacitance, net=wiring_capacitance, max=400p)
+  wiring_capacitance: 2p
+  checks:
+    pull_strength: std.parallel(pull_resistance, where=bias.pull_up, min=1.5k, max=10k)
+    capacitance: std.sum(capacitance, net=wiring_capacitance, max=400p)
 ```
 
 Each physical endpoint counts once. Ordinary public ports contribute assertions,
@@ -1196,11 +1196,11 @@ A physical signal-side pin can check its pull's other terminal with the pin rule
 
 ```nosch
 pins:
-    2:
-        role: role.passive
-        bias: bias.pull_up
-        checks:
-            reference: std.bias_reference("1")
+  2:
+    role: role.passive
+    bias: bias.pull_up
+    checks:
+      reference: std.bias_reference("1")
 ```
 
 With `bias.pull_up`, the reference terminal must reach a net declared
@@ -1239,8 +1239,8 @@ Net-declaration fragment:
 
 ```nosch
 net signal: nettype.digital
-    waivers:
-        missing_driver: "Driver is across the explicitly modeled series resistor."
+  waivers:
+    missing_driver: "Driver is across the explicitly modeled series resistor."
 ```
 
 A waiver names an application and gives a nonempty literal reason. It applies to
@@ -1260,10 +1260,10 @@ and `pins` instead of the string shorthand:
 
 ```nosch
 net gnd: nettype.ground
-    waivers:
-        incompatible_role:
-            reason: "Ground VDD_AUX to disable the unused power domain."
-            pins: ["chip.12"]
+  waivers:
+    incompatible_role:
+      reason: "Ground VDD_AUX to disable the unused power domain."
+      pins: ["chip.12"]
 ```
 
 Pin paths are literal strings naming an instance path followed by the exact
@@ -1322,22 +1322,22 @@ A board or block declares public choices in metadata:
 
 ```nosch
 metadata:
-    erc_choices:
-        mode: ["source", "load", "absent"]
+  erc_choices:
+    mode: ["source", "load", "absent"]
 ```
 
 An internal instance can select a role using a local choice. Instance fragment:
 
 ```nosch
 metadata:
-    pins:
-        1:
-            role:
-                choice: "mode"
-                cases:
-                    source: role.power_output
-                    load: role.power_input
-                    absent: role.passive
+  pins:
+    1:
+      role:
+        choice: "mode"
+        cases:
+          source: role.power_output
+          load: role.power_input
+          absent: role.passive
 ```
 
 On a pin that declares active roles, every case must be one of them (section 8.1).
@@ -1350,12 +1350,12 @@ literal alternative or a mapping from a parent's lexical choice:
 
 ```nosch
 metadata:
-    erc_choices:
-        mode:
-            choice: "power_source"
-            cases:
-                usb: "source"
-                header: "absent"
+  erc_choices:
+    mode:
+      choice: "power_source"
+      cases:
+        usb: "source"
+        header: "absent"
 ```
 
 Choices are forwarded explicitly through each block interface. They are not
@@ -1367,13 +1367,13 @@ Board metadata defines named configurations:
 
 ```nosch
 metadata:
-    erc_choices:
-        power_source: ["usb", "header"]
-    configurations:
-        usb_powered:
-            power_source: "usb"
-        header_powered:
-            power_source: "header"
+  erc_choices:
+    power_source: ["usb", "header"]
+  configurations:
+    usb_powered:
+      power_source: "usb"
+    header_powered:
+      power_source: "header"
 ```
 
 All named configurations run by default. Repeat `--erc-configuration NAME` to
@@ -1461,10 +1461,10 @@ Each entry names one application and calls an imported rule:
 from noscheme import nettype, std
 
 board B:
-    net signal: nettype.digital
-        checks:
-            driver_present: std.any(std.active_digital_driver)
-            no_contention: std.count(std.active_digital_driver, max=1)
+  net signal: nettype.digital
+    checks:
+      driver_present: std.any(std.active_digital_driver)
+      no_contention: std.count(std.active_digital_driver, max=1)
 ```
 
 Positional arguments fill the rule's parameters in registration order; the rest
@@ -1830,38 +1830,38 @@ and ground. `main.nosch`:
 from noscheme import role, nettype, unused
 
 component Resistor:
-    params:
-        value: resistance
-    pins:
-        1..2: [role.passive, unused.never]
-    metadata:
-        ref_prefix: "R"
-        footprint: "Resistor_SMD:R_0603_1608Metric"
+  params:
+    value: resistance
+  pins:
+    1..2: [role.passive, unused.never]
+  metadata:
+    ref_prefix: "R"
+    footprint: "Resistor_SMD:R_0603_1608Metric"
 
 component Header:
-    pins:
-        1..2: [role.passive, unused.never]
-    metadata:
-        ref_prefix: "J"
-        footprint: "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical_SMD_Pin1Left"
+  pins:
+    1..2: [role.passive, unused.never]
+  metadata:
+    ref_prefix: "J"
+    footprint: "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical_SMD_Pin1Left"
 
 board Demo:
-    global net gnd: nettype.ground
-    net signal: nettype.digital
-    inst connector: Header
-        connections:
-            1: signal
-            2: global.gnd
-        metadata:
-            pins:
-                1: role.digital_output
-                2: role.ground
-    inst load: Resistor
-        connections:
-            1: signal
-            2: global.gnd
-        params:
-            value: 10k
+  global net gnd: nettype.ground
+  net signal: nettype.digital
+  inst connector: Header
+    connections:
+      1: signal
+      2: global.gnd
+    metadata:
+      pins:
+        1: role.digital_output
+        2: role.ground
+  inst load: Resistor
+    connections:
+      1: signal
+      2: global.gnd
+    params:
+      value: 10k
 ```
 
 Place this `noscheme.toml` beside it:

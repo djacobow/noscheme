@@ -5,33 +5,33 @@ from noscheme import nettype, role, bias, std
 // standard 3mA sink budget for external pull-ups. 3.6V / 2mA = 1.8k.
 // This checks nominal resistance, not rise time or resistor tolerance.
 nettype LocalI2C extends nettype.open_drain:
-    checks:
-        capacitance: std.sum(capacitance, net=wiring_capacitance, max=400p)
-        pull_up: std.parallel(pull_resistance, where=[role.passive, bias.pull_up], min=1.8k)
+  checks:
+    capacitance: std.sum(capacitance, net=wiring_capacitance, max=400p)
+    pull_up: std.parallel(pull_resistance, where=[role.passive, bias.pull_up], min=1.8k)
 
 // Buffered cable side: distinct from the 400pF local I2C limit.
 // Caller supplies wiring and per-port connector/cable/downstream allowances.
 nettype BufferedI2C extends nettype.open_drain:
-    checks:
-        capacitance: std.sum(capacitance, net=wiring_capacitance, max=4n)
+  checks:
+    capacitance: std.sum(capacitance, net=wiring_capacitance, max=4n)
 
 // Bundles make shared row and segment buses scalar connection objects.
 // These are multiplexed LED current paths, not ordinary digital signals.
 // Keep them passive until switched sources and constant-current sinks are modeled.
 bundle Rows:
-    row0: nettype.passive
-    row1: nettype.passive
-    row2: nettype.passive
-    row3: nettype.passive
-    row4: nettype.passive
-    row5: nettype.passive
+  row0: nettype.passive
+  row1: nettype.passive
+  row2: nettype.passive
+  row3: nettype.passive
+  row4: nettype.passive
+  row5: nettype.passive
 
 bundle Segments:
-    a: nettype.passive
-    b: nettype.passive
-    c: nettype.passive
-    d: nettype.passive
-    e: nettype.passive
-    f: nettype.passive
-    g: nettype.passive
-    dp: nettype.passive
+  a: nettype.passive
+  b: nettype.passive
+  c: nettype.passive
+  d: nettype.passive
+  e: nettype.passive
+  f: nettype.passive
+  g: nettype.passive
+  dp: nettype.passive

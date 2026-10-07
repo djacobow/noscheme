@@ -13,17 +13,17 @@ from test_circuit import compile_source
 
 SOURCE = """from noscheme import std
 component Endpoint:
-    pins:
-        1:
-            role: role.digital_output
+  pins:
+    1:
+      role: role.digital_output
 board B:
-    net bus: nettype.digital
-        checks:
-            contention: std.count(std.active_digital_driver, max=1)
-            presence: std.any(std.active_digital_driver)
-    inst devices[2]: Endpoint
-        connections:
-            1: bus
+  net bus: nettype.digital
+    checks:
+      contention: std.count(std.active_digital_driver, max=1)
+      presence: std.any(std.active_digital_driver)
+  inst devices[2]: Endpoint
+    connections:
+      1: bus
 """
 
 
@@ -45,13 +45,13 @@ def test_defaults_replaceable_explicit_rules_remain_and_report_identity(tmp_path
 
 def test_waiver_targets_one_application_of_same_checker(tmp_path):
     source = SOURCE.replace(
-        "            presence:",
-        "            another: std.count(std.active_digital_driver, max=0)\n            presence:",
+        "      presence:",
+        "      another: std.count(std.active_digital_driver, max=0)\n      presence:",
     ).replace(
-        "        checks:",
-        """        waivers:
-            contention: "Intentional shared bus"
-        checks:""",
+        "    checks:",
+        """    waivers:
+      contention: "Intentional shared bus"
+    checks:""",
     )
     c = circuit(tmp_path, source)
     records = []
@@ -90,21 +90,21 @@ def test_reductions_optional_members_and_empty_sets():
 def test_unknown_selector_does_not_turn_optional_resistor_into_short(tmp_path):
     source = """from noscheme import bias, std
 component Pull:
-    pins:
-        1:
-            role: role.passive
-            bias: bias.pull_up
-            pull_resistance: 4700
+  pins:
+    1:
+      role: role.passive
+      bias: bias.pull_up
+      pull_resistance: 4700
 component Maybe extends Pull:
-    pins:
-        1:
-            bias: bias.none
+  pins:
+    1:
+      bias: bias.none
 board B:
-    net bus: nettype.passive
-        checks:
-            strength: std.parallel(pull_resistance, where=bias.pull_up, min=2000)
-    inst known: Pull(1: bus)
-    inst maybe: Maybe(1: bus)
+  net bus: nettype.passive
+    checks:
+      strength: std.parallel(pull_resistance, where=bias.pull_up, min=2000)
+  inst known: Pull(1: bus)
+  inst maybe: Maybe(1: bus)
 """
     c = circuit(tmp_path, source)
     del c["parts"][1]["pins"]["1"]["metadata"]["bias"]
@@ -209,26 +209,26 @@ def test_duplicate_registry_names_and_unknown_rulesets_are_errors(tmp_path):
 def test_pin_application_specialization_and_instance_override(tmp_path):
     source = """import test
 component Base:
-    pins:
-        1:
-            role: role.passive
-            checks:
-                limit: test.limit(maximum=20, label="original")
+  pins:
+    1:
+      role: role.passive
+      checks:
+        limit: test.limit(maximum=20, label="original")
 component Child extends Base:
-    pins:
-        1:
-            checks:
-                limit: test.limit(maximum=10)
+  pins:
+    1:
+      checks:
+        limit: test.limit(maximum=10)
 board B:
-    net bus: nettype.passive
-    inst load: Child
-        connections:
-            1: bus
-        metadata:
-            pins:
-                1:
-                    checks:
-                        limit: test.limit(maximum=5)
+  net bus: nettype.passive
+  inst load: Child
+    connections:
+      1: bus
+    metadata:
+      pins:
+        1:
+          checks:
+            limit: test.limit(maximum=5)
 """
     from test_circuit import make
     from noscheme.resolve import resolve_project
@@ -236,12 +236,12 @@ board B:
 
     make(tmp_path, source)
     (tmp_path / "checks.py").write_text("""def register(r):
-    r.pin_rule("test.limit", check, parameters={"maximum": "number", "label": "string"})
-    r.pin_rule("test.other", check, parameters={"maximum": "number", "label": "string"})
+  r.pin_rule("test.limit", check, parameters={"maximum": "number", "label": "string"})
+  r.pin_rule("test.other", check, parameters={"maximum": "number", "label": "string"})
 def check(ctx, *, maximum, label):
-    assert maximum == 5 and label == "original"
-    assert ctx.net.label == "bus" and ctx.other_pins == ()
-    yield ctx.error("expected application")
+  assert maximum == 5 and label == "original"
+  assert ctx.net.label == "bus" and ctx.other_pins == ()
+  yield ctx.error("expected application")
 """)
     with (tmp_path / "noscheme.toml").open("a") as stream:
         stream.write('erc_modules = ["checks.py"]\nerc_rule_sets = []\n')
@@ -260,7 +260,7 @@ def test_structural_errors_remain_with_no_rule_sets(tmp_path):
 
 
 def test_empty_any_all_and_count_are_defined(tmp_path):
-    source = SOURCE[: SOURCE.index("    inst devices")].replace(
+    source = SOURCE[: SOURCE.index("  inst devices")].replace(
         "std.count(std.active_digital_driver, max=1)", "std.all(std.active_digital_driver)"
     )
     result = check_circuit(circuit(tmp_path, source))
@@ -311,13 +311,13 @@ def test_filter_enum_alias_and_missing_mapping_validation(tmp_path):
             tmp_path,
             SOURCE.replace(
                 "presence: std.any(std.active_digital_driver)",
-                'presence:\n                checker: "std.any"',
+                'presence:\n        checker: "std.any"',
             ),
         )
 
 
 def test_unknown_predicate_rejected_on_empty_net(tmp_path):
-    source = SOURCE[: SOURCE.index("    inst devices")].replace(
+    source = SOURCE[: SOURCE.index("  inst devices")].replace(
         "std.active_digital_driver", "std.unknown_predicate"
     )
     with pytest.raises(DiagnosticError, match="selector"):
@@ -371,20 +371,20 @@ def test_project_rules_import_like_module_members(tmp_path):
 
     source = """from test import limit as bounded
 component Part:
-    pins:
-        1:
-            role: role.passive
-            checks:
-                limit: bounded(maximum=5)
+  pins:
+    1:
+      role: role.passive
+      checks:
+        limit: bounded(maximum=5)
 board B:
-    net bus: nettype.passive
-    inst load: Part
-        connections:
-            1: bus
+  net bus: nettype.passive
+  inst load: Part
+    connections:
+      1: bus
 """
     make(tmp_path, source)
     (tmp_path / "checks.py").write_text(
-        'def register(r):\n    r.pin_rule("test.limit", lambda ctx, maximum: (), '
+        'def register(r):\n  r.pin_rule("test.limit", lambda ctx, maximum: (), '
         'parameters={"maximum": "number"})\n'
     )
     with (tmp_path / "noscheme.toml").open("a") as stream:
@@ -405,24 +405,24 @@ board B:
 
 INNER = """from noscheme import std
 component Endpoint:
-    pins:
-        1:
-            role: role.digital_output
+  pins:
+    1:
+      role: role.digital_output
 block Inner:
-    ports:
-        bus: nettype.digital
-            checks:
-                contention: std.count(std.active_digital_driver, max=0)
-    inst endpoint: Endpoint
-        connections:
-            1: bus
+  ports:
+    bus: nettype.digital
+      checks:
+        contention: std.count(std.active_digital_driver, max=0)
+  inst endpoint: Endpoint
+    connections:
+      1: bus
 board B:
-    net bus: nettype.digital
-        waivers:
-            contention: "Reviewed: the inner limit is a test fixture."
-    inst inner: Inner
-        connections:
-            bus: bus
+  net bus: nettype.digital
+    waivers:
+      contention: "Reviewed: the inner limit is a test fixture."
+  inst inner: Inner
+    connections:
+      bus: bus
 """
 
 
