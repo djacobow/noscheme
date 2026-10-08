@@ -53,7 +53,8 @@ def register(registry):
             )
 
         registry.net_rule("std." + code, net_check, waivable=code in WAIVABLE)
-    for code in pin_codes:
+    # Registration order is part of the report and must survive process boundaries.
+    for code in sorted(pin_codes):
 
         def pin_check(ctx, code=code):
             return (

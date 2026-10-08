@@ -75,6 +75,10 @@ def main(argv=None):
         description="NoScheme compiler, electrical checks, and KiCad tools."
     )
     sub = cli.add_subparsers(dest="command", required=True)
+    from .lsp_launcher import add_arguments, launch
+
+    lsp = sub.add_parser("lsp", help="start a language server over stdio")
+    add_arguments(lsp)
     parser = sub.add_parser("parse", help="validate syntax/structure and emit a typed AST")
     parser.add_argument("source", type=Path)
     parser.add_argument("--output", type=Path, help="write AST JSON atomically; default is stdout")
@@ -152,6 +156,8 @@ def main(argv=None):
     classes.add_argument("--output", type=Path, required=True)
     classes.add_argument("--diagnostics", choices=["text", "json"], default="text")
     args = cli.parse_args(argv)
+    if args.command == "lsp":
+        return launch(args, lsp)
     try:
         if args.command == "format":
             return format_paths(args)

@@ -74,3 +74,38 @@ jobs:
           test -f /usr/share/kicad/demos/ecc83/ecc83-pp.kicad_pcb
       - run: uv sync --locked
       - run: uv run --locked pytest -q -rs
+
+  native-parser:
+    name: Native C++ (${{ matrix.compiler }})
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [g++, clang++]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          version: '0.9.28'
+          python-version: '3.14'
+          enable-cache: true
+      - run: uv sync --locked
+      - name: Install native build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y g++ clang meson ninja-build cmake default-jre-headless
+      - run: python3 -m tools.native_dependencies --fetch
+      - name: Build native compiler core
+        env:
+          CXX: ${{ matrix.compiler }}
+        run: |
+          if [ "$CXX" = clang++ ]; then
+            meson setup build/native --buildtype=debug -Db_sanitize=address,undefined -Db_lundef=false
+          else
+            meson setup build/native --buildtype=release
+          fi
+          meson compile -C build/native -j 4
+      - run: meson test -C build/native --print-errorlogs

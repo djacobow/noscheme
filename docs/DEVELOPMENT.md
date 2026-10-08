@@ -371,3 +371,21 @@ construction. A selected family is evaluated once per net/configuration, and
 unselected families do not execute. Grouped current facts are shared between net
 budget checks and the component's group-validation application. Tests cover both
 behavior and execution isolation.
+
+## Native C++ development
+
+The C++23 migration is under `cpp/`, using Meson/Ninja and ANTLR-generated
+lexing/parsing, toml++ project loading, Boost.Multiprecision value evaluation,
+definition resolution, circuit elaboration, and a subprocess bridge to Python ERC. See
+[native build and parity tests](../cpp/README.md). The separate experimental native LSP
+currently supports project/compiler/ERC diagnostics, definition/hover, references,
+context-aware completion, whole-file formatting, and identity-aware rename.
+Interactive snapshots are available before ERC callbacks run. Python remains the
+default while native editor validation and performance work continue. Native tests
+are separate Meson targets and do not replace the Python suite.
+
+Use `tools.benchmark_lsp` for actual stdio request timings, including edits and
+full diagnostics; see the [benchmark instructions](../cpp/README.md#editor-visible-benchmark).
+Run performance measurements separately from builds and tests. For local sanitizer
+runs on a busy or memory-constrained machine, use `meson test -C build/native-asan
+--num-processes 1 --timeout-multiplier 2 --print-errorlogs`.

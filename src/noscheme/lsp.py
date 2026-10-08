@@ -1,6 +1,5 @@
 """NoScheme language server, served over standard LSP stdin/stdout."""
 
-import argparse
 import asyncio
 import logging
 from pathlib import Path
@@ -403,11 +402,9 @@ def create_server(project=None):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--project", type=Path, help="Explicit noscheme.toml or project directory")
-    args = parser.parse_args(argv)
-    logging.basicConfig(level=logging.WARNING)  # Logs must never enter protocol stdout.
-    create_server(args.project).start_io()
+    from .lsp_launcher import main as launch
+
+    return launch(argv)
 
 
 if __name__ == "__main__":

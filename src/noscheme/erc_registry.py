@@ -176,6 +176,16 @@ def namespace(name):
     return name.rpartition(".")[0]
 
 
+def exported_names(registry):
+    """Map importable plugin namespaces to their qualified rules and predicates."""
+    result = {}
+    for name in (*registry.rules, *registry.predicates):
+        space = namespace(name)
+        if space.split(".")[0] not in {"std", "noscheme"}:
+            result.setdefault(space, {})[name.rpartition(".")[2]] = name
+    return result
+
+
 def validate_schema(fields, *, arguments=False):
     if not isinstance(fields, dict) or not fields:
         raise ValueError("metadata schemas must be nonempty mappings")

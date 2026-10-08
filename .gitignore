@@ -22,3 +22,12 @@ coverage.xml
 # Editor extension dependencies and packages
 node_modules/
 *.vsix
+
+# Downloaded native dependencies; versioned wrap files remain tracked.
+subprojects/packagecache/
+subprojects/antlr4-runtime-*/
+subprojects/json/
+subprojects/tomlplusplus-*/
+subprojects/config-boost-*/
+subprojects/multiprecision-boost-*/
+subprojects/.wraplock

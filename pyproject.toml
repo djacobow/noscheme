@@ -17,7 +17,7 @@ dependencies = [
 
 [project.scripts]
 noscheme = "noscheme.cli:main"
-noscheme-lsp = "noscheme.lsp:main"
+noscheme-lsp = "noscheme.lsp_launcher:main"
 
 [dependency-groups]
 dev = [

@@ -15,6 +15,128 @@ implementation-stage plans describe those checkpoints. Use the
 [LRM](LRM.md) for current behavior and [Development](DEVELOPMENT.md) for current
 commands; recent work and measurements are listed first.
 
+## C++23 migration in progress
+
+The native port uses Meson/Ninja and starts with the LSP's compiler dependencies.
+After reviewing parser libraries, ANTLR 4 replaces the initially proposed
+handwritten parser. The generated C++ lexer/parser and the parser/project
+comparison probe live in [cpp/](../cpp/README.md). Python remains the supported
+compiler and LSP; the experimental native server now provides project/compiler/ERC diagnostics.
+
+- [x] Native build, pinned ANTLR generator/runtime, and dependency hash checks.
+- [x] Translate current syntax and compare ASTs/spans against Python across
+  examples (including WREN), test fragments, and Unicode cases.
+- [x] Compare 420 sources (including 76 invalid sources) in GCC and Clang
+  address/undefined-behavior sanitizer builds; add both builds to CI.
+- [x] Add reproducible uncached parser benchmarks and phase timings; remove
+  deep AST copies from construction/validation and use ANTLR's SLL/LL fallback.
+- [ ] Complete malformed-input/location coverage and native fuzz checks.
+- [x] Port TOML configuration, reachable module loading, import binding, and
+  exact-text AST reuse with unsaved source snapshots. Compare project summaries
+  and diagnostics against Python, including plugin exports supplied by a provider.
+- [x] Port expression/value evaluation, arbitrary-precision integers, scaled
+  literals, quantity display, restricted formatting, numeric helpers, and array
+  conversions; compare values and diagnostics with Python.
+- [x] Resolve inherited parameter headers, bind caller arguments and scoped
+  defaults, and select part values. Compare all example headers and focused
+  binding/error cases with Python, including Unicode locations and deep chains.
+- [x] Resolve inherited interfaces and metadata, aliases and pin selections,
+  current-load/interchangeable groups, and board configuration selections.
+  Preserve lexical provenance, body ownership, and diagnostic declaration order;
+  compare complete interface summaries across all eight examples.
+- [x] Port body/reference validation and positional-pin expansion. Compare full
+  resolved definitions across all eight examples, public bundle selection,
+  expression/metadata diagnostics, roles and choices, and array overrides.
+  Preserve cached ASTs and inherited lexical scopes; collect independent errors
+  and check bundle cycles iteratively.
+- [x] Port circuit elaboration and integrate parameter binding with fully validated
+  definitions. Expand blocks/arrays/bundles, apply element and metadata overrides,
+  join connectivity, preserve identities and ERC choice data, and enforce limits.
+  Compare full circuits for all eight examples and focused success/failure cases.
+- [ ] Port the separate template-inspection report if native editor requests need it.
+- [x] Add versioned registry discovery through a Python subprocess: merged schemas,
+  ordered rule signatures, plugin exports, diagnostics, bounded transport, and
+  timeout cleanup. Compare all examples and plugin edits against Python.
+- [x] Interpret scalar/nested metadata from registry schemas, including quantities,
+  deferred expressions, pin shorthand, enum shadowing, and inheritance merges.
+- [x] Read native check applications, choices/configurations, waivers, and grouped
+  current loads. Compare metadata across all eight examples and focused failure
+  cases; preserve rule argument order, lexical scope, and checker identity.
+- [x] Integrate metadata with body validation.
+- [ ] Integrate native metadata with editor completion.
+- [x] Run existing Python ERC/plugins against native elaborated data through the
+  versioned bridge. Decode metadata quantities, validate registry compatibility,
+  preserve configuration/waiver diagnostics, and return text/JSON reports from one
+  check run. Share bounded subprocess transport and test all eight examples,
+  plugin edits/defaults, malformed replies, and timeout recovery.
+- [x] Make built-in pin-rule registration deterministic across Python hash seeds.
+- [x] Add a shared LSP launcher with explicit Python/native selection, preserving
+  existing editor commands and reporting missing native executables without fallback.
+- [x] Native stdio LSP lifecycle, bounded framing, full document synchronization,
+  and versioned parser/structural diagnostics with UTF-16 ranges.
+- [x] Connect project/semantic/ERC analysis to the native server, with ancestor
+  discovery or explicit project selection, unsaved imported/configuration files,
+  exact-text AST caching, related locations, and clearing stale diagnostics.
+- [x] Native background diagnostics with copied buffer snapshots, 200 ms debounce,
+  stale-result rejection, cancellable Python bridge subprocesses, and responsive
+  shutdown. Native cancellation is currently between compiler phases.
+- [x] Initial native definition/hover index for imported and qualified types,
+  inheritance, lexical names, globals, parameters, and direct public pin bindings;
+  version-current requests, cancellation, and Markdown/plaintext hover.
+- [x] Native nested public bundle-field navigation on both binding sides, including
+  array indices/slices and unsaved type edits. Hover shows field types, parameter
+  defaults, and common resolved metadata with its defining module.
+- [x] Share builtin enum hover descriptions with Python; show registered ERC rule
+  signatures, scope, and waiver policy in native hover.
+- [x] Initial native completion for imported/qualified types, enums, and ERC rules,
+  including dangling-member recovery without suppressing syntax diagnostics.
+- [x] Native public pin/alias and nested bundle-field completion in connection
+  bindings, with inherited interfaces, unsaved imports, and array indices/slices.
+  Share interface resolution with body validation.
+- [x] Native footprint completion from resolved defaults and imported candidate
+  metadata, including inherited components, empty values, open quotes, and
+  whole-value replacement with escaped strings.
+- [x] Native local net/public port/explicit global suggestions in named connection
+  targets. ERC argument completion uses registered rule parameters and field
+  schemas, excludes supplied arguments, and recovers unfinished check calls.
+- [x] Native empty/unfinished inline instance completion, including positional
+  targets for interchangeable pins, parameter keywords, punctuation insertion,
+  and exclusion of supplied pins/aliases/parameters.
+- [x] Filter native ERC rule-name suggestions by pin/net scope.
+- [x] Native empty section-form binding completion: pin names, aliases, nested
+  bundle fields, and connection targets, with recovery confined to completion
+  snapshots and the original diagnostics preserved.
+- [x] Add lexical native keyword completion for declarations, sections, and common
+  header continuations, including new files without a project.
+- [x] Complete grouped physical pin lists in native connection sections, including
+  multiline lists and duplicate filtering by pin ID, alias, and range.
+- [x] Complete quoted group members and groups after instance-array selectors.
+- [x] Add grouped pin navigation, bounded elaborated instance hover, and Find References.
+- [x] Index local declarations in standalone/partially broken files without using
+  stale source ranges or guessing unresolved external imports.
+- [x] Make current native analysis available to editor requests before ERC callbacks.
+- [x] Discover workspace projects by source root, rejecting ambiguous matches.
+- [x] Add effective physical-pin role/net hover and quoted missing-policy completion.
+- [x] Add native whole-file formatting, with Python output parity and syntax/comment checks.
+- [x] Add prepare/rename, with the current Python behavior suite run through the native
+  protocol, identity-preserving board-instance edits, and physical-signature validation.
+- [x] Revalidate disk source/config/plugin contents before reusing editor snapshots.
+- [x] Bypass typing debounce for interactive requests, reuse the built-in registry,
+  and negotiate versioned rename edits.
+- [x] Share native completion candidates by lexical scope and reuse diagnostic
+  source indices; include full WREN in the LSP regression suite.
+- [ ] Recover unresolved imported interfaces in partially broken projects beyond
+  the existing local declaration fallback.
+- [x] Validate protocol/formatter/rename parity and measure actual release-build
+  cold/warm/edit latency plus sampled process-tree memory on STM32 and full WREN.
+  See the native README for results and the remaining small-design edit overhead.
+- [ ] Manually check the native server in Vim, Neovim, and VS Code before changing
+  the default; automated protocol parity does not replace editor validation.
+
+Linux is the first target. CLI/export/conversion remain in Python initially.
+The ANTLR grammar does not directly reuse Lark syntax; both grammars are maintained
+and compared during migration. Later Python grammar consolidation is separate.
+
 ## Recent completed work
 
 ### Source formatter (October 7, 2026)

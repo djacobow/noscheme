@@ -1,0 +1,244 @@
+"""Versioned registry snapshots preserve Python registration semantics."""
+
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+import pytest
+
+from noscheme.erc_registry import load_registry
+from noscheme.metadata import SCHEMAS
+from noscheme.native_bridge import describe_registry, respond
+
+
+def test_core_and_standard_fields():
+    registry = load_registry()
+    result = describe_registry(registry)
+    for scope, core in SCHEMAS.items():
+        fields = {f["name"] for f in result["schemas"][scope]}
+        assert fields == core.keys() | registry.schemas.get(scope, {}).keys()
+    assert set(result["rules"]) == registry.rules.keys()
+    assert result["exports"] == {}
+    # No callback, repr of a callback, or non-JSON default travels over the wire.
+    assert json.loads(json.dumps(result, allow_nan=False)) == result
+    for name, rule in registry.rules.items():
+        assert [p["name"] for p in result["rules"][name]["parameters"]] == list(rule.parameters)
+        assert [p["name"] for p in result["rules"][name]["parameters"] if p["has_default"]] == [
+            name for name in rule.parameters if name in rule.defaults
+        ]
+
+
+def test_plugin_schema_and_opaque_default(tmp_path):
+    plugin = tmp_path / "rules.py"
+    plugin.write_text("""def register(r):
+    r.fields("pin", {"ratings": {"limit": "voltage"}, "mode": ("bias", {"pull_up", "none"})})
+    r.net_rule("example.check", lambda ctx, **kw: None,
+               parameters={"z": "literal", "a": "number"}, defaults={"z": object()})
+    r.predicate("example.active", lambda endpoint: True)
+""")
+    response = respond({"version": 1, "method": "describe_registry", "erc_modules": [str(plugin)]})
+    data = response["registry"]
+    assert data["exports"] == {"example": {"check": "example.check", "active": "example.active"}}
+    assert data["rules"]["example.check"]["parameters"] == [
+        {"name": "z", "schema": {"kind": "literal"}, "has_default": True},
+        {"name": "a", "schema": {"kind": "number"}, "has_default": False},
+    ]
+    assert {f["name"]: f["schema"] for f in data["schemas"]["pin"]}["mode"] == {
+        "kind": "enum",
+        "namespace": "bias",
+        "values": ["none", "pull_up"],
+    }
+    assert json.loads(json.dumps(response)) == response
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        None,
+        [],
+        {},
+        {"version": True},
+        {"version": 2},
+        {"version": 1, "method": "run_code"},
+        {"version": 1, "method": "describe_registry", "erc_modules": "file.py"},
+    ],
+)
+def test_protocol_rejections(payload):
+    with pytest.raises(ValueError):
+        respond(payload)
+
+
+def invoke(request):
+    env = os.environ | {"PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")}
+    return subprocess.run(
+        [sys.executable, "-m", "noscheme.native_bridge"],
+        input=json.dumps(request),
+        text=True,
+        capture_output=True,
+        env=env,
+        timeout=10,
+        check=True,
+    )
+
+
+def test_stdout_is_protocol_and_plugins_reload(tmp_path):
+    plugin = tmp_path / "rules.py"
+    source = """print("plugin import log")
+def register(r):
+    print("plugin registration log")
+    r.fields("net", {"first": "number"})
+"""
+    plugin.write_text(source)
+    request = {"version": 1, "method": "describe_registry", "erc_modules": [str(plugin)]}
+    before = invoke(request)
+    assert "plugin import log" in before.stderr
+    assert "plugin registration log" in before.stderr
+    first = json.loads(before.stdout)
+    stamp = plugin.stat()
+    plugin.write_text(source.replace("first", "later"))
+    os.utime(plugin, ns=(stamp.st_atime_ns, stamp.st_mtime_ns))
+    second = json.loads(invoke(request).stdout)
+    assert first["registry"]["schemas"]["net"][-1]["name"] == "first"
+    assert second["registry"]["schemas"]["net"][-1]["name"] == "later"
+
+
+def test_plugin_error_response(tmp_path):
+    plugin = tmp_path / "broken.py"
+    plugin.write_text('raise RuntimeError("broken plugin")\n')
+    result = json.loads(
+        invoke({"version": 1, "method": "describe_registry", "erc_modules": [str(plugin)]}).stdout
+    )
+    assert result["diagnostics"][0]["code"] == "erc.plugin_load"
+    assert "broken plugin" in result["diagnostics"][0]["message"]
+
+
+def erc_request(tmp_path):
+    from noscheme.circuit import elaborate_project
+    from noscheme.resolve import resolve_project
+    from test_circuit import make, PART
+
+    project, definitions = resolve_project(
+        make(tmp_path, PART + "board B:\n  net n: nettype.passive\n  inst p: P(1: n)\n")
+    )
+    circuit, _ = elaborate_project(project, definitions)
+    return {
+        "version": 1,
+        "method": "check_circuit",
+        "erc_modules": [],
+        "registry": describe_registry(project.config.erc_registry),
+        "circuit": circuit,
+    }
+
+
+def test_execution_report_without_mutation_or_files(tmp_path):
+    from copy import deepcopy
+    from noscheme.erc import apply_erc, report_files
+
+    request = erc_request(tmp_path)
+    before = deepcopy(request)
+    expected = deepcopy(request["circuit"])
+    apply_erc(expected)
+    result = respond(request)
+    assert result["erc"] == expected["erc"]
+    assert result["reports"] == {
+        path.name: text for path, text in report_files(expected, Path(".")).items()
+    }
+    assert request == before
+    assert respond(request) == result
+    assert not (tmp_path / "erc.json").exists()
+    assert not (tmp_path / "erc.txt").exists()
+
+
+@pytest.mark.parametrize(
+    "number,expected",
+    [
+        (
+            {"type": "number", "tag": "integer", "value": "-123456789012345678901234567890"},
+            -123456789012345678901234567890,
+        ),
+        ({"type": "number", "tag": "double", "value": 4.7e-12}, 4.7e-12),
+    ],
+)
+def test_native_metadata_numbers(number, expected):
+    from noscheme.native_bridge import decode_metadata
+
+    assert decode_metadata(number) == expected
+
+
+def test_large_native_metadata_integer_without_global_settings():
+    from noscheme.native_bridge import decode_metadata
+
+    before = sys.get_int_max_str_digits()
+    value = decode_metadata({"type": "number", "tag": "integer", "value": "1" + "0" * 5000})
+    assert value == 10**5000
+    assert sys.get_int_max_str_digits() == before
+
+
+@pytest.mark.parametrize(
+    "number",
+    [
+        {"type": "number", "tag": "integer", "value": "1.0"},
+        {"type": "number", "tag": "integer", "value": " 1"},
+        {"type": "number", "tag": "integer", "value": "+1"},
+        {"type": "number", "tag": "integer", "value": "01"},
+        {"type": "number", "tag": "integer", "value": "1" * 20001},
+        {"type": "number", "tag": "integer", "value": 1},
+        {"type": "number", "tag": "double", "value": True},
+        {"type": "number", "tag": "double", "value": float("inf")},
+        {"type": "number", "tag": "double", "value": float("nan")},
+        {"type": "number", "tag": "other", "value": 1},
+        {"type": "number", "tag": "integer", "value": "1", "extra": 2},
+    ],
+)
+def test_malformed_native_metadata_numbers(number):
+    from noscheme.native_bridge import decode_metadata
+
+    with pytest.raises(ValueError):
+        decode_metadata(number)
+
+
+@pytest.mark.parametrize("change", ["registry", "modules", "configurations", "schema", "stage"])
+def test_execution_rejects_inconsistent_requests(tmp_path, change):
+    request = erc_request(tmp_path)
+    if change == "registry":
+        request["registry"]["rules"].pop("std.sum")
+    elif change == "modules":
+        request["circuit"]["erc_modules"] = ["unexpected.py"]
+    elif change == "configurations":
+        request["configurations"] = "all"
+    elif change == "schema":
+        request["circuit"]["schema_version"] = True
+    else:
+        request["circuit"]["stage"] = "other"
+    with pytest.raises(ValueError):
+        respond(request)
+
+
+def test_registered_checks_are_stable_across_hash_seeds(tmp_path):
+    request = erc_request(tmp_path)
+    outputs = []
+    for seed in ("1", "2", "3"):
+        env = os.environ | {"PYTHONHASHSEED": seed}
+        result = subprocess.run(
+            [sys.executable, "-m", "noscheme.native_bridge"],
+            input=json.dumps(request),
+            text=True,
+            capture_output=True,
+            env=env,
+            timeout=10,
+            check=True,
+        )
+        outputs.append(json.loads(result.stdout))
+    assert outputs[0] == outputs[1] == outputs[2]
+
+
+def test_editor_help_is_shared_but_snapshot_owned():
+    from noscheme.builtin_help import BUILTIN_HELP
+    from noscheme.lsp_hover import BUILTIN_HELP as hover_help
+
+    snapshot = describe_registry(load_registry())
+    assert snapshot["help"] == BUILTIN_HELP == hover_help
+    snapshot["help"]["role"]["passive"] = "changed snapshot"
+    assert BUILTIN_HELP["role"]["passive"] != "changed snapshot"

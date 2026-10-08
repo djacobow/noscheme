@@ -447,3 +447,77 @@ them unchanged. The registry includes modules from the project's `erc_modules`
 configuration.
 Application-specific ERC diagnostics use the same source locations and related
 locations as command-line reports.
+
+### Selecting an LSP implementation
+
+Existing editor commands continue to start the Python server. You can also use
+`noscheme lsp`; both entry points accept the same options:
+
+```sh
+noscheme-lsp --implementation python
+noscheme lsp --implementation python
+```
+
+The launcher also supports `--implementation native`, which runs
+`noscheme-native-lsp` from PATH, or the executable supplied with
+`--native-server /absolute/path/to/noscheme-native-lsp`. The `--project` option
+is forwarded unchanged. Restart the editor's server after changing the command.
+
+Meson now builds an experimental server at `build/native/noscheme-native-lsp`.
+It provides syntax, project, semantic, and ERC diagnostics using full-document
+updates, plus initial go-to-definition and hover support for project types,
+lexical names, parameters, globals, public pin bindings, and nested bundle fields
+through array indices/slices. Hover includes types, simple parameter defaults, and
+common resolved metadata. Builtin role/nettype/unused descriptions and registered
+ERC rule signatures are available. Initial completion covers imported types,
+qualified names, enum members, and ERC rules; an unfinished member such as
+`role.` can receive suggestions while retaining its syntax diagnostic.
+Connection bindings suggest public pins/aliases and nested bundle fields,
+including inherited interfaces and indexed/sliced bundles.
+Direct component/instance footprint fields suggest the inherited default and
+imported KiCad candidate hints, including empty values and unfinished quotes.
+These are selection hints; verify the package dimensions.
+Named connection targets suggest local nets, public ports, and explicit global
+nets. ERC check calls suggest remaining parameter keywords, selectors, fields,
+and missing-data policies, including imported plugin rules and unfinished calls.
+Rule names are filtered by pin/net scope. Empty or unfinished inline instance
+lists suggest named pins and parameters, plus positional targets for components
+with interchangeable pins; already supplied pins and parameters are excluded.
+Section-form connections support empty rows, missing targets, and unfinished
+pin/bundle-member names. Grouped physical pin lists also offer names and aliases,
+including across multiple lines, excluding pins already selected in that list or
+other rows of the same section. Quoted members and groups after instance-array
+selectors are supported; index expressions themselves are left alone.
+Native keyword completion also works in a fresh file without a project. It
+suggests declarations and sections according to lexical context, inserting the
+bare keyword; add the punctuation yourself. It skips comments, strings, and open
+argument/index expressions.
+Native Find References includes cross-file uses and optional declarations.
+Grouped pins support definition and hover, and instance hover shows bounded
+elaborated details. A local fallback keeps complete declarations navigable in
+standalone and partially broken files, without guessing external imports.
+Native whole-file formatting follows the same canonical rules as Python.
+Prepare Rename and Rename support the same current scope, with identity
+preservation for board-level instances and validation of proposed edits.
+Native editor requests wait for
+native analysis and registry loading, then can respond while ERC runs.
+Project selection uses `--project`, the nearest ancestor `noscheme.toml`, or the
+most specific source root among projects in the initialized workspace folders.
+Ambiguous workspace matches require `--project`. Unopened dependency files are checked for content changes before snapshot reuse,
+and file-watcher notifications invalidate analysis. The launcher passes its own
+Python interpreter for ERC plugins.
+
+Interactive requests bypass the native server's typing debounce. The built-in
+ERC registry is reused for the server lifetime; restart after updating the
+NoScheme installation. User plugin registries reload on each analysis, including
+transitive imports. Rename returns versioned document edits when the editor
+advertises support, protecting open buffers from stale edit application.
+
+Native analysis runs in the background after a 200 ms typing delay. Superseded
+results are discarded and active Python ERC checks are cancelled. Native compiler
+phases finish before cancellation takes effect. Keep Python for normal editing
+until manual native editor checks are complete. Release performance measurements
+are recorded in the native README. See the [native build instructions](../cpp/README.md#experimental-native-lsp).
+
+Selecting native without an available executable fails visibly and never falls
+back to Python. The launcher preserves stdio and process signals.

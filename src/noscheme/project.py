@@ -225,16 +225,12 @@ def erc_exports(config):
     """
     if not config.erc_modules:
         return {}
-    from .erc_registry import namespace
+    from .erc_registry import exported_names
 
-    registry = config.erc_registry
-    result = {}
-    for name in (*registry.rules, *registry.predicates):
-        if namespace(name).split(".")[0] not in {"std", "noscheme"}:
-            result.setdefault(namespace(name), {})[name.rpartition(".")[2]] = Symbol(
-                ERC_MODULE, name, None
-            )
-    return result
+    return {
+        space: {name: Symbol(ERC_MODULE, qualified, None) for name, qualified in names.items()}
+        for space, names in exported_names(config.erc_registry).items()
+    }
 
 
 @cached_project

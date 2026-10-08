@@ -1,0 +1,5 @@
+[wrap-file]
+directory = tomlplusplus-3.4.0
+source_url = https://codeload.github.com/marzer/tomlplusplus/tar.gz/refs/tags/v3.4.0
+source_filename = tomlplusplus-3.4.0.tar.gz
+source_hash = 8517f65938a4faae9ccf8ebb36631a38c1cadfb5efa85d9a72e15b9e97d25155
