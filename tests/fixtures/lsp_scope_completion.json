@@ -1,0 +1,270 @@
+[
+  {
+    "name": "inline-target",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1: r.passive\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n  inst x: Part(1: |)\n",
+    "include": [
+      "wire",
+      "signal",
+      "global.vcc"
+    ],
+    "exclude": [
+      "count",
+      "resistance"
+    ]
+  },
+  {
+    "name": "section-target",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1: r.passive\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n  inst x: Part\n    1: |\n",
+    "include": [
+      "wire",
+      "signal",
+      "global.vcc"
+    ],
+    "exclude": [
+      "count"
+    ]
+  },
+  {
+    "name": "global-target",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1: r.passive\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n  inst x: Part(1: global.|)\n",
+    "include": [
+      "vcc"
+    ],
+    "exclude": [
+      "wire"
+    ]
+  },
+  {
+    "name": "inline-parameter",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1: r.passive\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n  inst x: Part(value=|)\n",
+    "include": [
+      "count",
+      "resistance",
+      "n.ceil"
+    ],
+    "exclude": [
+      "wire",
+      "signal"
+    ]
+  },
+  {
+    "name": "inline-expression",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1: r.passive\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n  inst x: Part(value=2 * res|)\n",
+    "include": [
+      "resistance"
+    ],
+    "exclude": [
+      "count"
+    ]
+  },
+  {
+    "name": "multiline-parameter",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1: r.passive\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n  inst x: Part(\n    value=|)\n",
+    "include": [
+      "count",
+      "resistance"
+    ],
+    "exclude": [
+      "wire"
+    ]
+  },
+  {
+    "name": "section-parameter",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1: r.passive\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n  inst x: Part\n    params:\n      value: |\n",
+    "include": [
+      "count",
+      "resistance"
+    ],
+    "exclude": [
+      "wire"
+    ]
+  },
+  {
+    "name": "array-dimension",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1: r.passive\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n  inst x[co|]: Part\n",
+    "include": [
+      "count"
+    ],
+    "exclude": [
+      "wire"
+    ]
+  },
+  {
+    "name": "target-index",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1: r.passive\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n  inst x: Part(1: wire[co|])\n",
+    "include": [
+      "count"
+    ],
+    "exclude": [
+      "wire"
+    ]
+  },
+  {
+    "name": "metadata-keys",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1: r.passive\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n  inst x: Part\n    metadata:\n      |\n",
+    "include": [
+      "footprint",
+      "value",
+      "custom",
+      "identity"
+    ],
+    "exclude": [
+      "count",
+      "role"
+    ]
+  },
+  {
+    "name": "metadata-value",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1: r.passive\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n  inst x: Part\n    metadata:\n      value: |\n",
+    "include": [
+      "count",
+      "resistance"
+    ],
+    "exclude": [
+      "wire",
+      "footprint"
+    ]
+  },
+  {
+    "name": "numeric-helper",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1: r.passive\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n  inst x: Part(value=n.|)\n",
+    "include": [
+      "ceil",
+      "floor",
+      "round",
+      "int"
+    ],
+    "exclude": [
+      "count"
+    ]
+  },
+  {
+    "name": "custom-keys",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1: r.passive\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n  inst x: Part\n    metadata:\n      custom:\n        |\n",
+    "include": [],
+    "exclude": [
+      "footprint",
+      "value",
+      "count"
+    ]
+  },
+  {
+    "name": "comment",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1: r.passive\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n  // inst x: Part(value=|)\n",
+    "include": [],
+    "exclude": [
+      "count"
+    ]
+  },
+  {
+    "name": "string",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1: r.passive\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n  inst x: Part\n    metadata:\n      value: \"co|\"\n",
+    "include": [],
+    "exclude": [
+      "count"
+    ]
+  },
+  {
+    "name": "pin-role",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1:\n      role: |\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n",
+    "include": [
+      "r.passive",
+      "r.digital_input"
+    ],
+    "exclude": [
+      "count",
+      "wire"
+    ]
+  },
+  {
+    "name": "pin-unused",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1:\n      unused: |\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n",
+    "include": [
+      "u.never",
+      "u.always"
+    ],
+    "exclude": [
+      "count",
+      "wire"
+    ]
+  },
+  {
+    "name": "pin-tristate_capable",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1:\n      tristate_capable: |\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n",
+    "include": [
+      "true",
+      "false"
+    ],
+    "exclude": [
+      "count",
+      "wire"
+    ]
+  },
+  {
+    "name": "inherited-default",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1: r.passive\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\nblock Derived extends Unit:\n  defaults:\n    count: res|\n",
+    "include": [
+      "resistance"
+    ],
+    "exclude": [
+      "wire"
+    ]
+  },
+  {
+    "name": "enum-bias",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std, bias as b\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1:\n      role: r.passive\n      bias: |\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n",
+    "include": [
+      "b.pull_up",
+      "b.pull_down"
+    ],
+    "exclude": [
+      "count",
+      "r.passive"
+    ]
+  },
+  {
+    "name": "registered-pin-keys",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1:\n      |\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n",
+    "include": [
+      "pull_resistance",
+      "capacitance",
+      "role",
+      "unused"
+    ],
+    "exclude": [
+      "count",
+      "footprint"
+    ]
+  },
+  {
+    "name": "erc-functions",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1: r.passive\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n  net checked: nettype.passive\n    checks:\n      limit: std.co|\n",
+    "include": [
+      "count"
+    ],
+    "exclude": [
+      "pin_unused_pin"
+    ]
+  },
+  {
+    "name": "erc-keywords",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1: r.passive\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n  net checked: nettype.passive\n    checks:\n      limit: std.count(ma|\n",
+    "include": [
+      "max"
+    ],
+    "exclude": [
+      "wire"
+    ]
+  },
+  {
+    "name": "erc-numeric-parameter",
+    "source": "from noscheme import role as r, nettype, unused as u, num as n, std\ncomponent Part:\n  params:\n    value: number = 1\n  pins:\n    1: r.passive\nboard B:\n  global net vcc: nettype.power\nblock Unit:\n  params:\n    count: number = 2\n    resistance: number = 4700\n  ports:\n    signal: nettype.passive\n  net wire: nettype.passive\n  net checked: nettype.passive\n    checks:\n      limit: std.count(std.active_digital_driver, max=co|)\n",
+    "include": [
+      "count"
+    ],
+    "exclude": [
+      "wire",
+      "std.count"
+    ]
+  }
+]

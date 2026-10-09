@@ -318,6 +318,66 @@ def create_server(project=None):
         except (ValueError, DiagnosticError, OSError, UnicodeError) as exc:
             raise JsonRpcInvalidParams(str(exc)) from exc
 
+    @server.feature(
+        types.TEXT_DOCUMENT_CODE_ACTION,
+        types.CodeActionOptions(code_action_kinds=[types.CodeActionKind.RefactorRewrite]),
+    )
+    async def code_actions(ls: NoSchemeServer, params: types.CodeActionParams):
+        uri = params.text_document.uri
+        path = uri_path(uri)
+        if path is None or uri not in ls.open_uris:
+            return []
+        only = params.context.only
+        if only and not any(
+            k == "refactor.rewrite" or "refactor.rewrite".startswith(k + ".") for k in only
+        ):
+            return []
+        doc = ls.workspace.get_text_document(uri)
+        actions, _ = await ls.request_analysis(
+            "code_actions", path=path, offset=doc.offset_at_position(params.range.start)
+        )
+
+        def edit_position(at):
+            # pygls' offset conversion advances past a final line without a
+            # newline. Keep EOF insertions on that line, then apply the codec.
+            prefix = doc.source[:at]
+            return doc.position_to_client_units(
+                types.Position(line=prefix.count("\n"), character=len(prefix.rsplit("\n", 1)[-1]))
+            )
+
+        result = []
+        for action in actions:
+            edits = [
+                types.TextEdit(
+                    range=types.Range(
+                        start=edit_position(at),
+                        end=edit_position(at),
+                    ),
+                    new_text=text,
+                )
+                for at, text in action["edits"]
+            ]
+            workspace = ls.client_capabilities.workspace
+            if workspace and workspace.workspace_edit and workspace.workspace_edit.document_changes:
+                edit = types.WorkspaceEdit(
+                    document_changes=[
+                        types.TextDocumentEdit(
+                            text_document=types.OptionalVersionedTextDocumentIdentifier(
+                                uri=uri, version=doc.version
+                            ),
+                            edits=edits,
+                        )
+                    ]
+                )
+            else:
+                edit = types.WorkspaceEdit(changes={uri: edits})
+            result.append(
+                types.CodeAction(
+                    title=action["title"], kind=types.CodeActionKind.RefactorRewrite, edit=edit
+                )
+            )
+        return result
+
     @server.feature(types.TEXT_DOCUMENT_FORMATTING)
     async def formatting(ls: NoSchemeServer, params: types.DocumentFormattingParams):
         # The layout is canonical, so the client's tab and spacing options do not apply.
@@ -373,6 +433,11 @@ def create_server(project=None):
             "type": types.CompletionItemKind.Class,
             "pin": types.CompletionItemKind.Field,
             "footprint": types.CompletionItemKind.File,
+            "variable": types.CompletionItemKind.Variable,
+            "function": types.CompletionItemKind.Function,
+            "parameter": types.CompletionItemKind.Variable,
+            "property": types.CompletionItemKind.Property,
+            "field": types.CompletionItemKind.Field,
         }
         return types.CompletionList(
             is_incomplete=False,

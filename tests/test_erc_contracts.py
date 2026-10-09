@@ -143,7 +143,7 @@ def test_inner_unchecked_does_not_disable_caller_checks(tmp_path):
 def test_outer_unchecked_does_not_disable_inner_contracts(tmp_path):
     c = compile_source(tmp_path, hierarchy(contract="digital_input", outer_type="unchecked"))
     assert codes(c).count("port_role") == 2
-    assert "unchecked_net" in codes(c)
+    assert "unchecked_net" not in codes(c)
 
 
 def test_all_type_constraints_share_one_role_selection(tmp_path):
@@ -337,3 +337,36 @@ def test_blink_example_has_no_erc_errors_or_warnings():
     circuit, warnings = elaborate_project(*resolve_project(ROOT / "examples/blink"))
     assert not warnings
     assert check_circuit(circuit) == ()
+
+
+def test_unchecked_report_counts_nets_once_across_configs_and_declarations(tmp_path):
+    from noscheme.erc import report_files
+
+    source = hierarchy(outer_type="unchecked").replace(
+        "board B:",
+        '''board B:
+  metadata:
+    erc_choices:
+      mode: ["first", "second"]
+    configurations:
+      first:
+        mode: "first"
+      second:
+        mode: "second"''',
+    )
+    circuit = compile_source(tmp_path, source)
+    assert len(circuit["nets"][0]["declarations"]) > 1
+    diagnostics = apply_erc(circuit)
+    assert not diagnostics
+    report = circuit["erc"]
+    assert len(report["configurations"]) == 2
+    assert report["unchecked_nets"] == 1
+    assert report["errors"] == report["warnings"] == 0
+    assert "Explicitly unchecked nets: 1\n" in report_files(circuit, tmp_path)[tmp_path / "erc.txt"]
+
+
+def test_inner_unchecked_is_not_counted_as_an_unchecked_outer_net(tmp_path):
+    circuit = compile_source(tmp_path, hierarchy(inner_type="unchecked", internal="Receiver"))
+    diagnostics = apply_erc(circuit)
+    assert any(d.code == "erc.missing_driver" for d in diagnostics)
+    assert circuit["erc"]["unchecked_nets"] == 0

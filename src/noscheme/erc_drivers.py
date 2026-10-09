@@ -13,12 +13,6 @@ def net_results(ctx):
     name = ctx.net.label
     endpoints = ctx.endpoints
     if origin["type"] == "unchecked":
-        emit(
-            "unchecked_net",
-            f"net {name!r} skips driver and current checks; inner type and port constraints still apply",
-            origin,
-            severity="warning",
-        )
         return tuple(results.diagnostics)
     known, uncertain, types = facts.known, facts.uncertain, facts.types
     _, compatibility_uncertain = compatibility(ctx)

@@ -195,7 +195,7 @@ def check_source(call):
 @pytest.mark.parametrize(
     "call,expected",
     [
-        ("std.co|", {"std.count"}),
+        ("std.co|", {"count"}),
         ("std.count(m|", {"min", "max", "missing"}),
         ("std.count(std.active_|", {"std.active_digital_driver"}),
         ("std.count(std.active_digital_driver, m|", {"min", "max", "missing"}),
@@ -224,11 +224,69 @@ board B:
   net bus: nettype.passive
 """
     assert set(complete(tmp_path, pin)) == {
-        "std.bias_reference",
-        "std.current_groups",
-        "std.pin_do_not_connect",
-        "std.pin_required_connection",
-        "std.pin_unused_pin",
+        "bias_reference",
+        "current_groups",
+        "pin_do_not_connect",
+        "pin_required_connection",
+        "pin_unused_pin",
     }
     source = check_source("std.co|")
     assert not complete(tmp_path, source.replace("    checks:", "    custom:"))
+
+
+@pytest.mark.parametrize("header", ["inst foo: ", "inst foo:", "inst foo[2][3]: "])
+def test_empty_instance_type_lists_all_visible_parts_and_blocks(tmp_path, header):
+    library = """from noscheme import nettype, role
+component Imported:
+  pins:
+    1: role.passive
+block Group:
+  ports:
+    p: nettype.passive
+bundle Bus:
+  p: nettype.passive
+"""
+    (tmp_path / "parts.nosch").write_text(library)
+    source = "import parts\nfrom parts import Imported as Alias\n" + PRELUDE
+    suggestions = complete(tmp_path, source + "  " + header + "|\n")
+    assert set(suggestions) == {"Receiver", "Specialized", "Alias", "parts.Imported", "parts.Group"}
+    for suggestion in suggestions.values():
+        assert suggestion.start == suggestion.end == len(source) + 2 + len(header)
+
+
+@pytest.mark.parametrize(
+    ("header", "expected"),
+    [
+        ("component Derived extends ", {"parts.Part", "Alias"}),
+        ("block Derived extends ", {"parts.Group"}),
+        ("nettype Derived extends ", {"parts.Signal"}),
+        ("board B:\n  net wire: ", {"parts.Signal", "parts.Bus"}),
+    ],
+)
+def test_empty_type_contexts_filter_visible_namespace(tmp_path, header, expected):
+    (tmp_path / "parts.nosch").write_text("""from noscheme import role, nettype
+component Part:
+  pins:
+    1: role.passive
+block Group:
+  ports:
+    p: nettype.passive
+nettype Signal extends nettype.passive:
+  wiring_capacitance: 1p
+bundle Bus:
+  p: nettype.passive
+""")
+    prelude = "import parts\nfrom parts import Part as Alias\n"
+    if not header.startswith("board"):
+        prelude += "board B:\n  metadata:\n    custom:\n      demo: true\n"
+    suggestions = complete(tmp_path, prelude + header + "|\n")
+    assert {name for name in suggestions if not name.startswith("parts.nettype.")} == expected
+
+
+def test_empty_net_type_offers_aliased_builtin_namespace(tmp_path):
+    suggestions = complete(
+        tmp_path, "from noscheme import nettype as nt\nboard B:\n  net wire: |\n"
+    )
+    assert "nt.digital" in suggestions
+    assert "nt.unchecked" in suggestions
+    assert all(name.startswith("nt.") for name in suggestions)

@@ -213,6 +213,7 @@ def main(argv=None):
                 "erc_errors": circuit["erc"]["errors"],
                 "erc_warnings": circuit["erc"]["warnings"],
                 "erc_pending": circuit["erc"]["pending"],
+                "erc_unchecked_nets": circuit["erc"]["unchecked_nets"],
                 "erc_configurations": circuit["erc"]["configurations"],
             }
             if args.command == "compile":

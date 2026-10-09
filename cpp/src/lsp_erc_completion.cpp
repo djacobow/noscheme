@@ -278,6 +278,15 @@ erc_completion(const std::string &text, std::size_t offset,
       }
       return result;
     }
+    if (std::set<std::string>{"number", "positive", "nonnegative", "current",
+                              "voltage", "capacitance", "resistance"}
+            .contains(kind)) {
+      auto scoped = scope_completion(text, offset, catalog, true);
+      if (equal != std::string::npos || prefix.find('.') != std::string::npos)
+        return scoped;
+      for (auto &entry : scoped.entries)
+        result.entries.push_back(std::move(entry));
+    }
     if (rule->rule.at("values").contains(kind))
       for (const auto &name : rule->rule.at("values").at(kind))
         offer(name, kind + " argument", 12, name);

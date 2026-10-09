@@ -36,8 +36,8 @@ def test_wren_subsystem_matches_upstream_values_pins_and_connectivity():
     assert {frozenset(v) for v in nets.values()} == {frozenset(v) for v in source["nets"].values()}
     # This connectivity pilot explicitly defers electrical policy checks.
     diagnostics = apply_erc(circuit)
-    assert diagnostics
-    assert all(d.severity == "warning" and d.code == "erc.unchecked_net" for d in diagnostics)
+    assert not diagnostics
+    assert circuit["erc"]["unchecked_nets"] == 164
 
 
 def test_full_wren_matches_upstream_connectivity_and_no_connects():
@@ -74,5 +74,5 @@ def test_full_wren_matches_upstream_connectivity_and_no_connects():
     assert no_connect == {tuple(endpoint) for endpoint in source["no_connect"]}
     assert len(no_connect) == 491
     diagnostics = apply_erc(circuit)
-    assert len(diagnostics) == 1309
-    assert all(d.severity == "warning" and d.code == "erc.unchecked_net" for d in diagnostics)
+    assert not diagnostics
+    assert circuit["erc"]["unchecked_nets"] == 1309

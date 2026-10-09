@@ -113,7 +113,7 @@ and no-connect against that reference.
 All nets deliberately use `nettype.unchecked`. KiCad electrical pin types and
 tri-state capability are retained, but operating configurations and NoScheme
 electrical policies have not been modeled. Compilation produces zero errors
-and 1,309 unchecked-net warnings. Original footprint identifiers are retained;
+and no warnings; the ERC report counts 1,309 explicitly unchecked nets. Original footprint identifiers are retained;
 footprint geometry and a KiCad library-table setup are not bundled.
 
 ```sh
@@ -178,7 +178,7 @@ instrumentation overhead and must not be compared directly with the table.
 The main file is now parsed once per analysis instead of twice. AST reuse checks
 exact source text. At that checkpoint it lasted for one analysis; the persistent
 worker cache added October 6 now also reuses unchanged ASTs across edits. Analysis still produces 20,725 references, 5,231 builtin hover
-entries, and 1,309 unchecked-net warnings, with no errors.
+entries, and 1,309 explicitly unchecked nets in the ERC report, with no errors or warnings.
 
 ### ERC comparison
 

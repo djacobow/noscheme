@@ -381,8 +381,28 @@ def erc_completion(path, config, sources, offset):
             choices += [(n, n, str(k), "field") for n, k in fields.items() if isinstance(k, str)]
         elif kind == "missing":
             choices += [(json.dumps(v), json.dumps(v), "policy", "value") for v in MISSING]
+        elif isinstance(kind, str):
+            from .lsp_scope_completion import NUMERIC, scope_completion
+
+            if kind in NUMERIC:
+                scoped = scope_completion(path, config, sources, offset, masked, expression=True)
+                if keyword or "." in word:
+                    return scoped
+                choices += [(s.label, s.text, s.detail, s.kind) for s in scoped]
+    qualifier = (
+        word.rsplit(".", 1)[0] + "."
+        if "." in word and re.fullmatch(r"\s*[A-Za-z0-9_#.]*", text)
+        else ""
+    )
     return [
-        Suggestion(label, text, detail, kind, start, end)
+        Suggestion(
+            label[len(qualifier) :],
+            text[len(qualifier) :],
+            detail,
+            kind,
+            start + len(qualifier),
+            end,
+        )
         for label, text, detail, kind in sorted(set(choices))
         if label.startswith(word)
     ]
@@ -397,11 +417,13 @@ def recovered_project(path, config, sources, masked, owner):
     source = sources[path]
     next_owner = DEFINITION.search(masked, owner.end())
     stop = next_owner.start() if next_owner else len(source)
-    recovered = (
-        source[: owner.start()]
-        + f"{owner[1]} {owner[2]}:\n    metadata:\n        custom:\n            completion: true\n"
-        + source[stop:]
+    base = " extends NoschemeCompletionType" if owner[1] == "nettype" else ""
+    body = (
+        "    wiring_capacitance: 0\n"
+        if owner[1] == "nettype"
+        else "    metadata:\n        custom:\n            completion: true\n"
     )
+    recovered = source[: owner.start()] + f"{owner[1]} {owner[2]}{base}:\n" + body + source[stop:]
     project = load_project(config, sources={**sources, path: recovered})
     return project, next((m for m in project.modules.values() if m.path == path), None)
 
@@ -500,6 +522,10 @@ def completion_items(path, config, sources, offset):
     masked = masked_source(source, offset)
     if masked is None or config is None:
         return []
+    from .lsp_scope_completion import scope_completion
+
+    if scoped := scope_completion(path, config, sources, offset, masked):
+        return scoped
     inline = inline_completion(path, config, sources, offset, masked)
     if inline:
         return inline
@@ -518,14 +544,17 @@ def completion_items(path, config, sources, offset):
     base_type = re.compile(
         rf"(component|block|nettype)[ \t]+({IDENTIFIER})[ \t]+extends[ \t]+{TYPE_PREFIX}$"
     ).match(masked, line_start, offset)
-    if instance_type or base_type:
+    net_type = re.fullmatch(
+        rf"\s*(?:global\s+)?net\s+{IDENTIFIER}(?:\s*,\s*{IDENTIFIER})*\s*:\s*{TYPE_PREFIX}", before
+    )
+    if instance_type or base_type or net_type:
         word = re.search(TYPE_PREFIX + r"$", before).group()
         tail = re.match(TYPE_PREFIX, masked[offset:]).group()
         start, end = offset - len(word), offset + len(tail)
         namespace = None
     pin = re.fullmatch(rf"\s*(?:\[[^\n]*?\]\.)?{WORD}", before)
     pin_list = re.fullmatch(rf"\s*(?:\[[^\n]*?\]\.)?\[[^\]:]*{WORD}", before)
-    if not (namespace or instance_type or base_type or pin or pin_list):
+    if not (namespace or instance_type or base_type or net_type or pin or pin_list):
         return []
 
     owners = list(DEFINITION.finditer(masked, 0, offset))
@@ -550,10 +579,14 @@ def completion_items(path, config, sources, offset):
                 (v, v, f"{name}.{v}", "enum")
                 for v in (ROLES if imported.name == "role" else NETTYPES)
             ]
-        elif instance_type or base_type:
+        elif instance_type or base_type or net_type:
             if instance_type and owner[1] not in {"board", "block"}:
                 return []
-            kinds = {owner[1]} if base_type else {"component", "block"}
+            kinds = (
+                {owner[1]}
+                if base_type
+                else ({"nettype", "bundle"} if net_type else {"component", "block"})
+            )
             choices = [
                 (name, name, f"{symbol.declaration.kind} {symbol.module}.{symbol.name}", "type")
                 for name, symbol in module.symbols.items()
@@ -561,6 +594,13 @@ def completion_items(path, config, sources, offset):
                 and symbol.declaration.kind in kinds
                 and not (base_type and symbol.module == module.name and symbol.name == owner[2])
             ]
+            if net_type or (base_type and owner[1] == "nettype"):
+                choices.extend(
+                    (f"{name}.{v}", f"{name}.{v}", f"{name}.{v}", "enum")
+                    for name, symbol in module.symbols.items()
+                    if symbol.module == "noscheme" and symbol.name == "nettype"
+                    for v in NETTYPES
+                )
         else:
             active = connection_instance(masked, owner, line_start)
             if active is None:
@@ -576,8 +616,20 @@ def completion_items(path, config, sources, offset):
                     alias if re.fullmatch(IDENTIFIER + r"|[0-9]+", alias) else json.dumps(alias)
                 )
                 choices.append((alias, spelling, f"{target.name}: pin/port {canonical}", "pin"))
+        qualifier = (
+            word.rsplit(".", 1)[0] + "."
+            if (net_type or base_type or instance_type) and "." in word
+            else ""
+        )
         return [
-            Suggestion(label, text, detail, kind, start, end)
+            Suggestion(
+                label[len(qualifier) :],
+                text[len(qualifier) :],
+                detail,
+                kind,
+                start + len(qualifier),
+                end,
+            )
             for label, text, detail, kind in sorted(choices)
             if label.startswith(word)
         ]

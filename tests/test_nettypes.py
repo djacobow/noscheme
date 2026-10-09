@@ -87,7 +87,7 @@ board B:""",
     applications = {d.application for d in apply_erc(compile_source(tmp_path, source))}
     # The outer unchecked type skips only standard policies; the port type's checks remain.
     assert "net:receiver.line:pull" not in applications  # 4700 ohm is within the type's bounds
-    assert "net:extra:unchecked_net" in applications
+    assert "net:extra:unchecked_net" not in applications
     tightened = source.replace("min=1500, max=10000", "min=5000, max=10000")
     applications = {d.application for d in apply_erc(compile_source(tmp_path, tightened))}
     assert "net:receiver.line:pull" in applications

@@ -13,6 +13,10 @@ struct CompletionEntry {
   Json instance = nullptr;
   std::shared_ptr<const std::vector<CompletionEntry>> candidates{};
   std::shared_ptr<const std::vector<CompletionEntry>> targets{};
+  // Semantic category used to filter names in type positions.
+  std::string type_kind{};
+  std::vector<std::string> parameter_names{};
+  std::shared_ptr<const Json> schemas{};
   // A local declaration hides this name at the offset.
   bool shadowed(std::size_t offset) const {
     return std::ranges::any_of(shadowed_in, [&](const Span &span) {
@@ -39,6 +43,9 @@ struct CompletionResult {
 };
 CompletionResult keyword_completion(const std::string &text,
                                     std::size_t offset);
+CompletionResult scope_completion(const std::string &text, std::size_t offset,
+                                  const std::vector<CompletionEntry> &catalog,
+                                  bool expression = false);
 CompletionResult complete(const std::string &text, std::size_t offset,
                           const std::vector<CompletionEntry> &catalog);
 } // namespace noscheme

@@ -27,7 +27,7 @@ BUILTIN_HELP = {
         "open_source": "Allows passive contacts, digital inputs, and open-source drivers. Multiple open-source drivers are allowed.",
         "bidirectional": "Allows digital and passive endpoints without requiring a single known driver. Conflicting active output drivers are still errors.",
         "tristate": "Shared digital bus. Endpoints other than passive contacts and digital inputs require tristate_capable: true. Multiple capable drivers are allowed; enable timing and arbitration are not modeled.",
-        "unchecked": "Skips this declaration's electrical compatibility constraints and reports an unchecked-net warning. Other declarations and mandatory connection policies still apply.",
+        "unchecked": "Skips this declaration's electrical compatibility constraints without a warning. Outermost unchecked nets are counted in the ERC report. Other declarations and mandatory connection policies still apply.",
     },
     "unused": {
         "always": "May be left unconnected without an explicit no_connect binding.",

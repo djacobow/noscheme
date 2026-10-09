@@ -9,6 +9,7 @@ from .analysis_cache import AnalysisCache, ParseCache
 from .diagnostics import DiagnosticError
 from .lsp_analysis import analyze, find_project
 from .lsp_completion import completion_items
+from .lsp_code_actions import instance_actions
 from .lsp_rename import RenameSession
 from .project import module_path, read_config
 
@@ -72,7 +73,9 @@ class Worker:
             else:
                 path = request["path"]
                 config = find_project(path, request["roots"], request["explicit"], sources)
-                if operation == "completion":
+                if operation == "code_actions":
+                    value = instance_actions(path, config, sources, request["offset"])
+                elif operation == "completion":
                     value = completion_items(path, config, sources, request["offset"])
                 else:
                     if config is None:

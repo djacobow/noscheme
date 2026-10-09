@@ -78,7 +78,8 @@ Json run(const Json &request) {
       object("stage", "circuit", "parts", circuit.parts.size(), "nets",
              circuit.nets.size(), "erc_performed", true, "erc_errors",
              erc.report["errors"], "erc_warnings", erc.report["warnings"],
-             "erc_pending", erc.report["pending"], "erc_configurations",
+             "erc_pending", erc.report["pending"], "erc_unchecked_nets",
+             erc.report["unchecked_nets"], "erc_configurations",
              erc.report["configurations"]);
   auto files = Json::array();
   if (command == "compile") {

@@ -392,10 +392,10 @@ def test_qualified_import_protocol_completion_and_definition(client, project):
             "position": {"line": 3, "character": 19},
         },
     )
-    item = next(i for i in result["items"] if i["label"] == "Device.R")
-    assert item["textEdit"]["newText"] == "Device.R"
+    item = next(i for i in result["items"] if i["label"] == "R")
+    assert item["textEdit"]["newText"] == "R"
     assert item["textEdit"]["range"] == {
-        "start": {"line": 3, "character": 12},
+        "start": {"line": 3, "character": 19},
         "end": {"line": 3, "character": 20},
     }
 
@@ -415,11 +415,11 @@ def test_extends_completion_without_colon_or_body(client, project):
             "position": {"line": 1, "character": len(text.splitlines()[1])},
         },
     )
-    assert [item["label"] for item in result["items"]] == ["Device.R"]
+    assert [item["label"] for item in result["items"]] == ["R"]
     item = result["items"][0]
-    assert item["textEdit"]["newText"] == "Device.R"
+    assert item["textEdit"]["newText"] == "R"
     assert item["textEdit"]["range"] == {
-        "start": {"line": 1, "character": 27},
+        "start": {"line": 1, "character": 34},
         "end": {"line": 1, "character": 34},
     }
 
@@ -798,3 +798,76 @@ def test_formatting_protocol_replaces_the_document_or_explains_a_refusal(client,
     client.send("textDocument/formatting", params, client.identifier)
     response = client.wait(lambda m: m.get("id") == client.identifier)
     assert "line 2: a comment must end its line" in response["error"]["message"]
+
+
+@pytest.mark.parametrize(
+    "case",
+    json.loads((Path(__file__).parent / "fixtures/lsp_scope_completion.json").read_text()),
+    ids=lambda case: case["name"],
+)
+def test_scope_completion_protocol(client, project, case):
+    path = project / "main.nosch"
+    offset = case["source"].index("|")
+    text = case["source"].replace("|", "")
+    open_document(client, path, text)
+    prefix = text[:offset]
+    result = client.request(
+        "textDocument/completion",
+        {
+            "textDocument": {"uri": path.as_uri()},
+            "position": {"line": prefix.count("\n"), "character": len(prefix.rsplit("\n", 1)[-1])},
+        },
+    )
+    labels = {item["label"] for item in result["items"]}
+    assert set(case["include"]) <= labels
+    assert not set(case["exclude"]) & labels
+
+
+@pytest.mark.parametrize(
+    "case",
+    json.loads((Path(__file__).parent / "fixtures/lsp_code_actions.json").read_text()),
+    ids=lambda case: case["name"],
+)
+def test_instance_code_actions_protocol(client, project, case):
+    from noscheme.lsp_code_actions import instance_actions
+
+    path = project / "main.nosch"
+    text = case["source"]
+    offset = text.index("inst p") + 6
+    open_document(client, path, text)
+
+    def position_at(at):
+        prefix = text[:at]
+        return {
+            "line": prefix.count("\n"),
+            "character": len(prefix.rsplit("\n", 1)[-1].encode("utf-16-le")) // 2,
+        }
+
+    pos = position_at(offset)
+    result = client.request(
+        "textDocument/codeAction",
+        {
+            "textDocument": {"uri": path.as_uri()},
+            "range": {"start": pos, "end": pos},
+            "context": {"diagnostics": []},
+        },
+    )
+    expected = instance_actions(path, project, {path: text}, offset)
+    assert [a["title"] for a in result] == [a["title"] for a in expected]
+    for actual, action in zip(result, expected):
+        assert actual["kind"] == "refactor.rewrite"
+        assert actual["edit"]["changes"][path.as_uri()] == [
+            {"range": {"start": position_at(at), "end": position_at(at)}, "newText": inserted}
+            for at, inserted in action["edits"]
+        ]
+    assert (
+        client.request(
+            "textDocument/codeAction",
+            {
+                "textDocument": {"uri": path.as_uri()},
+                "range": {"start": pos, "end": pos},
+                "context": {"diagnostics": [], "only": ["quickfix"]},
+            },
+        )
+        == []
+    )

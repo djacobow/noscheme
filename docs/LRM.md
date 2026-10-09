@@ -1049,12 +1049,15 @@ port's constraints. An explicit digital-input port may connect to power/ground
 as a fixed logic level while retaining its internal input contract.
 
 An outermost `unchecked` declaration skips the standard driver, current-budget,
-and voltage-limit policies. With the default rule set it produces an
-`unchecked_net` warning. It does not
+and voltage-limit policies without a warning. The ERC report records
+`unchecked_nets`: the number of flattened nets with an outermost unchecked
+declaration, counted once across configurations. The text report includes this
+count; CLI and export summaries expose it as `erc_unchecked_nets`. It does not
 suppress pin connection policies, inner compatibility constraints, or
 grouped/aggregate-load validity checks. Explicit `checks` applications, including
 those an inner port receives from its net type, and project rule-set callbacks
-still run; `unchecked` is not a general callback bypass.
+still run; `unchecked` is not a general callback bypass. The `unchecked_net`
+standard rule name remains available as a compatibility no-op.
 
 ### 9.3 Net type definitions
 

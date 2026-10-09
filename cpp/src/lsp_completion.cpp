@@ -5,10 +5,23 @@
 #include "noscheme/validation.hpp"
 #include <algorithm>
 #include <iterator>
+#include <regex>
 #include <set>
 namespace noscheme {
 namespace {
 using completion_scan::name_char;
+const std::regex instance_type_pattern(
+    R"(^[ \t]*inst[ \t]+[A-Za-z_#][A-Za-z0-9_#]*(?:\[[^\n]*?\])*[ \t]*:[ \t]*([A-Za-z0-9_#.]*)$)",
+    std::regex::multiline);
+
+const std::regex base_type_pattern(
+    R"(^(component|block|nettype)[ \t]+([A-Za-z_#][A-Za-z0-9_#]*)[ \t]+extends[ \t]+([A-Za-z0-9_#.]*)$)",
+    std::regex::multiline);
+
+const std::regex net_type_pattern(
+    R"(^[ \t]*(?:global[ \t]+)?net[ \t]+[A-Za-z_#][A-Za-z0-9_#]*(?:[ \t]*,[ \t]*[A-Za-z_#][A-Za-z0-9_#]*)*[ \t]*:[ \t]*([A-Za-z0-9_#.]*)$)",
+    std::regex::multiline);
+
 bool name_start(char c) { return name_char(c) && !(c >= '0' && c <= '9'); }
 // Keep array selections in the replacement range but omit them when matching
 // the declared element interface. Balanced selections may contain expressions.
@@ -137,6 +150,37 @@ std::string completion_recovery(const std::string &text,
   }
   auto mask = code_mask(text);
   std::map<std::size_t, TextRepair> repairs;
+  // A missing type still needs the import graph for completion. The temporary
+  // name is used only in the completion snapshot, never to produce diagnostics.
+  for (const auto *pattern : {&instance_type_pattern, &net_type_pattern}) {
+    for (std::sregex_iterator it(mask.begin(), mask.end(), *pattern), end;
+         it != end; ++it) {
+      if (!(*it)[1].str().empty())
+        continue;
+      auto at =
+          static_cast<std::size_t>(it->position()) + it->str().rfind(':') + 1;
+      repairs[at] = {at, at, " NoschemeCompletionType"};
+    }
+  }
+  for (std::sregex_iterator it(mask.begin(), mask.end(), base_type_pattern),
+       end;
+       it != end; ++it) {
+    auto start = static_cast<std::size_t>(it->position());
+    auto stop = start + it->length();
+    const bool nettype = (*it)[1].str() == "nettype";
+    auto next = mask.find_first_not_of(" \t\r\n", stop);
+    auto next_line = next == std::string::npos ? next : mask.rfind('\n', next);
+    const bool has_body = next != std::string::npos &&
+                          next_line != std::string::npos &&
+                          next > next_line + 1;
+    auto header = (*it)[1].str() + " " + (*it)[2].str() +
+                  (nettype ? " extends NoschemeCompletionType:" : ":");
+    if (!has_body)
+      header += nettype ? "\n  wiring_capacitance: 0"
+                        : "\n  metadata:\n    custom:\n      completion: true";
+    repairs[start] = {start, stop, std::move(header)};
+  }
+
   for (const auto &value : footprint_values(text))
     if (!value.closed)
       repairs[value.start] = {value.start, value.end, "\"\""};
@@ -233,6 +277,10 @@ CompletionCatalog completion_catalog(const Project &project,
   CompletionCatalog catalog;
   for (const auto &[module_name, module] : project.modules) {
     auto &entries = catalog[module.path];
+    CompletionEntry schema_entry{"", "", 0};
+    schema_entry.schemas =
+        std::make_shared<const Json>(registry.data.at("schemas"));
+    entries.push_back(std::move(schema_entry));
     auto add_rule = [&](const std::string &name, const std::string &canonical) {
       CompletionEntry entry{
           name, builtin_description(module.symbols, registry, name), 3};
@@ -241,12 +289,40 @@ CompletionCatalog completion_catalog(const Project &project,
       entries.push_back(std::move(entry));
     };
     for (const auto &[name, symbol] : module.symbols) {
-      if (symbol.declaration)
-        entries.push_back({name,
-                           symbol.declaration->keyword + " " + symbol.module +
-                               "." + symbol.name,
-                           7});
-      else if (symbol.module == "<erc>")
+      if (symbol.declaration) {
+        CompletionEntry entry{name,
+                              symbol.declaration->keyword + " " +
+                                  symbol.module + "." + symbol.name,
+                              7};
+        entry.type_kind = symbol.declaration->keyword;
+        // Parameter names survive incomplete default expressions. Inheritance
+        // changes defaults, not the parameter interface.
+        const Symbol *current = &symbol;
+        std::set<const ast::Definition *> seen;
+        while (current && current->declaration &&
+               seen.insert(current->declaration).second) {
+          for (const auto &node : current->declaration->body)
+            if (auto *section = ast::as<ast::Section>(node);
+                section && section->name == "params")
+              for (const auto *field : ast::field_list(section->entries))
+                entry.parameter_names.push_back(field->key.first.text);
+          auto owner_module = project.modules.find(current->module);
+          auto base = ast::dotted(current->declaration->base);
+          if (owner_module == project.modules.end() || base.empty())
+            break;
+          auto parent = owner_module->second.symbols.find(base);
+          current = parent == owner_module->second.symbols.end()
+                        ? nullptr
+                        : &parent->second;
+        }
+        entries.push_back(std::move(entry));
+      } else if (symbol.module == "noscheme" && symbol.name == "num") {
+        for (const auto *helper : {"int", "ceil", "floor", "round"}) {
+          CompletionEntry entry{name + "." + helper, "numeric helper", 3};
+          entry.type_kind = "num";
+          entries.push_back(std::move(entry));
+        }
+      } else if (symbol.module == "<erc>")
         add_rule(name, symbol.name);
       else if (symbol.module == "noscheme" && symbol.name == "std") {
         for (const auto &[key, rule] : registry.data.at("rules").items()) {
@@ -266,9 +342,11 @@ CompletionCatalog completion_catalog(const Project &project,
                  registry.data.at("enums").contains(symbol.name))
         for (const auto &value : registry.data.at("enums").at(symbol.name)) {
           auto qualified = name + "." + value.get<std::string>();
-          entries.push_back(
-              {qualified,
-               builtin_description(module.symbols, registry, qualified), 20});
+          CompletionEntry entry{
+              qualified,
+              builtin_description(module.symbols, registry, qualified), 20};
+          entry.type_kind = symbol.name;
+          entries.push_back(std::move(entry));
         }
     }
     Json values = object("selector", Json::array(), "field", Json::array(),
@@ -500,6 +578,59 @@ void interface_completions(CompletionCatalog &catalog, const Project &project,
             target->metadata.contains("interchangeable")
                 ? meta_value(target->metadata, "interchangeable")->list().size()
                 : 0);
+        Json action_pins = Json::array(), action_params = Json::array();
+        std::set<std::string> bound, supplied;
+        bool safe_actions = true, has_metadata = false;
+        if (node->wildcard)
+          for (const auto &[name, pin] : target->interface)
+            bound.insert(name);
+        if (auto *group = meta_value(target->metadata, "interchangeable")) {
+          auto names = meta_strings(*group);
+          for (std::size_t i = 0;
+               i < std::min(names.size(), node->positional.size()); ++i)
+            bound.insert(names[i]);
+        }
+        for (const auto &section : node->sections) {
+          if (section.name == "elements")
+            safe_actions = false;
+          if (section.name == "metadata")
+            has_metadata = true;
+          for (const auto &entry : section.entries) {
+            if (auto *binding = ast::as<ast::Binding>(entry)) {
+              try {
+                for (const auto &name : physical_keys(binding->endpoint.head)) {
+                  auto alias = target->aliases.find(name);
+                  bound.insert(alias == target->aliases.end() ? name
+                                                              : alias->second);
+                }
+              } catch (const std::exception &) {
+                // Invalid or unfinished ranges must not disable completion.
+                safe_actions = false;
+              }
+            }
+            if (auto *argument = ast::as<ast::Argument>(entry))
+              supplied.insert(argument->name.text);
+          }
+        }
+        for (const auto &[name, pin] : target->interface)
+          if (!bound.contains(name)) {
+            if (auto *role = meta_value(pin.metadata, "role");
+                role && meta_strings(*role) ==
+                            std::vector<std::string>{"do_not_connect"})
+              continue;
+            auto *unused = meta_value(pin.metadata, "unused");
+            action_pins.push_back(object("name", name, "required",
+                                         !unused ||
+                                             !unused->is<std::string>() ||
+                                             unused->string() != "always"));
+          }
+        for (const auto &param : target->parameters.parameters)
+          if (!supplied.contains(param.name))
+            action_params.push_back(
+                object("name", param.name, "required", !param.default_value));
+        context.instance["actions"] =
+            object("safe", safe_actions, "metadata", has_metadata, "pins",
+                   action_pins, "params", action_params);
         context.targets = net_choices;
         entries.push_back(std::move(context));
         auto pin_choices = std::make_shared<std::vector<CompletionEntry>>();
@@ -523,6 +654,9 @@ CompletionResult complete(const std::string &text, std::size_t offset,
   CompletionResult result{offset, offset, {}};
   if (offset > text.size())
     return result;
+  auto scoped = scope_completion(text, offset, catalog);
+  if (!scoped.entries.empty())
+    return scoped;
   auto keywords = keyword_completion(text, offset);
   auto section = section_completion(text, offset, catalog);
   // An instance body's first lines take connections or section keywords.
@@ -564,6 +698,41 @@ CompletionResult complete(const std::string &text, std::size_t offset,
     return result;
   }
   auto mask = code_mask(text);
+  auto line = offset ? text.rfind('\n', offset - 1) : std::string::npos;
+  auto begin = line == std::string::npos ? 0 : line + 1;
+  auto before = text.substr(begin, offset - begin);
+  std::smatch type_match, base_match, net_match;
+  const bool net_type = std::regex_match(before, net_match, net_type_pattern);
+  const bool instance_type =
+      std::regex_match(before, type_match, instance_type_pattern);
+  const bool base_type =
+      std::regex_match(before, base_match, base_type_pattern);
+  if (code_mask(text.substr(0, offset) + "x").back() == 'x' &&
+      (instance_type || base_type || net_type)) {
+    const auto prefix =
+        base_type ? base_match[3].str()
+                  : (net_type ? net_match[1].str() : type_match[1].str());
+    auto dot = prefix.rfind('.');
+    auto qualifier =
+        dot == std::string::npos ? std::string() : prefix.substr(0, dot + 1);
+    result.start = offset - prefix.size() + qualifier.size();
+    while (result.end < text.size() &&
+           (name_char(text[result.end]) || text[result.end] == '.'))
+      ++result.end;
+    for (const auto &entry : catalog) {
+      const bool valid_kind =
+          base_type ? entry.type_kind == base_match[1].str()
+          : net_type
+              ? (entry.type_kind == "nettype" || entry.type_kind == "bundle")
+              : (entry.type_kind == "component" || entry.type_kind == "block");
+      if ((entry.kind == 7 || ((net_type || base_type) && entry.kind == 20)) &&
+          valid_kind && !(base_type && entry.name == base_match[2].str()) &&
+          entry.name.starts_with(prefix))
+        result.entries.push_back({entry.name.substr(qualifier.size()),
+                                  entry.description, entry.kind});
+    }
+    return result;
+  }
   auto start = reference_start(mask, offset);
   if (start == offset)
     return result;

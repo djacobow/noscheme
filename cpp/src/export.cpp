@@ -540,9 +540,9 @@ ExportResult export_kicad(const Project &project, const Circuit &circuit,
       "schema_version", 1, "backend", "kicad", "warnings", result.warnings,
       "erc_performed", true, "erc_errors", erc.report["errors"], "erc_warnings",
       erc.report["warnings"], "erc_pending", erc.report["pending"],
-      "erc_configurations", erc.report["configurations"],
-      "omitted_without_footprints", omitted, "changes", changes,
-      "probable_renames", hints, "footprint_records_sha256",
+      "erc_unchecked_nets", erc.report["unchecked_nets"], "erc_configurations",
+      erc.report["configurations"], "omitted_without_footprints", omitted,
+      "changes", changes, "probable_renames", hints, "footprint_records_sha256",
       hex(digest(records_text, EVP_sha256())));
   auto table = Json::array();
   std::map<std::string, std::string> exported;

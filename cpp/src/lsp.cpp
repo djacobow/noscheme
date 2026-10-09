@@ -1,6 +1,7 @@
 // Experimental stdio LSP. Only advertise implemented capabilities.
 #include "noscheme/formatter.hpp"
 #include "noscheme/lsp_analysis.hpp"
+#include "noscheme/lsp_code_actions.hpp"
 #include "noscheme/source.hpp"
 #include "noscheme/validation.hpp"
 #include <algorithm>
@@ -177,6 +178,46 @@ class Server {
           } catch (const std::exception &e) {
             error(id, -32803, e.what());
           }
+          return;
+        }
+        if (request.at("method") == "textDocument/codeAction") {
+          auto offset = byte_offset(source, params.at("range").at("start"));
+          Json result = Json::array();
+          bool allowed = true;
+          if (params.contains("context") &&
+              params.at("context").contains("only")) {
+            const auto &only = params.at("context").at("only");
+            allowed = only.empty();
+            for (const auto &kind : only) {
+              auto value = kind.get<std::string>();
+              if (value == "refactor.rewrite" ||
+                  std::string("refactor.rewrite").starts_with(value + "."))
+                allowed = true;
+            }
+          }
+          auto found = latest->completions.find(*path);
+          if (allowed && found != latest->completions.end())
+            for (const auto &action :
+                 noscheme::instance_actions(source, offset, found->second)) {
+              Json edits = Json::array();
+              for (const auto &e : action.at("edits")) {
+                auto pos = position(source, e.at("offset").get<std::size_t>());
+                edits.push_back(object("range",
+                                       object("start", pos, "end", pos),
+                                       "newText", e.at("text")));
+              }
+              Json edit = object("changes", object(uri, edits));
+              if (versioned_edits)
+                edit = object(
+                    "documentChanges",
+                    Json::array({object("textDocument",
+                                        object("uri", uri, "version",
+                                               documents.at(uri).version),
+                                        "edits", edits)}));
+              result.push_back(object("title", action.at("title"), "kind",
+                                      "refactor.rewrite", "edit", edit));
+            }
+          send(object("id", id, "result", result));
           return;
         }
         auto offset = byte_offset(source, params.at("position"));
@@ -570,13 +611,16 @@ public:
           "id", id, "result",
           object(
               "capabilities",
-              object("completionProvider",
-                     object("triggerCharacters", Json::array({".", "\"", ":"})),
-                     "definitionProvider", true, "referencesProvider", true,
-                     "documentFormattingProvider", true, "renameProvider",
-                     object("prepareProvider", true), "hoverProvider", true,
-                     "positionEncoding", "utf-16", "textDocumentSync",
-                     object("openClose", true, "change", 1, "save", true)),
+              object(
+                  "completionProvider",
+                  object("triggerCharacters", Json::array({".", "\"", ":"})),
+                  "definitionProvider", true, "referencesProvider", true,
+                  "documentFormattingProvider", true, "codeActionProvider",
+                  object("codeActionKinds", Json::array({"refactor.rewrite"})),
+                  "renameProvider", object("prepareProvider", true),
+                  "hoverProvider", true, "positionEncoding", "utf-16",
+                  "textDocumentSync",
+                  object("openClose", true, "change", 1, "save", true)),
               "serverInfo",
               object("name", "noscheme-native", "version", "0.1.0"))));
       return {};
@@ -609,6 +653,7 @@ public:
                     method == "textDocument/prepareRename" ||
                     method == "textDocument/rename" ||
                     method == "textDocument/formatting" ||
+                    method == "textDocument/codeAction" ||
                     method == "textDocument/references" ||
                     method == "textDocument/hover" ||
                     method == "textDocument/completion")) {
@@ -620,7 +665,9 @@ public:
           return {};
         }
         noscheme::Source source(documents.at(uri).text, uri);
-        if (method != "textDocument/formatting")
+        if (method == "textDocument/codeAction")
+          byte_offset(source, params.at("range").at("start"));
+        else if (method != "textDocument/formatting")
           byte_offset(source, params.at("position"));
         if (latest && !noscheme::inputs_current(*latest))
           schedule();

@@ -79,7 +79,7 @@ def test_qualified_completion_and_aliases(tmp_path):
     make_project(tmp_path, SOURCE, {"Device": LIBRARY})
     path = tmp_path / "main.nosch"
     for old, new, expected in [
-        ("Device.R\n", "Device.", {"Device.R", "Device.Wrapper"}),
+        ("Device.R\n", "Device.", {"R", "Wrapper"}),
         ("KiCadResistor\n", "KiCad", {"KiCadResistor"}),
         ("noscheme.nettype.passive", "noscheme.nettype.pass", {"passive"}),
     ]:
@@ -87,8 +87,8 @@ def test_qualified_completion_and_aliases(tmp_path):
         offset = SOURCE.index(old) + len(new)
         result = completion_items(path, tmp_path, {path: source}, offset)
         assert {item.label for item in result} == expected
-        if "Device.R" in expected:
-            assert all(source[item.start : item.end] == "Device." for item in result)
+        if "R" in expected:
+            assert all(source[item.start : item.end] == "" for item in result)
     # Imported type still supplies pin and footprint hints in incomplete buffers.
     for section, field, expected in [
         ("connections", "", {"1"}),
@@ -148,8 +148,8 @@ def test_dotted_module_names_and_sibling_imports(tmp_path):
 @pytest.mark.parametrize(
     ("kind", "prefix", "expected"),
     [
-        ("component", "Device.", {"Device.R"}),
-        ("block", "Device.", {"Device.Wrapper"}),
+        ("component", "Device.", {"R"}),
+        ("block", "Device.", {"Wrapper"}),
         ("component", "KiCad", {"KiCadResistor"}),
         ("component", "", {"Device.R", "KiCadResistor"}),
     ],
@@ -165,7 +165,7 @@ def test_extends_completion_recovers_incomplete_headers(tmp_path, kind, prefix, 
     choices = completion_items(path, tmp_path, {path: source}, offset)
     assert {item.label for item in choices} == expected
     for item in choices:
-        assert source[item.start : item.end] == prefix
+        assert source[item.start : item.end] == prefix.rsplit(".", 1)[-1]
 
 
 def test_extends_completion_preserves_following_definition_and_replaces_tail(tmp_path):
@@ -179,8 +179,8 @@ def test_extends_completion_preserves_following_definition_and_replaces_tail(tmp
     path = tmp_path / "main.nosch"
     offset = source.index("Device.R:") + len("Device.")
     choices = completion_items(path, tmp_path, {path: source}, offset)
-    assert [item.label for item in choices] == ["Device.R"]
-    assert source[choices[0].start : choices[0].end] == "Device.R"
+    assert [item.label for item in choices] == ["R"]
+    assert source[choices[0].start : choices[0].end] == "R"
     offset = source.index("Device.R:")
     assert "Later" in {s.label for s in completion_items(path, tmp_path, {path: source}, offset)}
 

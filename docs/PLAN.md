@@ -252,7 +252,8 @@ Requested October 5, 2026. These are separate from the deferred review backlog.
   footprint, physical pin, and connection against independently extracted KiCad
   reference data. Source hashes, metadata, reference mappings, and attribution
   are recorded. No upstream schematic or geometry is bundled. Electrical
-  policies remain unchecked: zero errors and 1,309 explicit warnings.
+  policies remain unchecked: zero errors or warnings, with 1,309 explicitly
+  unchecked nets counted in the ERC report.
   Initial full-board five-run medians on October 5, before optimization:
   resolve/elaborate 2.86 s, ERC 1.90 s,
   full LSP analysis 6.65 s. These are local observations, not CI thresholds.
@@ -1515,3 +1516,37 @@ hand-enumerated configuration products.
   the component body, and a pull-reference shorthand. `pull_to:` would bring back
   a field that triggers a check, which the ERC redesign removed on purpose
   (`bias_reference_pin` became the explicit `std.bias_reference` check).
+
+### Explicit unchecked-net reporting (October 9, 2026)
+
+- Explicit `nettype.unchecked` no longer produces a diagnostic in either engine.
+- ERC JSON/text reports count flattened nets with an outermost unchecked policy
+  once across configurations. CLI/export summaries include `erc_unchecked_nets`.
+- Mandatory connection rules, inner constraints, and explicit checks still run.
+  The `unchecked_net` registry name is retained as a compatibility no-op.
+
+### Completion in empty type positions (October 9, 2026)
+
+- Python and native LSP completion lists visible components and blocks after
+  `inst name: `, including array instances, imported aliases, and qualified names.
+- Incomplete `extends ` headers offer bases of the matching kind; net declarations
+  offer bundles and net types, including builtin namespace aliases.
+- Completion recovery supplies names from imports without adding diagnostics
+  from its temporary source repairs.
+
+### Scoped completion parity
+
+- Python and C++ offer lexical connection targets, parameter references in
+  instance values, array indices/dimensions, numeric metadata, and numeric ERC
+  arguments, plus explicitly imported numeric helpers.
+- Metadata key/value suggestions use the current object's schema, including ERC
+  fields and explicit namespace aliases. Arbitrary custom keys remain user-defined.
+- Shared fixtures exercise both servers through LSP; the native tests also compare
+  labels, inserted text, and replacement ranges directly with Python completion.
+- Instance scaffolding is available through `refactor.rewrite` code actions in
+  both servers: required fields, all fields, and a commented metadata template.
+  Existing bindings are preserved; optional parameter scaffolding is commented.
+  Ordinary edits use explicit TODO placeholders, with no snippet dependency.
+  Shared protocol fixtures cover arrays, aliases, grouped bindings, CRLF, Unicode,
+  EOF insertion, and existing sections. Per-element overrides and filling partial
+  bundle/array bindings remain outside this first implementation.

@@ -150,6 +150,51 @@ Pin and alias completion also works inside unfinished connection lists such as
 `[1..3, VD`. Navigation, references, and hover distinguish individual list
 entries; a range represents all of its physical pins, as in an unbracketed range.
 Qualified instance names such as `Device.R` and imported aliases are supported.
+Requesting completion at `inst foo: ` lists all visible components and blocks,
+including qualified names, without requiring the first letter. An empty
+`extends ` position offers bases of the matching kind. After `net wire: `,
+completion offers visible bundles, custom net types, and imported builtin net
+types. Suggestions are filtered as you type; imports are never added implicitly.
+
+Both servers also offer local nets, public block ports, and explicit `global.*`
+connections after a connection's colon. Parameter values, numeric metadata,
+array indices/dimensions, and numeric ERC arguments offer parameters from the
+enclosing definition, including inherited parameters. Imported `num` helpers
+are available in these expressions. Connection targets do not include parameters
+or another instance's private internals.
+
+Metadata keys come from the schema for the current object, including registered
+ERC fields. Enum values respect explicit imports and aliases (for example,
+`r.digital_input` after `from noscheme import role as r`); boolean fields offer
+`true` and `false`. Arbitrary keys inside `custom:` are not guessed. Strings and
+comments do not receive these suggestions. Qualified type and rule completions
+replace just the member after the namespace prefix in both implementations.
+
+
+### Instance code actions
+
+With the cursor on an `inst` declaration, use `:LspCodeAction` in Vim or
+`:lua vim.lsp.buf.code_action()` in Neovim. In VS Code, press **Ctrl+.**
+(**Cmd+.** on macOS) to open the code-action menu. Both servers offer:
+
+- **Add required connections and parameters**: fill missing required interface
+  bindings and parameters without defaults.
+- **Add all connections and parameters**: also include optional pins and commented
+  placeholders for parameters with defaults.
+- **Add metadata template**: insert a commented metadata section to fill in.
+
+These appear in the editor's code-action chooser, separate from completion.
+Select an action to apply ordinary text edits; normal undo works. Replace the
+`TODO_*` names with declared nets or parameter expressions. Optional parameters
+stay commented so defaults continue to apply. There is no snippet Tab navigation.
+
+Existing bindings, aliases, positional arguments, parameter values, and comments
+are preserved. Pins marked `role.do_not_connect` are excluded. Arrays are supported;
+instances with `elements:` overrides are currently excluded. A partially bound
+bundle or pin array is left alone rather than filling its remaining members.
+Actions require parseable source and a resolved component/block type, but work
+when required connections or values are still missing. Restart a running language
+server after installing the update.
 
 Instance argument lists support pin/port and `parameter=` completion, and
 bundle-field completion in positional or named connections, on one line or across

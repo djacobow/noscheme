@@ -15,7 +15,7 @@ NET_FAMILIES = {
     "multiple_drivers": (erc_drivers,),
     "power_ground_conflict": (erc_drivers,),
     "incomplete_roles": (erc_drivers,),
-    "unchecked_net": (erc_drivers,),
+    "unchecked_net": (),  # Compatibility name; explicit unchecked nets are reported as a count.
     "aggregate_load_boundary": (erc_current,),
     "aggregate_current_overload": (erc_current,),
     "incomplete_aggregate_load": (erc_current,),

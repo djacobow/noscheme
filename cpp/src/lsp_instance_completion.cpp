@@ -189,7 +189,9 @@ CompletionResult connection_choices(
     if (!name.starts_with(prefix))
       return;
     auto tail = name.substr(qualifier);
-    if (tail.find('.') != std::string::npos ||
+    if ((tail.find('.') != std::string::npos &&
+         !(qualifier == 0 && name.starts_with("global.") &&
+           name.find('.', 7) == std::string::npos)) ||
         !offered.insert({tail, kind}).second)
       return;
     auto inserted = tail;

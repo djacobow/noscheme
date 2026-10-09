@@ -407,6 +407,11 @@ def apply_erc(circuit, configurations=None, *, registry=None):
         "schema_version": 1,
         "checks": list(registry.rules),
         "pending": list(PENDING),
+        # Count physical nets once, not once per configuration or declaration.
+        "unchecked_nets": sum(
+            any(d["path"] == net["path"] and d["type"] == "unchecked" for d in net["declarations"])
+            for net in circuit["nets"]
+        ),
         "errors": sum(d.severity == "error" for d in diagnostics),
         "warnings": sum(d.severity == "warning" for d in diagnostics),
         "waivers": waivers,
@@ -437,6 +442,7 @@ def report_files(circuit, output_dir):
     report = circuit["erc"]
     diagnostics = report_diagnostics(circuit)
     header = f"ERC: {report['errors']} errors, {report['warnings']} warnings\n"
+    header += f"Explicitly unchecked nets: {report['unchecked_nets']}\n"
     header += "Implemented checks: " + ", ".join(report["checks"]) + "\n"
     header += "Pending checks: " + ", ".join(report["pending"]) + "\n"
     for configuration in report["configurations"]:

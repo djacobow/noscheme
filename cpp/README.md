@@ -677,7 +677,8 @@ for Python and 2 ms for native).
 | WREN, 1,507 parts | Sampled peak tree RSS | 529.7 MiB | 167.5 MiB |
 
 Both servers reported zero diagnostics for STM32 and rulos, and the same 1,309
-unchecked-net warnings for WREN. The edit appends an unsaved comment to the
+unchecked-net warnings for WREN at the time of measurement (these are now
+reported as a count rather than diagnostics). The edit appends an unsaved comment to the
 board file; these numbers do not represent every editing operation or
 plugin-heavy workload. Hover after an edit includes the 200 ms typing debounce.
 

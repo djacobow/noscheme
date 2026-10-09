@@ -124,6 +124,7 @@ def test_lifecycle_and_capabilities(launcher):
     assert replies[0]["id"] == "init"
     assert replies[0]["result"]["capabilities"] == {
         "positionEncoding": "utf-16",
+        "codeActionProvider": {"codeActionKinds": ["refactor.rewrite"]},
         "completionProvider": {"triggerCharacters": [".", '"', ":"]},
         "definitionProvider": True,
         "referencesProvider": True,
@@ -2192,3 +2193,228 @@ def test_rename_versioned_workspace_edits(tmp_path):
         }
         assert versions == {source.as_uri(): 7, parts.as_uri(): None}
         assert all(e["edits"] for e in edit["documentChanges"])
+
+
+@pytest.mark.parametrize("header", ["inst foo: ", "inst foo:", "inst foo[2][3]: "])
+def test_empty_instance_type_lists_all_visible_parts_and_blocks(tmp_path, header):
+    source, parts = project_files(tmp_path)
+    parts.write_text(
+        parts.read_text()
+        + """
+from noscheme import nettype
+block Group:
+  ports:
+    p: nettype.passive
+bundle Bus:
+  p: nettype.passive
+"""
+    )
+    text = (
+        """import parts
+from parts import C as Alias
+from noscheme import role, nettype
+component Local:
+  pins:
+    1: role.passive
+board B:
+  """
+        + header
+    )
+    with Client() as client:
+        client.send(message("initialize", id=1))
+        client.until(lambda r: r.get("id") == 1)
+        client.send(at_path(opening(text), source))
+        position = {"line": len(text.splitlines()) - 1, "character": len(text.splitlines()[-1])}
+        client.send(
+            message(
+                "textDocument/completion",
+                {"textDocument": {"uri": source.as_uri()}, "position": position},
+                id=2,
+            )
+        )
+        result = client.until(lambda r: r.get("id") == 2)["result"]
+        items = result["items"]
+        assert {i["label"] for i in items} == {"Alias", "Local", "parts.C", "parts.Group"}
+        for item in items:
+            assert item["textEdit"]["range"] == {"start": position, "end": position}
+
+
+@pytest.mark.parametrize(
+    ("header", "expected"),
+    [
+        ("component Derived extends ", {"parts.C", "Alias"}),
+        ("block Derived extends ", {"parts.Group"}),
+        ("nettype Derived extends ", {"parts.Signal"}),
+        ("board B:\n  net wire: ", {"parts.Signal", "parts.Bus"}),
+        ("component Derived extends parts.", {"C"}),
+    ],
+)
+def test_empty_type_contexts_filter_visible_namespace(tmp_path, header, expected):
+    source, parts = project_files(tmp_path)
+    parts.write_text(
+        parts.read_text()
+        + """from noscheme import nettype
+block Group:
+  ports:
+    p: nettype.passive
+nettype Signal extends nettype.passive:
+  wiring_capacitance: 1p
+bundle Bus:
+  p: nettype.passive
+"""
+    )
+    prelude = "import parts\nfrom parts import C as Alias\n"
+    if not header.startswith("board"):
+        prelude += "board B:\n  metadata:\n    custom:\n      demo: true\n"
+    text = prelude + header
+    with Client() as client:
+        client.send(message("initialize", id=1))
+        client.until(lambda r: r.get("id") == 1)
+        client.send(at_path(opening(text), source))
+        position = {"line": len(text.splitlines()) - 1, "character": len(text.splitlines()[-1])}
+        client.send(
+            message(
+                "textDocument/completion",
+                {"textDocument": {"uri": source.as_uri()}, "position": position},
+                id=2,
+            )
+        )
+        result = client.until(lambda r: r.get("id") == 2)["result"]
+        assert {
+            i["label"] for i in result["items"] if not i["label"].startswith("parts.nettype.")
+        } == expected
+
+
+@pytest.mark.parametrize("header", ["board B:\n  net wire: ", "nettype Signal extends "])
+def test_type_completion_with_builtin_alias(tmp_path, header):
+    source, _ = project_files(tmp_path)
+    text = "from noscheme import nettype as nt\n"
+    if header.startswith("nettype"):
+        text += "board B:\n  metadata:\n    custom:\n      demo: true\n"
+    text += header
+    with Client() as client:
+        client.send(message("initialize", id=1))
+        client.until(lambda r: r.get("id") == 1)
+        client.send(at_path(opening(text), source))
+        position = {"line": len(text.splitlines()) - 1, "character": len(text.splitlines()[-1])}
+        client.send(
+            message(
+                "textDocument/completion",
+                {"textDocument": {"uri": source.as_uri()}, "position": position},
+                id=2,
+            )
+        )
+        items = client.until(lambda r: r.get("id") == 2)["result"]["items"]
+        labels = {i["label"] for i in items}
+        assert {"nt.digital", "nt.unchecked"} <= labels
+        assert all(label.startswith("nt.") for label in labels)
+
+
+@pytest.mark.parametrize(
+    "case",
+    json.loads(
+        (
+            Path(__file__).resolve().parents[2] / "tests/fixtures/lsp_scope_completion.json"
+        ).read_text()
+    ),
+    ids=lambda case: case["name"],
+)
+def test_scope_completion_parity(tmp_path, case):
+    source, _ = project_files(tmp_path)
+    offset = case["source"].index("|")
+    text = case["source"].replace("|", "")
+    prefix = text[:offset]
+    position = {"line": prefix.count("\n"), "character": len(prefix.rsplit("\n", 1)[-1])}
+    with Client() as client:
+        client.send(message("initialize", id=1))
+        client.until(lambda r: r.get("id") == 1)
+        client.send(at_path(opening(text), source))
+        client.send(
+            message(
+                "textDocument/completion",
+                {"textDocument": {"uri": source.as_uri()}, "position": position},
+                id=2,
+            )
+        )
+        result = client.until(lambda r: r.get("id") == 2)["result"]
+        labels = {i["label"] for i in result["items"]}
+        assert set(case["include"]) <= labels
+        assert not set(case["exclude"]) & labels
+        from noscheme.lsp_completion import completion_items
+
+        expected = completion_items(source, source.parent, {source: text}, offset)
+        assert labels == {suggestion.label for suggestion in expected}
+        by_label = {item["label"]: item for item in result["items"]}
+
+        def position_at(index):
+            prefix = text[:index]
+            return {"line": prefix.count("\n"), "character": len(prefix.rsplit("\n", 1)[-1])}
+
+        for suggestion in expected:
+            assert by_label[suggestion.label]["textEdit"] == {
+                "newText": suggestion.text,
+                "range": {
+                    "start": position_at(suggestion.start),
+                    "end": position_at(suggestion.end),
+                },
+            }
+
+
+@pytest.mark.parametrize(
+    "case",
+    json.loads(
+        (Path(__file__).resolve().parents[2] / "tests/fixtures/lsp_code_actions.json").read_text()
+    ),
+    ids=lambda case: case["name"],
+)
+def test_instance_code_actions_parity(tmp_path, case):
+    from noscheme.lsp_code_actions import instance_actions
+
+    source, _ = project_files(tmp_path)
+    text = case["source"]
+    offset = text.index("inst p") + 6
+
+    def position_at(at):
+        prefix = text[:at]
+        return {
+            "line": prefix.count("\n"),
+            "character": len(prefix.rsplit("\n", 1)[-1].encode("utf-16-le")) // 2,
+        }
+
+    pos = position_at(offset)
+    with Client() as client:
+        versioned = case["name"] == "bare"
+        client.send(
+            message(
+                "initialize",
+                {"capabilities": {"workspace": {"workspaceEdit": {"documentChanges": versioned}}}},
+                id=1,
+            )
+        )
+        capabilities = client.until(lambda r: r.get("id") == 1)["result"]["capabilities"]
+        assert capabilities["codeActionProvider"]["codeActionKinds"] == ["refactor.rewrite"]
+        client.send(at_path(opening(text), source))
+        params = {
+            "textDocument": {"uri": source.as_uri()},
+            "range": {"start": pos, "end": pos},
+            "context": {"diagnostics": []},
+        }
+        client.send(message("textDocument/codeAction", params, id=2))
+        result = client.until(lambda r: r.get("id") == 2)["result"]
+        expected = instance_actions(source, source.parent, {source: text}, offset)
+        assert [a["title"] for a in result] == [a["title"] for a in expected]
+        for actual, action in zip(result, expected):
+            assert actual["kind"] == "refactor.rewrite"
+            if versioned:
+                change = actual["edit"]["documentChanges"][0]
+                assert change["textDocument"] == {"uri": source.as_uri(), "version": 1}
+                edits = change["edits"]
+            else:
+                edits = actual["edit"]["changes"][source.as_uri()]
+            assert edits == [
+                {"range": {"start": position_at(at), "end": position_at(at)}, "newText": inserted}
+                for at, inserted in action["edits"]
+            ]
+        params["context"]["only"] = ["quickfix"]
+        client.send(message("textDocument/codeAction", params, id=3))
+        assert client.until(lambda r: r.get("id") == 3)["result"] == []

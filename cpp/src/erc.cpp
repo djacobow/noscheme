@@ -733,6 +733,8 @@ std::string text_report(const Json &report) {
       result += (result.empty() ? "" : ", ") + item.get<std::string>();
     return result;
   };
+  header +=
+      "Explicitly unchecked nets: " + report.at("unchecked_nets").dump() + "\n";
   header += "Implemented checks: " + names(report.at("checks")) + "\n";
   header += "Pending checks: " + names(report.at("pending")) + "\n";
   for (const auto &configuration : report.at("configurations")) {
@@ -914,11 +916,20 @@ ErcResult run_erc(const ProjectConfig &config,
                              configuration.choices, "errors", local_errors,
                              "warnings", local_warnings));
   }
-  auto report =
-      object("schema_version", 1, "checks", checker.rule_order(), "pending",
-             Json::array(), "errors", errors, "warnings", warnings, "waivers",
-             std::move(waivers), "configurations", std::move(reports),
-             "diagnostics", std::move(diagnostics));
+  // Net types do not change with role configurations. Count only outermost
+  // unchecked declarations, once per flattened net.
+  auto unchecked_nets = std::count_if(
+      circuit.nets.begin(), circuit.nets.end(), [&](const CircuitNet &net) {
+        return std::ranges::any_of(net.declarations, [&](std::size_t index) {
+          const auto &leaf = circuit.leaves[index];
+          return leaf.path == net.path && leaf.type == "unchecked";
+        });
+      });
+  auto report = object("schema_version", 1, "unchecked_nets", unchecked_nets,
+                       "checks", checker.rule_order(), "pending", Json::array(),
+                       "errors", errors, "warnings", warnings, "waivers",
+                       std::move(waivers), "configurations", std::move(reports),
+                       "diagnostics", std::move(diagnostics));
   auto text = text_report(report);
   return {report, report.dump(2) + "\n", std::move(text)};
 }

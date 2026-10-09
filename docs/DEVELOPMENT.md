@@ -79,7 +79,7 @@ python3 -c 'import pstats; pstats.Stats("examples/wren/full/build/analysis.prof"
 The JSON includes individual timing samples, Python/dependency versions, and
 input hashes. The optional profile is a separate analysis after the timed runs;
 its instrumentation overhead is excluded from the medians. Analysis errors
-abort the benchmark. Unchecked-net warnings are expected for this fixture.
+abort the benchmark. Explicitly unchecked nets are counted in the ERC report without warnings.
 No export state is changed, and profile files under `build/` are ignored.
 
 Comment masking consumes ordinary text in chunks while preserving source

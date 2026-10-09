@@ -492,11 +492,6 @@ std::vector<Diagnostic> driver_results(const Context &ctx) {
   auto origin_span = view.record_span(facts.origin);
   const auto &name = view.circuit.nets[*ctx.net].name;
   if (origin.type == "unchecked") {
-    results.emit("unchecked_net",
-                 "net " + python_repr(name) +
-                     " skips driver and current checks; inner type and port "
-                     "constraints still apply",
-                 origin_span, {}, "warning");
     return results.diagnostics;
   }
   const auto &known = facts.known;
@@ -1386,7 +1381,7 @@ families() {
           {"multiple_drivers", {drivers}},
           {"power_ground_conflict", {drivers}},
           {"incomplete_roles", {drivers}},
-          {"unchecked_net", {drivers}},
+          {"unchecked_net", {}}, // Compatibility name; reported as a count.
           {"aggregate_load_boundary", {current}},
           {"aggregate_current_overload", {current}},
           {"incomplete_aggregate_load", {current}},
