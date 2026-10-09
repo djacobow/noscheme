@@ -24,6 +24,27 @@ configured output directory. Electrical errors allow compilation/export;
 `noscheme check` returns a failing status when it finds electrical errors.
 Structural errors block compilation.
 
+### Trying the native CLI
+
+Python remains the default. To use the C++ compiler, first follow the
+[native build instructions](../cpp/README.md#build-and-check), then run:
+
+```sh
+.venv/bin/noscheme check --project examples/blink \
+  --implementation native --native-tool "$PWD/build/native/noscheme-native"
+```
+
+The same options work with `parse`, `load`, `resolve`, `lint`, `evaluate`,
+`compile`, `format`, and `export-kicad`. Existing command options, including
+`--diagnostics json`, `--erc-configuration`, and `--footprints`, still apply.
+Remove the implementation options to return to Python. Both exporters share
+identity state; keep that file when switching implementations.
+
+Run `meson test -C build/native --print-errorlogs` for native regression tests,
+including CLI parity and export-state compatibility. Run the Python suite too
+when changing shared front-end or publication code. Native export uses OpenSSL
+(`libssl-dev` on Ubuntu) for UUIDv5 and artifact hashes.
+
 ### LSP tests in restricted sandboxes
 
 The stdio LSP uses pygls' worker thread to read stdin. Python's asyncio loop
@@ -376,8 +397,11 @@ behavior and execution isolation.
 
 The C++23 migration is under `cpp/`, using Meson/Ninja and ANTLR-generated
 lexing/parsing, toml++ project loading, Boost.Multiprecision value evaluation,
-definition resolution, circuit elaboration, and a subprocess bridge to Python ERC. See
-[native build and parity tests](../cpp/README.md). The separate experimental native LSP
+definition resolution, circuit elaboration, and native standard ERC rules, with a
+subprocess bridge to Python for ERC plugins. See
+[native build and parity tests](../cpp/README.md). The CLI still runs the Python ERC,
+so a change to a standard rule, its messages, or report text belongs in both
+engines; the ERC parity tests replay every project the Python ERC tests load. The separate experimental native LSP
 currently supports project/compiler/ERC diagnostics, definition/hover, references,
 context-aware completion, whole-file formatting, and identity-aware rename.
 Interactive snapshots are available before ERC callbacks run. Python remains the

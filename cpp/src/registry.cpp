@@ -118,11 +118,11 @@ RegistryDescription load_registry(const ProjectConfig &config,
   auto paths = Json::array();
   for (const auto &path : config.erc_modules)
     paths.push_back(path.string());
+  auto span = config.span.json();
   auto request = object("version", 1, "method", "describe_registry",
-                        "erc_modules", std::move(paths), "span", config.span);
-  return registry_description(python_request(request, python, config.span,
-                                             timeout, "native.erc-registry",
-                                             stop),
-                              config.span);
+                        "erc_modules", std::move(paths), "span", span);
+  return registry_description(python_request(request, python, span, timeout,
+                                             "native.erc-registry", stop),
+                              span);
 }
 } // namespace noscheme

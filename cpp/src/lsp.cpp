@@ -272,32 +272,28 @@ class Server {
         const noscheme::LspReference *selected = nullptr;
         for (const auto &reference : latest->references) {
           const auto &span = reference.span;
-          if (span.at("filename") != path->string() ||
-              offset < span.at("start_pos").get<std::size_t>() ||
-              offset >= span.at("end_pos").get<std::size_t>())
+          if (span.filename() != path->string() || offset < span.start ||
+              offset >= span.end)
             continue;
           if (!selected ||
-              span.at("end_pos").get<std::size_t>() -
-                      span.at("start_pos").get<std::size_t>() <
-                  selected->span.at("end_pos").get<std::size_t>() -
-                      selected->span.at("start_pos").get<std::size_t>())
+              span.end - span.start < selected->span.end - selected->span.start)
             selected = &reference;
         }
         if (selected) {
-          auto range = [](const noscheme::Source &text, const Json &span) {
-            return object("start", position(text, span.at("start_pos")), "end",
-                          position(text, span.at("end_pos")));
+          auto range = [](const noscheme::Source &text,
+                          const noscheme::Span &span) {
+            return object("start", position(text, span.start), "end",
+                          position(text, span.end));
           };
           if (request.at("method") == "textDocument/references") {
             auto include =
                 params.at("context").at("includeDeclaration").get<bool>();
-            if (!selected->target.is_null()) {
+            if (selected->target) {
               for (const auto &reference : latest->references) {
                 if (reference.target != selected->target ||
                     (!include && reference.span == reference.target))
                   continue;
-                noscheme::fs::path path =
-                    reference.span.at("filename").get<std::string>();
+                noscheme::fs::path path = reference.span.filename();
                 if (!latest->sources.contains(path))
                   continue;
                 noscheme::Source text(latest->sources.at(path), path.string());
@@ -309,12 +305,11 @@ class Server {
               }
             }
           } else if (request.at("method") == "textDocument/definition") {
-            if (selected->target.is_null()) {
+            if (!selected->target) {
               send(object("id", id, "result", nullptr));
               return;
             }
-            noscheme::fs::path target =
-                selected->target.at("filename").get<std::string>();
+            noscheme::fs::path target = selected->target.filename();
             if (latest->sources.contains(target)) {
               noscheme::Source text(latest->sources.at(target),
                                     target.string());
@@ -450,12 +445,12 @@ class Server {
       if (noscheme::uri_path(uri))
         continue;
       noscheme::check_cancelled(token);
-      noscheme::Source source(doc.text, uri);
+      auto source = std::make_shared<const noscheme::Source>(doc.text, uri);
       result.sources[uri] = doc.text;
       try {
         noscheme::parse(source);
       } catch (const noscheme::Failure &e) {
-        result.diagnostics.push_back(source.diagnostic(e));
+        result.diagnostics.push_back(source->diagnostic(e));
       } catch (const noscheme::DiagnosticsFailure &e) {
         for (const auto &d : e.diagnostics)
           result.diagnostics.push_back(d);

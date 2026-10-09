@@ -117,16 +117,6 @@ std::string float_display(double value) {
   coefficient.insert(point, ".");
   return sign + coefficient;
 }
-std::string expression_path(const Json &expr) {
-  if (expr["node"] == "Name")
-    return expr["text"];
-  if (expr["node"] == "Member") {
-    auto base = expression_path(expr["base"]);
-    if (!base.empty())
-      return base + "." + expr["name"]["text"].get<std::string>();
-  }
-  return {};
-}
 } // namespace
 
 [[noreturn]] void Evaluator::error(std::string code, std::string message,
@@ -137,29 +127,29 @@ std::string expression_path(const Json &expr) {
       std::move(message), "span", span, "related", related, "instance_path",
       instance_path, "configuration", nullptr, "application", nullptr)}));
 }
-Value Evaluator::number(Integer value, const Json &span) {
+Value Evaluator::number(Integer value, const Span &span) {
   if (bits(value) > limits.integer_bits)
     error("number.limit", "integer exceeds configured bit limit", span);
   return value;
 }
-Value Evaluator::number(double value, const Json &span) {
+Value Evaluator::number(double value, const Span &span) {
   if (!std::isfinite(value))
     error("number.nonfinite", "numeric result must be finite", span);
   return value;
 }
-double Evaluator::floating(const Value &value, const Json &span) {
+double Evaluator::floating(const Value &value, const Span &span) {
   if (auto p = std::get_if<double>(&value))
     return *p;
   if (auto p = std::get_if<Integer>(&value))
     return ratio_double(*p, 1);
   error("expression.type", "expected a number", span);
 }
-std::string Evaluator::bounded(std::string text, const Json &span) {
+std::string Evaluator::bounded(std::string text, const Span &span) {
   if (characters(text) > limits.string_length)
     error("format.limit", "string exceeds configured length limit", span);
   return text;
 }
-Integer Evaluator::integer(const Value &value, const Json &span,
+Integer Evaluator::integer(const Value &value, const Span &span,
                            bool explicit_conversion) {
   if (auto p = std::get_if<Integer>(&value))
     return *p;
@@ -169,13 +159,13 @@ Integer Evaluator::integer(const Value &value, const Json &span,
           "code", "number.implicit-integer", "severity", "warning", "message",
           "double converted to integer by truncation toward zero; use num.int "
           "to make this explicit",
-          "span", span, "related", Json::array(), "instance_path",
+          "span", span.json(), "related", Json::array(), "instance_path",
           instance_path, "configuration", nullptr, "application", nullptr));
     return Integer(*p);
   }
   error("expression.type", "expected a number", span);
 }
-std::size_t Evaluator::dimension(const Value &value, const Json &span) {
+std::size_t Evaluator::dimension(const Value &value, const Span &span) {
   auto n = integer(value, span);
   if (n < 1 || n > limits.dimension)
     error("array.dimension",
@@ -183,36 +173,41 @@ std::size_t Evaluator::dimension(const Value &value, const Json &span) {
           span);
   return n.convert_to<std::size_t>();
 }
-std::size_t Evaluator::index(const Value &value, const Json &span,
+std::size_t Evaluator::index(const Value &value, const Span &span,
                              std::size_t size, bool stop) {
   auto n = integer(value, span);
   if (n < 0 || (stop ? n > size : n >= size))
     error("array.index", "index is outside the array bounds", span);
   return n.convert_to<std::size_t>();
 }
-std::string Evaluator::display(const Value &value, const Json &) {
+std::string Evaluator::display(const Value &value, const Span &) {
   if (auto p = std::get_if<std::string>(&value))
     return *p;
   if (auto p = std::get_if<Integer>(&value))
     return p->str();
   return float_display(std::get<double>(value));
 }
-Value Evaluator::evaluate(const Json &expr, const Environment &env,
+Value Evaluator::evaluate(const ast::Node &expr, const Environment &env,
                           std::size_t depth) {
-  const auto &span = expr["span"];
+  using ast::as;
+  using ast::Kind;
+  const auto &span = expr.span;
   if (depth > limits.expression_depth)
     error("expression.limit", "expression exceeds configured depth limit",
           span);
-  auto run = [&](const Json &child) { return evaluate(child, env, depth + 1); };
-  auto numeric = [&](Value value, const Json &where) {
+  auto run = [&](const ast::Node &child) {
+    return evaluate(child, env, depth + 1);
+  };
+  auto numeric = [&](Value value, const Span &where) {
     if (std::holds_alternative<std::string>(value))
       error("expression.type", "expected a number", where);
     return value;
   };
   try {
-    const auto kind = expr["node"].get<std::string>();
-    if (kind == "Number") {
-      auto text = expr["spelling"].get<std::string>();
+    switch (expr.kind) {
+    case Kind::Number: {
+      const auto &n = as<ast::Number>(expr);
+      const auto &text = n.spelling;
       const auto prefix = text.find_first_of(numeric_prefixes);
       if (prefix != std::string::npos) {
         int exponent = prefix_exponent(text[prefix]);
@@ -239,7 +234,7 @@ Value Evaluator::evaluate(const Json &expr, const Environment &env,
         auto literal = digits + "e" + std::to_string(exponent);
         return number(std::strtod(literal.c_str(), nullptr), span);
       }
-      if (expr["tag"] == "integer") {
+      if (n.integer) {
         auto first = text.find_first_not_of('0');
         if (first != std::string::npos &&
             text.size() - first > limits.integer_bits)
@@ -249,28 +244,31 @@ Value Evaluator::evaluate(const Json &expr, const Environment &env,
       }
       return number(std::strtod(text.c_str(), nullptr), span);
     }
-    if (kind == "String")
-      return bounded(expr["value"], span);
-    if (kind == "Name") {
-      auto name = expr["text"].get<std::string>();
-      if (!env.contains(name))
+    case Kind::String:
+      return bounded(as<ast::String>(expr).value, span);
+    case Kind::Name: {
+      const auto &name = as<ast::Name>(expr).text;
+      auto found = env.find(name);
+      if (found == env.end())
         error("parameter.missing", "no value for parameter '" + name + "'",
               span);
-      return env.at(name);
+      return found->second;
     }
-    if (kind == "Group")
-      return run(expr["expression"]);
-    if (kind == "Unary") {
-      auto value = numeric(run(expr["operand"]), span);
+    case Kind::Group:
+      return run(*as<ast::Group>(expr).expression);
+    case Kind::Unary: {
+      const auto &n = as<ast::Unary>(expr);
+      auto value = numeric(run(*n.operand), span);
       if (auto p = std::get_if<Integer>(&value))
-        return number(expr["operator"] == "-" ? Integer(-*p) : *p, span);
+        return number(n.op == "-" ? Integer(-*p) : *p, span);
       auto d = std::get<double>(value);
-      return number(expr["operator"] == "-" ? -d : d, span);
+      return number(n.op == "-" ? -d : d, span);
     }
-    if (kind == "Binary") {
-      auto left = numeric(run(expr["left"]), expr["left"]["span"]);
-      auto right = numeric(run(expr["right"]), expr["right"]["span"]);
-      auto op = expr["operator"].get<std::string>();
+    case Kind::Binary: {
+      const auto &n = as<ast::Binary>(expr);
+      auto left = numeric(run(*n.left), n.left->span);
+      auto right = numeric(run(*n.right), n.right->span);
+      const auto &op = n.op;
       auto a = std::get_if<Integer>(&left), b = std::get_if<Integer>(&right);
       if (op == "<<" || op == ">>") {
         if (!a || !b || *b < 0)
@@ -309,23 +307,26 @@ Value Evaluator::evaluate(const Json &expr, const Environment &env,
       auto x = floating(left, span), y = floating(right, span);
       return number(op == "+" ? x + y : op == "-" ? x - y : x * y, span);
     }
-    if (kind == "Call" && expr["callee"]["node"] == "Member") {
-      const auto &member = expr["callee"];
+    case Kind::Call: {
+      const auto &call = as<ast::Call>(expr);
+      const auto *member = as<ast::Member>(call.callee);
+      if (!member)
+        break;
       std::vector<Value> args;
       Environment kwargs;
-      for (const auto &arg : expr["arguments"])
-        args.push_back(run(arg));
-      for (const auto &arg : expr["keywords"])
-        kwargs[arg["name"]["text"]] = run(arg["value"]);
-      const auto helper = member["name"]["text"].get<std::string>();
+      for (const auto &arg : call.arguments)
+        args.push_back(run(*arg));
+      for (const auto &arg : call.keywords)
+        kwargs[arg.name.text] = run(*arg.value);
+      const auto &helper = member->name.text;
       if (helper == "format") {
-        auto base = run(member["base"]);
+        auto base = run(*member->base);
         if (!std::holds_alternative<std::string>(base))
           error("expression.type", ".format requires a string",
-                member["base"]["span"]);
+                member->base->span);
         return format(std::get<std::string>(base), args, kwargs, span);
       }
-      auto space = expression_path(member["base"]);
+      auto space = ast::expression_path(*member->base);
       if (space.empty())
         error("expression.call", "arbitrary method calls are not allowed",
               span);
@@ -334,14 +335,14 @@ Value Evaluator::evaluate(const Json &expr, const Environment &env,
           symbol == symbols.end() || symbol->second.module != "noscheme" ||
           symbol->second.name != "num")
         error("expression.call", "helper namespace must be explicitly imported",
-              member["span"]);
+              member->span);
       if (args.size() != 1 || !kwargs.empty())
         error("expression.arguments",
               "numeric helpers take one positional argument", span);
       auto value = numeric(args[0], span);
       if (helper != "int" && helper != "ceil" && helper != "floor" &&
           helper != "round")
-        error("expression.call", "unknown numeric helper", member["span"]);
+        error("expression.call", "unknown numeric helper", member->span);
       if (auto p = std::get_if<Integer>(&value))
         return number(*p, span);
       double d = std::get<double>(value);
@@ -350,6 +351,9 @@ Value Evaluator::evaluate(const Json &expr, const Environment &env,
                             : helper == "round" ? std::round(d)
                                                 : std::trunc(d)),
                     span);
+    }
+    default:
+      break;
     }
     error("expression.unsupported", "unsupported expression", span);
   } catch (const std::overflow_error &) {
@@ -360,7 +364,7 @@ Value Evaluator::evaluate(const Json &expr, const Environment &env,
 
 std::string Evaluator::format(const std::string &text,
                               const std::vector<Value> &args,
-                              const Environment &kwargs, const Json &span) {
+                              const Environment &kwargs, const Span &span) {
   std::string result;
   std::size_t length = 0;
   auto append = [&](const std::string &part) {
@@ -512,6 +516,18 @@ Json encoded(const Value &value) {
   if (auto p = std::get_if<double>(&value))
     return object("type", "number", "tag", "double", "value", *p);
   return object("type", "string", "value", std::get<std::string>(value));
+}
+MetaValue to_meta(const Value &value) {
+  return std::visit([](const auto &v) { return MetaValue(v); }, value);
+}
+std::optional<Value> to_value(const MetaValue &value) {
+  if (auto p = value.get_if<Integer>())
+    return *p;
+  if (auto p = value.get_if<double>())
+    return *p;
+  if (auto p = value.get_if<std::string>())
+    return *p;
+  return {};
 }
 Value decoded(const Json &value) {
   if (value.at("type") == "string")

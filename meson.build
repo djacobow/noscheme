@@ -7,6 +7,8 @@ project(
         'cpp_std=c++23',
         'warning_level=3',
         'buildtype=debugoptimized',
+        # Release builds drop assert and libstdc++ assertion checks.
+        'b_ndebug=if-release',
     ],
 )
 cmake = import('cmake')
@@ -47,6 +49,8 @@ generated = custom_target(
 inc = include_directories('cpp/include')
 core = static_library(
     'noscheme-core',
+    'cpp/src/ast.cpp',
+    'cpp/src/meta.cpp',
     'cpp/src/source.cpp',
     'cpp/src/parser.cpp',
     'cpp/src/formatter.cpp',
@@ -54,9 +58,11 @@ core = static_library(
     'cpp/src/project.cpp',
     'cpp/src/evaluate.cpp',
     'cpp/src/parameters.cpp',
+    'cpp/src/inspect.cpp',
     'cpp/src/registry.cpp',
     'cpp/src/python_bridge.cpp',
     'cpp/src/erc.cpp',
+    'cpp/src/erc_standard.cpp',
     'cpp/src/metadata.cpp',
     'cpp/src/resolve.cpp',
     'cpp/src/resolve_body.cpp',
@@ -87,6 +93,20 @@ probe = executable(
     link_with: core,
     include_directories: inc,
     dependencies: [json_dep, antlr_dep, boost_config_dep, boost_mp_dep],
+)
+native_cli = executable(
+    'noscheme-native',
+    'cpp/src/cli.cpp',
+    'cpp/src/export.cpp',
+    link_with: core,
+    include_directories: inc,
+    dependencies: [
+        json_dep,
+        antlr_dep,
+        boost_config_dep,
+        boost_mp_dep,
+        dependency('openssl'),
+    ],
 )
 py = find_program(
     meson.project_source_root() / '.venv/bin/python',
@@ -205,5 +225,14 @@ test(
     args: ['-m', 'pytest', '-q', files('cpp/tests/test_rename_parity.py')],
     env: {'NOSCHEME_NATIVE_LSP': native_lsp.full_path()},
     depends: native_lsp,
+    timeout: 180,
+)
+
+test(
+    'native-cli-parity',
+    py,
+    args: ['-m', 'pytest', '-q', files('cpp/tests/test_cli.py')],
+    env: {'NOSCHEME_NATIVE_TOOL': native_cli.full_path()},
+    depends: native_cli,
     timeout: 180,
 )

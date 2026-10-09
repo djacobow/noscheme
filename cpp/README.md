@@ -1,8 +1,8 @@
 # Native compiler and LSP migration
 
 This directory contains the C++23 compiler core, a compiler comparison probe,
-and an experimental LSP with project/compiler/ERC diagnostics. The Python compiler and editor
-server remain the supported tools.
+an experimental CLI backend, and an experimental LSP with project/compiler/ERC
+diagnostics. Python remains the default implementation for both CLI and LSP.
 
 ## Parser choice
 
@@ -27,18 +27,26 @@ AST construction and validation run only after a complete parse. Validation
 traverses existing nodes by reference, and AST construction moves completed
 subtrees into their parents to avoid deep copies.
 
+The parser builds typed nodes ([`ast.hpp`](include/noscheme/ast.hpp)): structs
+tagged with an enum kind, read through checked `as<T>()` downcasts. Children are
+shared, so expanded instances reuse unchanged subtrees. A span is a byte range in
+a `Source` that the module keeps alive. Diagnostics and the comparison probe
+convert spans, and `ast::to_json` converts nodes, to the comparison form that
+matches Python's AST data. Neither form is a frozen native compiler API.
+
 The lexer preserves original source through the `Source` object. Native spans
 use UTF-8 byte offsets; the differential harness converts these to Python's
 Unicode-character offsets. Line and column fields use Unicode characters.
-The current JSON AST is an internal comparison representation, not a frozen
-native compiler API.
 
 ## Build and check
 
 Required: a C++23 compiler, Meson >= 1.3, Ninja, CMake (for the upstream ANTLR
-runtime subproject), Java >= 11, and the project's Python development environment.
-The build uses pinned nlohmann JSON 3.11.3 sources for the internal test protocol
-and AST comparison representation, toml++ 3.4.0 for project configuration, and
+runtime subproject), Java >= 11, OpenSSL development headers (`libssl-dev` on
+Ubuntu), and the project's Python development environment. OpenSSL supplies
+SHA-1 for compatible UUIDv5 identities and SHA-256 for export artifact hashes.
+The build uses pinned nlohmann JSON 3.11.3 sources for the internal test protocol,
+the AST comparison form, and the metadata and circuit representations, toml++
+3.4.0 for project configuration, and
 Boost.Multiprecision/Config 1.90.0 in standalone mode for arbitrary-precision
 integers. These are fetched by the same hash-checked dependency command.
 
@@ -71,6 +79,47 @@ not yet guarantee identical parser-error wording or all invalid-input locations.
 
 `noscheme-native-probe` reads JSON lines containing `source` and `filename` and
 returns an `ast` or `diagnostics` object. This protocol is internal to tests.
+
+## Experimental native CLI
+
+Build `noscheme-native` with Meson, then select it explicitly through the normal
+CLI. Python remains the default; no configuration or design files need to change.
+Run these commands from the repository root:
+
+```sh
+.venv/bin/noscheme check --project examples/blink \
+  --implementation native --native-tool "$PWD/build/native/noscheme-native"
+.venv/bin/noscheme compile --project examples/blink \
+  --implementation native --native-tool "$PWD/build/native/noscheme-native"
+.venv/bin/noscheme format --check examples \
+  --implementation native --native-tool "$PWD/build/native/noscheme-native"
+```
+
+`parse`, `load`, `resolve`, `lint`, `evaluate`, `check`, `compile`, `format`, and
+`export-kicad` accept these options. `--native-tool` can be omitted if
+`noscheme-native` is on PATH. Remove the options, or select
+`--implementation python`, to switch back. An unavailable native executable is
+an error; the launcher does not silently fall back to Python.
+
+The front end retains argparse, diagnostic rendering, directory selection,
+format diffs, and atomic file publication. The native backend shares parsing,
+resolution, evaluation, elaboration, and ERC with the LSP. It also prepares KiCad
+netlists, identity state, name maps, and change reports. The two processes use a
+private JSON-lines protocol; install matching revisions of the launcher and
+native executable. Python remains required for registry descriptions and custom
+ERC plugins. `convert-library` and `update-kicad-classes` remain Python utilities.
+
+Native export reads the existing `noscheme.state.json`, preserves its namespace,
+UUIDs, retired references, and previous-design records, and writes the same state
+schema. Switching implementations does not require resetting state. Electrical
+errors block `check` but permit `compile` and `export-kicad`; structural and
+footprint-validation failures block publication. All files are prepared before
+publication, with state committed last. The shared publisher restores replaced
+files after ordinary I/O failures; it is not a crash-safe multi-file transaction.
+
+`native-cli-parity` checks command results, diagnostics, exit codes, formatting,
+export artifacts, repeated exports, identity-preserving renames, retired
+references, and publication rollback against the Python implementation.
 
 ## Project loading
 
@@ -131,35 +180,45 @@ examples through real subprocesses, plugin edits and failures, invalid versions
 and schemas, oversized responses, early exits, and timeouts. The selected Python
 environment must have NoScheme installed (the project's `.venv` is suitable).
 
-### Execute checks on a native circuit
+### Native ERC with Python plugins
+
+The native engine ([`erc.cpp`](src/erc.cpp), [`erc_standard.cpp`](src/erc_standard.cpp))
+runs every standard rule, predicate, and rule set on the typed circuit. It
+schedules applications, deduplicates net-only rules, applies waivers, resolves
+configurations, and writes `erc.json`/`erc.txt`, following Python's
+`erc.check_circuit` and `apply_erc`. Exact sums and comparisons use rational
+numbers built from Python's shortest float spelling, as Python's
+`Fraction(str(x))` does.
+
+Python runs only what plugins add: plugin rules, rule sets, and predicates.
+When a circuit uses one of them, one `plugin_checks` request sends the circuit,
+the configuration names, the registry description used for resolution, and the
+names the native engine implements. Python reloads the registry, rejects a
+changed description, and shares its scheduler (`erc.Scheduler`) to return, per
+configuration:
+
+- applications from plugin rule sets, by owner and rule set, so they keep the
+  configured rule-set order; integer arguments use the tagged exact encoding,
+  so values beyond 64 bits survive JSON;
+- raw diagnostics or a failure for each plugin application;
+- plugin predicate values for every endpoint of native applications that use
+  them, with per-pin failures raised only when the native rule evaluates them.
+
+The native engine then applies severities, waivers, and diagnostic order.
+Projects without plugin rules, rule sets, or predicates never start Python for
+ERC. The registry description lists rules in registration order (`rule_order`)
+for the report's implemented checks.
 
 The probe accepts `elaborate: true` plus `erc_python` (the Python executable),
-optional `configurations` (an array of names), and `erc_timeout_ms`. It sends a
-`check_circuit` request with the native circuit, configured plugin filenames,
-and the registry description used for resolution. Python reloads the registry
-and rejects a changed description, so changed schemas require rebuilding the
-circuit. Discovery and execution use separate processes; callback/default objects
-never cross the boundary. Callback-only edits take effect on the next request.
+optional `configurations` (an array of names), and `erc_timeout_ms`, and attaches
+the report and artifact contents to its response without writing files.
 
-Python decodes tagged metadata numbers before calling the existing `apply_erc`
-once. Parameter encodings and source ASTs are retained; metadata integers are
-lossless up to 65,536 bits without changing Python's global conversion settings.
-Native byte offsets and Unicode line/column locations survive the round trip.
-All configurations are checked by default; selection uses the existing Python
-configuration behavior.
-
-The response contains the ERC report and `erc.json`/`erc.txt` contents, generated
-from that same run. Ordinary electrical errors are report data; invalid requests,
-plugin failures, and timeouts produce diagnostics. C++ validates the report,
-counts, and JSON artifact before accepting it. The probe attaches the report to
-its circuit response and returns artifact contents without writing files.
-
-Parity tests cover all eight examples, configuration selection, targeted waivers,
-Unicode locations, plugin-owned defaults, exact metadata integers, one callback
-per application, edits preserving timestamps, malformed replies, and timeout
-recovery. Built-in pin-rule registration is sorted so reports are reproducible
-across Python processes with different hash seeds. No editor or production CLI
-entry point switches to this bridge yet.
+Parity tests compare complete reports and `erc.txt` text for all eight examples,
+configuration selection, targeted waivers, Unicode locations, plugin-owned
+defaults, multiple plugin rule sets in configured order, exact large-integer
+limits and selectors, plugin predicates inside standard rules, malformed plugin
+responses, and timeouts. They also replay every project loaded by the
+Python ERC tests (about 190 that elaborate) through both engines.
 
 ## Value evaluation
 
@@ -223,10 +282,13 @@ constraints; numeric parameter expressions remain
 unevaluated with their lexical module and source span. Field maps can be merged
 for inheritance while preserving each value's provenance.
 
-Literal numbers use tagged evaluator encodings in the internal metadata JSON,
-so large integers survive the comparison protocol without rounding. The registry
-snapshot carries Python's decimal-literal conversion limit. This representation
-is internal, as is the JSON AST; it is not a public plugin API.
+Metadata is typed ([`meta.hpp`](include/noscheme/meta.hpp)): each field keeps
+its value, source span, and module. Values are strings, booleans, exact integers,
+doubles, lists, nested fields, AST expressions, and numeric expressions with
+their sign constraint. Its comparison form uses tagged number encodings, so
+large integers survive the comparison protocol without rounding. The registry
+snapshot carries Python's decimal-literal conversion limit. These forms are
+internal, as is the AST comparison form; they are not a public plugin API.
 
 The project probe's `metadata` option selects `module`, `definition`, and `scope`.
 An optional `pin` reads that pin's shorthand and nested fields, `locals` models
@@ -300,12 +362,17 @@ and physical pins to caller nets. It preserves explicit `no_connect`, omitted
 bindings, global-net references, named bundle types, source locations, identities,
 explicit references, quantity display, and footprint warnings.
 
+The circuit is typed ([`circuit.hpp`](include/noscheme/circuit.hpp)): leaves for
+pins, ports, and net declarations, parts, blocks, nets, and choice scopes, with
+typed metadata and source spans. `to_json` produces the comparison form, with
+metadata numbers in the tagged encoding described above, for the probe and the
+Python plugin bridge.
+
 Numeric metadata evaluates in its component or caller environment as appropriate;
 overrides suppress replaced expressions. Named net-type metadata, conditional
-roles, choice scopes, and configurations are carried into the circuit for the
-later ERC stage. Literal and evaluated metadata numbers keep the internal tagged
-encoding described above. The parity tests decode that representation when
-comparing against Python's circuit JSON; no public export format is changed.
+roles, choice scopes, and configurations are carried into the circuit for ERC.
+The parity tests decode the tagged numbers when comparing against Python's
+circuit JSON; no public export format is changed.
 
 Union-find with path compression and size weighting tracks connectivity. Public
 ports must have internal physical support, an external endpoint, or a placeholder
@@ -316,9 +383,9 @@ expression limits can be supplied as `expansion_limits` and `expression_limits`.
 
 Tests compare complete circuits for all eight examples, including WREN, and
 focused cases for connectivity, quantities, array selection, identities, and
-limits. Elaboration itself does not run ERC. The optional bridge stage above checks
-the resulting circuit; KiCad reference assignment, export, and editor integration
-remain outside this probe.
+limits. Elaboration itself does not run ERC; the native ERC above checks the
+resulting circuit. KiCad reference assignment and export remain outside this
+probe.
 
 ## Parser benchmark
 
@@ -340,10 +407,10 @@ syntax parsing, AST construction, and structural validation. Their sum excludes
 source initialization and teardown, so it is lower than the total parse time.
 
 This measures the current implementations: Python builds dataclass AST nodes,
-while native code builds an internal JSON AST. It does not isolate ANTLR versus
+while native code builds typed AST nodes. It does not isolate ANTLR versus
 Lark recognition speed, or measure complete project loading or LSP latency.
 
-### Measured baseline (October 7, 2026)
+### Measured baseline (October 8, 2026)
 
 Intel i7-8565U, GCC 15.2 `-O2 -g` (`debugoptimized`, libstdc++ assertions
 enabled), Python 3.13.9 / Lark 1.3.1. No sanitizers, LTO, PGO, or CPU-specific
@@ -352,26 +419,31 @@ builds or tests running concurrently:
 
 | Source | Python median | Native median | Speedup |
 | --- | ---: | ---: | ---: |
-| Blink main | 0.98 ms | 0.38 ms | 2.6× |
-| STM32 board | 10.90 ms | 4.04 ms | 2.7× |
-| Rulos board | 18.54 ms | 5.88 ms | 3.2× |
-| WREN parts (90 kB) | 214.12 ms | 68.82 ms | 3.1× |
-| WREN board (428 kB) | 722.57 ms | 238.86 ms | 3.0× |
+| Blink main | 1.02 ms | 0.15 ms | 6.7× |
+| STM32 board | 11.02 ms | 1.87 ms | 5.9× |
+| Rulos board | 19.53 ms | 2.69 ms | 7.3× |
+| WREN parts (90 kB) | 226.01 ms | 26.61 ms | 8.5× |
+| WREN board (428 kB) | 768.89 ms | 102.82 ms | 7.5× |
 
-Before removing deep copies and enabling SLL/LL fallback, the native WREN board
-parse took roughly 810 ms. Phase measurements identified AST construction and
-validation as the largest costs. After the changes, they take about 89 ms and
-13 ms respectively; syntax parsing takes about 13 ms. Hardware load and CPU
+The WREN board phases take about 25 ms for comment masking, 27 ms for
+tokenization, 13 ms for syntax parsing, 23 ms for AST construction, and 1 ms
+for validation. The two lexer passes, one to mask comments and one to tokenize
+the masked text, now cost more than building the AST.
+
+On October 7, with a JSON AST, the WREN board took 238.86 ms; AST construction
+and validation took about 89 ms and 13 ms. Before removing deep copies and
+enabling SLL/LL fallback, it took roughly 810 ms. Hardware load and CPU
 frequency affect these numbers. They establish a parser baseline, not an LSP
 latency promise.
 
 ## Remaining migration work
 
 - Expand malformed-input and diagnostic-location coverage; fuzz the front end.
-- Port the template-inspection report if needed by native editor requests;
+- Keep template-inspection output compatible with the Python CLI;
   resolution, parameter binding, and full connectivity elaboration are available.
 - Implement native LSP requests, snapshot caching, cancellation, and formatting.
 - Compare actual editor latency and memory use, then check Vim, Neovim, and VS Code.
+- Pre-fork the Python plugin worker so plugin projects avoid repeated imports.
 
 The Python editor command remains the default until the native server reaches feature parity.
 
@@ -561,40 +633,53 @@ observations, not CI performance thresholds.
 
 ### Local LSP measurements (October 8, 2026)
 
-Intel i7-8565U, Ubuntu 26.04, Python 3.13.9, GCC 15.2 release build (`-O3`).
-Measurements used real stdio requests with dependency freshness checks enabled,
-without competing builds or tests. STM32 used five edit samples; full WREN used
-three. Repeated values below are medians. Cold timings start at `didOpen` and
-exclude server initialization (about 413 ms for Python and 3 ms for native).
+Intel i7-8565U, Ubuntu 26.04, Python 3.13.9, GCC 15.2 release build (`-O3`,
+assertions disabled). Measurements used real stdio requests with dependency
+freshness checks enabled, without competing builds or tests. STM32 and rulos
+used five edit samples; full WREN used three. Repeated values below are medians.
+Cold timings start at `didOpen` and exclude server initialization (about 440 ms
+for Python and 2 ms for native).
 
 | Project | Measurement | Python | Native C++ |
 | --- | --- | ---: | ---: |
-| STM32 | Cold hover | 346.9 ms | 257.3 ms |
-| STM32 | Cold diagnostics | 624.3 ms | 483.7 ms |
-| STM32 | Warm hover | 15.7 ms | 1.0 ms |
-| STM32 | Hover after edit | 90.0 ms | 103.0 ms |
-| STM32 | Diagnostics after edit | 379.9 ms | 326.3 ms |
-| STM32 | Sampled peak tree RSS | 127.9 MiB | 84.7 MiB |
-| WREN, 1,507 parts | Cold hover | 2516.1 ms | 1695.3 ms |
-| WREN, 1,507 parts | Cold diagnostics | 9339.0 ms | 3945.6 ms |
-| WREN, 1,507 parts | Warm hover | 298.4 ms | 19.9 ms |
-| WREN, 1,507 parts | Hover after edit | 2530.0 ms | 1460.5 ms |
-| WREN, 1,507 parts | Diagnostics after edit | 9341.8 ms | 3705.9 ms |
-| WREN, 1,507 parts | Sampled peak tree RSS | 529.8 MiB | 649.7 MiB |
+| STM32 | Cold hover | 369.7 ms | 181.3 ms |
+| STM32 | Cold diagnostics | 628.9 ms | 203.1 ms |
+| STM32 | Warm hover | 16.4 ms | 0.6 ms |
+| STM32 | Hover after edit | 94.9 ms | 25.0 ms |
+| STM32 | Diagnostics after edit | 394.9 ms | 47.3 ms |
+| STM32 | Sampled peak tree RSS | 129.1 MiB | 31.5 MiB |
+| rulos (ERC plugin) | Cold hover | 435.4 ms | 162.5 ms |
+| rulos (ERC plugin) | Cold diagnostics | 1076.9 ms | 600.6 ms |
+| rulos (ERC plugin) | Warm hover | 17.5 ms | 1.0 ms |
+| rulos (ERC plugin) | Hover after edit | 119.5 ms | 142.6 ms |
+| rulos (ERC plugin) | Diagnostics after edit | 828.1 ms | 573.1 ms |
+| rulos (ERC plugin) | Sampled peak tree RSS | 140.9 MiB | 72.5 MiB |
+| WREN, 1,507 parts | Cold hover | 2675.8 ms | 482.0 ms |
+| WREN, 1,507 parts | Cold diagnostics | 9665.4 ms | 831.8 ms |
+| WREN, 1,507 parts | Warm hover | 314.3 ms | 13.5 ms |
+| WREN, 1,507 parts | Hover after edit | 2726.2 ms | 298.7 ms |
+| WREN, 1,507 parts | Diagnostics after edit | 10034.9 ms | 609.6 ms |
+| WREN, 1,507 parts | Sampled peak tree RSS | 529.7 MiB | 167.5 MiB |
 
-Both servers reported zero diagnostics for STM32 and the same 1,309 unchecked-net
-warnings for WREN. The edit appends an unsaved comment to the board file; these
-numbers do not represent every editing operation or plugin-heavy workload.
+Both servers reported zero diagnostics for STM32 and rulos, and the same 1,309
+unchecked-net warnings for WREN. The edit appends an unsaved comment to the
+board file; these numbers do not represent every editing operation or
+plugin-heavy workload. Hover after an edit includes the 200 ms typing debounce.
 
-The native server improves large-design latency, but small-design edit-to-hover
-is still slightly slower. WREN native memory remains above Python's. Before
-sharing completion candidate lists and reusing diagnostic source indices, WREN
-native peaked at 8,869 MiB in the sampled RSS report, took 11.94 s for
-edit-to-hover, and 19.02 s for edited diagnostics.
+Projects with ERC plugins start Python twice per analysis: once to describe the
+registry, which project loading needs, and once for plugin checks. Each start
+costs about 100 ms, almost all of it imports, which is why rulos edits are
+slower to hover than STM32. A pre-forked Python worker would remove that cost
+without sharing plugin module state between analyses.
+
+Earlier on October 8, the native server used a JSON AST, JSON metadata and
+circuits, libstdc++ assertions, and Python for all ERC. WREN then took 1460.5 ms
+for hover after an edit and 3705.9 ms for edited diagnostics, and peaked at
+649.7 MiB. Before sharing completion candidate lists and reusing diagnostic
+source indices, it peaked at 8,869 MiB, took 11.94 s for edit-to-hover, and
+19.02 s for edited diagnostics.
 The full WREN project is now exercised by the native LSP regression suite.
 
-Validation for this checkpoint: all 13 native suites, including 223 LSP tests,
-342 formatter cases and 36 rename cases; all 1,076 Python tests; Ruff, clang-format,
-Meson formatting, and whitespace checks. Address/undefined-behavior sanitizer
-suites passed too; parser and LSP initially hit wall-clock limits under concurrent
-build/test load, then passed sequential reruns with extra sanitizer time.
+Validation for this checkpoint: all 13 native suites in a GCC release build and
+in a Clang address/undefined-behavior sanitizer build; all 1,076 Python tests;
+Ruff, clang-format on changed lines, Meson formatting, and whitespace checks.

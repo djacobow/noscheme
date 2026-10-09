@@ -1,15 +1,17 @@
 #pragma once
-#include "noscheme/resolve.hpp"
+#include "noscheme/circuit.hpp"
 namespace noscheme {
+// An empty target has no declaration, such as a builtin. Pin references
+// record the instance declaration they belong to.
 struct LspReference {
-  Json span, target;
+  Span span, target;
   std::string description;
-  Json instance = nullptr;
+  Span instance{};
   std::string pin{};
 };
 std::vector<LspReference> reference_index(const Project &project,
                                           const Definitions &definitions,
                                           const RegistryDescription &registry);
 void elaborate_hover(std::vector<LspReference> &references,
-                     const Project &project, const Json &circuit);
+                     const Project &project, const Circuit &circuit);
 } // namespace noscheme

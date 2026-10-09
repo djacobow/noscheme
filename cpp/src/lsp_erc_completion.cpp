@@ -126,13 +126,7 @@ erc_completion(const std::string &text, std::size_t offset,
         if (entry.rule.is_null() || entry.rule.at("scope") != call.scope ||
             !entry.name.starts_with(prefix))
           continue;
-        bool shadowed = std::any_of(
-            entry.shadowed_in.begin(), entry.shadowed_in.end(),
-            [&](const Json &span) {
-              return offset >= span.at("start_pos").get<std::size_t>() &&
-                     offset < span.at("end_pos").get<std::size_t>();
-            });
-        if (shadowed)
+        if (entry.shadowed(offset))
           continue;
         auto name = entry.name.substr(skip);
         if (!skip || name.find('.') == std::string::npos)
@@ -146,13 +140,7 @@ erc_completion(const std::string &text, std::size_t offset,
     const CompletionEntry *rule = nullptr;
     for (const auto &entry : catalog)
       if (entry.name == call.name && !entry.rule.is_null()) {
-        bool shadowed = std::any_of(
-            entry.shadowed_in.begin(), entry.shadowed_in.end(),
-            [&](const Json &span) {
-              return offset >= span.at("start_pos").get<std::size_t>() &&
-                     offset < span.at("end_pos").get<std::size_t>();
-            });
-        if (!shadowed)
+        if (!entry.shadowed(offset))
           rule = &entry;
       }
     if (!rule)
@@ -225,7 +213,7 @@ erc_completion(const std::string &text, std::size_t offset,
     auto offer = [&](std::string name, std::string detail, int kind,
                      std::string insert) {
       if (name.starts_with(prefix) && offered.insert(name).second)
-        result.entries.push_back({name, detail, kind, {}, nullptr, insert});
+        result.entries.push_back({name, detail, kind, {}, {}, insert});
     };
     auto equal = current.find('=');
     std::string kind;
@@ -286,7 +274,7 @@ erc_completion(const std::string &text, std::size_t offset,
         auto name = Json::parse(spelling).get<std::string>();
         if (name.starts_with(decoded.get<std::string>()))
           result.entries.push_back(
-              {spelling, "missing-data policy", 12, {}, nullptr, spelling});
+              {spelling, "missing-data policy", 12, {}, {}, spelling});
       }
       return result;
     }

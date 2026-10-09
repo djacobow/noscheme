@@ -1,5 +1,7 @@
 #pragma once
+#include "noscheme/ast.hpp"
 #include "noscheme/json.hpp"
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -24,5 +26,11 @@ public:
 struct ParseTimings {
   double comments = 0, tokens = 0, syntax = 0, ast = 0, validation = 0;
 };
-Json parse(const Source &source, ParseTimings *timings = nullptr);
+// The module keeps its source alive for its spans.
+std::shared_ptr<const ast::Module> parse(std::shared_ptr<const Source> source,
+                                         ParseTimings *timings = nullptr);
+// Parses bytes [begin, end) alone, with spans in the whole source.
+std::shared_ptr<const ast::Module>
+parse_fragment(std::shared_ptr<const Source> source, std::size_t begin,
+               std::size_t end);
 } // namespace noscheme

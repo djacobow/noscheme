@@ -26,7 +26,14 @@ fs::path resolved(const fs::path &path) {
   return fs::weakly_canonical(fs::absolute(path));
 }
 [[noreturn]] void fail(std::string code, std::string message, const Json &span,
-                       bool config = false, const Json &previous = nullptr) {
+                       bool config = false, const Json &previous = nullptr);
+[[noreturn]] void fail(std::string code, std::string message, const Span &span,
+                       bool config = false, const Span &previous = {}) {
+  fail(std::move(code), std::move(message), span.json(), config,
+       previous.json());
+}
+[[noreturn]] void fail(std::string code, std::string message, const Json &span,
+                       bool config, const Json &previous) {
   auto related = Json::array();
   if (!previous.is_null())
     related.push_back(
@@ -63,15 +70,6 @@ std::string read_source(const fs::path &path, const Sources &sources) {
   }
   return text;
 }
-std::string dotted(const Json &names) {
-  std::string result;
-  for (const auto &name : names) {
-    if (!result.empty())
-      result += '.';
-    result += name["text"].get<std::string>();
-  }
-  return result;
-}
 bool reserved_module(const std::string &name) {
   return name == "noscheme" || name.starts_with("noscheme.");
 }
@@ -85,7 +83,7 @@ bool beneath(const fs::path &path, const fs::path &root) {
   return r == root.end();
 }
 fs::path module_path(const ProjectConfig &config, const std::string &name,
-                     const Json &span, const Sources &sources) {
+                     const Span &span, const Sources &sources) {
   if (!std::regex_match(name, qualified) || reserved_module(name))
     fail("import.module", "invalid or reserved module name '" + name + "'",
          span);
@@ -133,17 +131,18 @@ ProjectConfig read_config(fs::path path, const Sources &sources) {
   } catch (const std::runtime_error &e) {
     fail("project.io", e.what(), Source("", path.string()).span(0, 0), true);
   }
-  auto source = [&] {
+  auto shared_source = [&] {
     try {
-      return Source(text, path.string());
+      return std::make_shared<const Source>(text, path.string());
     } catch (const Failure &e) {
       fail("project.io",
            "cannot decode configuration: " + std::string(e.what()),
            Source("", path.string()).span(0, 0), true);
     }
   }();
+  const auto &source = *shared_source;
   const auto file_span = source.span(0, text.size());
-  auto span = [&](const std::string &key) {
+  auto location = [&](const std::string &key) -> Span {
     std::string escaped;
     for (char c : key) {
       if (std::string_view(R"(\.^$|()[]{}*+?)").find(c) !=
@@ -155,13 +154,13 @@ ProjectConfig read_config(fs::path path, const Sources &sources) {
                            escaped + "')[ \\t]*=",
                        std::regex::multiline);
     std::smatch match;
-    return std::regex_search(text, match, pattern)
-               ? source.span(match.position(),
-                             match.position() + match.length())
-               : file_span;
+    if (!std::regex_search(text, match, pattern))
+      return {&source, 0, text.size()};
+    auto start = static_cast<std::size_t>(match.position());
+    return {&source, start, start + match.length()};
   };
   auto invalid = [&](const std::string &key, const std::string &message) {
-    fail("project.config", message, span(key), true);
+    fail("project.config", message, location(key), true);
   };
   toml::table data;
   try {
@@ -261,7 +260,8 @@ ProjectConfig read_config(fs::path path, const Sources &sources) {
                             config.erc_rule_sets.end())
           .size() != config.erc_rule_sets.size())
     invalid("erc_rule_sets", rules_error);
-  config.span = span("board");
+  config.span = location("board");
+  config.source = shared_source;
   return config;
 }
 
@@ -282,7 +282,7 @@ Project load_project(fs::path path, const Sources &sources,
   std::vector<std::string> active, order;
   struct Visit {
     std::string name;
-    Json span;
+    Span span;
     bool finish;
   };
   std::vector<Visit> stack{{config.board_module, config.span, false}};
@@ -304,17 +304,17 @@ Project load_project(fs::path path, const Sources &sources,
     if (parsed.contains(visit.name))
       continue;
     auto file = module_path(config, visit.name, visit.span, sources);
-    std::shared_ptr<const Json> tree;
+    std::shared_ptr<const ast::Module> tree;
     try {
       auto text = read_source(file, sources);
       if (cache && cache->contains(file) && cache->at(file).text == text)
         tree = cache->at(file).ast;
       else {
-        Source source(text, file.string());
+        auto source = std::make_shared<const Source>(text, file.string());
         try {
-          tree = std::make_shared<const Json>(parse(source));
+          tree = parse(source);
         } catch (const Failure &e) {
-          throw DiagnosticsFailure(Json::array({source.diagnostic(e)}));
+          throw DiagnosticsFailure(Json::array({source->diagnostic(e)}));
         }
         if (cache)
           (*cache)[file] = {std::move(text), tree};
@@ -328,20 +328,20 @@ Project load_project(fs::path path, const Sources &sources,
     parsed.emplace(visit.name, LoadedModule{visit.name, file, tree, {}});
     active.push_back(visit.name);
     stack.push_back({visit.name, visit.span, true});
-    for (auto it = (*tree)["items"].rbegin(); it != (*tree)["items"].rend();
-         ++it) {
-      if ((*it)["node"] != "Import")
+    for (auto it = tree->items.rbegin(); it != tree->items.rend(); ++it) {
+      auto *import = ast::as<ast::Import>(*it);
+      if (!import)
         continue;
-      auto target = dotted((*it)["module"]);
+      auto target = ast::dotted(import->module);
       if (extensions.contains(target)) {
         for (const auto &root : config.search_paths())
           if (fs::is_regular_file(root / relative_module(target)))
             fail("import.ambiguous-module",
                  "'" + target +
                      "' names both an ERC namespace and a source module",
-                 (*it)["span"]);
+                 import->span);
       } else if (target != "noscheme")
-        stack.push_back({target, (*it)["span"], false});
+        stack.push_back({target, import->span, false});
     }
   }
   Symbols builtin_symbols;
@@ -350,29 +350,30 @@ Project load_project(fs::path path, const Sources &sources,
   for (const auto &name : order) {
     auto module = std::move(parsed.at(name));
     auto &symbols = module.symbols;
-    std::map<std::string, Json> locations;
+    std::map<std::string, Span> locations;
     std::set<std::string> namespaces;
-    for (const auto &item : (*module.ast)["items"])
-      if (item["node"] == "Definition") {
-        auto key = item["name"]["text"].get<std::string>();
-        symbols.emplace(key, Symbol{name, key, &item});
-        locations[key] = item["name"]["span"];
+    for (const auto &item : module.ast->items)
+      if (auto *definition = ast::as<ast::Definition>(item)) {
+        const auto &key = definition->name.text;
+        symbols.emplace(key, Symbol{name, key, definition});
+        locations[key] = definition->name.span;
       }
-    for (const auto &imp : (*module.ast)["items"]) {
-      if (imp["node"] != "Import")
+    for (const auto &item : module.ast->items) {
+      auto *import = ast::as<ast::Import>(item);
+      if (!import)
         continue;
-      auto target = dotted(imp["module"]);
+      auto target = ast::dotted(import->module);
       const auto &exports = target == "noscheme" ? builtin_symbols
                             : extensions.contains(target)
                                 ? extensions.at(target)
                                 : project.modules.at(target).symbols;
-      auto duplicate = [&](const std::string &key, const Json &span) {
+      auto duplicate = [&](const std::string &key, const Span &span) {
         fail("import.duplicate-name",
              "name '" + key + "' is already declared or imported", span, false,
              locations.at(key));
       };
       auto bind = [&](const std::string &key, const Symbol &symbol,
-                      const Json &span) {
+                      const Span &span) {
         if (symbols.contains(key) ||
             std::any_of(namespaces.begin(), namespaces.end(),
                         [&](const auto &ns) {
@@ -382,7 +383,7 @@ Project load_project(fs::path path, const Sources &sources,
         symbols.emplace(key, symbol);
         locations[key] = span;
       };
-      if (imp["names"].empty()) {
+      if (import->names.empty()) {
         std::vector<std::string> prefixes;
         for (std::size_t end = 0; end <= target.size(); ++end)
           if (end == target.size() || target[end] == '.')
@@ -390,24 +391,23 @@ Project load_project(fs::path path, const Sources &sources,
         for (const auto &prefix : prefixes)
           if (symbols.contains(prefix) ||
               (prefix == target && namespaces.contains(prefix)))
-            duplicate(prefix, imp["span"]);
+            duplicate(prefix, import->span);
         for (const auto &prefix : prefixes) {
           namespaces.insert(prefix);
-          locations.try_emplace(prefix, imp["span"]);
+          locations.try_emplace(prefix, import->span);
         }
         for (const auto &[key, symbol] : exports)
-          bind(target + "." + key, symbol, imp["span"]);
+          bind(target + "." + key, symbol, import->span);
       } else {
-        for (const auto &imported : imp["names"]) {
-          auto original = imported["name"]["text"].get<std::string>();
-          const auto &binding = imported["alias"].is_null() ? imported["name"]
-                                                            : imported["alias"];
+        for (const auto &imported : import->names) {
+          const auto &original = imported.name.text;
+          const auto &binding = imported.local();
           auto found = exports.find(original);
           if (found == exports.end())
             fail("import.missing-name",
                  "module '" + target + "' does not export '" + original + "'",
-                 imported["name"]["span"]);
-          bind(binding["text"], found->second, binding["span"]);
+                 imported.name.span);
+          bind(binding.text, found->second, binding.span);
         }
       }
     }
@@ -416,7 +416,7 @@ Project load_project(fs::path path, const Sources &sources,
   const auto &board_symbols = project.modules.at(config.board_module).symbols;
   auto board = board_symbols.find(config.board_name);
   if (board == board_symbols.end() || !board->second.declaration ||
-      (*board->second.declaration)["kind"] != "board")
+      board->second.declaration->keyword != "board")
     fail("project.board",
          config.board_module + "." + config.board_name +
              " must name a board definition",
@@ -430,9 +430,9 @@ Json project_summary(const Project &project) {
   for (const auto &[name, module] : project.modules) {
     auto symbols = Json::object();
     for (const auto &[key, symbol] : module.symbols)
-      symbols[key] = object(
-          "module", symbol.module, "name", symbol.name, "kind",
-          symbol.declaration ? (*symbol.declaration)["kind"] : Json("builtin"));
+      symbols[key] =
+          object("module", symbol.module, "name", symbol.name, "kind",
+                 symbol.declaration ? symbol.declaration->keyword : "builtin");
     modules.push_back(object("name", name, "path", module.path.string(),
                              "symbols", std::move(symbols)));
   }

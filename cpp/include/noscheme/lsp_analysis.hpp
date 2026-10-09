@@ -17,6 +17,12 @@ struct LspAnalysis {
   std::vector<LspReference> references;
   CompletionCatalog completions;
   std::vector<std::shared_ptr<const RenameContext>> rename_contexts;
+  // Keeps alive the sources of reference and completion spans.
+  std::vector<std::shared_ptr<const ast::Module>> modules;
+  void retain(const Project &project) {
+    for (const auto &[name, module] : project.modules)
+      modules.push_back(module.ast);
+  }
 };
 bool inputs_current(const LspAnalysis &analysis);
 std::vector<ProjectConfig>

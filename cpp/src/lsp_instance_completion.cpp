@@ -84,8 +84,7 @@ instance_completion(const std::string &text, std::size_t offset,
     const Json *context = nullptr;
     const std::vector<CompletionEntry> *targets = nullptr;
     for (const auto &entry : catalog)
-      if (!entry.instance.is_null() &&
-          entry.visible_in.at("start_pos").get<std::size_t>() == list.start) {
+      if (!entry.instance.is_null() && entry.visible_in.start == list.start) {
         context = &entry.instance;
         targets = entry.targets.get();
       }
@@ -196,8 +195,7 @@ CompletionResult connection_choices(
     auto inserted = tail;
     if (kind == 5 && !std::all_of(tail.begin(), tail.end(), name_char))
       inserted = Json(tail).dump();
-    result.entries.push_back(
-        {tail, detail, kind, {}, nullptr, inserted + suffix});
+    result.entries.push_back({tail, detail, kind, {}, {}, inserted + suffix});
   };
   if (pin_choices) {
     auto pin_names = section ? context.at("fields") : Json::array();

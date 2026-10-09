@@ -12,9 +12,11 @@ repetition. Electrical rule checks use declared pin roles and metadata to
 find connection errors, driver conflicts, and current, pull-resistance,
 or capacitance budget violations.
 
-The compiler and language server are implemented in Python. Vim, Neovim, and the
-local VS Code extension provide syntax highlighting and LSP integration for
-diagnostics, definition navigation, references, rename, hover, completion, and
+Python is the default compiler and language server implementation. An optional
+[C++23 implementation](cpp/README.md) shares its compiler core between the CLI
+and LSP. Vim, Neovim, and the local VS Code extension provide syntax highlighting
+and LSP integration for diagnostics, definition navigation, references, rename,
+hover, completion, and
 formatting while editing unsaved designs. `noscheme format` applies the same
 canonical layout from the command line.
 

@@ -228,8 +228,7 @@ board B:
         "registry_response": snapshot,
         "metadata": {"module": "main", "definition": "Parent", "scope": "component"},
     }
-    parent = probe(request)["metadata"]
-    request["metadata"].update(definition="Child", parent=parent)
+    request["metadata"].update(definition="Child", parent_definition="Parent")
     actual = probe(request)
     expected = []
     for name in ("Parent", "Child"):
@@ -423,8 +422,7 @@ board B:
         "registry_response": snapshot,
         "metadata": {"module": "main", "definition": "Parent", "scope": "net"},
     }
-    parent = probe(request)["metadata"]
-    request["metadata"].update(definition="Child", parent=parent)
+    request["metadata"].update(definition="Child", parent_definition="Parent")
     actual = probe(request)
     values = [
         read_metadata(

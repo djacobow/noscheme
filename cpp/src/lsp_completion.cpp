@@ -242,8 +242,8 @@ CompletionCatalog completion_catalog(const Project &project,
     for (const auto &[name, symbol] : module.symbols) {
       if (symbol.declaration)
         entries.push_back({name,
-                           symbol.declaration->at("kind").get<std::string>() +
-                               " " + symbol.module + "." + symbol.name,
+                           symbol.declaration->keyword + " " + symbol.module +
+                               "." + symbol.name,
                            7});
       else if (symbol.module == "<erc>")
         add_rule(name, symbol.name);
@@ -293,24 +293,26 @@ CompletionCatalog completion_catalog(const Project &project,
     for (auto &entry : entries)
       if (!entry.rule.is_null())
         entry.rule["values"] = values;
-    for (const auto &item : module.ast->at("items")) {
-      if (item.value("node", "") != "Definition")
+    for (const auto &entry : module.ast->items) {
+      auto *item = ast::as<ast::Definition>(entry);
+      if (!item)
         continue;
       std::set<std::string> locals;
-      for (const auto &node : item.at("body")) {
-        auto kind = node.value("node", "");
-        if (kind == "Net" || kind == "Instance")
-          locals.insert(node.at("name").at("text").get<std::string>());
-        if (kind == "Section" &&
-            (node.at("name") == "params" || node.at("name") == "ports" ||
-             node.at("name") == "pins"))
-          for (const auto &entry : node.at("entries"))
-            locals.insert(
-                entry.at("key").at("first").at("text").get<std::string>());
+      for (const auto &node : item->body) {
+        if (auto *net = ast::as<ast::Net>(node))
+          locals.insert(net->name.text);
+        else if (auto *instance = ast::as<ast::Instance>(node))
+          locals.insert(instance->name.text);
+        else if (auto *section = ast::as<ast::Section>(node);
+                 section &&
+                 (section->name == "params" || section->name == "ports" ||
+                  section->name == "pins"))
+          for (const auto *field : ast::field_list(section->entries))
+            locals.insert(field->key.first.text);
       }
       for (auto &entry : entries)
         if (locals.contains(entry.name.substr(0, entry.name.find('.'))))
-          entry.shadowed_in.push_back(item.at("span"));
+          entry.shadowed_in.push_back(item->span);
     }
   }
   return catalog;
@@ -318,8 +320,8 @@ CompletionCatalog completion_catalog(const Project &project,
 void interface_completions(CompletionCatalog &catalog, const Project &project,
                            const RegistryDescription &registry,
                            const Definitions &definitions) {
-  auto bundle_type = [&](const Json &type) -> const Definition * {
-    if (type.is_null())
+  auto bundle_type = [&](const ScopedExpression &type) -> const Definition * {
+    if (!type.expression)
       return nullptr;
     try {
       auto result = type_definition(project, registry, definitions, type);
@@ -329,15 +331,10 @@ void interface_completions(CompletionCatalog &catalog, const Project &project,
       return nullptr;
     }
   };
-  auto named_type = [&](const LoadedModule &module,
-                        const Json &path) -> const Definition * {
-    std::string name;
-    for (const auto &part : path) {
-      if (!name.empty())
-        name += '.';
-      name += part.at("text").get<std::string>();
-    }
-    auto symbol = module.symbols.find(name);
+  auto named_type =
+      [&](const LoadedModule &module,
+          const std::vector<ast::Name> &path) -> const Definition * {
+    auto symbol = module.symbols.find(ast::dotted(path));
     if (symbol == module.symbols.end())
       return nullptr;
     auto found = definitions.find({symbol->second.module, symbol->second.name});
@@ -345,36 +342,31 @@ void interface_completions(CompletionCatalog &catalog, const Project &project,
   };
   auto footprints = [&](std::vector<CompletionEntry> &entries,
                         const Definition &def, const Definition *default_def,
-                        const Json &sections) {
+                        const std::vector<const ast::Section *> &sections) {
     if (def.kind != "component")
       return;
     std::string default_name;
-    if (default_def && default_def->metadata.contains("footprint")) {
-      const auto &value = default_def->metadata.at("footprint").at("value");
-      if (value.is_string())
-        default_name = value.get<std::string>();
-    }
+    if (auto *footprint = default_def
+                              ? meta_value(default_def->metadata, "footprint")
+                              : nullptr;
+        footprint && footprint->is<std::string>())
+      default_name = footprint->string();
     std::set<std::string> candidates;
     if (!default_name.empty())
       candidates.insert(default_name);
-    if (def.metadata.contains("custom")) {
-      const auto &custom = def.metadata.at("custom").at("value");
-      if (custom.contains("kicad_footprint_candidates")) {
-        const auto &names = custom.at("kicad_footprint_candidates").at("value");
-        if (names.is_array())
-          for (const auto &name : names)
-            if (name.is_string())
-              candidates.insert(name.get<std::string>());
-      }
-    }
-    for (const auto &section : sections) {
-      if (section.value("node", "") != "Section" ||
-          section.at("name") != "metadata")
+    if (auto *custom = meta_value(def.metadata, "custom");
+        custom && custom->is<MetaFields>())
+      if (auto *names =
+              meta_value(custom->fields(), "kicad_footprint_candidates");
+          names && names->is<MetaList>())
+        for (const auto &name : meta_strings(*names))
+          candidates.insert(name);
+    for (const auto *section : sections) {
+      if (section->name != "metadata")
         continue;
-      for (const auto &field : section.at("entries")) {
-        if (field.at("key").at("first").at("text") != "footprint" ||
-            field.at("value").is_null() ||
-            field.at("value").value("node", "") != "String")
+      for (const auto *field : ast::field_list(section->entries)) {
+        if (field->key.first.text != "footprint" ||
+            !ast::is(field->value, ast::Kind::String))
           continue;
         std::vector<std::string> ordered;
         if (!default_name.empty())
@@ -389,27 +381,24 @@ void interface_completions(CompletionCatalog &catalog, const Project &project,
                                  : "footprint hint (verify package dimensions)",
                              17,
                              {},
-                             field.at("value").at("span"),
+                             field->value->span,
                              Json(name).dump()});
       }
     }
   };
-  auto wrapped = [](const Json &value, const std::string &module) {
-    return object("value", value, "module", module, "span", value.at("span"));
-  };
-  std::map<std::string, Json> globals;
+  std::map<std::string, ScopedExpression> globals;
   if (project.board.declaration)
-    for (const auto &node : project.board.declaration->at("body"))
-      if (node.value("node", "") == "Net" && node.value("global_", false))
-        globals["global." + node.at("name").at("text").get<std::string>()] =
-            wrapped(node.at("type"), project.board.module);
+    for (const auto &node : project.board.declaration->body)
+      if (auto *net = ast::as<ast::Net>(node); net && net->global)
+        globals["global." + net->name.text] = {net->type.get(),
+                                               project.board.module};
 
   for (const auto &[module_name, module] : project.modules) {
     auto &entries = catalog[module.path];
     // Bound recursive expansion even for invalid cyclic bundle definitions.
     auto add = [&](std::vector<CompletionEntry> &destination,
                    const Definition &definition, const std::string &prefix,
-                   const Json &span) {
+                   const Span &span) {
       std::set<DefinitionKey> active;
       std::size_t count = 0;
       std::function<void(const Definition &, const std::string &)> visit =
@@ -422,7 +411,7 @@ void interface_completions(CompletionCatalog &catalog, const Project &project,
               auto path = base + name;
               destination.push_back(
                   {path, "public interface " + path, 5, {}, span});
-              if (!pin.type.is_null()) {
+              if (pin.type.expression) {
                 auto nested = bundle_type(pin.type);
                 if (nested)
                   visit(*nested, path + ".");
@@ -436,28 +425,32 @@ void interface_completions(CompletionCatalog &catalog, const Project &project,
           };
       visit(definition, prefix);
     };
-    for (const auto &item : module.ast->at("items")) {
-      if (item.value("node", "") != "Definition")
+    for (const auto &entry : module.ast->items) {
+      auto *item = ast::as<ast::Definition>(entry);
+      if (!item)
         continue;
-      auto owner = definitions.find({module_name, item.at("name").at("text")});
+      auto owner = definitions.find({module_name, item->name.text});
       if (owner == definitions.end())
         continue;
       const Definition *default_def = &owner->second;
-      if (!item.at("base").is_null())
-        default_def = named_type(module, item.at("base"));
-      footprints(entries, owner->second, default_def, item.at("body"));
+      if (!item->base.empty())
+        default_def = named_type(module, item->base);
+      std::vector<const ast::Section *> sections;
+      for (const auto &node : item->body)
+        if (auto *section = ast::as<ast::Section>(node))
+          sections.push_back(section);
+      footprints(entries, owner->second, default_def, sections);
       auto locals = globals;
       for (const auto &[name, pin] : owner->second.interface)
         locals[name] = pin.type;
       for (const auto &[alias, name] : owner->second.aliases)
         locals[alias] = owner->second.interface.at(name).type;
-      for (const auto &node : item.at("body"))
-        if (node.value("node", "") == "Net" && !node.value("global_", false))
-          locals[node.at("name").at("text")] =
-              wrapped(node.at("type"), module_name);
+      for (const auto &node : item->body)
+        if (auto *net = ast::as<ast::Net>(node); net && !net->global)
+          locals[net->name.text] = {net->type.get(), module_name};
       std::map<std::string, const Definition *> bundles;
       for (const auto &[name, type] : locals) {
-        if (type.is_null())
+        if (!type.expression)
           continue;
         auto bundle = bundle_type(type);
         if (bundle)
@@ -469,22 +462,26 @@ void interface_completions(CompletionCatalog &catalog, const Project &project,
       for (const auto &[name, type] : locals)
         net_choices->push_back({name, "connection target " + name, 6});
       for (const auto &[name, bundle] : bundles)
-        add(*net_choices, *bundle, name + ".", nullptr);
+        add(*net_choices, *bundle, name + ".", {});
       auto scope_choices =
-          [&](const Json &span,
+          [&](const Span &span,
               std::shared_ptr<const std::vector<CompletionEntry>> choices) {
             CompletionEntry entry{"", "", 0, {}, span};
             entry.candidates = std::move(choices);
             entries.push_back(std::move(entry));
           };
-      for (const auto &node : item.at("body")) {
-        if (node.value("node", "") != "Instance")
+      for (const auto &body_node : item->body) {
+        auto *node = ast::as<ast::Instance>(body_node);
+        if (!node)
           continue;
-        auto target = named_type(module, node.at("component"));
+        auto target = named_type(module, node->component);
         if (!target)
           continue;
-        footprints(entries, *target, target, node.at("sections"));
-        CompletionEntry context{"", "", 0, {}, node.at("span")};
+        std::vector<const ast::Section *> instance_sections;
+        for (const auto &section : node->sections)
+          instance_sections.push_back(&section);
+        footprints(entries, *target, target, instance_sections);
+        CompletionEntry context{"", "", 0, {}, node->span};
         Json pins = Json::object(), params = Json::array();
         for (const auto &[name, pin] : target->interface)
           pins[name] = name;
@@ -493,30 +490,28 @@ void interface_completions(CompletionCatalog &catalog, const Project &project,
         for (const auto &param : target->parameters.parameters)
           params.push_back(param.name);
         std::vector<CompletionEntry> fields;
-        add(fields, *target, "", nullptr);
+        add(fields, *target, "", {});
         Json pin_fields = Json::array();
         for (const auto &field : fields)
           pin_fields.push_back(field.name);
         context.instance = object(
             "pins", pins, "fields", pin_fields, "params", params, "positional",
             target->metadata.contains("interchangeable")
-                ? target->metadata.at("interchangeable").at("value").size()
+                ? meta_value(target->metadata, "interchangeable")->list().size()
                 : 0);
         context.targets = net_choices;
         entries.push_back(std::move(context));
         auto pin_choices = std::make_shared<std::vector<CompletionEntry>>();
-        add(*pin_choices, *target, "", nullptr);
-        for (const auto &position : node.at("positional"))
-          scope_choices(position.at("span"), net_choices);
-        for (const auto &section : node.at("sections")) {
-          if (section.at("name") != "connections")
+        add(*pin_choices, *target, "", {});
+        for (const auto &position : node->positional)
+          scope_choices(position->span, net_choices);
+        for (const auto &entry :
+             ast::section_entries(node->sections, "connections")) {
+          auto *binding = ast::as<ast::Binding>(entry);
+          if (!binding)
             continue;
-          for (const auto &binding : section.at("entries")) {
-            if (binding.value("node", "") != "Binding")
-              continue;
-            scope_choices(binding.at("endpoint").at("span"), pin_choices);
-            scope_choices(binding.at("target").at("span"), net_choices);
-          }
+          scope_choices(binding->endpoint.span, pin_choices);
+          scope_choices(binding->target->span, net_choices);
         }
       }
     }
@@ -550,9 +545,9 @@ CompletionResult complete(const std::string &text, std::size_t offset,
     result.end = value.end;
     std::set<std::string> offered;
     for (const auto &entry : catalog) {
-      if (entry.kind != 17 || entry.visible_in.is_null())
+      if (entry.kind != 17 || !entry.visible_in)
         continue;
-      if (value.start != entry.visible_in.at("start_pos").get<std::size_t>())
+      if (value.start != entry.visible_in.start)
         continue;
       if (entry.name.starts_with(decoded.get<std::string>()) &&
           offered.insert(entry.name).second)
@@ -588,19 +583,16 @@ CompletionResult complete(const std::string &text, std::size_t offset,
   }
   bool interface_position =
       std::any_of(catalog.begin(), catalog.end(), [&](const auto &entry) {
-        return (entry.kind != 0 || entry.candidates) &&
-               !entry.visible_in.is_null() &&
-               offset >= entry.visible_in.at("start_pos")
-                             .template get<std::size_t>() &&
-               offset <=
-                   entry.visible_in.at("end_pos").template get<std::size_t>();
+        return (entry.kind != 0 || entry.candidates) && entry.visible_in &&
+               offset >= entry.visible_in.start &&
+               offset <= entry.visible_in.end;
       });
   std::vector<const CompletionEntry *> choices;
   for (const auto &entry : catalog) {
     if (!entry.candidates) {
       choices.push_back(&entry);
-    } else if (offset >= entry.visible_in.at("start_pos").get<std::size_t>() &&
-               offset <= entry.visible_in.at("end_pos").get<std::size_t>()) {
+    } else if (offset >= entry.visible_in.start &&
+               offset <= entry.visible_in.end) {
       for (const auto &choice : *entry.candidates)
         choices.push_back(&choice);
     }
@@ -610,18 +602,12 @@ CompletionResult complete(const std::string &text, std::size_t offset,
     const auto &entry = *candidate;
     if (entry.kind == 17 || entry.kind == 0)
       continue;
-    if (!entry.visible_in.is_null()) {
-      if (offset < entry.visible_in.at("start_pos").get<std::size_t>() ||
-          offset > entry.visible_in.at("end_pos").get<std::size_t>())
+    if (entry.visible_in) {
+      if (offset < entry.visible_in.start || offset > entry.visible_in.end)
         continue;
     } else if (interface_position && entry.kind != 5 && entry.kind != 6)
       continue;
-    if (std::any_of(entry.shadowed_in.begin(), entry.shadowed_in.end(),
-                    [&](const Json &span) {
-                      return offset >=
-                                 span.at("start_pos").get<std::size_t>() &&
-                             offset < span.at("end_pos").get<std::size_t>();
-                    }))
+    if (entry.shadowed(offset))
       continue;
     if (!entry.name.starts_with(prefix))
       continue;

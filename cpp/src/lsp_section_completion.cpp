@@ -223,7 +223,7 @@ grouped_completion(const std::string &text, const std::string &mask,
     for (const auto &[pin, canonical] : context.at("pins").items())
       if (pin.starts_with(prefix) && !bound.contains(canonical))
         result.entries.push_back(
-            {pin, "named pin connection", 5, {}, nullptr, Json(pin).dump()});
+            {pin, "named pin connection", 5, {}, {}, Json(pin).dump()});
     return result;
   }
   auto fragment = mask.substr(active, offset - active);
@@ -269,8 +269,7 @@ section_completion(const std::string &text, std::size_t offset,
     const std::vector<CompletionEntry> *targets = nullptr;
     for (const auto &entry : catalog)
       if (!entry.instance.is_null() &&
-          entry.visible_in.at("start_pos").get<std::size_t>() ==
-              section.owner) {
+          entry.visible_in.start == section.owner) {
         context = &entry.instance;
         targets = entry.targets.get();
       }

@@ -70,83 +70,100 @@ def validate_params(rule, supplied, span, registry):
     return freeze(params)
 
 
-def check_circuit(circuit, *, waiver_records=None, registry=None, _freeze_memo=None):
-    registry = registry or load_registry(circuit.get("erc_modules", ()), Span(**circuit["source"]))
-    view = Circuit(freeze(circuit, _freeze_memo))
-    diagnostics = []
-    waiver_records = waiver_records if waiver_records is not None else []
-    memo = {}
-    schemas = {
-        scope: dict(SCHEMAS[scope], **registry.schemas.get(scope, {}))
-        for scope in ("pin", "instance_pin", "port", "net")
-    }
-    # A shared field can have different domain constraints in different scopes.
-    # Use a nonnegative lower bound only if every registered endpoint domain agrees.
-    pin_domains = {}
-    for scope in ("pin", "instance_pin", "port"):
-        for key, kind in schemas[scope].items():
-            if isinstance(kind, str):
-                kind = constraint(kind)
-                previous = pin_domains.get(key, kind)
-                pin_domains[key] = (
-                    kind
-                    if previous == kind
-                    else "nonnegative"
-                    if {previous, kind} <= {"positive", "nonnegative"}
-                    else "number"
-                )
-    domains = {
-        "pin": pin_domains,
-        "net": {
-            key: constraint(kind) for key, kind in schemas["net"].items() if isinstance(kind, str)
-        },
-        # The physical quantity of each field, for messages; independent of scope.
-        "quantity": {
-            key: kind
-            for scope in schemas.values()
-            for key, kind in scope.items()
-            if isinstance(kind, str) and kind in QUANTITIES
-        },
-    }
-    rulesets = circuit.get("erc_rule_sets", ["std.default"])
-    for name in rulesets:
-        if name not in registry.rule_sets:
-            failure(f"unknown ERC rule set {name!r}", Span(**circuit["source"]))
+class Scheduler:
+    """Applications, contexts, and rule invocation for one configuration view.
 
-    predicates, reducers, domains = (
-        freeze(registry.predicates),
-        freeze(registry.reducers),
-        freeze(domains),
-    )
-    contexts = {}
+    check_circuit runs every application; the native bridge uses the same
+    schedule to run only plugin rules, rule sets, and predicates.
+    """
 
-    def context(owner, net=None, pin=None):
-        key = ("pin" if pin else "net", owner.label)
-        if key in contexts:
-            return contexts[key]
-        contexts[key] = Context(
-            view,
-            net,
-            pin,
-            owner,
-            "",
-            "",
-            Span(**owner["span"]),
-            predicates=predicates,
-            reducers=reducers,
-            domains=domains,
-            _memo=memo,
+    def __init__(self, circuit, registry, freeze_memo=None, rule_sets=None):
+        self.registry = registry
+        self.view = Circuit(freeze(circuit, freeze_memo))
+        self.memo = {}
+        schemas = {
+            scope: dict(SCHEMAS[scope], **registry.schemas.get(scope, {}))
+            for scope in ("pin", "instance_pin", "port", "net")
+        }
+        # A shared field can have different domain constraints in different scopes.
+        # Use a nonnegative lower bound only if every registered endpoint domain agrees.
+        pin_domains = {}
+        for scope in ("pin", "instance_pin", "port"):
+            for key, kind in schemas[scope].items():
+                if isinstance(kind, str):
+                    kind = constraint(kind)
+                    previous = pin_domains.get(key, kind)
+                    pin_domains[key] = (
+                        kind
+                        if previous == kind
+                        else "nonnegative"
+                        if {previous, kind} <= {"positive", "nonnegative"}
+                        else "number"
+                    )
+        domains = {
+            "pin": pin_domains,
+            "net": {
+                key: constraint(kind)
+                for key, kind in schemas["net"].items()
+                if isinstance(kind, str)
+            },
+            # The physical quantity of each field, for messages; independent of scope.
+            "quantity": {
+                key: kind
+                for scope in schemas.values()
+                for key, kind in scope.items()
+                if isinstance(kind, str) and kind in QUANTITIES
+            },
+        }
+        self.rulesets = circuit.get("erc_rule_sets", ["std.default"])
+        for name in self.rulesets:
+            if name not in registry.rule_sets:
+                failure(f"unknown ERC rule set {name!r}", Span(**circuit["source"]))
+        # Rule sets that contribute applications; all by default.
+        self.active_rule_sets = self.rulesets if rule_sets is None else rule_sets
+        self.predicates, self.reducers, self.domains = (
+            freeze(registry.predicates),
+            freeze(registry.reducers),
+            freeze(domains),
         )
-        return contexts[key]
+        self.contexts = {}
+        self.default_params = {}
+        # Rule-set items by owner and set, computed once per context.
+        self.rule_set_cache = {}
 
-    def applications(ctx, defaults=True):
+    def context(self, owner, net=None, pin=None):
+        key = ("pin" if pin else "net", owner.label)
+        if key not in self.contexts:
+            self.contexts[key] = Context(
+                self.view,
+                net,
+                pin,
+                owner,
+                "",
+                "",
+                Span(**owner["span"]),
+                predicates=self.predicates,
+                reducers=self.reducers,
+                domains=self.domains,
+                _memo=self.memo,
+            )
+        return self.contexts[key]
+
+    def rule_set_items(self, ctx):
         items = []
-        if defaults:
-            for name in rulesets:
+        for name in self.active_rule_sets:
+            key = ("pin" if ctx.pin else "net", ctx.owner.label, name)
+            if key not in self.rule_set_cache:
                 try:
-                    items.extend(registry.rule_sets[name](ctx))
+                    self.rule_set_cache[key] = tuple(self.registry.rule_sets[name](ctx))
                 except Exception as exc:
                     failure(f"rule set {name!r} failed: {exc}", ctx.span)
+            items.extend(self.rule_set_cache[key])
+        return items
+
+    def applications(self, ctx, defaults=True):
+        registry = self.registry
+        items = list(self.rule_set_items(ctx)) if defaults else []
         for name, entry in ctx.owner.attributes.get("checks", {}).items():
             raw = ctx.owner["metadata"]["checks"]["value"][name]
             items.append(
@@ -186,64 +203,78 @@ def check_circuit(circuit, *, waiver_records=None, registry=None, _freeze_memo=N
                 ),
             )
 
-    schedules = {}
-    default_params = {}
-    for net in view.nets.values():
-        # A net type's application reaches a net through every declaration of that type.
-        # Identical applications of a net-only rule run once, on the outermost declaration;
-        # other rules may inspect ctx.owner, so each declaration keeps its application.
-        seen = set()
-        for declaration in sorted(net.declarations, key=lambda d: d["path"] != net["path"]):
-            entries = []
-            for entry in applications(
-                context(declaration, net), declaration["path"] == net["path"]
-            ):
-                app, rule, active = entry
-                key = (app.name, app.checker, app.missing, active.span, repr(app.params))
-                if not rule.net_only or key not in seen:
-                    seen.add(key)
-                    entries.append(entry)
-            schedules[("net", declaration.label)] = tuple(entries)
-    for pin in view.pins.values():
-        schedules[("pin", pin.label)] = tuple(
-            applications(context(pin, view.nets.get(pin["net"]), pin))
-        )
+    def schedules(self):
+        view, schedules = self.view, {}
+        for net in view.nets.values():
+            # A net type's application reaches a net through every declaration of that type.
+            # Identical applications of a net-only rule run once, on the outermost declaration;
+            # other rules may inspect ctx.owner, so each declaration keeps its application.
+            seen = set()
+            for declaration in sorted(net.declarations, key=lambda d: d["path"] != net["path"]):
+                entries = []
+                for entry in self.applications(
+                    self.context(declaration, net), declaration["path"] == net["path"]
+                ):
+                    app, rule, active = entry
+                    key = (app.name, app.checker, app.missing, active.span, repr(app.params))
+                    if not rule.net_only or key not in seen:
+                        seen.add(key)
+                        entries.append(entry)
+                schedules[("net", declaration.label)] = tuple(entries)
+        for pin in view.pins.values():
+            schedules[("pin", pin.label)] = tuple(
+                self.applications(self.context(pin, view.nets.get(pin["net"]), pin))
+            )
+        return schedules
 
-    def run(ctx, defaults=True, waivers=None):
-        for app, rule, active in schedules[("pin" if ctx.pin else "net", ctx.owner.label)]:
-            if isinstance(app.params, Mapping) and not app.params:
-                # Cache only successful default validation, preserving the first
-                # application span for errors. Explicit arguments still validate
-                # independently, and callbacks receive immutable parameters.
-                if app.checker not in default_params:
-                    default_params[app.checker] = validate_params(
-                        rule, app.params, active.span, registry
-                    )
-                params = default_params[app.checker]
-            else:
-                params = validate_params(rule, app.params, active.span, registry)
-            try:
-                results = tuple(rule.callback(active, **params))
-                for diagnostic in results:
-                    if (
-                        not isinstance(diagnostic, Diagnostic)
-                        or diagnostic.severity not in {"error", "warning", "unknown"}
-                        or not isinstance(diagnostic.span, Span)
-                        or not isinstance(diagnostic.code, str)
-                        or not diagnostic.code.startswith("erc.")
-                        or not isinstance(diagnostic.message, str)
-                        or not isinstance(diagnostic.related, tuple)
-                        or any(
-                            not isinstance(r, Related) or not isinstance(r.span, Span)
-                            for r in diagnostic.related
-                        )
-                    ):
-                        raise ValueError("rules must yield source-located Diagnostic objects")
-            except Exception as exc:
-                failure(
-                    f"application {active.application!r} ({app.checker}) failed: {exc}", active.span
+    def invoke(self, app, rule, active):
+        """Validate arguments and run one application's callback."""
+        if isinstance(app.params, Mapping) and not app.params:
+            # Cache only successful default validation, preserving the first
+            # application span for errors. Explicit arguments still validate
+            # independently, and callbacks receive immutable parameters.
+            if app.checker not in self.default_params:
+                self.default_params[app.checker] = validate_params(
+                    rule, app.params, active.span, self.registry
                 )
+            params = self.default_params[app.checker]
+        else:
+            params = validate_params(rule, app.params, active.span, self.registry)
+        try:
+            results = tuple(rule.callback(active, **params))
             for diagnostic in results:
+                if (
+                    not isinstance(diagnostic, Diagnostic)
+                    or diagnostic.severity not in {"error", "warning", "unknown"}
+                    or not isinstance(diagnostic.span, Span)
+                    or not isinstance(diagnostic.code, str)
+                    or not diagnostic.code.startswith("erc.")
+                    or not isinstance(diagnostic.message, str)
+                    or not isinstance(diagnostic.related, tuple)
+                    or any(
+                        not isinstance(r, Related) or not isinstance(r.span, Span)
+                        for r in diagnostic.related
+                    )
+                ):
+                    raise ValueError("rules must yield source-located Diagnostic objects")
+        except Exception as exc:
+            failure(
+                f"application {active.application!r} ({app.checker}) failed: {exc}", active.span
+            )
+        return results
+
+
+def check_circuit(circuit, *, waiver_records=None, registry=None, _freeze_memo=None):
+    registry = registry or load_registry(circuit.get("erc_modules", ()), Span(**circuit["source"]))
+    scheduler = Scheduler(circuit, registry, _freeze_memo)
+    view = scheduler.view
+    diagnostics = []
+    waiver_records = waiver_records if waiver_records is not None else []
+    schedules = scheduler.schedules()
+
+    def run(ctx, waivers=None):
+        for app, rule, active in schedules[("pin" if ctx.pin else "net", ctx.owner.label)]:
+            for diagnostic in scheduler.invoke(app, rule, active):
                 if diagnostic.severity == "unknown" and app.missing == "ignore":
                     continue
                 diagnostic = replace(
@@ -330,13 +361,13 @@ def check_circuit(circuit, *, waiver_records=None, registry=None, _freeze_memo=N
                         )
                     )
         by_net_waivers[net.label] = active_waivers
-        run(context(origin, net), waivers=active_waivers)
+        run(scheduler.context(origin, net), waivers=active_waivers)
         for declaration in net.declarations:
             if declaration is not origin:
-                run(context(declaration, net), defaults=False, waivers=active_waivers)
+                run(scheduler.context(declaration, net), waivers=active_waivers)
     for pin in view.pins.values():
         net = view.nets.get(pin["net"])
-        run(context(pin, net, pin), waivers=by_net_waivers.get(pin["net"]))
+        run(scheduler.context(pin, net, pin), waivers=by_net_waivers.get(pin["net"]))
     return tuple(diagnostics)
 
 

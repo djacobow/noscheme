@@ -125,15 +125,45 @@ compiler and LSP; the experimental native server now provides project/compiler/E
   and negotiate versioned rename edits.
 - [x] Share native completion candidates by lexical scope and reuse diagnostic
   source indices; include full WREN in the LSP regression suite.
+- [x] Replace the native JSON AST with typed nodes and byte-range spans, keeping
+  JSON as the comparison form (October 8, 2026). Release builds drop assertions,
+  and diagnostic deduplication is linear. Full WREN hover after an edit fell from
+  1.46 s to 0.54 s and peak memory from 650 to 453 MiB; STM32 edit-to-hover
+  is now faster than Python's.
+- [x] Give metadata and circuits typed representations, and run standard ERC
+  rules natively (October 8, 2026). Plugin rules, rule sets, and predicates run
+  in one Python request, only when a circuit uses them; projects without plugins
+  never start Python for ERC. Reports match Python's on all examples and on
+  every project loaded by the Python ERC tests. Full WREN diagnostics after an
+  edit fell from 3.7 s to 0.61 s, and peak memory to 168 MiB.
+- [ ] Pre-fork the Python plugin worker. Embedding Python was considered and
+  rejected: process start and imports (about 100 ms per call) are the only cost
+  it would remove, while it would tie the binary to one libpython and share
+  plugin module state between analyses.
 - [ ] Recover unresolved imported interfaces in partially broken projects beyond
   the existing local declaration fallback.
 - [x] Validate protocol/formatter/rename parity and measure actual release-build
   cold/warm/edit latency plus sampled process-tree memory on STM32 and full WREN.
-  See the native README for results and the remaining small-design edit overhead.
+  See the native README for results.
 - [ ] Manually check the native server in Vim, Neovim, and VS Code before changing
   the default; automated protocol parity does not replace editor validation.
 
-Linux is the first target. CLI/export/conversion remain in Python initially.
+Linux is the first target. Python remains the default and compatibility reference.
+
+### Native CLI migration (October 9, 2026)
+
+- [x] Add explicit `--implementation native --native-tool PATH` selection while
+  retaining the Python default and existing command arguments.
+- [x] Route parse/load/resolve/lint/evaluate/check/compile and formatting through
+  the same native core as the LSP.
+- [x] Prepare KiCad netlists, identity state, name maps, and change reports in C++;
+  retain the shared atomic publisher and Python ERC plugin support.
+- [x] Add command and export parity tests, including repeated exports, identity
+  preservation, retired references, no-connect nodes, and failed publication.
+- [ ] Manually exercise native CLI/export on a working board before recommending
+  it as the default. Keep Python available throughout the migration.
+
+Library conversion and KiCad class-file updating remain Python utilities.
 The ANTLR grammar does not directly reuse Lark syntax; both grammars are maintained
 and compared during migration. Later Python grammar consolidation is separate.
 

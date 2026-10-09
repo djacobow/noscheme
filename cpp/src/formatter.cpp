@@ -33,8 +33,21 @@ struct Line {
   bool opens = false, closes = false, definition = false, own_comment = false;
   std::optional<Comment> comment{};
 };
-std::size_t start(const Json &n) { return n.at("span").at("start_pos"); }
-std::size_t end(const Json &n) { return n.at("span").at("end_pos"); }
+using ast::as;
+using ast::Kind;
+std::size_t start(const ast::Node &n) { return n.span.start; }
+std::size_t end(const ast::Node &n) { return n.span.end; }
+using Nodes = std::vector<const ast::Node *>;
+template <class T> Nodes nodes(const std::vector<T> &items) {
+  Nodes result;
+  for (const auto &item : items) {
+    if constexpr (std::is_same_v<T, ast::Ptr>)
+      result.push_back(item.get());
+    else
+      result.push_back(&item);
+  }
+  return result;
+}
 Parts join(Parts a, const Parts &b) {
   a.insert(a.end(), b.begin(), b.end());
   return a;
@@ -57,19 +70,11 @@ std::string flat(const Parts &parts) {
   }
   return result;
 }
-std::string path(const Json &names) {
-  std::string result;
-  for (const auto &n : names) {
-    if (!result.empty())
-      result += '.';
-    result += n.at("text").get<std::string>();
-  }
-  return result;
-}
 Json shape(Json value);
 class Formatter {
+  std::shared_ptr<const Source> shared_source;
   const Source &source;
-  Json ast;
+  std::shared_ptr<const ast::Module> tree;
   std::string masked;
   std::vector<Comment> comments;
   std::vector<Line> lines;
@@ -98,86 +103,100 @@ class Formatter {
                                      std::move(items), begin, finish, comma,
                                      magic});
   }
-  Parts expr(const Json &n) {
-    auto kind = n.at("node").get<std::string>();
-    if (kind == "Name")
-      return {n.at("text").get<std::string>()};
-    if (kind == "Number" || kind == "String")
-      return {n.at("spelling").get<std::string>()};
-    if (kind == "Group")
+  Item item_of(const ast::Node &n) { return {expr(n), start(n), end(n)}; }
+  Parts expr(const ast::Node &n) {
+    switch (n.kind) {
+    case Kind::Name:
+      return {as<ast::Name>(n).text};
+    case Kind::Number:
+      return {as<ast::Number>(n).spelling};
+    case Kind::String:
+      return {as<ast::String>(n).spelling};
+    case Kind::Group:
       return {seq("(", ")", start(n), end(n),
-                  {{expr(n.at("expression")), start(n.at("expression")),
-                    end(n.at("expression"))}},
-                  false)};
-    if (kind == "ListExpr") {
+                  {item_of(*as<ast::Group>(n).expression)}, false)};
+    case Kind::ListExpr: {
       std::vector<Item> items;
-      for (const auto &v : n.at("items"))
-        items.push_back({expr(v), start(v), end(v)});
+      for (const auto &v : as<ast::ListExpr>(n).items)
+        items.push_back(item_of(*v));
       return {seq("[", "]", start(n), end(n), std::move(items))};
     }
-    if (kind == "Unary")
-      return join({n.at("operator").get<std::string>()}, expr(n.at("operand")));
-    if (kind == "Binary")
-      return join(join(expr(n.at("left")),
-                       {" " + n.at("operator").get<std::string>() + " "}),
-                  expr(n.at("right")));
-    if (kind == "Member")
-      return join(expr(n.at("base")),
-                  {"." + n.at("name").at("text").get<std::string>()});
-    if (kind == "Index") {
-      auto result = join({std::string("[")}, expr(n.at("start")));
-      if (!n.at("stop").is_null())
-        result = join(join(result, {std::string(":")}), expr(n.at("stop")));
+    case Kind::Unary: {
+      const auto &unary = as<ast::Unary>(n);
+      return join({unary.op}, expr(*unary.operand));
+    }
+    case Kind::Binary: {
+      const auto &binary = as<ast::Binary>(n);
+      return join(join(expr(*binary.left), {" " + binary.op + " "}),
+                  expr(*binary.right));
+    }
+    case Kind::Member: {
+      const auto &member = as<ast::Member>(n);
+      return join(expr(*member.base), {"." + member.name.text});
+    }
+    case Kind::Index: {
+      const auto &index = as<ast::Index>(n);
+      auto result = join({std::string("[")}, expr(*index.start));
+      if (index.stop)
+        result = join(join(result, {std::string(":")}), expr(*index.stop));
       return join(result, {std::string("]")});
     }
-    if (kind == "Subscript")
-      return join(expr(n.at("base")), expr(n.at("selection")));
-    if (kind == "Call") {
+    case Kind::Subscript: {
+      const auto &subscript = as<ast::Subscript>(n);
+      return join(expr(*subscript.base), expr(subscript.selection));
+    }
+    case Kind::Call: {
+      const auto &call = as<ast::Call>(n);
       std::vector<Item> items;
-      for (const auto &v : n.at("arguments"))
-        items.push_back({expr(v), start(v), end(v)});
-      for (const auto &v : n.at("keywords"))
+      for (const auto &v : call.arguments)
+        items.push_back(item_of(*v));
+      for (const auto &v : call.keywords)
         items.push_back(
-            {join({v.at("name").at("text").get<std::string>() + "="},
-                  expr(v.at("value"))),
-             start(v), end(v)});
-      auto opening = masked.find('(', end(n.at("callee")));
-      return join(expr(n.at("callee")),
+            {join({v.name.text + "="}, expr(*v.value)), start(v), end(v)});
+      auto opening = masked.find('(', end(*call.callee));
+      return join(expr(*call.callee),
                   {seq("(", ")", opening, end(n), std::move(items))});
     }
-    throw std::logic_error("unhandled formatting expression: " + kind);
+    default:
+      throw std::logic_error("unhandled formatting expression: " +
+                             std::string(ast::kind_name(n.kind)));
+    }
   }
-  std::string key(const Json &n) {
-    if (!n.at("items").empty()) {
+  std::string key(const ast::FieldKey &n) {
+    if (!n.items.empty()) {
       std::string result = "[";
-      for (const auto &v : n.at("items")) {
+      for (const auto &v : n.items) {
         if (result != "[")
           result += ", ";
         result += key(v);
       }
-      if (n.at("items").size() == 1 &&
+      if (n.items.size() == 1 &&
           masked.substr(start(n), end(n) - start(n)).find(',') !=
               std::string::npos)
         result += ',';
       return result + "]";
     }
-    auto result = n.at("first").at("spelling").get<std::string>();
-    if (!n.at("last").is_null())
-      result += ".." + n.at("last").at("spelling").get<std::string>();
+    auto result = n.first.spelling;
+    if (n.last)
+      result += ".." + n.last->spelling;
     return result;
   }
-  Parts endpoint(const Json &n) {
+  Parts endpoint(const ast::Endpoint &n) {
     Parts result;
-    for (const auto &index : n.at("instance_indices"))
+    for (const auto &index : n.instance_indices)
       result = join(result, expr(index));
     if (!result.empty())
       result.push_back(std::string("."));
-    result.push_back(key(n.at("head")));
-    for (const auto &s : n.at("selectors"))
-      result = join(result, s.at("node") == "Index"
-                                ? expr(s)
-                                : Parts{"." + s.at("text").get<std::string>()});
+    result.push_back(key(n.head));
+    for (const auto &s : n.selectors)
+      result = join(result, s->kind == Kind::Index
+                                ? expr(*s)
+                                : Parts{"." + as<ast::Name>(*s).text});
     return result;
+  }
+  Parts binding(const ast::Binding &n) {
+    return join(join(endpoint(n.endpoint), {std::string(": ")}),
+                expr(*n.target));
   }
   bool broken(const Part &p) const {
     if (std::holds_alternative<std::string>(p))
@@ -221,75 +240,100 @@ class Formatter {
            s.end - 1, finish, suffix);
     lines[close].closes = true;
   }
-  void statement(const Json &n, std::size_t depth, Parts parts,
-                 const Json &body = Json::array(), bool definition = false) {
+  void statement(const ast::Node &n, std::size_t depth, Parts parts,
+                 const Nodes &body = {}, bool definition = false) {
     auto first = lines.size();
     layout(parts, depth, start(n),
-           trim(body.empty() ? end(n) : start(body.front())));
+           trim(body.empty() ? end(n) : start(*body.front())));
     lines[first].definition = definition;
     lines.back().opens = !body.empty();
-    for (const auto &child : body)
-      item(child, depth + 1);
+    for (const auto *child : body)
+      item(*child, depth + 1);
   }
-  void item(const Json &n, std::size_t depth) {
-    auto kind = n.at("node").get<std::string>();
-    if (kind == "Import") {
-      auto text = "import " + path(n.at("module"));
-      if (!n.at("names").empty()) {
-        text = "from " + path(n.at("module")) + " import ";
+  void item(const ast::Node &n, std::size_t depth) {
+    switch (n.kind) {
+    case Kind::Import: {
+      const auto &import = as<ast::Import>(n);
+      auto text = "import " + ast::dotted(import.module);
+      if (!import.names.empty()) {
+        text = "from " + ast::dotted(import.module) + " import ";
         bool first = true;
-        for (const auto &v : n.at("names")) {
+        for (const auto &v : import.names) {
           if (!first)
             text += ", ";
           first = false;
-          text += v.at("name").at("text").get<std::string>();
-          if (!v.at("alias").is_null())
-            text += " as " + v.at("alias").at("text").get<std::string>();
+          text += v.name.text;
+          if (v.alias)
+            text += " as " + v.alias->text;
         }
       }
       statement(n, depth, {text});
-    } else if (kind == "Definition") {
-      auto text = n.at("kind").get<std::string>() + " " +
-                  n.at("name").at("text").get<std::string>();
-      if (!n.at("base").is_null())
-        text += " extends " + path(n.at("base"));
-      statement(n, depth, {text + ":"}, n.at("body"), true);
-    } else if (kind == "Section")
-      statement(n, depth, {n.at("name").get<std::string>() + ":"},
-                n.at("entries"));
-    else if (kind == "Net")
+      return;
+    }
+    case Kind::Definition: {
+      const auto &definition = as<ast::Definition>(n);
+      auto text = definition.keyword + " " + definition.name.text;
+      if (!definition.base.empty())
+        text += " extends " + ast::dotted(definition.base);
+      statement(n, depth, {text + ":"}, nodes(definition.body), true);
+      return;
+    }
+    case Kind::Section: {
+      const auto &section = as<ast::Section>(n);
+      statement(n, depth, {section.name + ":"}, nodes(section.entries));
+      return;
+    }
+    case Kind::Net: {
+      const auto &net = as<ast::Net>(n);
       statement(n, depth,
-                join({std::string(n.at("global_").get<bool>() ? "global net "
-                                                              : "net ") +
-                      n.at("name").at("text").get<std::string>() + ": "},
-                     expr(n.at("type"))),
-                n.at("fields"));
-    else if (kind == "Field") {
-      Parts parts{key(n.at("key")) + ":"};
-      if (!n.at("value").is_null())
-        parts = join(join(parts, {std::string(" ")}), expr(n.at("value")));
-      if (!n.at("default").is_null())
-        parts = join(join(parts, {std::string(" = ")}), expr(n.at("default")));
-      statement(n, depth, parts, n.at("fields"));
-    } else if (kind == "Binding")
+                join({std::string(net.global ? "global net " : "net ") +
+                      net.name.text + ": "},
+                     expr(*net.type)),
+                nodes(net.fields));
+      return;
+    }
+    case Kind::Field: {
+      const auto &field = as<ast::Field>(n);
+      Parts parts{key(field.key) + ":"};
+      if (field.value)
+        parts = join(join(parts, {std::string(" ")}), expr(*field.value));
+      if (field.default_value)
+        parts =
+            join(join(parts, {std::string(" = ")}), expr(*field.default_value));
+      statement(n, depth, parts, nodes(field.fields));
+      return;
+    }
+    case Kind::Binding:
+      statement(n, depth, binding(as<ast::Binding>(n)));
+      return;
+    case Kind::Argument: {
+      const auto &argument = as<ast::Argument>(n);
       statement(n, depth,
-                join(join(endpoint(n.at("endpoint")), {std::string(": ")}),
-                     expr(n.at("target"))));
-    else if (kind == "Argument")
-      statement(n, depth,
-                join({n.at("name").at("text").get<std::string>() + ": "},
-                     expr(n.at("value"))));
-    else if (kind == "ElementOverride") {
+                join({argument.name.text + ": "}, expr(*argument.value)));
+      return;
+    }
+    case Kind::ElementOverride: {
+      const auto &element = as<ast::ElementOverride>(n);
       Parts parts;
-      for (const auto &i : n.at("indices"))
+      for (const auto &i : element.indices)
         parts = join(parts, expr(i));
-      statement(n, depth, join(parts, {std::string(":")}), n.at("sections"));
-    } else if (kind == "Instance") {
-      Parts parts{"inst " + n.at("name").at("text").get<std::string>()};
-      for (const auto &i : n.at("dimensions"))
+      statement(n, depth, join(parts, {std::string(":")}),
+                nodes(element.sections));
+      return;
+    }
+    case Kind::Instance:
+      break;
+    default:
+      throw std::logic_error("unhandled formatting statement: " +
+                             std::string(ast::kind_name(n.kind)));
+    }
+    {
+      const auto &instance = as<ast::Instance>(n);
+      Parts parts{"inst " + instance.name.text};
+      for (const auto &i : instance.dimensions)
         parts = join(parts, expr(i));
-      parts.push_back(": " + path(n.at("component")));
-      auto opening = end(n.at("component").back());
+      parts.push_back(": " + ast::dotted(instance.component));
+      auto opening = end(instance.component.back());
       while (opening < masked.size() &&
              (masked[opening] == ' ' || masked[opening] == '\t'))
         ++opening;
@@ -308,41 +352,38 @@ class Formatter {
         }
       }
       std::vector<Item> args;
-      for (const auto &v : n.at("positional"))
-        args.push_back({expr(v), start(v), end(v)});
-      auto body = Json::array();
-      for (const auto &section : n.at("sections")) {
-        auto kept = section;
-        kept["entries"] = Json::array();
-        for (const auto &v : section.at("entries")) {
-          if (inline_list && start(v) < closing) {
-            auto parts =
-                v.at("node") == "Binding"
-                    ? join(
-                          join(endpoint(v.at("endpoint")), {std::string(": ")}),
-                          expr(v.at("target")))
-                    : join({v.at("name").at("text").get<std::string>() + "="},
-                           expr(v.at("value")));
-            args.push_back({parts, start(v), end(v)});
+      for (const auto &v : instance.positional)
+        args.push_back(item_of(*v));
+      // Sections without the entries written inline.
+      std::vector<ast::Section> kept;
+      for (const auto &section : instance.sections) {
+        auto rest = section;
+        rest.entries.clear();
+        for (const auto &v : section.entries) {
+          if (inline_list && start(*v) < closing) {
+            auto *argument = as<ast::Argument>(v);
+            auto parts = argument ? join({argument->name.text + "="},
+                                         expr(*argument->value))
+                                  : binding(as<ast::Binding>(*v));
+            args.push_back({parts, start(*v), end(*v)});
           } else
-            kept["entries"].push_back(v);
+            rest.entries.push_back(v);
         }
-        if (!kept["entries"].empty())
-          body.push_back(kept);
+        if (!rest.entries.empty())
+          kept.push_back(std::move(rest));
       }
       std::sort(args.begin(), args.end(),
                 [](const auto &a, const auto &b) { return a.start < b.start; });
       if (!args.empty())
         parts.push_back(seq("(", ")", opening, closing, std::move(args)));
-      statement(n, depth, parts, body);
-    } else
-      throw std::logic_error("unhandled formatting statement: " + kind);
+      statement(n, depth, parts, nodes(kept));
+    }
   }
 
 public:
-  explicit Formatter(const Source &source)
-      : source(source), ast(parse(source)),
-        masked(code_mask(source.text, true)) {
+  explicit Formatter(std::shared_ptr<const Source> shared)
+      : shared_source(std::move(shared)), source(*shared_source),
+        tree(parse(shared_source)), masked(code_mask(source.text, true)) {
     for (std::size_t i = 0; i < source.text.size();) {
       if (source.text[i] == '"' && masked[i] == '"') {
         for (++i; i < source.text.size(); ++i) {
@@ -368,7 +409,7 @@ public:
     }
   }
   bool equivalent(const Formatter &other) const {
-    if (shape(ast) != shape(other.ast) ||
+    if (shape(ast::to_json(*tree)) != shape(ast::to_json(*other.tree)) ||
         comments.size() != other.comments.size())
       return false;
     for (std::size_t i = 0; i < comments.size(); ++i)
@@ -377,8 +418,8 @@ public:
     return true;
   }
   std::string render() {
-    for (const auto &n : ast.at("items"))
-      item(n, 0);
+    for (const auto &n : tree->items)
+      item(*n, 0);
     std::map<std::size_t, std::vector<Comment>> leading;
     for (const auto &c : comments) {
       auto finish = source.text.find('\n', c.end);
@@ -480,13 +521,13 @@ Json shape(Json value) {
 }
 } // namespace
 std::string format_source(const Source &source) {
-  Formatter formatter(source);
+  Formatter formatter(std::make_shared<const Source>(source));
   auto result = formatter.render();
   if (result == source.text)
     return result;
   // The normal native parser independently verifies the rewritten meaning.
-  Source formatted(result, source.filename);
-  if (!formatter.equivalent(Formatter(formatted)))
+  if (!formatter.equivalent(
+          Formatter(std::make_shared<const Source>(result, source.filename))))
     throw Failure(
         "format.internal",
         "formatting would change this file's meaning; please report it", 0, 0);

@@ -104,16 +104,12 @@ analyze_documents(const Sources &sources, const fs::path &explicit_project,
   struct ErcJob {
     ProjectConfig config;
     RegistryDescription registry;
-    Json circuit;
+    std::shared_ptr<const Circuit> circuit;
   };
   std::vector<ErcJob> erc_jobs;
   std::optional<std::vector<ProjectConfig>> discovered;
-  auto append = [&](const Json &diagnostics) {
-    for (const auto &d : diagnostics)
-      if (std::find(result.diagnostics.begin(), result.diagnostics.end(), d) ==
-          result.diagnostics.end())
-        result.diagnostics.push_back(d);
-  };
+  UniqueDiagnostics diagnostics;
+  auto append = [&](const Json &items) { diagnostics.add_all(items); };
   auto io_error = [&](const fs::path &path, const std::exception &e) {
     Source empty("", path.string());
     append(Json::array({empty.diagnostic(Failure("lsp.io", e.what(), 0, 0))}));
@@ -149,11 +145,11 @@ analyze_documents(const Sources &sources, const fs::path &explicit_project,
         continue;
       auto found = cache.find(path);
       if (found == cache.end() || found->second.text != text) {
-        Source source(text, path.string());
+        auto source = std::make_shared<const Source>(text, path.string());
         try {
-          cache[path] = {text, std::make_shared<const Json>(parse(source))};
+          cache[path] = {text, parse(source)};
         } catch (const Failure &e) {
-          append(Json::array({source.diagnostic(e)}));
+          append(Json::array({source->diagnostic(e)}));
         }
       }
     } catch (const Cancelled &) {
@@ -178,6 +174,7 @@ analyze_documents(const Sources &sources, const fs::path &explicit_project,
             return registry->exports();
           });
       loaded = true;
+      result.retain(project);
       result.completions.merge(completion_catalog(project, *registry));
       for (const auto &[name, module] : project.modules)
         if (!result.sources.contains(module.path))
@@ -196,13 +193,12 @@ analyze_documents(const Sources &sources, const fs::path &explicit_project,
       auto rename = std::make_shared<RenameContext>(RenameContext{
           std::move(project), *registry, std::move(definitions), nullptr});
       result.rename_contexts.push_back(rename);
-      auto circuit =
-          elaborate_project(rename->project, *registry, rename->definitions);
-      elaborate_hover(result.references, rename->project, circuit);
-      append(circuit.at("warnings"));
+      auto circuit = std::make_shared<const Circuit>(
+          elaborate_project(rename->project, *registry, rename->definitions));
+      elaborate_hover(result.references, rename->project, *circuit);
+      append(circuit->warnings);
       rename->circuit = circuit;
-      erc_jobs.push_back(
-          {rename->project.config, *registry, std::move(circuit)});
+      erc_jobs.push_back({rename->project.config, *registry, circuit});
     } catch (const Cancelled &) {
       throw;
     } catch (const DiagnosticsFailure &e) {
@@ -225,6 +221,7 @@ analyze_documents(const Sources &sources, const fs::path &explicit_project,
           auto project = load_project(
               config, recovered, nullptr,
               [&](const ProjectConfig &) { return registry->exports(); });
+          result.retain(project);
           auto catalog = completion_catalog(project, *registry);
           try {
             auto definitions = resolve_interfaces(project, *registry);
@@ -233,15 +230,18 @@ analyze_documents(const Sources &sources, const fs::path &explicit_project,
             // Imported names remain available when an interface is incomplete.
           }
           // Recovered AST scopes refer to inserted text; completion cursors
-          // still refer to the original editor buffer.
+          // still refer to the original editor buffer. Remapped spans keep
+          // the recovered source for their filename, so only their offsets
+          // are meaningful.
           for (auto &[path, entries] : catalog) {
             if (!offsets.contains(path))
               continue;
             const auto &mapping = offsets.at(path);
-            auto remap = [&](Json &span) {
-              if (!span.is_null())
-                for (auto key : {"start_pos", "end_pos"})
-                  span[key] = mapping.at(span.at(key).get<std::size_t>());
+            auto remap = [&](Span &span) {
+              if (span) {
+                span.start = mapping.at(span.start);
+                span.end = mapping.at(span.end);
+              }
             };
             for (auto &entry : entries) {
               remap(entry.visible_in);
@@ -269,7 +269,9 @@ analyze_documents(const Sources &sources, const fs::path &explicit_project,
     try {
       if (!local_registry) {
         ProjectConfig settings;
-        settings.span = Source("", sources.begin()->first.string()).span(0, 0);
+        settings.source =
+            std::make_shared<const Source>("", sources.begin()->first.string());
+        settings.span = {settings.source.get(), 0, 0};
         local_registry = registry_for(settings);
       }
       local_index(result, sources, cache, *local_registry, indexed, stop);
@@ -283,12 +285,13 @@ analyze_documents(const Sources &sources, const fs::path &explicit_project,
       result.disk_inputs[path] = text;
   // Interactive snapshots are complete before executing user ERC callbacks.
   // Diagnostics are published only after the full check, with version guards.
+  result.diagnostics = diagnostics.items();
   if (ready)
     ready(result);
   for (const auto &job : erc_jobs) {
     check_cancelled(stop);
     try {
-      append(run_erc(job.config, job.registry, job.circuit, python, nullptr,
+      append(run_erc(job.config, job.registry, *job.circuit, python, nullptr,
                      std::chrono::seconds(30), stop)
                  .report.at("diagnostics"));
     } catch (const Cancelled &) {
@@ -299,6 +302,7 @@ analyze_documents(const Sources &sources, const fs::path &explicit_project,
       io_error(job.config.path, e);
     }
   }
+  result.diagnostics = diagnostics.take();
   for (const auto &d : result.diagnostics) {
     auto capture = [&](const Json &span) {
       fs::path path = span.at("filename").get<std::string>();

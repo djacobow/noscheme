@@ -41,14 +41,14 @@ def write_atomic(path, text):
             os.unlink(temporary)
 
 
-def format_paths(args):
+def format_paths(args, formatter=format_source):
     """Format files in place, or with --check/--diff only report what would change."""
     renderer = render_json if args.diagnostics == "json" else render_text
     changed = failed = 0
     for path in source_files(args.paths):
         source = path.read_text(encoding="utf-8")
         try:
-            result = format_source(source, str(path))
+            result = formatter(source, str(path))
         except DiagnosticError as exc:
             print(renderer(exc.diagnostics), file=sys.stderr)
             failed += 1
@@ -155,10 +155,18 @@ def main(argv=None):
     classes.add_argument("--memberships", type=Path, required=True)
     classes.add_argument("--output", type=Path, required=True)
     classes.add_argument("--diagnostics", choices=["text", "json"], default="text")
+    from . import native_cli
+
+    for name in native_cli.COMMANDS:
+        native_cli.add_arguments(sub.choices[name])
     args = cli.parse_args(argv)
     if args.command == "lsp":
         return launch(args, lsp)
+    if getattr(args, "native_tool", None) and args.implementation != "native":
+        cli.error("--native-tool requires --implementation native")
     try:
+        if getattr(args, "implementation", "python") == "native":
+            return native_cli.run(args, cli)
         if args.command == "format":
             return format_paths(args)
         if args.command == "update-kicad-classes":

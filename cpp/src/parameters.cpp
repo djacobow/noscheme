@@ -5,20 +5,34 @@
 #include <set>
 
 namespace noscheme {
+std::vector<const ast::Argument *>
+instance_arguments(const ast::Instance *node,
+                   const ast::ElementOverride *element) {
+  std::vector<const ast::Argument *> result;
+  std::map<std::string, std::size_t> positions;
+  for (const auto *sections : {node ? &node->sections : nullptr,
+                               element ? &element->sections : nullptr})
+    if (sections)
+      for (const auto &entry : ast::section_entries(*sections, "params")) {
+        const auto &arg = ast::as<ast::Argument>(*entry);
+        const auto &name = arg.name.text;
+        if (positions.contains(name))
+          result[positions.at(name)] = &arg;
+        else {
+          positions[name] = result.size();
+          result.push_back(&arg);
+        }
+      }
+  return result;
+}
+
 namespace {
+using ast::as;
+using ast::Kind;
 [[noreturn]] void fail(const std::string &code, const std::string &message,
-                       const Json &span) {
+                       const Span &span) {
   const Symbols symbols;
   Evaluator(symbols).error(code, message, span);
-}
-std::string spelling(const Json &names) {
-  std::string result;
-  for (const auto &name : names) {
-    if (!result.empty())
-      result += ".";
-    result += name.at("text").get<std::string>();
-  }
-  return result;
 }
 const Parameter *parameter(const ParameterDefinition &definition,
                            const std::string &name) {
@@ -27,50 +41,48 @@ const Parameter *parameter(const ParameterDefinition &definition,
 }
 std::optional<DefinitionKey> parent_key(const Project &project,
                                         const std::string &module,
-                                        const Json &source) {
-  const auto &base = source.at("base");
-  if (base.is_null() || base.empty())
+                                        const ast::Definition &source) {
+  const auto &base = source.base;
+  if (base.empty())
     return {};
-  if (source.at("kind") == "nettype") {
-    auto prefix = base;
-    prefix.erase(prefix.end() - 1);
+  if (source.keyword == "nettype") {
     const auto &symbols = project.modules.at(module).symbols;
-    auto found = symbols.find(spelling(prefix));
+    auto found = symbols.find(
+        ast::dotted(std::vector<ast::Name>(base.begin(), base.end() - 1)));
     if (found != symbols.end() && found->second.module == "noscheme" &&
         found->second.name == "nettype") {
       static const std::set<std::string> types{
           "tristate",      "passive",  "digital",    "analog",
           "power",         "ground",   "open_drain", "open_source",
           "bidirectional", "unchecked"};
-      if (!types.contains(base.back().at("text")))
-        fail("metadata.enum", "unknown builtin net type",
-             base.back().at("span"));
+      if (!types.contains(base.back().text))
+        fail("metadata.enum", "unknown builtin net type", base.back().span);
       return {};
     }
   }
-  return definition_symbol(project, module, base, {source.at("kind")});
+  return definition_symbol(project, module, base, {source.keyword});
 }
-void apply(ParameterDefinition &definition, const Json &source,
+void apply(ParameterDefinition &definition, const ast::Definition &source,
            const std::string &module, bool capture_part_value) {
   // Process params before defaults regardless of section order.
-  for (const auto &section : source.at("body")) {
-    if (section.at("node") != "Section" || section.at("name") != "params")
+  for (const auto &item : source.body) {
+    auto *section = as<ast::Section>(item);
+    if (!section || section->name != "params")
       continue;
-    for (const auto &field : section.at("entries")) {
-      const auto &value = field.at("value");
-      if (value.is_null() || value.at("node") != "Name" ||
-          (value.at("text") != "number" && value.at("text") != "string" &&
-           !quantity_units.contains(value.at("text").get<std::string>())))
-        fail("resolve.parameter-type", "unknown parameter type",
-             field.at("span"));
-      const auto &key = field.at("key");
-      auto name = key.at("first").at("text").get<std::string>();
+    for (const auto &entry : section->entries) {
+      const auto &field = as<ast::Field>(*entry);
+      const auto *type = as<ast::Name>(field.value);
+      if (!type || (type->text != "number" && type->text != "string" &&
+                    !quantity_units.contains(type->text)))
+        fail("resolve.parameter-type", "unknown parameter type", field.span);
+      const auto &name = field.key.first.text;
       if (!is_identifier(name))
         fail("resolve.parameter-name", "parameter name must be an identifier",
-             key.at("span"));
-      Parameter item{name, value.at("text"), {}, field.at("span")};
-      if (!field.at("default").is_null())
-        item.default_value = ScopedExpression{field.at("default"), module};
+             field.key.span);
+      Parameter item{name, type->text, {}, field.span};
+      if (field.default_value)
+        item.default_value =
+            ScopedExpression{field.default_value.get(), module};
       auto previous =
           std::ranges::find(definition.parameters, name, &Parameter::name);
       if (previous == definition.parameters.end())
@@ -79,92 +91,111 @@ void apply(ParameterDefinition &definition, const Json &source,
         *previous = std::move(item);
     }
   }
-  for (const auto &section : source.at("body")) {
-    if (section.at("node") != "Section")
+  for (const auto &item : source.body) {
+    auto *section = as<ast::Section>(item);
+    if (!section)
       continue;
-    if (section.at("name") == "defaults") {
-      for (const auto &field : section.at("entries")) {
-        auto name = field.at("key").at("first").at("text").get<std::string>();
+    if (section->name == "defaults") {
+      for (const auto &entry : section->entries) {
+        const auto &field = as<ast::Field>(*entry);
+        const auto &name = field.key.first.text;
         auto found =
             std::ranges::find(definition.parameters, name, &Parameter::name);
-        if (found == definition.parameters.end() ||
-            !field.at("key").at("last").is_null() ||
-            field.at("value").is_null() || !field.at("fields").empty())
+        if (found == definition.parameters.end() || field.key.last ||
+            !field.value || !field.fields.empty())
           fail("resolve.default",
                "defaults must bind existing parameters to expressions",
-               field.at("span"));
-        found->default_value = ScopedExpression{field.at("value"), module};
+               field.span);
+        found->default_value = ScopedExpression{field.value.get(), module};
       }
     }
-    if (capture_part_value && section.at("name") == "metadata")
-      for (const auto &field : section.at("entries"))
-        if (field.at("key").at("first").at("text") == "value") {
-          if (field.at("value").is_null())
-            fail("metadata.value", "value requires an expression",
-                 field.at("span"));
-          definition.part_value = ScopedExpression{field.at("value"), module};
+    if (capture_part_value && section->name == "metadata")
+      for (const auto &entry : section->entries) {
+        const auto &field = as<ast::Field>(*entry);
+        if (field.key.first.text == "value") {
+          if (!field.value)
+            fail("metadata.value", "value requires an expression", field.span);
+          definition.part_value = ScopedExpression{field.value.get(), module};
         }
+      }
   }
 }
 // Iterative walk: dependency discovery must not exhaust the C++ call stack.
-std::set<std::string> references(const Json &expression) {
-  std::vector<const Json *> pending{&expression};
+std::set<std::string> references(const ast::Node &expression) {
+  std::vector<const ast::Node *> pending{&expression};
   std::set<std::string> result;
   while (!pending.empty()) {
-    const auto &expr = *pending.back();
+    const auto *expr = pending.back();
     pending.pop_back();
-    const auto &kind = expr.at("node");
-    if (kind == "Name")
-      result.insert(expr.at("text"));
-    else if (kind == "Group")
-      pending.push_back(&expr.at("expression"));
-    else if (kind == "Unary")
-      pending.push_back(&expr.at("operand"));
-    else if (kind == "Binary") {
-      pending.push_back(&expr.at("left"));
-      pending.push_back(&expr.at("right"));
-    } else if (kind == "Call") {
-      for (const auto &arg : expr.at("arguments"))
-        pending.push_back(&arg);
-      for (const auto &arg : expr.at("keywords"))
-        pending.push_back(&arg.at("value"));
-      const auto &callee = expr.at("callee");
-      if (callee.at("node") == "Member" &&
-          callee.at("name").at("text") == "format")
-        pending.push_back(&callee.at("base"));
+    switch (expr->kind) {
+    case Kind::Name:
+      result.insert(as<ast::Name>(*expr).text);
+      break;
+    case Kind::Group:
+      pending.push_back(as<ast::Group>(*expr).expression.get());
+      break;
+    case Kind::Unary:
+      pending.push_back(as<ast::Unary>(*expr).operand.get());
+      break;
+    case Kind::Binary:
+      pending.push_back(as<ast::Binary>(*expr).left.get());
+      pending.push_back(as<ast::Binary>(*expr).right.get());
+      break;
+    case Kind::Call: {
+      const auto &call = as<ast::Call>(*expr);
+      for (const auto &arg : call.arguments)
+        pending.push_back(arg.get());
+      for (const auto &arg : call.keywords)
+        pending.push_back(arg.value.get());
+      if (auto *callee = as<ast::Member>(call.callee);
+          callee && callee->name.text == "format")
+        pending.push_back(callee->base.get());
+      break;
+    }
+    default:
+      break;
     }
   }
   return result;
 }
 } // namespace
 DefinitionKey definition_symbol(const Project &project,
-                                const std::string &module, const Json &names,
+                                const std::string &module,
+                                const std::vector<const ast::Name *> &names,
                                 const std::vector<std::string> &kinds) {
-  auto name = spelling(names);
+  auto name = ast::dotted(names);
   const auto &symbols = project.modules.at(module).symbols;
   auto symbol = symbols.find(name);
   if (symbol == symbols.end() && names.size() > 1 &&
-      symbols.contains(names.front().at("text")))
+      symbols.contains(names.front()->text))
     fail("resolve.private",
          "qualified access to definition internals is not allowed",
-         names.back().at("span"));
+         names.back()->span);
   if (symbol == symbols.end() || !symbol->second.declaration)
     fail("resolve.missing-definition", "unknown definition '" + name + "'",
-         names.front().at("span"));
-  if (std::ranges::find(
-          kinds, symbol->second.declaration->at("kind").get<std::string>()) ==
+         names.front()->span);
+  if (std::ranges::find(kinds, symbol->second.declaration->keyword) ==
       kinds.end())
     fail("resolve.kind", "incorrect definition kind for '" + name + "'",
-         names.front().at("span"));
+         names.front()->span);
   return {symbol->second.module, symbol->second.name};
+}
+DefinitionKey definition_symbol(const Project &project,
+                                const std::string &module,
+                                const std::vector<ast::Name> &names,
+                                const std::vector<std::string> &kinds) {
+  std::vector<const ast::Name *> pointers;
+  for (const auto &name : names)
+    pointers.push_back(&name);
+  return definition_symbol(project, module, pointers, kinds);
 }
 void walk_definitions(const Project &project,
                       const DefinitionVisitor &visitor) {
-  std::map<DefinitionKey, const Json *> sources;
+  std::map<DefinitionKey, const ast::Definition *> sources;
   for (const auto &[name, module] : project.modules)
-    for (const auto &item : module.ast->at("items"))
-      if (item.at("node") == "Definition")
-        sources[{name, item.at("name").at("text")}] = &item;
+    for (const auto &item : module.ast->items)
+      if (auto *definition = as<ast::Definition>(item))
+        sources[{name, definition->name.text}] = definition;
   std::set<DefinitionKey> complete;
   for (const auto &[start, unused] : sources) {
     std::vector<DefinitionKey> chain;
@@ -173,7 +204,7 @@ void walk_definitions(const Project &project,
     while (!complete.contains(current)) {
       if (!active.insert(current).second)
         fail("resolve.inheritance-cycle", "inheritance cycle",
-             sources.at(current)->at("span"));
+             sources.at(current)->span);
       chain.push_back(current);
       auto parent = parent_key(project, current.first, *sources.at(current));
       if (!parent)
@@ -189,7 +220,7 @@ void walk_definitions(const Project &project,
   }
 }
 ParameterDefinition definition_parameters(const DefinitionKey &key,
-                                          const Json &source,
+                                          const ast::Definition &source,
                                           const ParameterDefinition *parent,
                                           bool capture_part_value) {
   auto result = parent ? *parent : ParameterDefinition{};
@@ -214,11 +245,11 @@ Json parameter_summary(const ParameterDefinitions &definitions) {
     for (const auto &param : definition.parameters) {
       Json value = nullptr;
       if (param.default_value)
-        value = object("value", param.default_value->expression, "span",
-                       param.default_value->expression.at("span"), "module",
-                       param.default_value->module);
+        value = object("value", ast::to_json(*param.default_value->expression),
+                       "span", param.default_value->expression->span.json(),
+                       "module", param.default_value->module);
       params[param.name] = object("type", param.type, "default",
-                                  std::move(value), "span", param.span);
+                                  std::move(value), "span", param.span.json());
     }
     result.push_back(object("module", key.first, "name", key.second,
                             "parameters", std::move(params)));
@@ -227,7 +258,7 @@ Json parameter_summary(const ParameterDefinitions &definitions) {
 }
 [[noreturn]] void ParameterEvaluator::error(const std::string &code,
                                             const std::string &message,
-                                            const Json &span,
+                                            const Span &span,
                                             const Json &related) {
   const Symbols symbols;
   Evaluator evaluator(symbols, limits);
@@ -239,7 +270,7 @@ Value ParameterEvaluator::evaluate(const ScopedExpression &expression,
   Evaluator evaluator(project.modules.at(expression.module).symbols, limits);
   evaluator.instance_path = instance_path;
   try {
-    auto result = evaluator.evaluate(expression.expression, environment);
+    auto result = evaluator.evaluate(*expression.expression, environment);
     warnings.insert(warnings.end(), evaluator.warnings.begin(),
                     evaluator.warnings.end());
     return result;
@@ -249,22 +280,23 @@ Value ParameterEvaluator::evaluate(const ScopedExpression &expression,
     throw;
   }
 }
-Environment ParameterEvaluator::bind(const ParameterDefinition &definition,
-                                     const Json &arguments,
-                                     const std::string &caller_module,
-                                     const Environment &caller_environment,
-                                     const Json &span) {
+Environment
+ParameterEvaluator::bind(const ParameterDefinition &definition,
+                         const std::vector<const ast::Argument *> &arguments,
+                         const std::string &caller_module,
+                         const Environment &caller_environment,
+                         const Span &span) {
   Environment bound;
-  std::map<std::string, const Json *> supplied;
+  std::map<std::string, const ast::Argument *> supplied;
   std::vector<std::string> order;
-  for (const auto &arg : arguments) {
-    auto name = arg.at("name").at("text").get<std::string>();
+  for (const auto *arg : arguments) {
+    const auto &name = arg->name.text;
     if (!parameter(definition, name) || supplied.contains(name))
       error("parameter.argument",
-            "unknown or duplicate argument '" + name + "'", arg.at("span"));
-    supplied[name] = &arg;
+            "unknown or duplicate argument '" + name + "'", arg->span);
+    supplied[name] = arg;
     bound[name] =
-        evaluate({arg.at("value"), caller_module}, caller_environment);
+        evaluate({arg->value.get(), caller_module}, caller_environment);
     order.push_back(name);
   }
   std::set<std::string> pending;
@@ -276,9 +308,9 @@ Environment ParameterEvaluator::bind(const ParameterDefinition &definition,
       error("parameter.required",
             "missing required parameter '" + param.name + "'", span,
             Json::array({object("message", "parameter declared here", "span",
-                                param.span)}));
+                                param.span.json())}));
     pending.insert(param.name);
-    dependencies[param.name] = references(param.default_value->expression);
+    dependencies[param.name] = references(*param.default_value->expression);
   }
   while (!pending.empty()) {
     std::vector<std::string> ready;
@@ -296,7 +328,7 @@ Environment ParameterEvaluator::bind(const ParameterDefinition &definition,
       }
       error("parameter.cycle", "cyclic parameter defaults: " + names,
             parameter(definition, *pending.begin())
-                ->default_value->expression.at("span"));
+                ->default_value->expression->span);
     }
     for (const auto &name : ready) {
       bound[name] =
@@ -311,12 +343,12 @@ Environment ParameterEvaluator::bind(const ParameterDefinition &definition,
     if ((param.type == "string" && !string) ||
         (param.type == "number" && string)) {
       const auto &where = supplied.contains(name)
-                              ? supplied.at(name)->at("span")
-                              : param.default_value->expression.at("span");
+                              ? supplied.at(name)->span
+                              : param.default_value->expression->span;
       error("parameter.type", "parameter '" + name + "' requires " + param.type,
             where,
             Json::array({object("message", "parameter declared here", "span",
-                                param.span)}));
+                                param.span.json())}));
     }
   }
   return bound;
@@ -328,8 +360,8 @@ ParameterEvaluator::part_value(const ParameterDefinition &definition,
   std::optional<Value> result;
   if (definition.part_value) {
     result = evaluate(*definition.part_value, parameters);
-    const auto &expr = definition.part_value->expression;
-    name = expr.at("node") == "Name" ? expr.at("text").get<std::string>() : "";
+    const auto *expr = as<ast::Name>(definition.part_value->expression);
+    name = expr ? expr->text : "";
   } else if (parameters.contains(name))
     result = parameters.at(name);
   if (result) {

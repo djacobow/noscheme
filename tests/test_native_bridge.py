@@ -114,41 +114,66 @@ def test_plugin_error_response(tmp_path):
     assert "broken plugin" in result["diagnostics"][0]["message"]
 
 
-def erc_request(tmp_path):
+PLUGIN = """from noscheme.erc_registry import Application
+def register(r):
+    def wide(ctx, *, limit):
+        if len(ctx.pins) > limit:
+            yield ctx.error("too many pins")
+    r.net_rule("example.wide", wide, parameters={"limit": "nonnegative"})
+    r.predicate("example.passive", lambda pin, ctx: "passive" in pin.attributes.get("role", ()))
+    def extra(ctx):
+        if not ctx.pin:
+            yield Application("count", "std.count", {"what": (("predicate", "example.passive"),), "max": 0})
+    r.rule_set("example.extra", extra)
+"""
+
+
+def plugin_request(tmp_path):
     from noscheme.circuit import elaborate_project
     from noscheme.resolve import resolve_project
     from test_circuit import make, PART
 
-    project, definitions = resolve_project(
-        make(tmp_path, PART + "board B:\n  net n: nettype.passive\n  inst p: P(1: n)\n")
+    plugin = tmp_path / "rules.py"
+    plugin.write_text(PLUGIN)
+    root = make(
+        tmp_path,
+        "from example import wide\n"
+        + PART
+        + "board B:\n  net n: nettype.passive\n    checks:\n      w: wide(limit=0)\n"
+        + "  inst p: P(1: n)\n",
     )
+    config = root / "noscheme.toml"
+    config.write_text(
+        config.read_text()
+        + 'erc_modules = ["rules.py"]\nerc_rule_sets = ["std.default", "example.extra"]\n'
+    )
+    project, definitions = resolve_project(root)
     circuit, _ = elaborate_project(project, definitions)
     return {
         "version": 1,
-        "method": "check_circuit",
-        "erc_modules": [],
+        "method": "plugin_checks",
+        "erc_modules": [str(plugin)],
         "registry": describe_registry(project.config.erc_registry),
         "circuit": circuit,
+        "configurations": [None],
+        "native_rules": ["std.count"],
+        "native_predicates": [],
     }
 
 
-def test_execution_report_without_mutation_or_files(tmp_path):
-    from copy import deepcopy
-    from noscheme.erc import apply_erc, report_files
-
-    request = erc_request(tmp_path)
-    before = deepcopy(request)
-    expected = deepcopy(request["circuit"])
-    apply_erc(expected)
-    result = respond(request)
-    assert result["erc"] == expected["erc"]
-    assert result["reports"] == {
-        path.name: text for path, text in report_files(expected, Path(".")).items()
-    }
-    assert request == before
-    assert respond(request) == result
-    assert not (tmp_path / "erc.json").exists()
-    assert not (tmp_path / "erc.txt").exists()
+def test_plugin_checks_run_only_plugin_work(tmp_path):
+    result = respond(plugin_request(tmp_path))
+    (work,) = result["configurations"]
+    # Plugin rule-set applications are returned by owner and rule set for the
+    # native schedule; the max argument is a tagged exact integer.
+    (count,) = work["applications"]["net:n"]["example.extra"]
+    assert count["name"] == "count"
+    assert count["params"]["max"] == {"type": "number", "tag": "integer", "value": "0"}
+    # Plugin rules run here; native rules do not.
+    assert work["results"]["net:n:w"]["diagnostics"][0]["message"] == "too many pins"
+    assert "net:n:count" not in work["results"]
+    # Plugin predicates are evaluated for each endpoint of native applications.
+    assert work["predicates"]["net:n:count"] == {"example.passive": {"p.1": False}}
 
 
 @pytest.mark.parametrize(
@@ -200,8 +225,8 @@ def test_malformed_native_metadata_numbers(number):
 
 
 @pytest.mark.parametrize("change", ["registry", "modules", "configurations", "schema", "stage"])
-def test_execution_rejects_inconsistent_requests(tmp_path, change):
-    request = erc_request(tmp_path)
+def test_plugin_checks_reject_inconsistent_requests(tmp_path, change):
+    request = plugin_request(tmp_path)
     if change == "registry":
         request["registry"]["rules"].pop("std.sum")
     elif change == "modules":
@@ -217,7 +242,7 @@ def test_execution_rejects_inconsistent_requests(tmp_path, change):
 
 
 def test_registered_checks_are_stable_across_hash_seeds(tmp_path):
-    request = erc_request(tmp_path)
+    request = plugin_request(tmp_path)
     outputs = []
     for seed in ("1", "2", "3"):
         env = os.environ | {"PYTHONHASHSEED": seed}
@@ -242,3 +267,23 @@ def test_editor_help_is_shared_but_snapshot_owned():
     assert snapshot["help"] == BUILTIN_HELP == hover_help
     snapshot["help"]["role"]["passive"] = "changed snapshot"
     assert BUILTIN_HELP["role"]["passive"] != "changed snapshot"
+
+
+@pytest.mark.parametrize(
+    "value", [10**20 + 1, -(10**20 + 1), 10**5000], ids=["positive", "negative", "5001-digits"]
+)
+def test_plugin_argument_integer_transport(value):
+    from noscheme.native_bridge import decode_metadata, encode_arguments
+
+    before = sys.get_int_max_str_digits()
+    params = {"min": value, "what": (("field", "amount", value),), "flag": True, "scale": 1.25}
+    encoded = json.loads(json.dumps(encode_arguments(params)))
+    assert encoded["min"]["tag"] == "integer"
+    assert decode_metadata(encoded) == {
+        "min": value,
+        "what": [["field", "amount", value]],
+        "flag": True,
+        "scale": 1.25,
+    }
+    assert type(encoded["flag"]) is bool
+    assert sys.get_int_max_str_digits() == before

@@ -1,8 +1,9 @@
-"""Run the existing Python ERC engine on native elaborated circuits."""
+"""Compare native ERC diagnostics and reports with the Python engine."""
 
 import json
 import os
 from pathlib import Path
+import subprocess
 import sys
 
 import pytest
@@ -101,21 +102,49 @@ board B:
     assert "diagnostics" in compare(probe, path)
 
 
-def test_timeout_and_next_request(probe, tmp_path):
-    path = make_project(
-        tmp_path, {"src/main.nosch": PRELUDE + "board B:\n  net n: nettype.passive\n"}
-    )
-    project = load_project(path)
-    payload = {
+PLUGIN = """def register(r):
+    def wide(ctx, *, limit):
+        if len(ctx.pins) > limit:
+            yield ctx.error("too many pins")
+    r.net_rule("example.wide", wide, parameters={"limit": "nonnegative"})
+"""
+
+
+def plugin_project(tmp_path, plugin=PLUGIN):
+    (tmp_path / "rules.py").write_text(plugin)
+    source = """from example import wide
+board B:
+  net n: nettype.passive
+    checks:
+      test: wide(limit=0)
+"""
+    return make_project(tmp_path, {"src/main.nosch": PRELUDE + source}, erc_modules=["rules.py"])
+
+
+def payload(path):
+    return {
         "project": str(path),
         "elaborate": True,
         "registry_response": {
             "version": 1,
-            "registry": describe_registry(project.config.erc_registry),
+            "registry": describe_registry(load_project(path).config.erc_registry),
         },
     }
+
+
+def test_standard_rules_need_no_python(probe, tmp_path):
+    path = make_project(
+        tmp_path, {"src/main.nosch": PRELUDE + "board B:\n  net n: nettype.passive\n"}
+    )
+    hang = fake_python(tmp_path, "import time\ntime.sleep(30)\n")
+    result = probe(payload(path) | {"erc_python": hang, "erc_timeout_ms": 1000})
+    assert result["circuit"]["erc"]["diagnostics"], result
+
+
+def test_timeout_and_next_request(probe, tmp_path):
+    path = plugin_project(tmp_path)
     result = probe(
-        payload
+        payload(path)
         | {
             "erc_python": fake_python(tmp_path, "import time\ntime.sleep(30)\n"),
             "erc_timeout_ms": 1000,
@@ -211,68 +240,240 @@ board B:
 
 
 def test_changed_registry_rejected(probe, tmp_path):
-    path = make_project(
-        tmp_path,
-        {"src/main.nosch": PRELUDE + "board B:\n  net n: nettype.passive\n"},
-        erc_modules=["rules.py"],
-    )
-    plugin = tmp_path / "rules.py"
-    plugin.write_text('def register(r):\n    r.fields("net", {"first": "number"})\n')
-    snapshot = describe_registry(load_project(path).config.erc_registry)
-    plugin.write_text('def register(r):\n    r.fields("net", {"later": "number"})\n')
-    result = probe(
-        {
-            "project": str(path),
-            "registry_response": {"version": 1, "registry": snapshot},
-            "elaborate": True,
-            "erc_python": sys.executable,
-        }
-    )
+    path = plugin_project(tmp_path, PLUGIN + '    r.fields("net", {"first": "number"})\n')
+    snapshot = payload(path)
+    (tmp_path / "rules.py").write_text(PLUGIN + '    r.fields("net", {"later": "number"})\n')
+    result = probe(snapshot | {"erc_python": sys.executable})
     assert result["diagnostics"][0]["code"] == "native.erc-bridge"
     assert "registry changed" in result["diagnostics"][0]["message"]
 
 
+VALID = {
+    "version": 1,
+    "configurations": [
+        {"applications": {}, "results": {"net:n:test": {"diagnostics": []}}, "predicates": {}}
+    ],
+}
+
+
 @pytest.mark.parametrize(
-    "change", ["version", "missing", "count", "diagnostic", "json", "text", "deep_json"]
+    "change", ["valid", "version", "missing", "count", "result", "diagnostic", "deep_json"]
 )
-def test_malformed_execution_response(probe, tmp_path, change):
-    path = make_project(
-        tmp_path, {"src/main.nosch": PRELUDE + "board B:\n  net n: nettype.passive\n"}
-    )
-    project = load_project(path)
-    circuit, _ = elaborate_project(project, Resolver(project).resolve_all())
-    apply_erc(circuit, registry=project.config.erc_registry)
-    response = {
-        "version": 1,
-        "erc": circuit["erc"],
-        "reports": {p.name: s for p, s in report_files(circuit, Path(".")).items()},
-    }
+def test_malformed_plugin_response(probe, tmp_path, change):
+    path = plugin_project(tmp_path)
+    response = json.loads(json.dumps(VALID))
+    work = response["configurations"][0]
     if change == "version":
         response["version"] = 2
     elif change == "missing":
-        del response["erc"]
+        del response["configurations"]
     elif change == "count":
-        response["erc"]["errors"] = 999
+        response["configurations"].append(work)
+    elif change == "result":
+        work["results"] = {}
     elif change == "diagnostic":
-        response["erc"]["diagnostics"][0]["severity"] = "not-a-severity"
-    elif change == "json":
-        response["reports"]["erc.json"] = "{}"
-    elif change == "text":
-        response["reports"]["erc.txt"] = None
+        work["results"]["net:n:test"]["diagnostics"].append({"code": "erc.x"})
+    text = json.dumps(response)
+    if change == "deep_json":
+        text = "[" * 200 + "0" + "]" * 200
+    executable = fake_python(tmp_path, "import sys\nsys.stdin.read()\nprint(" + repr(text) + ")\n")
+    result = probe(payload(path) | {"erc_python": executable})
+    if change == "valid":
+        assert "circuit" in result, result
     else:
-        response["reports"]["erc.json"] = "[" * 200 + "0" + "]" * 200
-    executable = fake_python(
-        tmp_path, "import sys\nsys.stdin.read()\nprint(" + repr(json.dumps(response)) + ")\n"
+        assert result["diagnostics"][0]["code"] == "native.erc-bridge", result
+
+
+PREDICATE_PLUGIN = """def register(r):
+    r.predicate("example.big", lambda pin, ctx: pin.label.endswith("2") or None)
+    def boom(pin, ctx):
+        raise ValueError("predicate failed")
+    r.predicate("example.boom", boom)
+"""
+
+
+@pytest.mark.parametrize(
+    "check",
+    [
+        "std.count(big, max=0)",
+        "std.any(big)",
+        "std.all(big)",
+        "std.all(role.passive, where=big)",
+        "std.sum(capacitance, where=big, max=1p)",
+        "std.count([role.passive, boom], max=0)",
+        "std.count([role.digital_input, boom], max=0)",
+    ],
+)
+def test_plugin_predicates_in_standard_rules(probe, tmp_path, check):
+    (tmp_path / "rules.py").write_text(PREDICATE_PLUGIN)
+    source = f"""from example import big, boom
+component P:
+  pins:
+    [1..2]:
+      role: role.passive
+      capacitance: 10p
+board B:
+  net n: nettype.passive
+    checks:
+      test: {check}
+  inst p[2]: P
+    connections:
+      [1, 2]: n
+"""
+    compare(
+        probe,
+        make_project(tmp_path, {"src/main.nosch": PRELUDE + source}, erc_modules=["rules.py"]),
     )
-    result = probe(
-        {
-            "project": str(path),
-            "registry_response": {
-                "version": 1,
-                "registry": describe_registry(project.config.erc_registry),
-            },
-            "elaborate": True,
-            "erc_python": executable,
-        }
+
+
+def test_plugin_rule_set(probe, tmp_path):
+    (tmp_path / "rules.py").write_text("""from noscheme.erc_registry import Application
+def register(r):
+    def wide(ctx, *, limit):
+        if len(ctx.pins) > limit:
+            yield ctx.error("too many pins")
+    r.net_rule("example.wide", wide, parameters={"limit": "nonnegative"})
+    def extra(ctx):
+        if not ctx.pin:
+            yield Application("wide", "example.wide", {"limit": 0})
+            yield Application("count", "std.count", {"what": (("role", "passive"),), "max": 0})
+    r.rule_set("example.extra", extra)
+""")
+    source = """component P:
+  pins:
+    1: role.passive
+board B:
+  net n: nettype.passive
+  inst p: P(1: n)
+"""
+    path = make_project(
+        tmp_path,
+        {"src/main.nosch": PRELUDE + source},
+        erc_modules=["rules.py"],
+        erc_rule_sets=["std.default", "example.extra"],
     )
-    assert result["diagnostics"][0]["code"] == "native.erc-bridge"
+    compare(probe, path)
+
+
+@pytest.mark.parametrize(
+    "rule_sets",
+    [
+        ["example.first", "example.second"],
+        ["example.second", "example.first"],
+        ["example.first", "std.default", "example.second"],
+    ],
+)
+def test_multiple_plugin_rule_sets_preserve_order(probe, tmp_path, rule_sets):
+    (tmp_path / "rules.py").write_text("""from noscheme.erc_registry import Application
+def register(r):
+    def check(ctx):
+        yield ctx.error(ctx.application)
+    r.net_rule("example.check", check)
+    def first(ctx):
+        if not ctx.pin:
+            yield Application("first", "example.check")
+    def second(ctx):
+        if not ctx.pin:
+            yield Application("second", "example.check")
+    r.rule_set("example.first", first)
+    r.rule_set("example.second", second)
+""")
+    path = make_project(
+        tmp_path,
+        {"src/main.nosch": PRELUDE + "board B:\n  net n: nettype.passive\n"},
+        erc_modules=["rules.py"],
+        erc_rule_sets=rule_sets,
+    )
+    result = compare(probe, path)
+    assert [
+        d["message"]
+        for d in result["circuit"]["erc"]["diagnostics"]
+        if d["code"] == "erc.example.check"
+    ] == [f"net:n:{name.rsplit('.', 1)[1]}" for name in rule_sets if name != "std.default"]
+
+
+@pytest.mark.parametrize("amount", [10**20, -(10**20)])
+@pytest.mark.parametrize("offset", [0, 1])
+def test_plugin_rule_set_exact_integer_limits(probe, tmp_path, amount, offset):
+    (tmp_path / "rules.py").write_text(f"""from noscheme.erc_registry import Application
+def register(r):
+    r.fields("pin", {{"amount": "number"}})
+    def extra(ctx):
+        if not ctx.pin:
+            yield Application("limit", "std.sum", {{"field": "amount", "min": {amount + offset}}})
+            yield Application("selection", "std.count", {{"what": (("field", "amount", {amount + 1}),), "max": 0}})
+    r.rule_set("example.extra", extra)
+""")
+    source = f"""component P:
+  pins:
+    1: role.passive
+      amount: {amount}
+board B:
+  net n: nettype.passive
+  inst p: P(1: n)
+"""
+    path = make_project(
+        tmp_path,
+        {"src/main.nosch": PRELUDE + source},
+        erc_modules=["rules.py"],
+        erc_rule_sets=["example.extra"],
+    )
+    result = compare(probe, path)
+    diagnostics = result["circuit"]["erc"]["diagnostics"]
+    assert len(diagnostics) == offset
+    if offset:
+        assert diagnostics[0]["message"] == f"reduction is below minimum {amount + offset}"
+
+
+# Python tests whose projects exercise ERC rules, waivers, and configurations.
+CORPUS_TESTS = [
+    "test_bias_reference.py",
+    "test_current_loads.py",
+    "test_erc.py",
+    "test_erc_applications.py",
+    "test_erc_config.py",
+    "test_erc_contracts.py",
+    "test_erc_extensions.py",
+    "test_erc_families.py",
+    "test_erc_targeted_waivers.py",
+    "test_interchangeable.py",
+    "test_nettypes.py",
+    "test_voltage_limits.py",
+]
+
+
+def test_python_erc_test_projects(probe, tmp_path):
+    """Every project loaded by the Python ERC tests checks identically."""
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    subprocess.run(
+        [sys.executable, "-m", "pytest", "-q", "-p", "erc_corpus", "-o", "addopts="]
+        + [str(ROOT / "tests" / name) for name in CORPUS_TESTS],
+        cwd=ROOT,
+        env=os.environ
+        | {
+            "NOSCHEME_ERC_CORPUS": str(corpus),
+            "PYTHONPATH": os.pathsep.join([str(Path(__file__).parent), str(ROOT / "tests")]),
+        },
+        check=True,
+        capture_output=True,
+        timeout=600,
+    )
+    projects = sorted(corpus.iterdir())
+    assert len(projects) > 100
+    failures, compared = [], 0
+    for project in projects:
+        # Projects that fail before ERC belong to the circuit parity tests.
+        try:
+            loaded = load_project(project)
+            elaborate_project(loaded, Resolver(loaded).resolve_all())
+        except DiagnosticError:
+            continue
+        try:
+            compare(probe, project / "noscheme.toml")
+            compared += 1
+        except AssertionError as error:
+            failures.append(f"{project.name}: {str(error)[:300]}")
+    assert not failures, f"{len(failures)} of {compared + len(failures)} differ:\n" + "\n".join(
+        failures[:10]
+    )

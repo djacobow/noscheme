@@ -1,16 +1,24 @@
 #pragma once
 #include "noscheme/resolve.hpp"
+#include <algorithm>
 namespace noscheme {
 struct CompletionEntry {
   std::string name, description;
   int kind;
-  std::vector<Json> shadowed_in{};
-  Json visible_in = nullptr;
+  std::vector<Span> shadowed_in{};
+  // Empty when visible everywhere in the file.
+  Span visible_in{};
   std::string insert_text{};
   Json rule = nullptr;
   Json instance = nullptr;
   std::shared_ptr<const std::vector<CompletionEntry>> candidates{};
   std::shared_ptr<const std::vector<CompletionEntry>> targets{};
+  // A local declaration hides this name at the offset.
+  bool shadowed(std::size_t offset) const {
+    return std::ranges::any_of(shadowed_in, [&](const Span &span) {
+      return offset >= span.start && offset < span.end;
+    });
+  }
 };
 using CompletionCatalog = std::map<fs::path, std::vector<CompletionEntry>>;
 std::string code_mask(const std::string &text, bool preserve_strings = false);

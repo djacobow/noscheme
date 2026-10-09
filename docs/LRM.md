@@ -1532,8 +1532,9 @@ Contexts expose:
 The circuit graph, attributes, and parameter mappings are recursively read-only.
 Built-in and project callbacks share the same views; there is no whole-circuit
 copy per rule. Mutation attempts fail. Rules should be deterministic and free of
-side effects. Python extensions still execute in the compiler/editor process;
-read-only views are not a Python sandbox.
+side effects. The Python engine runs extensions in its own process; the native
+engine invokes them through Python subprocesses. Read-only views are not a
+Python sandbox.
 
 Unchanged immutable data can be shared between configurations. Selected roles
 and configuration-local derived facts remain separate. Default parameter setup

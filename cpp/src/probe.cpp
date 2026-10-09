@@ -25,6 +25,28 @@ noscheme::Limits expression_limits(const noscheme::Json &settings) {
   limits.dimension = settings.value("dimension", limits.dimension);
   return limits;
 }
+// Follows a path of comparison-form keys and list positions, such as
+// ["body", 2, "entries", 0], to the nodes it names.
+std::vector<const noscheme::ast::Node *>
+navigate(const noscheme::ast::Node &root, const noscheme::Json &path) {
+  std::vector<const noscheme::ast::Node *> selected{&root};
+  for (const auto &step : path) {
+    if (step.is_number_integer()) {
+      selected = {selected.at(step.get<std::size_t>())};
+      continue;
+    }
+    const auto key = step.get<std::string>();
+    std::vector<const noscheme::ast::Node *> children;
+    noscheme::ast::for_each_child(
+        *selected.at(0),
+        [&](std::string_view name, const noscheme::ast::Node &child) {
+          if (name == key)
+            children.push_back(&child);
+        });
+    selected = std::move(children);
+  }
+  return selected;
+}
 } // namespace
 // The probe accepts JSON lines to amortize process startup in differential
 // tests.
@@ -35,10 +57,10 @@ int main() {
     try {
       auto request = noscheme::Json::parse(line);
       if (request.contains("expression")) {
-        noscheme::Source source("component Eval:\n  params:\n    x: number = " +
-                                    request["expression"].get<std::string>() +
-                                    "\n",
-                                "expression.nosch");
+        auto source = std::make_shared<const noscheme::Source>(
+            "component Eval:\n  params:\n    x: number = " +
+                request["expression"].get<std::string>() + "\n",
+            "expression.nosch");
         noscheme::Symbols symbols;
         for (const auto &[name, symbol] :
              request.value("symbols", noscheme::Json::object()).items())
@@ -49,9 +71,13 @@ int main() {
         evaluator.instance_path =
             request.value("instance_path", noscheme::Json(nullptr));
         try {
+          using noscheme::ast::as;
           auto tree = noscheme::parse(source);
+          const auto &definition =
+              as<noscheme::ast::Definition>(*tree->items[0]);
+          const auto &params = as<noscheme::ast::Section>(*definition.body[0]);
           const auto &expr =
-              tree["items"][0]["body"][0]["entries"][0]["default"];
+              *as<noscheme::ast::Field>(*params.entries[0]).default_value;
           noscheme::Environment env;
           for (const auto &[name, value] :
                request.value("environment", noscheme::Json::object()).items())
@@ -59,18 +85,17 @@ int main() {
           auto result = evaluator.evaluate(expr, env);
           auto context = request.value("context", "");
           if (context == "integer")
-            result = evaluator.integer(result, expr["span"]);
+            result = evaluator.integer(result, expr.span);
           if (context == "dimension")
-            result =
-                noscheme::Integer(evaluator.dimension(result, expr["span"]));
+            result = noscheme::Integer(evaluator.dimension(result, expr.span));
           if (context == "index")
             result = noscheme::Integer(
-                evaluator.index(result, expr["span"], request.at("size"),
+                evaluator.index(result, expr.span, request.at("size"),
                                 request.value("stop", false)));
           auto response = noscheme::object("value", noscheme::encoded(result),
                                            "warnings", evaluator.warnings);
           if (request.value("display", false))
-            response["display"] = evaluator.display(result, expr["span"]);
+            response["display"] = evaluator.display(result, expr.span);
           if (request.contains("quantity"))
             response["quantity"] =
                 noscheme::format_quantity(result, request["quantity"]);
@@ -78,7 +103,7 @@ int main() {
         } catch (const noscheme::Failure &e) {
           std::cout << noscheme::object(
                            "diagnostics",
-                           noscheme::Json::array({source.diagnostic(e)}),
+                           noscheme::Json::array({source->diagnostic(e)}),
                            "warnings", evaluator.warnings)
                            .dump()
                     << std::endl;
@@ -156,13 +181,14 @@ int main() {
                   settings.value("hierarchy_depth", limits.hierarchy_depth);
               limits.type_depth =
                   settings.value("type_depth", limits.type_depth);
-              response["circuit"] = noscheme::elaborate_project(
+              auto circuit = noscheme::elaborate_project(
                   project, *registry, definitions, limits,
                   expression_limits(request.value("expression_limits",
                                                   noscheme::Json::object())));
+              response["circuit"] = noscheme::to_json(circuit);
               if (request.contains("erc_python")) {
                 auto result = noscheme::run_erc(
-                    project.config, *registry, response.at("circuit"),
+                    project.config, *registry, circuit,
                     request.at("erc_python").get<std::string>(),
                     request.value("configurations", noscheme::Json(nullptr)),
                     std::chrono::milliseconds(
@@ -188,36 +214,43 @@ int main() {
               auto locals = options.value("locals", std::set<std::string>{});
               noscheme::MetadataReader reader(project, *registry, symbol.module,
                                               locals);
-              auto value = noscheme::Json::object();
-              for (const auto &section : symbol.declaration->at("body")) {
-                if (section.at("node") != "Section" || options.contains("path"))
+              using noscheme::ast::as;
+              noscheme::MetaFields value;
+              for (const auto &node : symbol.declaration->body) {
+                auto *section = as<noscheme::ast::Section>(node);
+                if (!section || options.contains("path"))
                   continue;
-                if (options.contains("pin") && section.at("name") == "pins") {
-                  for (const auto &field : section.at("entries"))
-                    if (field.at("key").at("first").at("text") ==
+                if (options.contains("pin") && section->name == "pins") {
+                  for (const auto *field :
+                       noscheme::ast::field_list(section->entries))
+                    if (noscheme::Json(field->key.first.text) ==
                         options.at("pin"))
-                      value = reader.pin(field, scope);
+                      value = reader.pin(*field, scope);
                 } else if (!options.contains("pin") &&
-                           section.at("name") == "metadata")
-                  value = reader.read(section.at("entries"), scope);
+                           section->name == "metadata")
+                  value = reader.read(section->entries, scope);
               }
               if (options.contains("path")) {
-                const noscheme::Json *selected = symbol.declaration;
-                for (const auto &step : options.at("path"))
-                  selected = step.is_string()
-                                 ? &selected->at(step.get<std::string>())
-                                 : &selected->at(step.get<std::size_t>());
+                std::vector<const noscheme::ast::Field *> fields;
+                for (const auto *node :
+                     navigate(*symbol.declaration, options.at("path")))
+                  fields.push_back(&as<noscheme::ast::Field>(*node));
                 if (options.value("as_pin", false))
-                  value = reader.pin(*selected, scope);
+                  value = reader.pin(*fields.at(0), scope);
                 else
-                  value = reader.read(options.value("single", false)
-                                          ? noscheme::Json::array({*selected})
-                                          : *selected,
-                                      scope);
+                  value = reader.read(fields, scope);
               }
-              if (options.contains("parent"))
-                value = noscheme::merge_metadata(options.at("parent"), value);
-              return value;
+              if (options.contains("parent_definition")) {
+                const auto &parent = project.modules.at(module).symbols.at(
+                    options.at("parent_definition"));
+                for (const auto &node : parent.declaration->body)
+                  if (auto *section =
+                          noscheme::ast::as<noscheme::ast::Section>(node);
+                      section && section->name == "metadata")
+                    value = noscheme::merge_metadata(
+                        reader.read(section->entries, scope), value);
+              }
+              return noscheme::to_json(value);
             };
             if (request.at("metadata").is_array()) {
               auto values = noscheme::Json::array();
@@ -236,21 +269,24 @@ int main() {
               const auto module = binding.at("module").get<std::string>();
               const auto &symbol = project.modules.at(module).symbols.at(
                   binding.at("definition"));
-              const noscheme::Json *instance = nullptr;
-              for (const auto &node : symbol.declaration->at("body"))
-                if (node.at("node") == "Instance" &&
-                    node.at("name").at("text") == binding.at("instance"))
-                  instance = &node;
+              const noscheme::ast::Instance *instance = nullptr;
+              for (const auto &node : symbol.declaration->body)
+                if (auto *candidate =
+                        noscheme::ast::as<noscheme::ast::Instance>(node);
+                    candidate && noscheme::Json(candidate->name.text) ==
+                                     binding.at("instance"))
+                  instance = candidate;
               if (!instance)
                 throw std::runtime_error("probe instance not found");
               auto key = noscheme::definition_symbol(project, symbol.module,
-                                                     instance->at("component"),
+                                                     instance->component,
                                                      {"component", "block"});
-              auto arguments = noscheme::Json::array();
-              for (const auto &section : instance->at("sections"))
-                if (section.at("name") == "params")
-                  for (const auto &arg : section.at("entries"))
-                    arguments.push_back(arg);
+              std::vector<const noscheme::ast::Argument *> arguments;
+              for (const auto &section : instance->sections)
+                if (section.name == "params")
+                  for (const auto &arg : section.entries)
+                    arguments.push_back(
+                        &noscheme::ast::as<noscheme::ast::Argument>(*arg));
               noscheme::Environment environment;
               for (const auto &[name, value] :
                    binding.value("environment", noscheme::Json::object())
@@ -263,7 +299,7 @@ int main() {
                 const auto &definition = definitions.at(key);
                 auto bound =
                     evaluator.bind(definition, arguments, symbol.module,
-                                   environment, instance->at("span"));
+                                   environment, instance->span);
                 auto values = noscheme::Json::object();
                 for (const auto &[name, value] : bound)
                   values[name] = noscheme::encoded(value);
@@ -281,7 +317,7 @@ int main() {
           if (request.value("include_asts", false)) {
             auto asts = noscheme::Json::object();
             for (const auto &[name, module] : project.modules)
-              asts[name] = *module.ast;
+              asts[name] = noscheme::ast::to_json(*module.ast);
             response["asts"] = std::move(asts);
           }
           std::cout << response.dump() << std::endl;
@@ -305,8 +341,9 @@ int main() {
           noscheme::ParseTimings timings;
           const auto start = std::chrono::steady_clock::now();
           {
-            noscheme::Source source(text, filename);
-            auto ast = noscheme::parse(source, &timings);
+            auto ast = noscheme::parse(
+                std::make_shared<const noscheme::Source>(text, filename),
+                &timings);
           }
           samples.push_back(std::chrono::duration<double>(
                                 std::chrono::steady_clock::now() - start)
@@ -322,13 +359,15 @@ int main() {
             << std::endl;
         continue;
       }
-      noscheme::Source source(request.at("source"),
-                              request.value("filename", "<input>"));
+      auto source = std::make_shared<const noscheme::Source>(
+          request.at("source"), request.value("filename", "<input>"));
       try {
         std::cout << (request.value("format", false)
                           ? noscheme::Json{{"formatted",
-                                            noscheme::format_source(source)}}
-                          : noscheme::Json{{"ast", noscheme::parse(source)}})
+                                            noscheme::format_source(*source)}}
+                          : noscheme::Json{{"ast",
+                                            noscheme::ast::to_json(
+                                                *noscheme::parse(source))}})
                          .dump()
                   << '\n';
       } catch (const noscheme::DiagnosticsFailure &e) {
@@ -337,7 +376,7 @@ int main() {
       } catch (const noscheme::Failure &e) {
         std::cout << noscheme::Json{{"diagnostics",
                                      noscheme::Json::array(
-                                         {source.diagnostic(e)})}}
+                                         {source->diagnostic(e)})}}
                          .dump()
                   << '\n';
       }

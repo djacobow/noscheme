@@ -6,7 +6,9 @@ namespace {
 // Parse independent top-level declarations for navigation only. The original
 // module remains the authority for diagnostics. Failed declarations contribute
 // no names or source ranges, and every surviving span is rebased to the buffer.
-Json local_ast(const Source &source) {
+std::shared_ptr<const ast::Module>
+local_ast(std::shared_ptr<const Source> shared_source) {
+  const auto &source = *shared_source;
   auto masked = code_mask(source.text);
   std::vector<std::size_t> starts;
   for (std::size_t line = 0; line < masked.size();) {
@@ -26,36 +28,19 @@ Json local_ast(const Source &source) {
     line = end + 1;
   }
   starts.push_back(source.text.size());
-  auto items = Json::array();
+  auto result = std::make_shared<ast::Module>();
+  result->span = {&source, 0, source.text.size()};
+  result->source = shared_source;
   for (std::size_t i = 0; i + 1 < starts.size(); ++i) {
     try {
-      auto ast =
-          parse(Source(source.text.substr(starts[i], starts[i + 1] - starts[i]),
-                       source.filename));
-      std::function<void(Json &)> rebase = [&](Json &value) {
-        if (value.is_array()) {
-          for (auto &v : value)
-            rebase(v);
-        } else if (value.is_object()) {
-          if (value.contains("start_pos") && value.contains("end_pos") &&
-              value.contains("filename")) {
-            value = source.span(
-                starts[i] + value.at("start_pos").get<std::size_t>(),
-                std::min(source.text.size(),
-                         starts[i] + value.at("end_pos").get<std::size_t>()));
-          } else
-            for (auto &[key, v] : value.items())
-              rebase(v);
-        }
-      };
-      rebase(ast);
-      for (const auto &item : ast.at("items"))
-        items.push_back(item);
+      auto fragment = parse_fragment(shared_source, starts[i], starts[i + 1]);
+      result->items.insert(result->items.end(), fragment->items.begin(),
+                           fragment->items.end());
     } catch (const Failure &) {
     } catch (const DiagnosticsFailure &) {
     }
   }
-  return object("items", items);
+  return result;
 }
 } // namespace
 void local_index(LspAnalysis &result, const Sources &sources,
@@ -67,10 +52,10 @@ void local_index(LspAnalysis &result, const Sources &sources,
     if (path.extension() != ".nosch" || indexed.contains(path))
       continue;
     auto found = cache.find(path);
-    auto ast = found != cache.end() && found->second.text == text
-                   ? found->second.ast
-                   : std::make_shared<const Json>(
-                         local_ast(Source(text, path.string())));
+    auto ast =
+        found != cache.end() && found->second.text == text
+            ? found->second.ast
+            : local_ast(std::make_shared<const Source>(text, path.string()));
     Project project;
     auto &module = project.modules["local"];
     module = {"local", path, ast, {}};
@@ -83,26 +68,23 @@ void local_index(LspAnalysis &result, const Sources &sources,
     };
     const std::set<std::string> builtins{"role", "nettype", "unused",
                                          "num",  "bias",    "std"};
-    for (const auto &item : ast->at("items")) {
-      if (item.at("node") == "Definition") {
-        auto name = item.at("name").at("text").get<std::string>();
-        add(name, {"local", name, &item});
-      } else if (item.at("node") == "Import" && item.at("module").size() == 1 &&
-                 item.at("module")[0].at("text") == "noscheme") {
-        if (item.at("names").empty())
+    for (const auto &item : ast->items) {
+      if (auto *definition = ast::as<ast::Definition>(item)) {
+        const auto &name = definition->name.text;
+        add(name, {"local", name, definition});
+      } else if (auto *import = ast::as<ast::Import>(item);
+                 import && import->module.size() == 1 &&
+                 import->module[0].text == "noscheme") {
+        if (import->names.empty())
           for (const auto &name : builtins)
             add("noscheme." + name, {"noscheme", name});
         else
-          for (const auto &entry : item.at("names")) {
-            auto name = entry.at("name").at("text").get<std::string>();
-            if (builtins.contains(name))
-              add((entry.at("alias").is_null() ? entry.at("name")
-                                               : entry.at("alias"))
-                      .at("text"),
-                  {"noscheme", name});
-          }
+          for (const auto &entry : import->names)
+            if (builtins.contains(entry.name.text))
+              add(entry.local().text, {"noscheme", entry.name.text});
       }
     }
+    result.retain(project);
     Definitions definitions;
     try {
       definitions = resolve_interfaces(project, registry);

@@ -16,13 +16,15 @@ struct ProjectConfig {
   std::string language_version, board_module, board_name;
   std::vector<fs::path> source_paths, library_paths, erc_modules;
   std::vector<std::string> erc_rule_sets;
-  Json span;
+  // The configuration text, which keeps span valid.
+  std::shared_ptr<const Source> source;
+  Span span;
   std::vector<fs::path> search_paths() const;
 };
 struct Symbol {
   std::string module, name;
   // The module's shared immutable AST owns this declaration.
-  const Json *declaration = nullptr;
+  const ast::Definition *declaration = nullptr;
 };
 using Symbols = std::map<std::string, Symbol>;
 using ErcExports = std::map<std::string, Symbols>;
@@ -30,7 +32,7 @@ using ErcExportLoader = std::function<ErcExports(const ProjectConfig &)>;
 struct LoadedModule {
   std::string name;
   fs::path path;
-  std::shared_ptr<const Json> ast;
+  std::shared_ptr<const ast::Module> ast;
   Symbols symbols;
 };
 struct Project {
@@ -40,7 +42,7 @@ struct Project {
 };
 struct ParsedSource {
   std::string text;
-  std::shared_ptr<const Json> ast;
+  std::shared_ptr<const ast::Module> ast;
 };
 // Caller-owned cache. AST reuse always requires identical source text.
 using ParsedSources = std::map<fs::path, ParsedSource>;

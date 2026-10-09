@@ -1,10 +1,9 @@
 #pragma once
+#include "noscheme/meta.hpp"
 #include "noscheme/project.hpp"
-#include <boost/multiprecision/cpp_int.hpp>
 #include <variant>
 
 namespace noscheme {
-using Integer = boost::multiprecision::cpp_int;
 using Value = std::variant<Integer, double, std::string>;
 using Environment = std::map<std::string, Value>;
 struct Limits {
@@ -14,12 +13,12 @@ struct Limits {
 };
 class Evaluator {
   const Symbols &symbols;
-  Value number(Integer value, const Json &span);
-  Value number(double value, const Json &span);
-  double floating(const Value &value, const Json &span);
-  std::string bounded(std::string text, const Json &span);
+  Value number(Integer value, const Span &span);
+  Value number(double value, const Span &span);
+  double floating(const Value &value, const Span &span);
+  std::string bounded(std::string text, const Span &span);
   std::string format(const std::string &text, const std::vector<Value> &args,
-                     const Environment &kwargs, const Json &span);
+                     const Environment &kwargs, const Span &span);
 
 public:
   Limits limits;
@@ -30,16 +29,24 @@ public:
   [[noreturn]] void error(std::string code, std::string message,
                           const Json &span,
                           const Json &related = Json::array()) const;
-  Value evaluate(const Json &expression, const Environment &environment = {},
-                 std::size_t depth = 0);
-  Integer integer(const Value &value, const Json &span,
+  [[noreturn]] void error(std::string code, std::string message,
+                          const Span &span,
+                          const Json &related = Json::array()) const {
+    error(std::move(code), std::move(message), span.json(), related);
+  }
+  Value evaluate(const ast::Node &expression,
+                 const Environment &environment = {}, std::size_t depth = 0);
+  Integer integer(const Value &value, const Span &span,
                   bool explicit_conversion = false);
-  std::size_t dimension(const Value &value, const Json &span);
-  std::size_t index(const Value &value, const Json &span, std::size_t size,
+  std::size_t dimension(const Value &value, const Span &span);
+  std::size_t index(const Value &value, const Span &span, std::size_t size,
                     bool stop = false);
-  std::string display(const Value &value, const Json &span);
+  std::string display(const Value &value, const Span &span);
 };
 Json encoded(const Value &value);
 Value decoded(const Json &value);
+MetaValue to_meta(const Value &value);
+// Numbers and strings; nullopt for other metadata values.
+std::optional<Value> to_value(const MetaValue &value);
 std::string format_quantity(const Value &value, const std::string &quantity);
 } // namespace noscheme

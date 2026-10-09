@@ -31,44 +31,59 @@ public:
     throw Failure("syntax.invalid", message, pos, pos + 1);
   }
 };
+// Comments become one space per character, keeping line breaks, so ANTLR
+// character positions still match the original source.
 std::string mask(const Source &s) {
   antlr4::ANTLRInputStream input(s.text);
   NoSchemeLexer lexer(&input);
   lexer.removeErrorListeners();
-  std::vector<bool> comments(s.text.size(), false);
+  std::vector<std::pair<std::size_t, std::size_t>> comments;
   for (auto token = lexer.nextToken(); token->getType() != antlr4::Token::EOF;
        token = lexer.nextToken()) {
     auto type = token->getType();
     auto b = byte(s, token->getStartIndex()),
          e = byte(s, token->getStopIndex() + 1);
-    if (type == P::BLOCK_COMMENT || type == P::LINE_COMMENT) {
-      for (auto i = b; i < e; ++i)
-        comments[i] = true;
-    } else if (type == P::MUL && token->getText() == "/" &&
-               s.text.compare(b, 2, "/*") == 0)
+    if (type == P::BLOCK_COMMENT || type == P::LINE_COMMENT)
+      comments.emplace_back(b, e);
+    else if (type == P::MUL && token->getText() == "/" &&
+             s.text.compare(b, 2, "/*") == 0)
       throw Failure("syntax.invalid", "unterminated block comment", b, b + 1);
   }
   std::string masked;
-  for (std::size_t i = 0; i + 1 < s.offsets.size(); ++i) {
-    auto b = s.offsets[i], e = s.offsets[i + 1];
-    if (comments[b] && s.text[b] != '\r' && s.text[b] != '\n')
-      masked += ' ';
-    else
-      masked += s.text.substr(b, e - b);
+  masked.reserve(s.text.size() + 1);
+  std::size_t copied = 0;
+  for (auto [b, e] : comments) {
+    masked.append(s.text, copied, b - copied);
+    for (auto i = b; i < e; ++i) {
+      auto c = s.text[i];
+      if (c == '\r' || c == '\n')
+        masked += c;
+      else if ((static_cast<unsigned char>(c) & 0xc0) != 0x80)
+        masked += ' ';
+    }
+    copied = e;
   }
-  Source masked_source(masked, s.filename);
+  masked.append(s.text, copied);
+  // A masked byte's character index locates it in the original source.
+  auto original = [&](std::size_t j) {
+    std::size_t character = 0;
+    for (std::size_t i = 0; i < j; ++i)
+      character += (static_cast<unsigned char>(masked[i]) & 0xc0) != 0x80;
+    return byte(s, character);
+  };
   for (std::size_t i = 0; i < masked.size();) {
     auto e = masked.find('\n', i);
     if (e == std::string::npos)
       e = masked.size();
     auto first = masked.find_first_not_of(" \t\r", i);
     if (first < e)
-      for (auto j = i; j < first; ++j)
-        if (masked[j] == '\t')
-          throw Failure("syntax.indentation",
-                        "tabs are not allowed in indentation",
-                        byte(s, masked_source.characters[j]),
-                        byte(s, masked_source.characters[j] + 1));
+      if (auto tab =
+              std::find(masked.begin() + i, masked.begin() + first, '\t');
+          tab != masked.begin() + first) {
+        auto at = original(tab - masked.begin());
+        throw Failure("syntax.indentation",
+                      "tabs are not allowed in indentation", at, at + 1);
+      }
     i = e + 1;
   }
   if (masked.empty() || masked.back() != '\n')
@@ -128,9 +143,13 @@ std::vector<std::unique_ptr<antlr4::Token>> layout(NoSchemeLexer &lexer,
   }
   return result;
 }
+// Builds typed nodes from the ANTLR tree. Positions come from the parsed
+// text; spans refer to the owner, base bytes later, so a declaration parsed
+// alone still reports positions in its file.
 class Builder {
   const Source &s;
-  Json empty = Json::array();
+  const Source *owner;
+  std::size_t base;
   std::size_t begin(Tree *t) {
     auto *c = dynamic_cast<Ctx *>(t);
     return byte(s,
@@ -144,28 +163,26 @@ class Builder {
                ? s.text.size()
                : byte(s, token->getStopIndex() + 1);
   }
-  Json node(std::string kind, Tree *t, Json fields) {
-    fields["node"] = std::move(kind);
-    fields["span"] = s.span(begin(t), end(t));
-    return fields;
+  Span span(std::size_t b, std::size_t e) const {
+    return {owner, base + b, base + e};
   }
-  Json spanning(std::string kind, const Json &left, const Json &right,
-                Json fields) {
-    fields["node"] = std::move(kind);
-    fields["span"] =
-        s.span(left["span"]["start_pos"], right["span"]["end_pos"]);
-    return fields;
+  Span span(Tree *t) { return span(begin(t), end(t)); }
+  static Span spanning(const ast::Node &left, const ast::Node &right) {
+    return {left.span.source, left.span.start, right.span.end};
   }
-  Json name(Tree *t) { return node("Name", t, object("text", t->getText())); }
-  template <class T> Json all(const std::vector<T *> &items) {
-    Json a = empty;
-    for (auto *item : items)
-      a.push_back(build(item));
-    return a;
+  template <class T> T at(Tree *t) {
+    T node;
+    node.span = span(t);
+    return node;
   }
-  Json string(Tree *t) {
+  template <class T> std::shared_ptr<T> shared(Span where) {
+    auto node = std::make_shared<T>();
+    node->span = where;
+    return node;
+  }
+  std::string string(Tree *t) {
     try {
-      return Json::parse(t->getText());
+      return Json::parse(t->getText()).get<std::string>();
     } catch (const Json::exception &) {
       throw Failure("syntax.string",
                     "invalid string escape; use JSON-style string escapes",
@@ -193,310 +210,356 @@ class Builder {
     }
     return scale >= 0 || digits.empty() ? "integer" : "double";
   }
-  Json suffix(Json result, Tree *tree) {
-    auto *x = dynamic_cast<P::SuffixContext *>(tree);
+  ast::Name name(Tree *t) {
+    auto result = at<ast::Name>(t);
+    result.text = t->getText();
+    return result;
+  }
+  std::vector<ast::Name> path(P::PathContext *x) {
+    std::vector<ast::Name> result;
+    for (auto *n : x->name())
+      result.push_back(name(n));
+    return result;
+  }
+  ast::Ptr member(ast::Ptr base, ast::Name field) {
+    auto result = shared<ast::Member>(spanning(*base, field));
+    result->base = std::move(base);
+    result->name = std::move(field);
+    return result;
+  }
+  ast::Ptr subscript(ast::Ptr base, ast::Index selection) {
+    auto result = shared<ast::Subscript>(spanning(*base, selection));
+    result->base = std::move(base);
+    result->selection = std::move(selection);
+    return result;
+  }
+  ast::Ptr suffix(ast::Ptr result, P::SuffixContext *x) {
     if (x->name())
-      return spanning("Member", result, build(x->name()),
-                      object("base", result, "name", build(x->name())));
+      return member(std::move(result), name(x->name()));
     if (x->index())
-      return spanning("Subscript", result, build(x->index()),
-                      object("base", result, "selection", build(x->index())));
-    Json args = empty, kwargs = empty;
+      return subscript(std::move(result), index(x->index()));
+    auto call = shared<ast::Call>(
+        {result->span.source, result->span.start, span(x).end});
     std::set<std::string> seen;
     for (auto *arg : x->callArgument()) {
       if (arg->EQUAL()) {
-        auto n = build(arg->name());
-        auto text = n["text"].get<std::string>();
-        if (!seen.insert(text).second)
+        auto keyword = at<ast::KeywordArgument>(arg);
+        keyword.name = name(arg->name());
+        if (!seen.insert(keyword.name.text).second)
           throw Failure("syntax.duplicate",
-                        "duplicate named argument '" + text + "'",
+                        "duplicate named argument '" + keyword.name.text + "'",
                         begin(arg->name()), end(arg->name()));
-        kwargs.push_back(node("KeywordArgument", arg,
-                              object("name", n, "value", build(arg->expr()))));
+        keyword.value = expr(arg->expr());
+        call->keywords.push_back(std::move(keyword));
       } else {
-        if (!kwargs.empty())
+        if (!call->keywords.empty())
           throw Failure("syntax.argument-order",
                         "positional arguments must precede named arguments",
                         begin(arg), end(arg));
-        args.push_back(build(arg->expr()));
+        call->arguments.push_back(expr(arg->expr()));
       }
     }
-    auto call =
-        node("Call", x,
-             object("callee", result, "arguments", args, "keywords", kwargs));
-    call["span"] = s.span(result["span"]["start_pos"], end(x));
+    call->callee = std::move(result);
     return call;
   }
-
-public:
-  explicit Builder(const Source &s) : s(s) {}
-  Json build(Tree *tree) {
+  ast::Index index(P::IndexContext *x) {
+    auto result = at<ast::Index>(x);
+    result.start = expr(x->expr(0));
+    if (x->COLON())
+      result.stop = expr(x->expr(1));
+    return result;
+  }
+  template <class T>
+  std::vector<ast::Index> indices(const std::vector<T *> &xs) {
+    std::vector<ast::Index> result;
+    for (auto *x : xs)
+      result.push_back(index(x));
+    return result;
+  }
+  ast::Ptr reference(P::ReferenceContext *x) {
+    auto first = name(x->name(0));
+    ast::Ptr result = std::make_shared<ast::Name>(std::move(first));
+    for (std::size_t i = 1; i < x->children.size(); ++i) {
+      auto *child = x->children[i];
+      if (auto *n = dynamic_cast<P::NameContext *>(child))
+        result = member(std::move(result), name(n));
+      else if (auto *selection = dynamic_cast<P::IndexContext *>(child))
+        result = subscript(std::move(result), index(selection));
+    }
+    return result;
+  }
+  ast::Ptr atom(P::AtomContext *x) {
+    if (x->name())
+      return std::make_shared<ast::Name>(name(x->name()));
+    if (x->STRING()) {
+      auto result = shared<ast::String>(span(x));
+      result->value = string(x);
+      result->spelling = x->getText();
+      return result;
+    }
+    if (x->LPAREN()) {
+      auto result = shared<ast::Group>(span(x));
+      result->expression = expr(x->expr(0));
+      return result;
+    }
+    if (x->LBRACK()) {
+      auto result = shared<ast::ListExpr>(span(x));
+      for (auto *item : x->expr())
+        result->items.push_back(expr(item));
+      return result;
+    }
+    auto type = x->SCALED() ? tag(x->getText())
+                : x->INT()  ? "integer"
+                            : "double";
+    if (type == "invalid")
+      throw Failure(
+          "syntax.number",
+          "a scaled number has one decimal mark: 4.7k or 4k7, not 4.7k7",
+          begin(x), end(x));
+    auto result = shared<ast::Number>(span(x));
+    result->spelling = x->getText();
+    result->integer = type == "integer";
+    return result;
+  }
+  ast::Ptr expr(Tree *tree) {
     auto *ctx = dynamic_cast<Ctx *>(tree);
-    if (!ctx)
-      throw std::logic_error("expected parser rule");
     switch (ctx->getRuleIndex()) {
-    case P::RuleModule: {
-      Json items = empty;
-      for (auto *child : ctx->children)
-        if (dynamic_cast<Ctx *>(child))
-          items.push_back(build(child));
-      return object("node", "Module", "span", s.span(0, s.text.size()), "items",
-                    std::move(items));
-    }
-    case P::RuleName:
-      return name(ctx);
-    case P::RulePath: {
-      auto *x = static_cast<P::PathContext *>(ctx);
-      return all(x->name());
-    }
-    case P::RuleImportDecl: {
-      auto *x = static_cast<P::ImportDeclContext *>(ctx);
-      return node(
-          "Import", x,
-          object("module", build(x->path()), "names", all(x->importedName())));
-    }
-    case P::RuleImportedName: {
-      auto *x = static_cast<P::ImportedNameContext *>(ctx);
-      return node("ImportedName", x,
-                  object("name", build(x->name(0)), "alias",
-                         x->AS() ? build(x->name(1)) : Json(nullptr)));
-    }
-    case P::RuleDefinition: {
-      auto *x = static_cast<P::DefinitionContext *>(ctx);
-      return node("Definition", x,
-                  object("kind", x->kind()->getText(), "name", build(x->name()),
-                         "base", x->path() ? build(x->path()) : Json(nullptr),
-                         "body", all(x->definitionItem())));
-    }
-    case P::RuleDefinitionItem:
-    case P::RuleInstSection:
     case P::RuleExpr:
-      return build(ctx->children[0]);
-    case P::RuleSection: {
-      auto *x = static_cast<P::SectionContext *>(ctx);
-      return node("Section", x,
-                  object("name", x->sectionName()->getText(), "entries",
-                         all(x->field())));
-    }
-    case P::RuleField: {
-      auto *x = static_cast<P::FieldContext *>(ctx);
-      return node(
-          "Field", x,
-          object("key", build(x->fieldKey()), "value",
-                 x->expr().empty() ? Json(nullptr) : build(x->expr(0)),
-                 "default",
-                 x->expr().size() < 2 ? Json(nullptr) : build(x->expr(1)),
-                 "fields", all(x->field())));
-    }
-    case P::RulePinKey:
-      return node("PinKey", ctx,
-                  object("text",
-                         ctx->getText().starts_with('"') ? string(ctx)
-                                                         : Json(ctx->getText()),
-                         "spelling", ctx->getText()));
-    case P::RuleKeyItem: {
-      auto *x = static_cast<P::KeyItemContext *>(ctx);
-      return node("FieldKey", x,
-                  object("first", build(x->pinKey(0)), "last",
-                         x->RANGE() ? build(x->pinKey(1)) : Json(nullptr),
-                         "items", empty));
-    }
-    case P::RuleFieldKey: {
-      auto *x = static_cast<P::FieldKeyContext *>(ctx);
-      if (!x->LBRACK())
-        return build(x->keyItem(0));
-      auto items = all(x->keyItem());
-      return node(
-          "FieldKey", x,
-          object("first", items[0]["first"], "last", nullptr, "items", items));
-    }
-    case P::RuleNetDecl: {
-      auto *x = static_cast<P::NetDeclContext *>(ctx);
-      return node("Net", x,
-                  object("name", build(x->name()), "type", build(x->expr()),
-                         "global_", x->GLOBAL() != nullptr, "fields",
-                         all(x->field())));
-    }
-    case P::RuleIndex: {
-      auto *x = static_cast<P::IndexContext *>(ctx);
-      return node("Index", x,
-                  object("start", build(x->expr(0)), "stop",
-                         x->COLON() ? build(x->expr(1)) : Json(nullptr)));
-    }
-    case P::RuleEndpoint: {
-      auto *x = static_cast<P::EndpointContext *>(ctx);
-      Json selectors = empty;
-      for (auto *sel : x->endpointSuffix())
-        selectors.push_back(sel->name() ? build(sel->name())
-                                        : build(sel->index()));
-      return node("Endpoint", x,
-                  object("instance_indices", all(x->index()), "head",
-                         build(x->fieldKey()), "selectors", selectors));
-    }
-    case P::RuleBinding: {
-      auto *x = static_cast<P::BindingContext *>(ctx);
-      return node("Binding", x,
-                  object("endpoint", build(x->endpoint()), "target",
-                         build(x->reference())));
-    }
-    case P::RuleArgument: {
-      auto *x = static_cast<P::ArgumentContext *>(ctx);
-      return node("Argument", x,
-                  object("name", build(x->name()), "value", build(x->expr())));
-    }
-    case P::RuleConnections: {
-      auto *x = static_cast<P::ConnectionsContext *>(ctx);
-      return node("Section", x,
-                  object("name", "connections", "entries", all(x->binding())));
-    }
-    case P::RuleArguments: {
-      auto *x = static_cast<P::ArgumentsContext *>(ctx);
-      return node("Section", x,
-                  object("name", "params", "entries", all(x->argument())));
-    }
-    case P::RuleInstanceMetadata: {
-      auto *x = static_cast<P::InstanceMetadataContext *>(ctx);
-      return node("Section", x,
-                  object("name", "metadata", "entries", all(x->field())));
-    }
-    case P::RuleElements: {
-      auto *x = static_cast<P::ElementsContext *>(ctx);
-      return node(
-          "Section", x,
-          object("name", "elements", "entries", all(x->elementOverride())));
-    }
-    case P::RuleElementOverride: {
-      auto *x = static_cast<P::ElementOverrideContext *>(ctx);
-      Json sections = empty;
-      for (auto *child : x->children)
-        if (dynamic_cast<P::ArgumentsContext *>(child) ||
-            dynamic_cast<P::InstanceMetadataContext *>(child))
-          sections.push_back(build(child));
-      return node(
-          "ElementOverride", x,
-          object("indices", all(x->index()), "sections", std::move(sections)));
-    }
-    case P::RuleInstance: {
-      auto *x = static_cast<P::InstanceContext *>(ctx);
-      Json positional = empty, bindings = empty, params = empty,
-           sections = all(x->instSection());
-      if (auto *args = x->inlineArguments())
-        for (auto *arg : args->inlineArgument()) {
-          if (arg->COLON()) {
-            auto pk = build(arg->pinKey());
-            auto key =
-                node("FieldKey", arg->pinKey(),
-                     object("first", pk, "last", nullptr, "items", empty));
-            auto ep = node("Endpoint", arg->pinKey(),
-                           object("instance_indices", empty, "head", key,
-                                  "selectors", empty));
-            bindings.push_back(node(
-                "Binding", arg,
-                object("endpoint", ep, "target", build(arg->reference()))));
-          } else if (arg->EQUAL())
-            params.push_back(node("Argument", arg,
-                                  object("name", build(arg->name()), "value",
-                                         build(arg->expr()))));
-          else
-            positional.push_back(build(arg->reference()));
-        }
-      for (auto &section : sections) {
-        Json *in = section["name"] == "connections" ? &bindings
-                   : section["name"] == "params"    ? &params
-                                                    : nullptr;
-        if (in) {
-          for (auto &entry : section["entries"])
-            in->push_back(std::move(entry));
-          section["entries"] = std::move(*in);
-          *in = Json::array();
-        }
-      }
-      if (!bindings.empty())
-        sections.push_back(node(
-            "Section", x->inlineArguments(),
-            object("name", "connections", "entries", std::move(bindings))));
-      if (!params.empty())
-        sections.push_back(
-            node("Section", x->inlineArguments(),
-                 object("name", "params", "entries", std::move(params))));
-      return node("Instance", x,
-                  object("name", build(x->name()), "dimensions",
-                         all(x->index()), "component", build(x->path()),
-                         "sections", std::move(sections), "positional",
-                         std::move(positional)));
-    }
+      return expr(ctx->children[0]);
     case P::RuleShift:
     case P::RuleSum:
     case P::RuleProduct: {
-      auto result = build(ctx->children[0]);
+      auto result = expr(ctx->children[0]);
       for (std::size_t i = 1; i < ctx->children.size(); i += 2) {
-        auto right = build(ctx->children[i + 1]);
-        result = spanning("Binary", result, right,
-                          object("operator", ctx->children[i]->getText(),
-                                 "left", result, "right", right));
+        auto right = expr(ctx->children[i + 1]);
+        auto binary = shared<ast::Binary>(spanning(*result, *right));
+        binary->op = ctx->children[i]->getText();
+        binary->left = std::move(result);
+        binary->right = std::move(right);
+        result = std::move(binary);
       }
       return result;
     }
     case P::RuleUnary: {
       auto *x = static_cast<P::UnaryContext *>(ctx);
       if (x->postfix())
-        return build(x->postfix());
-      return node("Unary", x,
-                  object("operator", x->ADD()->getText(), "operand",
-                         build(x->unary())));
+        return expr(x->postfix());
+      auto result = shared<ast::Unary>(span(x));
+      result->op = x->ADD()->getText();
+      result->operand = expr(x->unary());
+      return result;
     }
     case P::RulePostfix: {
       auto *x = static_cast<P::PostfixContext *>(ctx);
-      auto result = build(x->atom());
-      for (auto *sel : x->suffix())
-        result = suffix(std::move(result), sel);
+      auto result = atom(x->atom());
+      for (auto *selection : x->suffix())
+        result = suffix(std::move(result), selection);
       return result;
     }
-    case P::RuleReference: {
-      auto *x = static_cast<P::ReferenceContext *>(ctx);
-      auto result = build(x->name(0));
-      for (std::size_t i = 1; i < x->children.size(); ++i) {
-        auto *child = x->children[i];
-        if (dynamic_cast<P::NameContext *>(child)) {
-          auto n = build(child);
-          result =
-              spanning("Member", result, n, object("base", result, "name", n));
-        } else if (dynamic_cast<P::IndexContext *>(child)) {
-          auto index = build(child);
-          result = spanning("Subscript", result, index,
-                            object("base", result, "selection", index));
-        }
+    case P::RuleReference:
+      return reference(static_cast<P::ReferenceContext *>(ctx));
+    default:
+      throw std::logic_error("unhandled generated expression rule");
+    }
+  }
+  ast::PinKey pin_key(P::PinKeyContext *x) {
+    auto result = at<ast::PinKey>(x);
+    result.spelling = x->getText();
+    result.text =
+        result.spelling.starts_with('"') ? string(x) : result.spelling;
+    return result;
+  }
+  ast::FieldKey key_item(P::KeyItemContext *x) {
+    auto result = at<ast::FieldKey>(x);
+    result.first = pin_key(x->pinKey(0));
+    if (x->RANGE())
+      result.last = pin_key(x->pinKey(1));
+    return result;
+  }
+  ast::FieldKey field_key(P::FieldKeyContext *x) {
+    if (!x->LBRACK())
+      return key_item(x->keyItem(0));
+    auto result = at<ast::FieldKey>(x);
+    for (auto *item : x->keyItem())
+      result.items.push_back(key_item(item));
+    result.first = result.items.front().first;
+    return result;
+  }
+  ast::Field field(P::FieldContext *x) {
+    auto result = at<ast::Field>(x);
+    result.key = field_key(x->fieldKey());
+    if (!x->expr().empty())
+      result.value = expr(x->expr(0));
+    if (x->expr().size() > 1)
+      result.default_value = expr(x->expr(1));
+    result.fields = fields(x->field());
+    return result;
+  }
+  std::vector<ast::Field> fields(const std::vector<P::FieldContext *> &xs) {
+    std::vector<ast::Field> result;
+    for (auto *x : xs)
+      result.push_back(field(x));
+    return result;
+  }
+  template <class T>
+  ast::Section section(Tree *t, std::string section_name,
+                       const std::vector<T *> &entries) {
+    auto result = at<ast::Section>(t);
+    result.name = std::move(section_name);
+    for (auto *entry : entries)
+      result.entries.push_back(entry_node(entry));
+    return result;
+  }
+  ast::Ptr entry_node(P::FieldContext *x) {
+    return std::make_shared<ast::Field>(field(x));
+  }
+  ast::Ptr entry_node(P::BindingContext *x) {
+    auto result = std::make_shared<ast::Binding>(at<ast::Binding>(x));
+    auto *e = x->endpoint();
+    auto &endpoint = result->endpoint;
+    endpoint.span = span(e);
+    endpoint.instance_indices = indices(e->index());
+    endpoint.head = field_key(e->fieldKey());
+    for (auto *selection : e->endpointSuffix())
+      endpoint.selectors.push_back(
+          selection->name()
+              ? ast::Ptr(std::make_shared<ast::Name>(name(selection->name())))
+              : std::make_shared<ast::Index>(index(selection->index())));
+    result->target = reference(x->reference());
+    return result;
+  }
+  ast::Ptr entry_node(P::ArgumentContext *x) {
+    auto result = std::make_shared<ast::Argument>(at<ast::Argument>(x));
+    result->name = name(x->name());
+    result->value = expr(x->expr());
+    return result;
+  }
+  ast::Ptr entry_node(P::ElementOverrideContext *x) {
+    auto result =
+        std::make_shared<ast::ElementOverride>(at<ast::ElementOverride>(x));
+    result->indices = indices(x->index());
+    for (auto *child : x->children)
+      if (dynamic_cast<P::ArgumentsContext *>(child) ||
+          dynamic_cast<P::InstanceMetadataContext *>(child))
+        result->sections.push_back(inst_section(child));
+    return result;
+  }
+  ast::Section inst_section(Tree *t) {
+    auto *ctx = dynamic_cast<Ctx *>(t);
+    if (ctx->getRuleIndex() == P::RuleInstSection)
+      return inst_section(ctx->children[0]);
+    if (auto *x = dynamic_cast<P::ConnectionsContext *>(t))
+      return section(x, "connections", x->binding());
+    if (auto *x = dynamic_cast<P::ArgumentsContext *>(t))
+      return section(x, "params", x->argument());
+    if (auto *x = dynamic_cast<P::InstanceMetadataContext *>(t))
+      return section(x, "metadata", x->field());
+    auto *x = static_cast<P::ElementsContext *>(t);
+    return section(x, "elements", x->elementOverride());
+  }
+  ast::Ptr instance(P::InstanceContext *x) {
+    auto result = std::make_shared<ast::Instance>(at<ast::Instance>(x));
+    result->name = name(x->name());
+    result->dimensions = indices(x->index());
+    result->component = path(x->path());
+    for (auto *child : x->instSection())
+      result->sections.push_back(inst_section(child));
+    std::vector<ast::Ptr> bindings, params;
+    if (auto *args = x->inlineArguments())
+      for (auto *arg : args->inlineArgument()) {
+        if (arg->COLON()) {
+          auto binding = std::make_shared<ast::Binding>(at<ast::Binding>(arg));
+          auto &endpoint = binding->endpoint;
+          endpoint.span = span(arg->pinKey());
+          endpoint.head.span = endpoint.span;
+          endpoint.head.first = pin_key(arg->pinKey());
+          binding->target = reference(arg->reference());
+          bindings.push_back(std::move(binding));
+        } else if (arg->EQUAL()) {
+          auto argument =
+              std::make_shared<ast::Argument>(at<ast::Argument>(arg));
+          argument->name = name(arg->name());
+          argument->value = expr(arg->expr());
+          params.push_back(std::move(argument));
+        } else
+          result->positional.push_back(reference(arg->reference()));
+      }
+    // Inline arguments join the first section of their kind, before its own
+    // entries; otherwise they form a section at the end.
+    for (auto &section : result->sections) {
+      auto *inline_entries = section.name == "connections" ? &bindings
+                             : section.name == "params"    ? &params
+                                                           : nullptr;
+      if (!inline_entries)
+        continue;
+      for (auto &entry : section.entries)
+        inline_entries->push_back(std::move(entry));
+      section.entries = std::move(*inline_entries);
+      inline_entries->clear();
+    }
+    for (auto [entries, section_name] :
+         {std::pair{&bindings, "connections"}, std::pair{&params, "params"}})
+      if (!entries->empty()) {
+        auto section = at<ast::Section>(x->inlineArguments());
+        section.name = section_name;
+        section.entries = std::move(*entries);
+        result->sections.push_back(std::move(section));
+      }
+    return result;
+  }
+  ast::Ptr definition_item(P::DefinitionItemContext *x) {
+    if (auto *i = x->instance())
+      return instance(i);
+    if (auto *n = x->netDecl()) {
+      auto result = std::make_shared<ast::Net>(at<ast::Net>(n));
+      result->name = name(n->name());
+      result->type = expr(n->expr());
+      result->global = n->GLOBAL() != nullptr;
+      result->fields = fields(n->field());
+      return result;
+    }
+    if (auto *s = x->section())
+      return std::make_shared<ast::Section>(
+          section(s, s->sectionName()->getText(), s->field()));
+    return entry_node(x->field());
+  }
+  ast::Ptr item(Ctx *ctx) {
+    if (auto *x = dynamic_cast<P::ImportDeclContext *>(ctx)) {
+      auto result = std::make_shared<ast::Import>(at<ast::Import>(x));
+      result->module = path(x->path());
+      for (auto *imported : x->importedName()) {
+        auto entry = at<ast::ImportedName>(imported);
+        entry.name = name(imported->name(0));
+        if (imported->AS())
+          entry.alias = name(imported->name(1));
+        result->names.push_back(std::move(entry));
       }
       return result;
     }
-    case P::RuleAtom: {
-      auto *x = static_cast<P::AtomContext *>(ctx);
-      if (x->name())
-        return build(x->name());
-      if (x->STRING())
-        return node("String", x,
-                    object("value", string(x), "spelling", x->getText()));
-      if (x->LPAREN())
-        return node("Group", x, object("expression", build(x->expr(0))));
-      if (x->LBRACK())
-        return node("ListExpr", x, object("items", all(x->expr())));
-      auto type = x->SCALED() ? tag(x->getText())
-                  : x->INT()  ? "integer"
-                              : "double";
-      if (type == "invalid")
-        throw Failure(
-            "syntax.number",
-            "a scaled number has one decimal mark: 4.7k or 4k7, not 4.7k7",
-            begin(x), end(x));
-      return node("Number", x, object("spelling", x->getText(), "tag", type));
-    }
-    default:
-      throw std::logic_error("unhandled generated parser rule");
-    }
+    auto *x = static_cast<P::DefinitionContext *>(ctx);
+    auto result = std::make_shared<ast::Definition>(at<ast::Definition>(x));
+    result->keyword = x->kind()->getText();
+    result->name = name(x->name());
+    if (x->path())
+      result->base = path(x->path());
+    for (auto *child : x->definitionItem())
+      result->body.push_back(definition_item(child));
+    return result;
+  }
+
+public:
+  Builder(const Source &s, const Source *owner, std::size_t base)
+      : s(s), owner(owner), base(base) {}
+  std::vector<ast::Ptr> module(P::ModuleContext *ctx) {
+    std::vector<ast::Ptr> items;
+    for (auto *child : ctx->children)
+      if (auto *c = dynamic_cast<Ctx *>(child))
+        items.push_back(item(c));
+    return items;
   }
 };
-} // namespace
-Json parse(const Source &source, ParseTimings *timings) {
+std::vector<ast::Ptr> parse_items(const Source &source, const Source *owner,
+                                  std::size_t base, ParseTimings *timings) {
   auto start = std::chrono::steady_clock::now();
   auto elapsed = [&] {
     auto end = std::chrono::steady_clock::now();
@@ -536,14 +599,39 @@ Json parse(const Source &source, ParseTimings *timings) {
   }
   if (timings)
     timings->syntax = elapsed();
-  auto result = Builder(source).build(tree);
+  auto items = Builder(source, owner, base).module(tree);
   if (timings)
     timings->ast = elapsed();
-  auto diagnostics = validate_structure(result);
+  return items;
+}
+std::shared_ptr<const ast::Module>
+validated(std::shared_ptr<const Source> source, std::vector<ast::Ptr> items,
+          ParseTimings *timings) {
+  auto start = std::chrono::steady_clock::now();
+  auto result = std::make_shared<ast::Module>();
+  result->span = {source.get(), 0, source->text.size()};
+  result->source = std::move(source);
+  result->items = std::move(items);
+  auto diagnostics = validate_structure(*result);
   if (timings)
-    timings->validation = elapsed();
+    timings->validation =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - start)
+            .count();
   if (!diagnostics.empty())
     throw DiagnosticsFailure(std::move(diagnostics));
   return result;
+}
+} // namespace
+std::shared_ptr<const ast::Module> parse(std::shared_ptr<const Source> source,
+                                         ParseTimings *timings) {
+  auto items = parse_items(*source, source.get(), 0, timings);
+  return validated(std::move(source), std::move(items), timings);
+}
+std::shared_ptr<const ast::Module>
+parse_fragment(std::shared_ptr<const Source> source, std::size_t begin,
+               std::size_t end) {
+  Source fragment(source->text.substr(begin, end - begin), source->filename);
+  auto items = parse_items(fragment, source.get(), begin, nullptr);
+  return validated(std::move(source), std::move(items), nullptr);
 }
 } // namespace noscheme

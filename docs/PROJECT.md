@@ -13,6 +13,9 @@ KiCad handles physical placement and routing.
 
 The Python compiler implements parsing, project loading, resolution, parameter
 evaluation, circuit expansion, ERC, library conversion, and KiCad netlist export.
+It remains the default. An optional [C++23 backend](../cpp/README.md) shares its
+compiler core between the CLI and LSP, including native standard ERC and KiCad
+export, while retaining Python support for project ERC plugins.
 The STM32 reference board's exported netlist has populated PCB Editor successfully;
 it has not been routed or hardware-qualified. The Rulos example reconstructs an
 existing design and verifies its connectivity against Eagle source data.
