@@ -64,8 +64,15 @@ class Builder:
             ) from exc
         return value
 
+    def pin_key(self, token):
+        text = self.string(token) if token.type == "STRING" else str(token)
+        return a.PinKey(self.span(token), text, str(token))
+
     def key(self, node):
         if isinstance(node, Tree):
+            if node.data == "aliased_key":
+                first, *aliases = (self.pin_key(c) for c in node.children)
+                return a.FieldKey(self.span(node), first, aliases=tuple(aliases))
             if node.data in {"single_pin_list", "singleton_endpoint"}:
                 index = self.index(node.children[0])
                 expr = index.start
@@ -109,8 +116,7 @@ class Builder:
                 return a.FieldKey(self.span(node), first.first, items=items)
             keys = [self.key(c).first for c in node.children]
             return a.FieldKey(self.span(node), keys[0], keys[1] if len(keys) > 1 else None)
-        text = self.string(node) if node.type == "STRING" else str(node)
-        return a.FieldKey(self.span(node), a.PinKey(self.span(node), text, str(node)))
+        return a.FieldKey(self.span(node), self.pin_key(node))
 
     def expr(self, node):
         if isinstance(node, Token):
@@ -141,6 +147,20 @@ class Builder:
             return a.ListExpr(span, tuple(self.expr(x) for x in c))
         if kind == "grouped":
             return a.Group(span, self.expr(c[0]))
+        if kind == "call_target":
+            callee = self.name(c[0])
+            if callee.text != "flat":
+                raise DiagnosticError(
+                    [
+                        Diagnostic(
+                            "syntax.target",
+                            "error",
+                            "a connection target is a net reference or flat(net)",
+                            callee.span,
+                        )
+                    ]
+                )
+            return a.Call(span, callee, (self.expr(c[1]),))
         if kind == "unary":
             return a.Unary(span, str(c[0]), self.expr(c[1]))
         if kind in {"sum", "product", "shift"}:
@@ -227,10 +247,17 @@ class Builder:
         connections and inline parameters its params; a duplicate is reported as
         such rather than as a second section.
         """
-        positional, entries = [], {"connections": [], "params": []}
+        positional, entries, wildcard = [], {"connections": [], "params": []}, None
         for argument in arguments.children if arguments is not None else ():
             c = argument.children
-            if argument.data == "positional_argument":
+            if argument.data == "wildcard_argument":
+                if str(c[0]) != "*" or wildcard is not None:
+                    message = "write one * to connect same-name nets"
+                    raise DiagnosticError(
+                        [Diagnostic("syntax.wildcard", "error", message, self.span(argument))]
+                    )
+                wildcard = self.span(argument)
+            elif argument.data == "positional_argument":
                 positional.append(self.expr(c[0]))
             elif argument.data == "inline_binding":
                 entries["connections"].append(
@@ -248,7 +275,17 @@ class Builder:
         merged.extend(
             a.Section(span, kind, tuple(found)) for kind, found in entries.items() if found
         )
-        return tuple(merged), tuple(positional)
+        return tuple(merged), tuple(positional), wildcard
+
+    def field_value(self, node):
+        if isinstance(node, Tree) and node.data == "range_value":
+            return a.Range(
+                self.span(node), self.expr(node.children[0]), self.expr(node.children[1])
+            )
+        if isinstance(node, Tree) and node.data == "tolerance_value":
+            c = node.children
+            return a.Tolerance(self.span(node), self.expr(c[0]), self.expr(c[2]), len(c) > 3)
+        return self.expr(node)
 
     def field(self, node):
         c = node.children
@@ -257,7 +294,7 @@ class Builder:
         return a.Field(
             self.span(node),
             self.key(c[0]),
-            self.expr(values[0]) if values else None,
+            self.field_value(values[0]) if values else None,
             self.expr(values[1]) if len(values) > 1 else None,
             nested,
         )
@@ -287,12 +324,16 @@ class Builder:
             if len(c) > 2 and c[2].data == "extends":
                 base = tuple(self.name(x) for x in c[2].children[0].children)
                 offset = 3
+            body = []
+            for x in c[offset:]:
+                item = self.build(x)
+                body.extend(item if isinstance(item, tuple) else (item,))
             return a.Definition(
                 span,
                 str(c[0].data).removesuffix("_kind"),
                 self.name(c[1]),
                 base,
-                tuple(self.build(x) for x in c[offset:]),
+                tuple(body),
             )
         if kind == "section":
             return a.Section(
@@ -303,13 +344,12 @@ class Builder:
         if kind == "net_decl":
             global_ = isinstance(c[0], Tree) and c[0].data == "global_modifier"
             rest = c[1:] if global_ else c
-            return a.Net(
-                span,
-                self.name(rest[0]),
-                self.expr(rest[1]),
-                global_,
-                tuple(self.field(x) for x in rest[2:]),
-            )
+            # `net a, b: T` declares one net per name, sharing the type and fields.
+            names = [x for x in rest if isinstance(x, Token)]
+            type_ = self.expr(rest[len(names)])
+            fields = tuple(self.field(x) for x in rest[len(names) + 1 :])
+            nets = tuple(a.Net(span, self.name(x), type_, global_, fields) for x in names)
+            return nets if len(nets) > 1 else nets[0]
         if kind == "instance":
             i = 1
             dimensions = []
@@ -318,7 +358,14 @@ class Builder:
                 i += 1
             rest = c[i + 1 :]
             arguments = rest.pop(0) if rest and rest[0].data == "inline_arguments" else None
-            sections, positional = self.instance_arguments(arguments, [self.build(x) for x in rest])
+            # Bindings precede the sections and form the connections section.
+            bindings = [x for x in rest if x.data == "binding"]
+            body = [self.build(x) for x in rest[len(bindings) :]]
+            if bindings:
+                entries = tuple(self.build(x) for x in bindings)
+                connections_span = self.combine(entries[0], entries[-1])
+                body.insert(0, a.Section(connections_span, "connections", entries))
+            sections, positional, wildcard = self.instance_arguments(arguments, body)
             return a.Instance(
                 span,
                 self.name(c[0]),
@@ -326,14 +373,14 @@ class Builder:
                 tuple(self.name(x) for x in c[i].children),
                 sections,
                 positional,
+                wildcard,
             )
         if kind == "element_override":
             indices = tuple(self.index(x) for x in c if x.data == "index")
             return a.ElementOverride(span, indices, tuple(self.build(x) for x in c[len(indices) :]))
-        if kind in {"connections", "arguments", "instance_metadata", "elements"}:
+        if kind in {"arguments", "instance_metadata", "elements"}:
             names = {
                 "elements": "elements",
-                "connections": "connections",
                 "arguments": "params",
                 "instance_metadata": "metadata",
             }
@@ -379,9 +426,23 @@ def validate_structure(module):
             )
         return (k.first.text, k.last.text if k.last else None)
 
-    def fields(entries, defaults=False, *, pin_keys=False, instance_metadata=False):
+    def fields(entries, defaults=False, *, pin_keys=False, instance_metadata=False, pins=False):
         unique(entries, field_key)
         for f in entries:
+            if f.key.aliases and not pins:
+                error(
+                    "syntax.alias-context",
+                    "pin aliases are declared in a component's pins section",
+                    f.key,
+                )
+            if isinstance(f.value, (a.Range, a.Tolerance)) and (
+                f.key.first.text != "voltage" or f.default is not None
+            ):
+                error(
+                    "syntax.range-context",
+                    "ranges and tolerances are only valid as a voltage value",
+                    f.value,
+                )
             if f.key.items and not pin_keys:
                 error(
                     "syntax.pin-list-context",
@@ -455,7 +516,12 @@ def validate_structure(module):
                         f"{n.name} section is not allowed in this {d.kind} definition",
                         n,
                     )
-                fields(n.entries, n.name == "params", pin_keys=n.name == "pins")
+                fields(
+                    n.entries,
+                    n.name == "params",
+                    pin_keys=n.name == "pins",
+                    pins=n.name == "pins" and d.kind == "component",
+                )
             elif isinstance(n, a.Field):
                 if d.kind == "nettype":
                     continue  # Net metadata fields, validated together below.

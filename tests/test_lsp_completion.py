@@ -7,8 +7,7 @@ from test_circuit import make
 PRELUDE = """from noscheme import role, nettype
 component Receiver:
   pins:
-    01:
-      aliases: [signal, rx#]
+    01 (signal, rx#):
       role: role.digital_input
     "odd-pin":
       role: role.passive
@@ -63,7 +62,7 @@ board B:
 
 
 def test_incomplete_connection_section_inherited_aliases(tmp_path):
-    suggestions = complete(tmp_path, PRELUDE + "  inst r: Specialized\n    connections:\n      |")
+    suggestions = complete(tmp_path, PRELUDE + "  inst r: Specialized\n    |")
     assert set(suggestions) == {"01", "signal", "rx#", "odd-pin"}
     assert suggestions["odd-pin"].text == '"odd-pin"'
     assert suggestions["01"].text == "01"
@@ -72,25 +71,21 @@ def test_incomplete_connection_section_inherited_aliases(tmp_path):
 def test_pin_replaces_whole_token_and_preserves_colon(tmp_path):
     suggestions = complete(
         tmp_path,
-        PRELUDE + "  inst r: Receiver\n    connections:\n      si|gnal: net\n",
+        PRELUDE + "  inst r: Receiver\n    si|gnal: net\n",
     )
     item = suggestions["signal"]
     assert item.end - item.start == len("signal")
 
 
 def test_array_element_pin_prefix(tmp_path):
-    suggestions = complete(
-        tmp_path, PRELUDE + "  inst r[2]: Receiver\n    connections:\n      [0].rx|"
-    )
+    suggestions = complete(tmp_path, PRELUDE + "  inst r[2]: Receiver\n    [0].rx|")
     assert set(suggestions) == {"rx#"}
 
 
 def test_no_pin_completion_in_params_or_after_closed_instance(tmp_path):
     assert not complete(tmp_path, PRELUDE + "  inst r: Receiver\n    params:\n      si|")
     assert not complete(tmp_path, PRELUDE + "  inst r: Receiver()\n  si|")
-    assert not complete(
-        tmp_path, PRELUDE + "  inst r: Receiver\n    connections:\n      signal: si|"
-    )
+    assert not complete(tmp_path, PRELUDE + "  inst r: Receiver\n    signal: si|")
 
 
 def test_builtin_namespace_uses_registry_and_explicit_import(tmp_path):
@@ -123,7 +118,7 @@ def test_imported_components_and_aliases_use_unsaved_library(tmp_path):
     )
     make(tmp_path, "")
     path = tmp_path / "main.nosch"
-    source = "from lib import Other\nboard B:\n  inst r: Other\n    connections:\n      "
+    source = "from lib import Other\nboard B:\n  inst r: Other\n    "
     library = (
         "from noscheme import role\ncomponent Other:\n  pins:\n    new:\n      role: role.passive\n"
     )

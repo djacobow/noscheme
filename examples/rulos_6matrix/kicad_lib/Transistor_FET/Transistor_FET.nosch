@@ -4,18 +4,15 @@ component Q_PMOS_GSD:
   params:
     value: string = "Q_PMOS_GSD"
   pins:
-    "1":
-      aliases: ["G"]
+    "1" (G):
       role: role.digital_input
       custom:
         kicad_pin_types: ["input"]
-    "2":
-      aliases: ["S"]
+    "2" (S):
       role: role.passive
       custom:
         kicad_pin_types: ["passive"]
-    "3":
-      aliases: ["D"]
+    "3" (D):
       role: role.passive
       custom:
         kicad_pin_types: ["passive"]

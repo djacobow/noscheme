@@ -25,11 +25,7 @@ def expression_names(expression):
 
 def parameter_uses(node):
     if isinstance(node, a.Field):
-        if (
-            node.key.first.text == "custom"
-            and node.fields
-            or (node.key.first.text == "aliases" and isinstance(node.value, a.ListExpr))
-        ):
+        if node.key.first.text == "custom" and node.fields:
             return
         yield from expression_names(node.value)
         yield from expression_names(node.default)

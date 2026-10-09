@@ -17,8 +17,7 @@ board B:
     min_voltage: 3.3 * 0.95
     max_voltage: 3.3 * 1.05
   inst input: Input
-    connections:
-      1: supply
+    1: supply
 """
 
 

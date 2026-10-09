@@ -10,8 +10,7 @@ component Part:
   params:
     value: string = "1k"
   pins:
-    1:
-      aliases: [signal]
+    1 (signal):
       role: role.passive
 block Unit:
   params:
@@ -20,8 +19,7 @@ block Unit:
     bus: Bus
   net wires: nettype.passive[count]
   inst p[count]: Part
-    connections:
-      signal: bus.data
+    signal: bus.data
     params:
       value: "{0}".format(count)
     metadata:
@@ -38,16 +36,13 @@ from noscheme import nettype
 board B:
   net wire: library.Bus
   inst a: library.Unit
-    connections:
-      bus: wire
+    bus: wire
     params:
       count: 3
   inst b: Alias
-    connections:
-      bus.data: wire.data
+    bus.data: wire.data
   inst c: library.Derived
-    connections:
-      bus: wire
+    bus: wire
 block Unrelated:
   ports:
     bus: library.Bus
@@ -131,9 +126,9 @@ def test_unsaved_imports_and_comments_do_not_make_false_references(tmp_path):
 def test_physical_pin_alias_references(tmp_path):
     _, result = setup(tmp_path)
     lib = tmp_path / "library.nosch"
-    spans = result.references_at(lib, LIBRARY.index("1:"), False)
+    spans = result.references_at(lib, LIBRARY.index("1 (signal)"), False)
     assert texts(spans) == ["signal"]
-    assert result.references_at(lib, LIBRARY.index("signal]"), False) == spans
+    assert result.references_at(lib, LIBRARY.index("signal)"), False) == spans
 
 
 def test_physical_pin_range_queries_collect_all_pins(tmp_path):
@@ -145,11 +140,9 @@ component Part:
 board B:
   net n: nettype.passive
   inst p: Part
-    connections:
-      1..2: n
+    1..2: n
   inst q: Part
-    connections:
-      2: n
+    2: n
 """
     make_project(tmp_path, source)
     path = tmp_path / "main.nosch"

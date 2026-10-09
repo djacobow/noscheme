@@ -16,9 +16,8 @@ SOURCE = """component Cap:
 board B:
   net rail: nettype.passive
   inst caps[2]: Cap
-    connections:
-      1: rail
-      2: no_connect
+    1: rail
+    2: no_connect
     metadata:
       custom:
         common: "kept"
@@ -144,16 +143,15 @@ def test_overrides_apply_to_child_parts_of_block_arrays(tmp_path):
   ports:
     signal: nettype.passive
   inst cap: Cap
+    1: signal
+    2: no_connect
     params:
       capacitance: capacitance
-    connections:
-      1: signal
-      2: no_connect
 board B:
 """,
         )
         .replace("caps[2]: Cap", "caps[2]: Unit")
-        .replace("      1: rail\n      2: no_connect", "      signal: rail")
+        .replace("    1: rail\n    2: no_connect", "    signal: rail")
     )
     source = source.replace(
         "          pins:\n            1:\n              capacitance: 2p + 3p\n",

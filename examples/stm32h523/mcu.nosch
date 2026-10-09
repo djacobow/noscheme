@@ -54,128 +54,118 @@ block MCU_H523:
       multiple_drivers: "VCAP pins 48 and 98 belong to the same internal regulator (AN5711)."
   // Signal aliases come from KiCad; grouped supplies keep physical pad numbers.
   inst chip: STM32H523Board
-    connections:
-      PE2: expansion_gpio[0]
-      PE3: expansion_gpio[1]
-      PE4: expansion_gpio[2]
-      PE5: expansion_gpio[3]
-      PE6: expansion_gpio[4]
-      [6, 11, 21..22, 28, 50, 73, 75, 100]: supply
-      [7..9, 23..24, 35..37, 47, 51..54, 57..65, 68..69, 77..88, 90..91, 95..97]: no_connect
-      [10, 19..20, 27, 49, 74, 99]: ground
-      PH0: osc_in
-      PH1: osc_out
-      NRST: debug.reset#
-      PC0: led_drive[0]
-      PC1: led_drive[1]
-      PC2: led_drive[2]
-      PC3: sd_detect#
-      PA2: uart_tx[0]
-      PA3: uart_rx[0]
-      PA4: sd.cs#
-      PA5: sd.sck
-      PA6: sd.miso
-      PA7: sd.mosi
-      PC4: buttons#[0]
-      PC5: buttons#[1]
-      PE7: expansion_gpio[5]
-      PE8: expansion_gpio[6]
-      PE9: expansion_gpio[7]
-      PE10: expansion_gpio[8]
-      PE11: expansion_spi.cs#
-      PE12: expansion_spi.sck
-      PE13: expansion_spi.miso
-      PE14: expansion_spi.mosi
-      PE15: expansion_gpio[9]
-      [48, 98]: vcap
-      PD8: uart_tx[1]
-      PD9: uart_rx[1]
-      PC9: expansion_i2c.sda
-      PA8: expansion_i2c.scl
-      PA11: usb.dm
-      PA12: usb.dp
-      72: debug.swdio
-      76: debug.swclk
-      89: debug.swo
-      PB6: oled.scl
-      PB7: oled.sda
-      BOOT0: boot0
+    PE2: expansion_gpio[0]
+    PE3: expansion_gpio[1]
+    PE4: expansion_gpio[2]
+    PE5: expansion_gpio[3]
+    PE6: expansion_gpio[4]
+    [6, 11, 21..22, 28, 50, 73, 75, 100]: supply
+    [7..9, 23..24, 35..37, 47, 51..54, 57..65, 68..69, 77..88, 90..91, 95..97]: no_connect
+    [10, 19..20, 27, 49, 74, 99]: ground
+    PH0: osc_in
+    PH1: osc_out
+    NRST: debug.reset#
+    PC0: led_drive[0]
+    PC1: led_drive[1]
+    PC2: led_drive[2]
+    PC3: sd_detect#
+    PA2: uart_tx[0]
+    PA3: uart_rx[0]
+    PA4: sd.cs#
+    PA5: sd.sck
+    PA6: sd.miso
+    PA7: sd.mosi
+    PC4: buttons#[0]
+    PC5: buttons#[1]
+    PE7: expansion_gpio[5]
+    PE8: expansion_gpio[6]
+    PE9: expansion_gpio[7]
+    PE10: expansion_gpio[8]
+    PE11: expansion_spi.cs#
+    PE12: expansion_spi.sck
+    PE13: expansion_spi.miso
+    PE14: expansion_spi.mosi
+    PE15: expansion_gpio[9]
+    [48, 98]: vcap
+    PD8: uart_tx[1]
+    PD9: uart_rx[1]
+    PC9: expansion_i2c.sda
+    PA8: expansion_i2c.scl
+    PA11: usb.dm
+    PA12: usb.dp
+    72: debug.swdio
+    76: debug.swclk
+    89: debug.swo
+    PB6: oled.scl
+    PB7: oled.sda
+    BOOT0: boot0
   inst decouple_pin_6: Capacitor0603
-    connections:
-      1: supply
-      2: ground
+    1: supply
+    2: ground
     params:
       value: 100n
     metadata:
       custom:
         placement: "Place beside MCU pad 6, short return to ground."
   inst decouple_pin_11: Capacitor0603
-    connections:
-      1: supply
-      2: ground
+    1: supply
+    2: ground
     params:
       value: 100n
     metadata:
       custom:
         placement: "Place beside MCU pad 11, short return to ground."
   inst decouple_pin_21: Capacitor0603
-    connections:
-      1: supply
-      2: ground
+    1: supply
+    2: ground
     params:
       value: 100n
     metadata:
       custom:
         placement: "Place beside MCU pad 21, short return to ground."
   inst decouple_pin_22: Capacitor0603
-    connections:
-      1: supply
-      2: ground
+    1: supply
+    2: ground
     params:
       value: 100n
     metadata:
       custom:
         placement: "Place beside MCU pad 22, short return to ground."
   inst decouple_pin_28: Capacitor0603
-    connections:
-      1: supply
-      2: ground
+    1: supply
+    2: ground
     params:
       value: 100n
     metadata:
       custom:
         placement: "Place beside MCU pad 28, short return to ground."
   inst decouple_pin_50: Capacitor0603
-    connections:
-      1: supply
-      2: ground
+    1: supply
+    2: ground
     params:
       value: 100n
     metadata:
       custom:
         placement: "Place beside MCU pad 50, short return to ground."
   inst decouple_pin_73: Capacitor0603
-    connections:
-      1: supply
-      2: ground
+    1: supply
+    2: ground
     params:
       value: 100n
     metadata:
       custom:
         placement: "Place beside MCU pad 73, short return to ground."
   inst decouple_pin_75: Capacitor0603
-    connections:
-      1: supply
-      2: ground
+    1: supply
+    2: ground
     params:
       value: 100n
     metadata:
       custom:
         placement: "Place beside MCU pad 75, short return to ground."
   inst decouple_pin_100: Capacitor0603
-    connections:
-      1: supply
-      2: ground
+    1: supply
+    2: ground
     params:
       value: 100n
     metadata:
@@ -183,45 +173,40 @@ block MCU_H523:
         placement: "Place beside MCU pad 100, short return to ground."
   inst supply_bulk: Capacitor0603(supply, ground, value=4.7u)
   inst analog_bulk: Capacitor0603
-    connections:
-      1: supply
-      2: ground
+    1: supply
+    2: ground
     params:
       value: 1u
     metadata:
       custom:
         placement: "Place beside MCU pad 22."
   inst reference_bulk: Capacitor0603
-    connections:
-      1: supply
-      2: ground
+    1: supply
+    2: ground
     params:
       value: 1u
     metadata:
       custom:
         placement: "Place beside MCU pad 21."
   inst usb_bulk: Capacitor0603
-    connections:
-      1: supply
-      2: ground
+    1: supply
+    2: ground
     params:
       value: 1u
     metadata:
       custom:
         placement: "Place beside MCU pad 73."
   inst vcap_pin_48: Capacitor0603
-    connections:
-      1: vcap
-      2: ground
+    1: vcap
+    2: ground
     params:
       value: 2.2u
     metadata:
       custom:
         placement: "Place beside MCU pad 48; low ESR, do not connect VCAP to 3.3 V."
   inst vcap_pin_98: Capacitor0603
-    connections:
-      1: vcap
-      2: ground
+    1: vcap
+    2: ground
     params:
       value: 2.2u
     metadata:
@@ -229,18 +214,16 @@ block MCU_H523:
         placement: "Place beside MCU pad 98; low ESR, do not connect VCAP to 3.3 V."
   inst crystal: CrystalHC49(osc_in, osc_out)
   inst crystal_load_in: Capacitor0603
-    connections:
-      1: osc_in
-      2: ground
+    1: osc_in
+    2: ground
     params:
       value: 27p
     metadata:
       custom:
         placement: "C0G; provisional for CL18pF crystal, tune for PCB stray capacitance."
   inst crystal_load_out: Capacitor0603
-    connections:
-      1: osc_out
-      2: ground
+    1: osc_out
+    2: ground
     params:
       value: 27p
     metadata:

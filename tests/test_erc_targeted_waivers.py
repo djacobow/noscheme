@@ -16,8 +16,7 @@ def design(pins='["p[0].1"]'):
         reason: "Ground the disabled power domain."
         pins: {pins}
   inst p[2]: P
-    connections:
-      1: gnd
+    1: gnd
 """
     )
 
@@ -82,8 +81,7 @@ def test_target_must_be_connected_to_the_waived_net(tmp_path):
         design('["other.1"]')
         + """  net other_net: nettype.passive
   inst other[2]: P
-    connections:
-      1: other_net
+    1: other_net
 """
     )
     source = source.replace('["other.1"]', '["other[0].1"]')
@@ -114,13 +112,11 @@ def test_targeted_waiver_on_inner_port_still_has_invalid_scope(tmp_path):
           reason: "Disabled domain"
           pins: ["p.1"]
   inst p: P
-    connections:
-      1: supply
+    1: supply
 board B:
   net gnd: nettype.ground
   inst w[2]: W
-    connections:
-      supply: gnd
+    supply: gnd
 """
     )
     diagnostics = apply_erc(compile_source(tmp_path, source))

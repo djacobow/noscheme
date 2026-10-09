@@ -34,6 +34,14 @@ std::vector<const ast::Node *> items(const ast::Node &expr) {
   }
   return {&expr};
 }
+const std::string &key_name(const ast::Field &field) {
+  return field.key.first.text;
+}
+bool is_choice(const ast::Node *expr) {
+  auto *call = as<ast::Call>(expr);
+  auto *callee = call ? as<ast::Name>(call->callee) : nullptr;
+  return callee && callee->text == "choice";
+}
 } // namespace
 MetadataReader::MetadataReader(const Project &project,
                                const RegistryDescription &registry,
@@ -211,10 +219,48 @@ MetaValue MetadataReader::read_value(const Json &schema, const ast::Node &expr,
     error("metadata.value", "invalid " + kind + " metadata", expr.span);
   return value;
 }
-MetaFields MetadataReader::read_fields(const Fields &fields, const Json &schema,
+MetaFields MetadataReader::read_fields(const Fields &written,
+                                       const Json &schema,
                                        const std::string &scope,
                                        unsigned depth) {
   MetaFields result;
+  // `voltage: low..high` and `voltage: center ± deviation[%]` set both bounds.
+  auto fields = written;
+  std::vector<ast::Field> bounds;
+  if (scope != "custom" && scope != "attributes")
+    if (auto voltage = std::ranges::find_if(
+            written, [](auto *f) { return key_name(*f) == "voltage"; });
+        voltage != written.end()) {
+      const auto &field = **voltage;
+      for (const auto *f : written)
+        if (key_name(*f) == "min_voltage" || key_name(*f) == "max_voltage")
+          error("metadata.voltage",
+                "voltage sets min_voltage and max_voltage; write one form",
+                field.span);
+      ast::Ptr low, high;
+      if (auto *range = as<ast::Range>(field.value)) {
+        low = range->low;
+        high = range->high;
+      } else if (auto *tolerance = as<ast::Tolerance>(field.value)) {
+        low = tolerance->low;
+        high = tolerance->high;
+      } else
+        error("metadata.voltage",
+              "voltage takes a range, low..high, or a tolerance, center ± "
+              "deviation",
+              field.span);
+      for (auto [name, value] :
+           {std::pair{"min_voltage", low}, std::pair{"max_voltage", high}}) {
+        auto &bound = bounds.emplace_back();
+        bound.span = field.span;
+        bound.key.span = bound.key.first.span = field.key.span;
+        bound.key.first.text = bound.key.first.spelling = name;
+        bound.value = value;
+      }
+      std::erase(fields, &field);
+      for (const auto &bound : bounds)
+        fields.push_back(&bound);
+    }
   for (const auto *field : fields) {
     if (depth > 128)
       error("native.metadata-limit", "metadata nesting exceeds limit",
@@ -256,8 +302,8 @@ MetaFields MetadataReader::read_fields(const Fields &fields, const Json &schema,
                kind == "configurations") {
       value = choices(*field, kind);
     } else if (scope == "instance_pin" && (kind == "role" || kind == "roles") &&
-               !children.empty()) {
-      value = selection(*field, true);
+               is_choice(expr)) {
+      value = selection(*expr, true);
     } else if (kind == "waivers") {
       value = waivers(*field);
     } else if (kind == "checks") {
@@ -337,9 +383,6 @@ bool blank(const std::string &text) {
 const ast::String *string_value(const ast::Node *expr) {
   return as<ast::String>(expr);
 }
-const std::string &key_name(const ast::Field &field) {
-  return field.key.first.text;
-}
 } // namespace
 std::string MetadataReader::choice_string(const ast::Node *expr) const {
   auto *string = string_value(expr);
@@ -348,38 +391,26 @@ std::string MetadataReader::choice_string(const ast::Node *expr) const {
           expr ? expr->span : Span{});
   return string->value;
 }
-MetaFields MetadataReader::selection(const ast::Field &field, bool roles) {
-  auto entries = mapping(field);
-  const ast::Field *choice = nullptr, *cases = nullptr;
-  for (const auto *entry : entries) {
-    if (key_name(*entry) == "choice")
-      choice = entry;
-    if (key_name(*entry) == "cases")
-      cases = entry;
-  }
-  if (entries.size() != 2 || !choice || !cases)
-    error("metadata.erc", "a selection requires exactly choice and cases",
-          field.span);
-  if (!choice->value || !choice->fields.empty())
-    error("metadata.erc", "choice requires a local choice name string",
-          choice->span);
-  auto name = choice_string(choice->value.get());
-  if (!is_identifier(name))
-    error("metadata.erc", "choice references must be local names",
-          choice->span);
+MetaFields MetadataReader::selection(const ast::Node &expr, bool roles) {
+  auto *call = as<ast::Call>(&expr);
+  auto *name = call && call->arguments.size() == 1
+                   ? as<ast::Name>(call->arguments.front())
+                   : nullptr;
+  if (!is_choice(&expr) || !name || call->keywords.empty())
+    error("metadata.erc",
+          "a selection is choice(name, alternative=value, ...) with a local "
+          "choice name",
+          expr.span);
   MetaFields values;
-  for (const auto *entry : mapping(*cases)) {
-    const auto *expr = entry->value.get();
-    if (!expr || !entry->fields.empty())
-      error("metadata.erc", "each case requires one value", entry->span);
-    auto value =
-        roles ? enumeration(*expr, "role", registry.data.at("enums").at("role"))
-              : choice_string(expr);
-    values.insert_or_assign(key_name(*entry),
-                            wrapped(std::move(value), entry->span));
+  for (const auto &keyword : call->keywords) {
+    auto value = roles ? enumeration(*keyword.value, "role",
+                                     registry.data.at("enums").at("role"))
+                       : choice_string(keyword.value.get());
+    values.insert_or_assign(keyword.name.text,
+                            wrapped(std::move(value), keyword.span));
   }
-  return {{"choice", wrapped(std::move(name), choice->span)},
-          {"cases", wrapped(std::move(values), cases->span)}};
+  return {{"choice", wrapped(name->text, name->span)},
+          {"cases", wrapped(std::move(values), expr.span)}};
 }
 MetaFields MetadataReader::choices(const ast::Field &field,
                                    const std::string &kind) {
@@ -410,8 +441,8 @@ MetaFields MetadataReader::choices(const ast::Field &field,
         error("metadata.erc", "choice alternatives must be distinct",
               entry->span);
       value = std::move(alternatives);
-    } else if (kind == "choice_bindings" && !entry->fields.empty())
-      value = selection(*entry);
+    } else if (kind == "choice_bindings" && is_choice(expr))
+      value = selection(*expr);
     else {
       if (!expr || !entry->fields.empty())
         error("metadata.erc", "choice selection requires a string",
@@ -622,9 +653,24 @@ MetaFields MetadataReader::read(const Fields &fields,
 MetaFields MetadataReader::pin(const ast::Field &field,
                                const std::string &scope) {
   auto result = read(field.fields, scope);
+  if (const auto &aliases = field.key.aliases; !aliases.empty()) {
+    MetaList names;
+    for (const auto &alias : aliases)
+      names.push_back(alias.text);
+    result.insert_or_assign(
+        "aliases", wrapped(std::move(names), {aliases.front().span.source,
+                                              aliases.front().span.start,
+                                              aliases.back().span.end}));
+  }
   if (!field.value)
     return result;
   const auto &expr = *field.value;
+  if (scope == "instance_pin" && is_choice(&expr)) {
+    if (result.contains("role"))
+      error("metadata.shorthand", "'role' is already set", expr.span);
+    result.insert_or_assign("role", wrapped(selection(expr, true), expr.span));
+    return result;
+  }
   std::vector<std::pair<std::string, std::vector<const ast::Node *>>> groups;
   for (const auto *item : items(expr)) {
     auto *member = as<ast::Member>(item);

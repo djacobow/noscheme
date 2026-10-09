@@ -650,8 +650,7 @@ component C:
   params:
     value: number = 1
   pins:
-    1:
-      aliases: [signal]
+    1 (signal):
       role: role.passive
   metadata:
     footprint: "Test:Footprint"
@@ -719,8 +718,7 @@ board B:
   global net shared: parts.Buses
   net local: parts.Buses[2]
   inst p[2]: parts.Specialized
-    connections:
-      {selection}.bus.sd[0].sck: {target}
+    {selection}.bus.sd[0].sck: {target}
 """
     expected = analyze(source, source.parent, {source: text})
     with Client() as client:
@@ -765,8 +763,7 @@ def test_bundle_field_declaration_and_unsaved_type(tmp_path):
 board B:
   net signals: parts.Buses
   inst p: parts.Specialized
-    connections:
-      bus.sd[0].clock#: signals.sd[1].clock#
+    bus.sd[0].clock#: signals.sd[1].clock#
 """
     with Client() as client:
         client.send(message("initialize", id=1))
@@ -792,8 +789,7 @@ board B:
   global net shared: parts.Buses
   net signals: parts.Buses
   inst p: parts.Specialized
-    connections:
-      bus.sd[0].sck: {rhs}
+    bus.sd[0].sck: {rhs}
 """
     with Client() as client:
         client.send(message("initialize", id=1))
@@ -811,8 +807,7 @@ component C:
   params:
     value: number = 10
   pins:
-    1:
-      aliases: [signal]
+    1 (signal):
       role: role.passive
       unused: unused.always
   metadata:
@@ -1058,8 +1053,7 @@ board B:
   global net shared: parts.Buses
   net local: parts.Buses
   inst p: parts.Specialized
-    connections:
-      {endpoint}: {target}
+    {endpoint}: {target}
 """
     with Client() as client:
         client.send(message("initialize", id=1))
@@ -1085,8 +1079,7 @@ def test_pin_alias_completion_from_unsaved_library(tmp_path, prefix, expected):
     library = """from noscheme import role
 component C:
   pins:
-    1:
-      aliases: [signal]
+    1 (signal):
       role: role.passive
 """
     text = f"""from parts import C
@@ -1394,9 +1387,8 @@ component C:
   params:
     value: number = 1
   pins:
-    1:
+    1 (signal):
       role: role.passive
-      aliases: [signal]
     2:
       role: role.passive
   metadata:
@@ -1566,9 +1558,9 @@ def test_inline_completion_excludes_comments_and_strings(tmp_path, raw):
         ("si|", {"signal"}, {"value"}),
         ("1: |", {"wire", "other"}, {"1", "value"}),
         ("1: wi|re", {"wire"}, {"value"}),
-        ("signal: wire\n      |", {"2"}, {"1", "signal"}),
+        ("signal: wire\n    |", {"2"}, {"1", "signal"}),
         ("si|gnal: wire", {"signal"}, {"value"}),
-        ("1: wire\n      2: |", {"wire", "other"}, {"value"}),
+        ("1: wire\n    2: |", {"wire", "other"}, {"value"}),
     ],
 )
 def test_section_binding_completion(tmp_path, binding, expected, absent):
@@ -1580,8 +1572,7 @@ board B:
   net wire: nettype.passive
   net other: nettype.passive
   inst r: D
-    connections:
-      {binding}
+    {binding}
 """
     before = marked[: marked.index("|")]
     text = marked.replace("|", "")
@@ -1636,8 +1627,7 @@ def test_section_partial_bundle_without_colon(tmp_path, binding):
     marked = f"""import parts
 board B:
   inst p[2]: parts.Specialized
-    connections:
-      {binding}
+    {binding}
 """
     before = marked[: marked.index("|")]
     with Client() as client:
@@ -1665,11 +1655,11 @@ board B:
 @pytest.mark.parametrize(
     "section",
     [
-        "connections:\n      // |",
-        "connections:\n      1: wire[|",
-        'connections:\n      1: " |',
-        "metadata:\n      custom:\n        connections:\n          |",
-        "connections:\n      1: wire\n    params:\n      |",
+        "    // |",
+        "    1: wire[|",
+        '    1: " |',
+        "metadata:\n      custom:\n        |",
+        "    1: wire\n  params:\n    |",
     ],
 )
 def test_section_completion_boundaries(tmp_path, section):
@@ -1719,7 +1709,7 @@ board B:
         ("component C extends Other:\n  |", {"defaults", "pins", "metadata"}),
         ("block B extends Other:\n  |", {"defaults", "ports", "metadata"}),
         ("bundle B:\n  |", {"metadata"}),
-        ("board B:\n  inst c: C\n    |", {"connections", "params", "metadata", "elements"}),
+        ("board B:\n  inst c: C\n    |", {"params", "metadata", "elements"}),
         ("board B:\n  inst c: C(\n  )\n    met|", {"metadata"}),
         ("// comp|", set()),
         ("/* comp|", set()),
@@ -1772,22 +1762,22 @@ def test_keyword_completion(tmp_path, marked, expected):
         ("[1,\n        |\n      ]: wire", {"2", "3", "pad-x"}),
         ("[1, /* skip 2 */ |]: wire", {"2", "3", "pad-x"}),
         ("[si|gnal, 2]: wire", {"signal"}),
-        ("2..3: wire\n      [|]: wire", {"1", "signal", "pad-x"}),
-        ("[1, 2]: wire\n      [|]: wire", {"3", "pad-x"}),
-        ("[1, 2]: wire\n      |", {"3", "pad-x"}),
+        ("2..3: wire\n    [|]: wire", {"1", "signal", "pad-x"}),
+        ("[1, 2]: wire\n    [|]: wire", {"3", "pad-x"}),
+        ("[1, 2]: wire\n    |", {"3", "pad-x", "params", "metadata", "elements"}),
         ("[1, 2]: |", {"wire"}),
         ("[1..|]: wire", set()),
         ('["1"|]: wire', set()),
         ("[1..9999999999999999999999999, |]: wire", {"pad-x"}),
         ('[1, /* "2" */ |]: wire', {"2", "3", "pad-x"}),
-        ('"pad-x": wire\n      [|]: wire', {"1", "signal", "2", "3"}),
+        ('"pad-x": wire\n    [|]: wire', {"1", "signal", "2", "3"}),
         ('["pa|', {"pad-x"}),
         ('["pa|d-x"]: wire', {"pad-x"}),
         ('["1", "|"]: wire', {"2", "3", "pad-x"}),
         ("[0].[1, |]: wire", {"2", "3", "pad-x"}),
         ("[0][1].[1, |]: wire", {"2", "3", "pad-x"}),
-        ("[0].[1, 2]: wire\n      [1].[|]: wire", {"1", "signal", "2", "3", "pad-x"}),
-        ("[0].[1, 2]: wire\n      [0].[|]: wire", {"3", "pad-x"}),
+        ("[0].[1, 2]: wire\n    [1].[|]: wire", {"1", "signal", "2", "3", "pad-x"}),
+        ("[0].[1, 2]: wire\n    [0].[|]: wire", {"3", "pad-x"}),
         ("[1, // |", set()),
         ("[1, [|", set()),
     ],
@@ -1805,8 +1795,7 @@ from noscheme import nettype
 board B:
   net wire: nettype.passive
   inst r: D
-    connections:
-      {binding}
+    {binding}
 """
     before, after = marked.split("|")
     with Client() as client:
@@ -1831,8 +1820,8 @@ board B:
         if binding == "[si|gnal, 2]: wire":
             assert items[0]["textEdit"] == {
                 "range": {
-                    "start": {"line": 6, "character": 7},
-                    "end": {"line": 6, "character": 13},
+                    "start": {"line": 5, "character": 5},
+                    "end": {"line": 5, "character": 11},
                 },
                 "newText": "signal",
             }
@@ -1854,15 +1843,14 @@ from noscheme import nettype
 board B:
   net wire: nettype.passive
   inst r: D
-    connections:
-      {key}: wire
+    {key}: wire
   inst s: D(1: wire)
 """
     if broken:
         text += "  inst bad: D(missing: wire)\n"
     params = {
         "textDocument": {"uri": source.as_uri()},
-        "position": {"line": 6, "character": 7},
+        "position": {"line": 5, "character": 5},
     }
     with Client() as client:
         client.send(message("initialize", id=1))
@@ -1890,7 +1878,7 @@ board B:
             assert len(locations) == (4 if include else 3)
             assert {
                 loc["range"]["start"]["line"] for loc in locations if loc["uri"] == source.as_uri()
-            } == {6, 7}
+            } == {5, 6}
             # The alias declaration is also a reference to physical pin 1.
             assert sum(loc["uri"] == parts.as_uri() for loc in locations) == (2 if include else 1)
 

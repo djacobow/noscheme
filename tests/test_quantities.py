@@ -23,13 +23,11 @@ SOURCE = """component Resistor:
 board B:
   net a: nettype.passive
   inst default: Resistor
-    connections:
-      1: a
-      2: a
+    1: a
+    2: a
   inst rkm: Resistor
-    connections:
-      1: a
-      2: a
+    1: a
+    2: a
     params:
       value: 22k1
 """

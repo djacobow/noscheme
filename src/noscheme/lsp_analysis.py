@@ -227,7 +227,7 @@ def reference_index(project, definitions, hover=None):
                         expression(value)
 
             def metadata_expressions(entry):
-                if entry.key.first.text in {"custom", "aliases"}:
+                if entry.key.first.text == "custom":
                     return
                 if entry.key.first.text == "checks":
                     for application in entry.fields:
@@ -248,12 +248,8 @@ def reference_index(project, definitions, hover=None):
                         continue
                     target = interface_target(owner, canonical)
                     add(key_span, *target, declaration=not item.base)
-                    for child in entry.fields:
-                        if child.key.first.text == "aliases" and isinstance(
-                            child.value, a.ListExpr
-                        ):
-                            for alias in child.value.items:
-                                add(alias.span, *target, declaration=True)
+                    for alias in entry.key.aliases:
+                        add(alias.span, *target, declaration=True)
 
             for node in item.body:
                 if isinstance(node, a.Instance):

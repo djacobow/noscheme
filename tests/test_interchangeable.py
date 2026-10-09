@@ -18,8 +18,7 @@ SOURCE = """component R:
 component Tvs:
   pins:
     [1, 2]: role.passive
-    3:
-      aliases: [gnd]
+    3 (gnd):
       role: role.ground
   metadata:
     interchangeable: [1, 2]
@@ -113,10 +112,8 @@ def test_named_inline_connections_do_not_require_a_group(tmp_path):
 def test_group_aliases_order_and_inherited_instances(tmp_path):
     source = SOURCE.replace(
         "    1..2: role.passive",
-        """    1: role.passive
-      aliases: [left]
-    2: role.passive
-      aliases: [right]""",
+        """    1 (left): role.passive
+    2 (right): role.passive""",
     )
     source = source.replace("interchangeable: [1, 2]", "interchangeable: [right, left]", 1)
     source = source.replace(
@@ -256,8 +253,7 @@ def test_arguments_and_sections_describe_one_instance(tmp_path):
     a,
     no_connect,
   )
-    connections:
-      gnd: g
+    gnd: g
     metadata:
       custom:
         dnp: true
@@ -273,7 +269,7 @@ def test_arguments_and_sections_describe_one_instance(tmp_path):
     "addition,code",
     [
         ("    params:\n      value: 1k\n", "syntax.duplicate"),
-        ("    connections:\n      1: b\n", "connection"),
+        ("    1: b\n", "connection"),
     ],
 )
 def test_arguments_and_sections_cannot_bind_twice(tmp_path, addition, code):

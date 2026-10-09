@@ -34,8 +34,7 @@ def test_inheritance_merge_alias_replacement_and_defaults(tmp_path):
   defaults:
     value: "2kOhm"
   pins:
-    01:
-      aliases: [new]
+    01 (new):
       unused: unused.always
   metadata:
     custom:
@@ -45,8 +44,7 @@ component Base:
   params:
     value: string = "1k"
   pins:
-    01:
-      aliases: [old]
+    01 (old):
       unused: unused.never
     1:
       role: role.passive
@@ -89,8 +87,7 @@ block Base:
   ports:
     a: nettype.passive
   inst r: R
-    connections:
-      1: a
+    1: a
     params:
       value: value
 """
@@ -124,11 +121,11 @@ block Base:
             "resolve.duplicate-pin",
         ),
         (
-            "component C:\n  pins:\n    1:\n      aliases: [other]\n    2:\n      aliases: [other]\n",
+            "component C:\n  pins:\n    1 (other):\n    2 (other):\n",
             "resolve.alias",
         ),
         (
-            'component C:\n  pins:\n    1:\n      aliases: ["2"]\n    2:\n      role: role.passive\n',
+            'component C:\n  pins:\n    1 ("2"):\n    2:\n      role: role.passive\n',
             "resolve.alias",
         ),
         ("component C:\n  metadata:\n    typo: 1\n", "metadata.unknown"),
@@ -164,7 +161,7 @@ def test_definition_errors(tmp_path, text, code):
     [
         ("pins:\n    2:\n      role: role.passive", "resolve.specialization"),
         ("defaults:\n    other: 1", "resolve.default"),
-        ('pins:\n    1:\n      aliases: ["2"]', "resolve.alias"),
+        ('pins:\n    1 ("2"):', "resolve.alias"),
     ],
 )
 def test_invalid_specialization(tmp_path, override, code):
@@ -179,8 +176,7 @@ def test_invalid_specialization(tmp_path, override, code):
 
 BASE = """component C:
   pins:
-    1:
-      aliases: [A]
+    1 (A):
       role: [role.digital_input, role.passive]
       unused: unused.never
 block Hidden:
@@ -194,11 +190,11 @@ block Hidden:
 @pytest.mark.parametrize(
     "instance,code",
     [
-        ("inst c: C\n    connections:\n      9: n", "resolve.private"),
-        ("inst h: Hidden\n    connections:\n      private: n", "resolve.private"),
-        ("inst c: C\n    connections:\n      1: missing", "resolve.net"),
+        ("inst c: C\n    9: n", "resolve.private"),
+        ("inst h: Hidden\n    private: n", "resolve.private"),
+        ("inst c: C\n    1: missing", "resolve.net"),
         (
-            "inst c: C\n    connections:\n      1: h.private\n  inst h: Hidden()",
+            "inst c: C\n    1: h.private\n  inst h: Hidden()",
             "resolve.net",
         ),
         (
@@ -230,8 +226,7 @@ def test_valid_role_selection_and_global_deferred(tmp_path):
             + BASE
             + BOARD
             + """  inst c: C
-    connections:
-      A: global.gnd
+    A: global.gnd
     metadata:
       pins:
         1:
@@ -253,8 +248,7 @@ block Wrapper:
 block Use:
   net n: Bus
   inst w: Wrapper
-    connections:
-      bus.data: n.data
+    bus.data: n.data
 """,
     )
     assert definitions["main", "Bus"].interface["data"].type

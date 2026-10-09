@@ -148,14 +148,15 @@ still need validation before fabrication.
   peers. The debug probe senses VCC and drives SWCLK/reset. SWO is explicitly
   unconnected because PB3 drives the LED clock.
 - Six power configurations cover 5 V from the jack or header and 12 V from
-  any one of RJ45 ports 0–2: `jack_port0` through `jack_port2`, and
-  `header_port0` through `header_port2`. Other supply connectors are modeled
+  any one of RJ45 ports 0–2. The board declares the two choices and ERC checks
+  every combination, named like `supply_12v=port0,supply_5v=jack`. Other supply
+  connectors are modeled
   as loads/pass-through connections. A source RJ45 uses pin 4 as the single
   modeled source and pin 7 as its parallel passive contact, avoiding counting
   the same external supply twice. These configurations assume both rails are
   present, with exactly one independent source per rail.
 - All six configurations run by default. Select one with, for example,
-  `--erc-configuration jack_port0`. All six pass with zero errors and warnings
+  `--erc-configuration supply_12v=port0,supply_5v=jack`. All six pass with zero errors and warnings
   under the documented demo allocations below. No waivers suppress diagnostics.
   This validates the declared model, not all electrical behavior of the board.
 - `BuckOutputInductor` specializes the passive inductor with a power-output

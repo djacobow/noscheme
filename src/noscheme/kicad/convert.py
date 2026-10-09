@@ -67,6 +67,12 @@ def identifier(name):
     return result
 
 
+def pin_spelling(name):
+    """A pin alias as written in a pin key: bare when it is a plain name."""
+    plain = re.fullmatch(r"[A-Za-z_#][A-Za-z0-9_#]*", name) and name not in RESERVED_NAMES
+    return name if plain else json.dumps(name)
+
+
 def footprint_record(name, roots):
     if ":" not in name:
         raise ValueError(f"footprint must have Library:Name syntax: {name!r}")
@@ -271,14 +277,13 @@ def convert_library(source, output, symbols=(), footprint_roots=(), extra_footpr
         if pins:
             lines.append("    pins:")
         for number, entries in sorted(pins.items()):
-            lines.append(f"        {json.dumps(number)}:")
             names = sorted(
                 alias
                 for alias, numbers in aliases.items()
                 if number in numbers and alias not in ambiguous and alias != number
             )
-            if names:
-                lines.append(f"            aliases: {json.dumps(names)}")
+            spelled = ", ".join(map(pin_spelling, names))
+            lines.append(f"        {json.dumps(number)}" + (f" ({spelled})" if names else "") + ":")
             types = sorted({str(pin[1]) for pin in entries})
             roles = (
                 sorted(

@@ -15,14 +15,14 @@ syntax keyword noschemeImport from import as
 syntax keyword noschemeType number string
 syntax keyword noschemeConstant true false no_connect
 syntax match noschemeField /^\s*\zs[A-Za-z_#][A-Za-z0-9_#]*\ze\s*:/
-syntax match noschemeSection /^\s*\zs\%(pins\|ports\|params\|defaults\|metadata\|connections\|elements\|checks\)\ze\s*:/
+syntax match noschemeSection /^\s*\zs\%(pins\|ports\|params\|defaults\|metadata\|elements\|checks\)\ze\s*:/
 syntax match noschemeBuiltin /\<\%(role\|nettype\|unused\|bias\|std\)\.[A-Za-z_#][A-Za-z0-9_#]*\>/
 syntax match noschemeFunction /\<num\.[A-Za-z_#][A-Za-z0-9_#]*\>/
 syntax match noschemeFunction /\.\zsformat\ze\s*(/
 syntax match noschemeNumber /\<[0-9]\+\%([.][0-9]\+\)\?\%([eE][+-]\?[0-9]\+\)\?\>/
 " SI-prefixed literals: 4.7k, 4k7, 100n, 4R7.
 syntax match noschemeNumber /\<[0-9]\+\%([.][0-9]\+\)\?[afpnumkMGTPR]\%([0-9]\+\)\?\>/
-syntax match noschemeOperator /<<\|>>\|[=+*\/-]/
+syntax match noschemeOperator /<<\|>>\|+\/-\|\%u00b1\|[=+*\/%-]/
 syntax match noschemeDelimiter /[][():,.]/
 
 syntax region noschemeString start=/"/ skip=/\\./ end=/"/ oneline contains=noschemeEscape

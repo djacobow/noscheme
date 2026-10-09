@@ -1,0 +1,3 @@
+board Board:
+    inst a: Part
+        1 = net

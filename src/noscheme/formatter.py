@@ -28,7 +28,6 @@ WIDTH = 100
 INDENT = "  "
 BLANK = re.compile(r"\n[ \t\r]*\n")
 SECTIONS = {
-    "connections": "connections",
     "arguments": "params",
     "instance_metadata": "metadata",
     "elements": "elements",
@@ -157,9 +156,21 @@ class Formatter:
             return parts
         if kind == "keyword_argument":
             return [f"{c[0]}=", *self.expr(c[1])]
+        if kind == "call_target":
+            start = self.masked.index("(", c[0].end_pos)
+            return [
+                str(c[0]),
+                self.seq("(", ")", start, node.meta.end_pos, self.items(c[1:]), False),
+            ]
+        if kind == "range_value":
+            return [*self.expr(c[0]), "..", *self.expr(c[1])]
+        if kind == "tolerance_value":
+            return [*self.expr(c[0]), f" {c[1]} ", *self.expr(c[2]), *(["%"] if len(c) > 3 else [])]
         raise AssertionError(f"unhandled expression: {kind}")
 
     def key(self, node):
+        if node.data == "aliased_key":
+            return f"{node.children[0]} ({', '.join(node.children[1:])})"
         if node.data == "single_pin_list":
             return flat(self.index(node.children[0]))
         c = node.children
@@ -195,7 +206,9 @@ class Formatter:
         items = []
         for argument in node.children:
             c = argument.children
-            if argument.data == "positional_argument":
+            if argument.data == "wildcard_argument":
+                parts = ["*"]
+            elif argument.data == "positional_argument":
                 parts = self.expr(c[0])
             elif argument.data == "inline_binding":
                 parts = [f"{c[0]}: ", *self.expr(c[1])]
@@ -260,8 +273,9 @@ class Formatter:
         elif kind == "net_decl":
             modifier = isinstance(c[0], Tree)
             c = c[1:] if modifier else c
-            parts = [f"{'global ' if modifier else ''}net {c[0]}: ", *self.expr(c[1])]
-            self.statement(node, depth, parts, c[2:])
+            names = [x for x in c if isinstance(x, Token)]
+            head = f"{'global ' if modifier else ''}net {', '.join(names)}: "
+            self.statement(node, depth, [head, *self.expr(c[len(names)])], c[len(names) + 1 :])
         elif kind == "field":
             parts = [self.key(c[0]) + ":"]
             values = [x for x in c[1:] if x.data != "field"]

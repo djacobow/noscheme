@@ -34,7 +34,7 @@ def test_load_graph_imports_reexports_and_config_relative_paths(tmp_path, monkey
         {
             "src/main.nosch": "from parts import R\nfrom noscheme import nettype\nboard Blink:\n  net a: nettype.passive\n  inst r: R()\n",
             "lib/parts.nosch": "from vendor.passives import R\n",
-            "lib/vendor/passives.nosch": "component R:\n  pins:\n    01:\n      aliases: [one]\n",
+            "lib/vendor/passives.nosch": "component R:\n  pins:\n    01 (one):\n",
             "lib/unused.nosch": "invalid source must not be loaded",
         },
     )

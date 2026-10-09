@@ -43,8 +43,7 @@ def test_reserved_declaration_names_are_located(source, name):
 def test_quoted_physical_pins_and_metadata_keys_are_not_reserved():
     parse("""component P:
   pins:
-    "global":
-      aliases: ["no_connect"]
+    "global" ("no_connect"):
       role: role.passive
   metadata:
     custom:
@@ -52,8 +51,7 @@ def test_quoted_physical_pins_and_metadata_keys_are_not_reserved():
 board B:
   net inst: nettype.passive
   inst net: P
-    connections:
-      "global": inst
+    "global": inst
 """)
 
 
@@ -72,7 +70,7 @@ def nodes(value):
     "path",
     [
         ROOT / "examples/stm32h523/stm32h523.nosch",
-        *sorted((ROOT / "tools/experiments/corpus/positive").glob("*.nosch")),
+        *sorted((ROOT / "tests/corpus/positive").glob("*.nosch")),
     ],
 )
 def test_reference_and_corpus_are_typed_and_located(path):
@@ -92,14 +90,14 @@ def test_reference_and_corpus_are_typed_and_located(path):
 
 def test_ast_preserves_kind_defaults_aliases_and_pin_spelling():
     m = parse(
-        'component R:\n  params:\n    value: string = "1k"\n  pins:\n    01:\n      aliases: [A, "EP-1"]\n    1:\n      role: role.passive\ncomponent S extends R:\n  defaults:\n    value: "2k"\n'
+        'component R:\n  params:\n    value: string = "1k"\n  pins:\n    01 (A, "EP-1"):\n    1:\n      role: role.passive\ncomponent S extends R:\n  defaults:\n    value: "2k"\n'
     )
     base, child = m.items
     assert base.kind == "component"
     assert base.body[0].entries[0].default.value == "1k"
     pins = base.body[1].entries
     assert [p.key.first.text for p in pins] == ["01", "1"]
-    assert pins[0].fields[0].value.items[1].value == "EP-1"
+    assert [k.text for k in pins[0].key.aliases] == ["A", "EP-1"]
     assert child.base[0].text == "R"
     assert child.body[0].name == "defaults"
 
@@ -119,9 +117,7 @@ def test_expression_associativity_and_postfix():
 
 
 def test_endpoint_indices_ranges_and_caller_scope():
-    m = parse(
-        "board B:\n  inst r[2]: R\n    connections:\n      [1].bus[2].data: global.n[0:4]\n      11..20: pins\n"
-    )
+    m = parse("board B:\n  inst r[2]: R\n    [1].bus[2].data: global.n[0:4]\n    11..20: pins\n")
     inst = m.items[0].body[0]
     first, second = inst.sections[0].entries
     assert first.endpoint.instance_indices[0].start.spelling == "1"
@@ -136,7 +132,7 @@ def test_endpoint_indices_ranges_and_caller_scope():
 @pytest.mark.parametrize(
     "source",
     [
-        'component C:\n  pins:\n    1:\n      aliases: [a]\n    "1":\n      aliases: [b]\n',
+        'component C:\n  pins:\n    1 (a):\n    "1" (b):\n',
         "component C:\n  metadata:\n    custom:\n      item: 1\n      item: 2\n",
         "component C:\n  pins:\n    1:\n      role: r\n  pins:\n    2:\n      role: r\n",
         'board B:\n  inst r: R\n    params:\n      value: "a"\n      value: "b"\n',
@@ -178,10 +174,10 @@ def test_invalid_structure(source, code):
 
 @pytest.mark.parametrize(
     "name,expected",
-    json.loads((ROOT / "tools/experiments/corpus/negative/expectations.json").read_text()).items(),
+    json.loads((ROOT / "tests/corpus/negative/expectations.json").read_text()).items(),
 )
 def test_negative_corpus_locations(name, expected):
-    path = ROOT / "tools/experiments/corpus/negative" / name
+    path = ROOT / "tests/corpus/negative" / name
     with pytest.raises(DiagnosticError) as failure:
         parse(path.read_text(), str(path))
     span = failure.value.diagnostics[0].span

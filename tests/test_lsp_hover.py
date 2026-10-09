@@ -13,8 +13,7 @@ component Resistor:
   params:
     value: resistance
   pins:
-    1:
-      aliases: [terminal]
+    1 (terminal):
       role: role.passive
       unused: unused.never
   metadata:
@@ -32,8 +31,7 @@ from noscheme import nettype, role
 board B:
   net power: nettype.passive
   inst resistors[2]: parts.Pullup
-    connections:
-      terminal: power
+    terminal: power
     params:
       value: "10kOhm"
     metadata:

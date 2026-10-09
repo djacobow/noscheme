@@ -34,6 +34,14 @@ a `Source` that the module keeps alive. Diagnostics and the comparison probe
 convert spans, and `ast::to_json` converts nodes, to the comparison form that
 matches Python's AST data. Neither form is a frozen native compiler API.
 
+Like the Python builder, the parser keeps the source's shape where the language
+has a shorthand: an instance's body connections become its `connections` section,
+`net a, b: T` becomes one `Net` per name sharing the declaration's span, type, and
+fields, and inline pin aliases stay on the `FieldKey`. A `voltage` value is a
+`Range` or `Tolerance` node; the parser also builds a tolerance's two bound
+expressions, which the node owns because metadata refers to AST expressions.
+Those bounds are not part of the comparison form.
+
 The lexer preserves original source through the `Source` object. Native spans
 use UTF-8 byte offsets; the differential harness converts these to Python's
 Unicode-character offsets. Line and column fields use Unicode characters.
@@ -334,7 +342,8 @@ iterative walker serves both parameter-only and interface resolution.
 
 `resolve_all: true` runs the counterpart of Python's complete definition
 resolver. It expands positional connections using the target's interchangeable
-pin group, retaining explicit named connections and source spans. Expanded nodes
+pin group, then `*` into same-name connections, retaining explicit named
+connections and source spans. Expanded nodes
 are owned by the resolved definition; the project's cached AST stays unchanged.
 Inherited bodies keep their original module for name lookup.
 
@@ -370,7 +379,10 @@ Python plugin bridge.
 
 Numeric metadata evaluates in its component or caller environment as appropriate;
 overrides suppress replaced expressions. Named net-type metadata, conditional
-roles, choice scopes, and configurations are carried into the circuit for ERC.
+roles, choice scopes, and configurations are carried into the circuit for ERC; a
+board without named configurations gets one per combination of its choices, after
+expansion, as in Python. `flat(net)` targets bind the array's scalar elements in
+row-major order.
 The parity tests decode the tagged numbers when comparing against Python's
 circuit JSON; no public export format is changed.
 
@@ -383,7 +395,8 @@ expression limits can be supplied as `expansion_limits` and `expression_limits`.
 
 Tests compare complete circuits for all eight examples, including WREN, and
 focused cases for connectivity, quantities, array selection, identities, and
-limits. Elaboration itself does not run ERC; the native ERC above checks the
+limits. `test_concise_parity.py` compares every case of the Python concise-syntax
+tests, including the diagnostics of its failures. Elaboration itself does not run ERC; the native ERC above checks the
 resulting circuit. KiCad reference assignment and export remain outside this
 probe.
 
@@ -588,8 +601,10 @@ folders (or root URI) when no ancestor project exists; the most specific source
 root wins, and ambiguous matches require an explicit `--project`.
 
 Whole-file formatting uses the native AST, preserving spelling and comments,
-with the same canonical layout as Python. It reparses and compares the result
-before returning an edit. Range formatting is not supported by either server.
+with the same canonical layout as Python. It prints body connections without a
+section header, regroups `net a, b` declarations by their shared span, and keeps
+a tolerance's `±` or `+/-` spelling. It reparses and compares the result before
+returning an edit. Range formatting is not supported by either server.
 Prepare Rename and Rename match the current Python scope, including import aliases,
 nets, parameters, public block ports, bundles, and board-level instances. Physical
 pins, board names, module qualifiers, and internal instances are refused. Board

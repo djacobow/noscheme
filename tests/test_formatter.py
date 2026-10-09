@@ -15,7 +15,8 @@ SOURCES = [
     for name in subprocess.run(
         ["git", "ls-files", "*.nosch"], cwd=ROOT, capture_output=True, text=True, check=True
     ).stdout.split()
-    if "/negative/" not in name
+    # The frozen experiment corpus keeps its historical grammar.
+    if "/negative/" not in name and not name.startswith("tools/experiments/")
 ]
 
 

@@ -5,6 +5,8 @@ assign CAD names or reference numbers, or perform electrical rules checking.
 """
 
 from dataclasses import dataclass, field, replace
+import itertools
+import math
 
 from . import ast as a
 from .diagnostics import Diagnostic, Related
@@ -36,6 +38,10 @@ class Node:
     type: str | None = None
     items: tuple = ()
     fields: dict = field(default_factory=dict)
+
+
+# Combinations of board choices checked when no configurations are named.
+MAX_CONFIGURATIONS = 64
 
 
 @dataclass(frozen=True)
@@ -232,6 +238,17 @@ class Elaborator:
         return ports(selected)
 
     def reference(self, expr, nets, module, environment):
+        if isinstance(expr, a.Call):
+            node = self.reference(expr.arguments[0], nets, module, environment)
+            if node.kind != "array":
+                self.error("connection.flat", "flat() takes an array net", expr.span)
+
+            def elements(node):
+                if node.kind != "array":
+                    return (node,)
+                return tuple(x for item in node.items for x in elements(item))
+
+            return Node("array", items=elements(node))
         selectors = []
         while isinstance(expr, (a.Member, a.Subscript)):
             selectors.append(expr.name if isinstance(expr, a.Member) else expr.selection)
@@ -683,16 +700,39 @@ class Elaborator:
             "board": f"{self.project.board.module}.{self.project.board.name}",
             "source": a.to_data(board.source.span),
             "erc_choice_scopes": self.choice_scopes,
-            "erc_configurations": a.to_data(
-                board.metadata.get(
-                    "configurations", Value({}, board.source.span, board.module)
-                ).value
-            ),
+            "erc_configurations": a.to_data(self.configurations(board)),
             "parts": parts,
             "nets": sorted(nets, key=lambda n: n["name"]),
             "blocks": blocks,
             "warnings": [a.to_data(w) for w in self.evaluator.warnings],
         }
+
+    def configurations(self, board):
+        """Named configurations, or by default every combination of the board's choices."""
+        if "configurations" in board.metadata:
+            return board.metadata["configurations"].value
+        choices = board.metadata.get("erc_choices")
+        if choices is None:
+            return {}
+        names = sorted(choices.value)
+        count = math.prod(len(choices.value[name].value) for name in names)
+        if count > MAX_CONFIGURATIONS:
+            self.error(
+                "erc.configurations",
+                f"the board's choices form {count} combinations, more than "
+                f"{MAX_CONFIGURATIONS}; name the configurations to check",
+                choices.span,
+            )
+        result = {}
+        for combination in itertools.product(*(choices.value[name].value for name in names)):
+            selected = dict(zip(names, combination))
+            name = ",".join(f"{choice}={selected[choice]}" for choice in names)
+            values = {
+                choice: Value(alternative, choices.value[choice].span, board.module)
+                for choice, alternative in selected.items()
+            }
+            result[name] = Value(values, choices.span, board.module)
+        return result
 
     def elaborate(self):
         key = (self.project.board.module, self.project.board.name)

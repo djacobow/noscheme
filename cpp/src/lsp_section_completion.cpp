@@ -7,13 +7,10 @@ using completion_scan::trim;
 struct Section {
   std::size_t owner, begin, end, indent;
 };
-struct Ancestor {
-  std::size_t start, indent;
-  std::string text;
-};
+// An instance's connections: the lines after its header, up to its first
+// params, metadata, or elements section or the end of its body.
 std::vector<Section> sections(const std::string &text) {
   auto mask = code_mask(text);
-  std::vector<Ancestor> ancestors;
   std::vector<Section> result;
   for (std::size_t line = 0; line < text.size();) {
     auto end = text.find('\n', line);
@@ -23,31 +20,40 @@ std::vector<Section> sections(const std::string &text) {
     while (first < end && space(mask[first]))
       ++first;
     auto content = trim(mask.substr(first, end - first));
-    if (!content.empty() && content != ")") {
+    if (content.starts_with("inst ") || content.starts_with("inst\t")) {
       auto indent = first - line;
-      while (!ancestors.empty() && ancestors.back().indent >= indent)
-        ancestors.pop_back();
-      if (content == "connections:" && !ancestors.empty() &&
-          (ancestors.back().text.starts_with("inst ") ||
-           ancestors.back().text.starts_with("inst\t"))) {
-        auto begin = std::min(end + 1, text.size());
-        auto limit = text.size();
-        for (auto next = begin; next < text.size();) {
-          auto stop = text.find('\n', next);
-          if (stop == std::string::npos)
-            stop = text.size();
-          auto word = next;
-          while (word < stop && space(mask[word]))
-            ++word;
-          if (word < stop && word - next <= indent) {
+      // The header ends at the first line break outside its argument list.
+      int depth = 0;
+      auto header = first;
+      for (; header < text.size(); ++header) {
+        auto c = mask[header];
+        if (c == '(' || c == '[')
+          ++depth;
+        else if (c == ')' || c == ']')
+          --depth;
+        else if (c == '\n' && depth <= 0)
+          break;
+      }
+      auto begin = std::min(header + 1, text.size());
+      auto limit = text.size();
+      for (auto next = begin; next < text.size();) {
+        auto stop = text.find('\n', next);
+        if (stop == std::string::npos)
+          stop = text.size();
+        auto word = next;
+        while (word < stop && space(mask[word]))
+          ++word;
+        if (word < stop) {
+          auto row = trim(mask.substr(word, stop - word));
+          if (word - next <= indent || row == "params:" || row == "metadata:" ||
+              row == "elements:") {
             limit = next;
             break;
           }
-          next = stop + 1;
         }
-        result.push_back({ancestors.back().start, begin, limit, indent});
+        next = stop + 1;
       }
-      ancestors.push_back({first, indent, content});
+      result.push_back({first, begin, limit, indent});
     }
     line = end + 1;
   }
@@ -236,7 +242,10 @@ grouped_completion(const std::string &text, const std::string &mask,
 } // namespace
 std::vector<TextRepair> section_repairs(const std::string &text) {
   std::vector<TextRepair> result;
+  auto mask = code_mask(text);
   for (const auto &section : sections(text)) {
+    if (trim(mask.substr(section.begin, section.end - section.begin)).empty())
+      continue;
     // Only the recovered completion snapshot gets this placeholder binding.
     result.push_back({section.begin, section.end,
                       std::string(section.indent + 2, ' ') +

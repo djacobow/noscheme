@@ -148,9 +148,11 @@ operator. Lists and helper calls use commas. Instance sections do not.
 
 The structural words are `from`, `import`, `as`, `component`, `block`, `board`,
 `bundle`, `nettype`, `extends`, `inst`, `net`, and `global`. Section names are `pins`,
-`ports`, `params`, `defaults`, `connections`, `metadata`, and `elements`. These words are
-recognized in their grammatical contexts. Metadata keys and builtin enum members
-are not additional general-purpose statements.
+`ports`, `params`, `defaults`, `metadata`, and `elements`. These words are
+recognized in their grammatical contexts. In an instance body, `params`, `metadata`,
+and `elements` start sections, so a pin with one of those names is quoted in a
+connection: `"params": net`. Metadata keys and builtin enum members are not
+additional general-purpose statements.
 
 ### 2.2 Identifiers
 
@@ -242,10 +244,12 @@ through the language server. It changes only layout, never meaning:
   can keep a short list vertical; a broken list without one is joined when it fits.
 - One blank line before each top-level definition and the comments directly above
   it. Elsewhere at most one blank line is kept, and none at the start of a block.
-- Spellings are kept: `4k7` stays `4k7`, strings keep their escapes, and pin keys
-  keep their quotes. Order, the pin-entry shorthand, and the choice between
-  instance arguments and sections are also the author's. The parentheses of an
-  empty argument list are dropped.
+- Spellings are kept: `4k7` stays `4k7`, strings keep their escapes, pin keys
+  keep their quotes, and a tolerance keeps `±` or `+/-`. Order, the pin-entry
+  shorthand, and the choice between instance arguments and body lines are also
+  the author's. The parentheses of an empty argument list are dropped.
+- `net a, b: T` and `1 (a, b):` take one space after each comma; a tolerance is
+  written `5 ± 5%` and a range `4.75..5.25`.
 - A trailing comment stays after its code, two spaces from it. A comment on its
   own line stays above the code that follows it, at that code's indentation, or at
   the indentation of the block it ends. A comment inside a bracketed list keeps
@@ -301,21 +305,21 @@ Physical components do not contain internal instances or nets. A component may
 omit its footprint while a design is being developed; physical instances then
 receive an unspecified-footprint warning.
 
-Pins may declare aliases. Component-body fragment:
+Pins may declare aliases in parentheses after the pin key. Component-body
+fragment:
 
 ```nosch
 pins:
-  1:
-    aliases: [cathode, K]
-    role: role.passive
-  2:
-    aliases: [anode, A]
-    role: role.passive
+  1 (cathode, K): role.passive
+  2 (anode, A): role.passive
 ```
 
 Aliases and physical identifiers refer to the same endpoint. Every alias must
 resolve to exactly one pin, including when it matches another physical pin's
 identifier. Binding through an alias still exports the original physical pin ID.
+An alias is a name, an integer spelling, or a quoted string such as `"EP-1"`. Only
+a single pin key in a component's `pins` section, or its specialization, can take
+aliases; a specialization's aliases replace the inherited ones.
 
 ### 3.2 Reusable blocks
 
@@ -330,9 +334,8 @@ block SeriesResistor:
     input: nettype.passive
     output: nettype.passive
   inst resistor: Resistor
-    connections:
-      1: input
-      2: output
+    1: input
+    2: output
     params:
       value: resistance
 ```
@@ -362,8 +365,12 @@ Board-body fragment:
 ```nosch
 global net gnd: nettype.ground
 global net v3v3: nettype.power
-net reset#: nettype.digital
+net reset#, cs#: nettype.digital
 ```
+
+One declaration may name several nets. They share its type and indented fields,
+so `net scl, sda: I2CLine` with `wiring_capacitance: 50p` gives each net that
+capacitance.
 
 Reference global nets explicitly as `global.gnd` and `global.v3v3`. A reference
 never creates a net. An instantiated block referring to a missing global is an
@@ -503,9 +510,8 @@ Definition-body fragment:
 
 ```nosch
 inst series: Resistor
-  connections:
-    1: source
-    2: destination
+  1: source
+  2: destination
   params:
     value: 33R
   metadata:
@@ -514,13 +520,15 @@ inst series: Resistor
 ```
 
 An instance line names the instance and its type. It may carry an argument list in
-parentheses (below), and it may be followed by indented `connections`, `params`,
-`metadata`, and `elements` sections. Either, both, or neither may be present:
+parentheses (below), and it may be followed by an indented body: its connections,
+one `pin: net` per line, then `params`, `metadata`, and `elements` sections, in any
+order among themselves. Connections come first; a connection after a section is a
+syntax error. Either the argument list, the body, both, or neither may be present:
 `inst holder: Holder` and `inst holder: Holder()` are the same instance. Omit an
 empty section rather than writing its header without entries; omitting arguments
 waives nothing, so required parameters and connection policies still apply.
-Connections bind by name, except for the explicit interchangeable-pin group
-described below. Parameters always bind by name.
+Connections bind by name, except for the explicit interchangeable-pin group and
+same-name connections described below. Parameters always bind by name.
 
 #### Instance arguments and interchangeable pins
 
@@ -555,7 +563,7 @@ These fragments assume the referenced types and nets exist. `Capacitor` declares
 two interchangeable pins; `Protection` declares two interchangeable signal pins
 and a separate pin aliased `gnd`.
 
-An argument list has three kinds of argument, separated by commas:
+An argument list has four kinds of argument, separated by commas:
 
 - A positional net reference binds the next pin in the declared interchangeable
   group. If any positional connections are supplied, they must cover the whole
@@ -565,12 +573,14 @@ An argument list has three kinds of argument, separated by commas:
   Named connections also work without an interchangeable group. A pin cannot be
   bound twice, including through a positional argument and an alias.
 - `parameter=expression` supplies a named parameter in the caller's scope.
+- `*` connects each remaining pin or port to the caller's net or port of the same
+  name (below).
 
 Newlines inside the parentheses are not layout, so arguments may be written on
 one line or across several, and a trailing comma is allowed. Positional
 references may include globals, bundle fields, and array indices/slices, with the
-same broadcast rules as section connections. Endpoint lists and ranges need a
-`connections:` section.
+same broadcast rules as body connections. Endpoint lists and ranges are written in
+the body.
 
 Arguments and sections describe one instance, and neither overrides the other.
 Named connections join the instance's connections and `name=value` arguments its
@@ -587,7 +597,36 @@ inst high: Resistor(bus.high, split, value=60.4R)
 ```
 
 Prefer keeping all of a part's connections in one place, either its arguments or
-its `connections:` section, so its wiring reads at a glance.
+its body, so its wiring reads at a glance.
+
+#### Same-name connections
+
+`*` in the argument list connects every pin or port that no other argument or body
+line binds to the caller's net or port with the same name. Blocks often pass
+supplies and buses straight through:
+
+```nosch
+block OutputBank:
+  ports:
+    supply: nettype.power
+    ground: nettype.ground
+    input: nettype.digital[4][2]
+    output: nettype.digital[4][2]
+  net translated: nettype.digital[4][2]
+  inst pairs[4]: OutputPair(*, input: translated)
+```
+
+Here `supply`, `ground`, and `output` bind to the bank's ports of those names and
+`input` to `translated`. A pin matches through its physical ID or any alias, so
+`Led(*)` connects nets named `anode` and `cathode`. Candidates are the enclosing
+definition's local nets and, in a block, its ports; globals are never matched, so
+write `gnd: global.gnd`. A pin or port with no same-name net is left to its
+unused-connection policy, which by default requires a connection or `no_connect`.
+`*` is an error when it matches nothing, or when one pin matches through two of
+its names. Shapes follow the usual rules: a scalar net broadcasts across an
+instance array, and an array net must match the instance and port dimensions.
+Renaming a net or port can silently change what `*` connects; the unused-connection
+policy reports a pin that loses its connection.
 
 Positional nets map deterministically to the listed physical pins, in list order.
 Reordering the arguments or the group changes pad assignments in the exported
@@ -601,9 +640,8 @@ one element, with one nonnegative integer literal per dimension:
 
 ```nosch
 inst pulls[2]: Pullup
-  connections:
-    supply: supply
-    signal: bus
+  supply: supply
+  signal: bus
   params:
     value: 4.7k
   elements:
@@ -624,7 +662,7 @@ parameter without a common argument if every element supplies it.
 `[1][2]:` selects one element of a two-dimensional array. Slices, partial indices,
 index variables, duplicate selectors, out-of-range indices, nested `elements`,
 and element-local connections are not supported. Use indexed connections in the
-common `connections:` section. Per-element `ref` and `identity` are disallowed;
+instance body. Per-element `ref` and `identity` are disallowed;
 existing common identity rules, including array index suffixes, remain unchanged.
 Changing an element's value does not change its identity. Reordering or inserting
 array positions still can change physical identities.
@@ -637,7 +675,7 @@ connection shapes; element parameters do not relax shape compatibility.
 
 The left side names an instance pin, alias, or public port. It may select public
 bundle fields and array elements. The right side names a declared caller net,
-a caller port, a global, or `no_connect`.
+a caller port, a global, or `no_connect`, or `flat(net)` (section 6.3).
 
 `anode: anode` is valid: the left name belongs to the instance interface and the
 right name belongs to the caller. A pin may not bind twice, even to the same net.
@@ -693,12 +731,11 @@ its type. A whole-bundle binding requires the same named bundle type and connect
 fields by name. Merely having identical field structures does not make two bundle
 types interchangeable.
 
-Connection-section fragment:
+Instance-body fragment:
 
 ```nosch
-connections:
-  bus.scl: control.scl
-  bus.sda: control.sda
+bus.scl: control.scl
+bus.sda: control.sda
 ```
 
 Field-level bindings can connect different bundle types explicitly. Crossed
@@ -715,8 +752,7 @@ Definition-body fragment:
 net signals: nettype.digital[4]
 net matrix: nettype.passive[2][3]
 inst receivers[4]: Receiver
-  connections:
-    input: signals
+  input: signals
 ```
 
 Dimensions must be positive integers. Arrays are zero-based. `matrix[1][2]`
@@ -735,6 +771,7 @@ whose port has shape `[4]` exposes an effective connection shape `[3][4]`.
 | Array of distinct nets to one physical pin | Error; would merge nets |
 | `[1]` array to scalar | Error; a one-element array is still an array |
 | `[4]` nets to `[3][4]` endpoints | Error; partial broadcasting is not supported |
+| `flat(net)` to a pin list or range | Connect the net's elements in row-major order |
 
 There is no `each` keyword. Shared connections undergo normal ERC.
 
@@ -744,10 +781,9 @@ Leading selectors choose elements of an instance array. Instance fragment:
 
 ```nosch
 inst indicators[3]: Indicator
-  connections:
-    [0].drive: status
-    [1].drive: activity
-    [2].drive: fault
+  [0].drive: status
+  [1].drive: activity
+  [2].drive: fault
 ```
 
 A bare `drive` selects the port across the whole instance array. `[1].data[2]`
@@ -755,16 +791,18 @@ selects port element 2 on instance element 1. Indexed bindings do not override
 broader bindings; overlap is an error.
 
 Physical pin ranges use inclusive bounds. Array slices use an exclusive stop.
-Connection-section fragment:
+Instance-body fragment:
 
 ```nosch
-connections:
-  11..20: gpio[0:10]
+11..20: gpio[0:10]
+30..21: lanes
 ```
 
-The ten pins match the ten net elements in ascending order. This explicit range
-ordering is distinct from positional instance arguments. Physical ranges require
-ordinary integer labels; they do not support alphanumeric or zero-padded IDs.
+The ten pins `11..20` match the ten net elements in ascending order. A range whose
+first bound is larger counts down: pin 30 takes `lanes[0]` and pin 21 `lanes[9]`.
+This explicit range ordering is distinct from positional instance arguments.
+Physical ranges require ordinary integer labels; they do not support alphanumeric
+or zero-padded IDs.
 Ranges also apply to pin definitions and instance pin metadata. Slices require
 explicit start and stop bounds; negative indices and out-of-range bounds are
 errors. Empty selections are not useful connection endpoints and are rejected.
@@ -773,18 +811,31 @@ Bracketed pin lists select noncontiguous physical pins. A list may contain exact
 pin identifiers, aliases, inclusive ranges, or a mixture:
 
 ```nosch
-connections:
-  [11, 28, 50, 75, 100]: supply
-  [7..9, 23..24, 35]: no_connect
-  [VDD, 2..3, "07"]: supply
+[11, 28, 50, 75, 100]: supply
+[7..9, 23..24, 35]: no_connect
+[VDD, 2..3, "07"]: supply
 ```
 
 `[m..n]` has the same inclusive numeric bounds as `m..n`; `[1]` and `[1,]` are
 valid singleton lists. Lists can span lines and have a trailing comma. Members
 are literal pin identifiers, not parameter expressions. Ranges cannot use
-alphanumeric or zero-padded bounds. List order, with each range expanded in
-ascending order, determines the selection's array order. Existing connection
+alphanumeric or zero-padded bounds. List order, with each range expanded in its
+written direction, determines the selection's array order. Existing connection
 shape rules apply; a scalar net broadcasts to the whole selection.
+
+A selection of pins is one-dimensional, so it cannot bind a multi-dimensional net
+directly. `flat(net)` lists an array net's scalar elements in row-major order,
+the last index varying fastest:
+
+```nosch
+// input is nettype.digital[4][2]: pins 4, 3 take input[0][0..1], and so on.
+[4, 3, 5..10]: flat(input)
+21..14: flat(translated)
+```
+
+The flattened net and the pin selection must then have the same length.
+`flat()` takes an array net or array bundle field; a scalar or `no_connect` is an
+error. Bundles inside the array stay whole elements.
 
 The same keys work in a component's `pins:` declarations or specialization and
 under an instance's `metadata.pins:`. Base declarations define physical IDs;
@@ -825,7 +876,7 @@ internal circuit, or expose private internals. Existing parameterized dimensions
 can still vary through parameter values. Instance arguments override defaults.
 
 Metadata mappings merge recursively by key. Scalar values and lists replace
-inherited values; lists such as `aliases` do not concatenate. A specialization
+inherited values; lists such as a pin's aliases do not concatenate. A specialization
 can replace a default but cannot remove it. The merged result is validated,
 including aliases and electrical constraints. Inheritance cycles are errors.
 
@@ -851,7 +902,7 @@ literal instead: `capacitance: 10p`, `max_load_current: 100m`.
 | `block` | `custom`, `erc_choices` |
 | `board` | `configurations`, `custom`, `erc_choices` |
 | `bundle` | `custom` |
-| `pin` | `aliases`, `checks`, `custom`, `max_load_current`, `max_source_current`, `role`, `tristate_capable`, `unused` |
+| `pin` | `checks`, `custom`, `max_load_current`, `max_source_current`, `role`, `tristate_capable`, `unused` |
 | `aggregate_load` | `max_load_current` |
 | `port` | `aggregate_load`, `checks`, `custom`, `placeholder`, `role`, `unused`, `waivers` |
 | `net` | `checks`, `custom`, `net_class`, `placeholder`, `waivers` |
@@ -868,9 +919,10 @@ block instances accept `identity`, `erc_choices`, and `custom`.
 
 `footprint`, `ref_prefix`, `ref`, `identity`, and `net_class` are strings.
 `tristate_capable` and `placeholder` are booleans. Current amounts are finite,
-nonnegative numeric expressions. `aliases` is a list of names, strings, or integer
-pin spellings (so `01` retains its leading zero). `role` on a
-definition can be one role or a list of permitted roles.
+nonnegative numeric expressions. A pin's aliases are written in its key (section
+3.1), not as a field; names, strings, and integer spellings are allowed (so `01`
+retains its leading zero). `role` on a definition can be one role or a list of
+permitted roles.
 
 Definitions declare `pins` directly. Instances annotate existing pins under
 `metadata.pins`; they cannot add pins or change aliases or unused policies. An
@@ -1218,6 +1270,26 @@ together. A physical pin or instance pin uses the same fields, alone or together
 for its absolute limits, in volts. These fields accept finite signed numeric expressions, in volts. Bounds
 are inclusive; minimum values cannot exceed maximum values.
 
+`voltage` sets both bounds in one field, as a range or a tolerance:
+
+```nosch
+net v5: nettype.power
+  voltage: 5 ± 5%        // 4.75 to 5.25
+net vref: nettype.analog
+  voltage: 2.5 +/- 0.01  // 2.49 to 2.51
+net gnd: nettype.ground
+  voltage: 0..0
+```
+
+`low..high` gives the bounds directly. `center ± deviation` is `center - deviation`
+to `center + deviation`; with `%` the deviation is a percentage of the center,
+computed as `center * (100 ∓ deviation) / 100`, so a negative center needs a range.
+`+/-` is the ASCII spelling of `±`. Each part is an ordinary numeric expression,
+such as `0..supply * 2`. `voltage` cannot be combined with `min_voltage` or
+`max_voltage` on the same declaration, and a plain number is an error: it does not
+say which bound it sets. Ranges and tolerances are written only as a `voltage`
+value.
+
 `erc.voltage_limits` compares each annotated pin against the declared net range.
 Exceeding either pin limit is an error. An annotated pin without a complete net
 range produces a warning; an incomplete or reversed net range is an error.
@@ -1331,31 +1403,24 @@ An internal instance can select a role using a local choice. Instance fragment:
 ```nosch
 metadata:
   pins:
-    1:
-      role:
-        choice: "mode"
-        cases:
-          source: role.power_output
-          load: role.power_input
-          absent: role.passive
+    1: choice(mode, source=role.power_output, load=role.power_input, absent=role.passive)
 ```
 
-On a pin that declares active roles, every case must be one of them (section 8.1).
+`choice(name, alternative=value, ...)` names a local choice, then gives the value
+for each of its alternatives. It may also be written as a pin's `role:` field. On a
+pin that declares active roles, every case must be one of them (section 8.1).
 Every alternative must have exactly one case. Alternatives are distinct,
-nonempty literal strings. A role list without a selection remains uncertain;
-the compiler does not choose a role to make the circuit pass.
+nonempty literal strings; one used in `choice(...)` must also be a name. A role
+list without a selection remains uncertain; the compiler does not choose a role to
+make the circuit pass.
 
 Parents bind child choices under instance `metadata.erc_choices`. The value is a
-literal alternative or a mapping from a parent's lexical choice:
+literal alternative or a `choice(...)` of a parent's lexical choice:
 
 ```nosch
 metadata:
   erc_choices:
-    mode:
-      choice: "power_source"
-      cases:
-        usb: "source"
-        header: "absent"
+    mode: choice(power_source, usb="source", header="absent")
 ```
 
 Choices are forwarded explicitly through each block interface. They are not
@@ -1363,7 +1428,13 @@ addressable by private instance paths or available in parameter expressions.
 Array elements inherit common choice bindings; `elements:` metadata may override
 bindings for an individual block element. Each retains a distinct expanded scope.
 
-Board metadata defines named configurations:
+ERC checks every combination of the board's choices. Each combination is a
+configuration named by its selections in choice-name order, such as
+`supply_12v=port0,supply_5v=jack`. A board whose choices form more than 64
+combinations must name its configurations instead.
+
+Board metadata may name configurations, which then replace the combinations. Name
+them to give them readable names or to leave out combinations that cannot occur:
 
 ```nosch
 metadata:
@@ -1376,11 +1447,11 @@ metadata:
       power_source: "header"
 ```
 
-All named configurations run by default. Repeat `--erc-configuration NAME` to
-select a subset. Without named configurations, one unconfigured check runs.
-Choices have no implicit defaults; omitted selections warn where they prevent
-checking. Invalid choices, mappings, and role overrides are blocking source
-errors. Configuration names do not waive conflicts.
+All configurations run by default. Repeat `--erc-configuration NAME` to select a
+subset. A board without choices has one unconfigured check. A named configuration
+may leave a choice unselected; choices have no implicit defaults, and omitted
+selections warn where they prevent checking. Invalid choices, selections, and role
+overrides are blocking source errors. Configuration names do not waive conflicts.
 
 See [examples/power_modes](../examples/power_modes) for a complete project.
 
@@ -1623,7 +1694,7 @@ The compiler consumes NoScheme definitions; it does not import KiCad symbols
 implicitly. `convert-library` writes explicit components and footprint snapshots
 into a new directory, with sources in the canonical layout. It preserves physical
 pin text, follows symbol inheritance, folds duplicate representations, and keeps
-unambiguous aliases. A two-terminal
+unambiguous aliases, written in the pin key (`"12" (PH0):`). A two-terminal
 symbol whose reference prefix is `R`, `C`, or `L` gets a required `value`
 parameter of type `resistance`, `capacitance`, or `inductance`, since its KiCad
 `Value` is only a placeholder; other symbols keep `value: string` with KiCad's
@@ -1850,17 +1921,15 @@ board Demo:
   global net gnd: nettype.ground
   net signal: nettype.digital
   inst connector: Header
-    connections:
-      1: signal
-      2: global.gnd
+    1: signal
+    2: global.gnd
     metadata:
       pins:
         1: role.digital_output
         2: role.ground
   inst load: Resistor
-    connections:
-      1: signal
-      2: global.gnd
+    1: signal
+    2: global.gnd
     params:
       value: 10k
 ```

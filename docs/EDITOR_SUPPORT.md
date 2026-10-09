@@ -483,10 +483,11 @@ and missing-data policies, including imported plugin rules and unfinished calls.
 Rule names are filtered by pin/net scope. Empty or unfinished inline instance
 lists suggest named pins and parameters, plus positional targets for components
 with interchangeable pins; already supplied pins and parameters are excluded.
-Section-form connections support empty rows, missing targets, and unfinished
-pin/bundle-member names. Grouped physical pin lists also offer names and aliases,
+Connections in an instance body support empty rows, missing targets, and unfinished
+pin/bundle-member names; an empty row also offers the `params`, `metadata`, and
+`elements` section keywords. Grouped physical pin lists also offer names and aliases,
 including across multiple lines, excluding pins already selected in that list or
-other rows of the same section. Quoted members and groups after instance-array
+other connection rows of the same instance. Quoted members and groups after instance-array
 selectors are supported; index expressions themselves are left alone.
 Native keyword completion also works in a fresh file without a project. It
 suggests declarations and sections according to lexical context, inserting the

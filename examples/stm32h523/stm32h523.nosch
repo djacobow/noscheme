@@ -13,9 +13,9 @@ Use the placement notes on decoupling capacitors during PCB layout. All small
 resistors/capacitors use 0603. No unverified current capacities are annotated.
 */
 
-from noscheme import role, nettype, bias, std
+from noscheme import role, nettype, bias
 from interfaces import I2C, SPI, USB2, SWD
-from components import I2CPullup, InputBias0603, Capacitor0603
+from components import I2CPullup, InputPullup0603, InputPulldown0603, Capacitor0603
 from components import PushButton, Indicator
 from components import Header1x2, Header1x4, Header2x10, UartHeaderJST3
 import mcu
@@ -67,17 +67,12 @@ board STM32H523Reference:
   )
 
   inst usb_c: peripherals.UsbC
-    connections:
-      vbus: global.v5
-      ground: global.gnd
-      data: usb
+    vbus: global.v5
+    ground: global.gnd
+    data: usb
     metadata:
       erc_choices:
-        power_mode:
-          choice: "power_source"
-          cases:
-            usb: "source"
-            header5v: "absent"
+        power_mode: choice(power_source, usb="source", header5v="absent")
 
   inst regulator: peripherals.Ldo3v3(input: global.v5, output: global.v3v3, ground: global.gnd)
 
@@ -92,9 +87,8 @@ board STM32H523Reference:
 
   // OLED header order: 3.3 V, ground, SCL, SDA; match the module cable to it.
   inst oled_decouple: Capacitor0603
-    connections:
-      1: global.v3v3
-      2: global.gnd
+    1: global.v3v3
+    2: global.gnd
     params:
       value: 100n
     metadata:
@@ -103,11 +97,10 @@ board STM32H523Reference:
   inst oled_bulk: Capacitor0603(global.v3v3, global.gnd, value=4.7u)
 
   inst oled_header: Header1x4
-    connections:
-      1: global.v3v3
-      2: global.gnd
-      3: oled.scl
-      4: oled.sda
+    1: global.v3v3
+    2: global.gnd
+    3: oled.scl
+    4: oled.sda
     metadata:
       pins:
         1: role.power_input
@@ -124,28 +117,22 @@ board STM32H523Reference:
   // Illustrative header order: 4 power/ground + 2 I2C + 4 SPI + 10 other GPIO.
   // Bus pins are also GPIO-capable MCU pins, giving 16 GPIO connections total.
   inst expansion: Header2x10
-    connections:
-      1: global.gnd
-      2: global.gnd
-      3: global.v5
-      4: global.v3v3
-      5: expansion_i2c.scl
-      6: expansion_i2c.sda
-      7: expansion_spi.sck
-      8: expansion_spi.mosi
-      9: expansion_spi.miso
-      10: expansion_spi.cs#
-      11..20: expansion_gpio[0:10]
+    1: global.gnd
+    2: global.gnd
+    3: global.v5
+    4: global.v3v3
+    5: expansion_i2c.scl
+    6: expansion_i2c.sda
+    7: expansion_spi.sck
+    8: expansion_spi.mosi
+    9: expansion_spi.miso
+    10: expansion_spi.cs#
+    11..20: expansion_gpio[0:10]
     metadata:
       pins:
         1: role.ground
         2: role.ground
-        3:
-          role:
-            choice: "power_source"
-            cases:
-              usb: role.power_input
-              header5v: role.power_output
+        3: choice(power_source, usb=role.power_input, header5v=role.power_output)
         4: role.power_input
         // Assumes expansion devices add no I2C pull-ups of their own.
         5: [role.open_drain, bias.none]
@@ -162,10 +149,9 @@ board STM32H523Reference:
 
   // TX/RX are named from the MCU's perspective. Each header gets its own UART.
   inst uart_headers[2]: UartHeaderJST3
-    connections:
-      gnd: global.gnd
-      tx: uart_tx
-      rx: uart_rx
+    gnd: global.gnd
+    tx: uart_tx
+    rx: uart_rx
     metadata:
       pins:
         1: role.ground
@@ -174,40 +160,19 @@ board STM32H523Reference:
 
   // Two active-low buttons with independent pull-ups and common ground.
   inst buttons[2]: PushButton(buttons#, global.gnd)
-  inst button_pullups[2]: InputBias0603
-    connections:
-      1: global.v3v3
-      2: buttons#
-    metadata:
-      pins:
-        2:
-          bias: bias.pull_up
-          pull_resistance: 10k
-          checks:
-            reference: std.bias_reference("1")
+  inst button_pullups[2]: InputPullup0603(1: global.v3v3, 2: buttons#)
   // NRST uses the MCU internal pull-up and the existing 100 nF reset capacitor.
   inst reset_button: PushButton(debug.reset#, global.gnd)
 
   // Shunt installed: BOOT0 high. Shunt absent: resistor pulls BOOT0 low.
   inst boot_header: Header1x2(1: global.v3v3, 2: boot0)
-  inst boot_pulldown: InputBias0603
-    connections:
-      1: boot0
-      2: global.gnd
-    metadata:
-      pins:
-        1:
-          bias: bias.pull_down
-          pull_resistance: 10k
-          checks:
-            reference: std.bias_reference("2")
+  inst boot_pulldown: InputPulldown0603(1: boot0, 2: global.gnd)
   // Bias annotations are explicit; passive parts alone do not imply propagation.
 
   inst indicators[3]: Indicator
-    connections:
-      [0].drive: led_drive[0]
-      [1].drive: led_drive[1]
-      [2].drive: led_drive[2]
+    [0].drive: led_drive[0]
+    [1].drive: led_drive[1]
+    [2].drive: led_drive[2]
   // Equivalent whole-array binding: drive: led_drive.
   // Use one form or the other; overlapping bindings are errors.
 

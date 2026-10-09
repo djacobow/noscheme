@@ -28,7 +28,7 @@
     },
     {
       "name": "keyword.other.noscheme",
-      "match": "^\\s*(?:pins|ports|params|defaults|metadata|connections|elements|checks)(?=\\s*:)"
+      "match": "^\\s*(?:pins|ports|params|defaults|metadata|elements|checks)(?=\\s*:)"
     },
     {
       "name": "constant.language.noscheme",

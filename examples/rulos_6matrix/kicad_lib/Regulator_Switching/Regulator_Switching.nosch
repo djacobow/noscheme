@@ -4,33 +4,27 @@ component TPS563200:
   params:
     value: string = "TPS563200"
   pins:
-    "1":
-      aliases: ["GND"]
+    "1" (GND):
       role: [role.ground, role.power_input]
       custom:
         kicad_pin_types: ["power_in"]
-    "2":
-      aliases: ["SW"]
+    "2" (SW):
       role: role.digital_output
       custom:
         kicad_pin_types: ["output"]
-    "3":
-      aliases: ["VIN"]
+    "3" (VIN):
       role: [role.ground, role.power_input]
       custom:
         kicad_pin_types: ["power_in"]
-    "4":
-      aliases: ["VFB"]
+    "4" (VFB):
       role: role.digital_input
       custom:
         kicad_pin_types: ["input"]
-    "5":
-      aliases: ["EN"]
+    "5" (EN):
       role: role.digital_input
       custom:
         kicad_pin_types: ["input"]
-    "6":
-      aliases: ["VBST"]
+    "6" (VBST):
       role: role.passive
       custom:
         kicad_pin_types: ["passive"]

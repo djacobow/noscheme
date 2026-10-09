@@ -289,6 +289,11 @@ std::vector<LspReference> reference_index(const Project &project,
               if (locals.contains(key.text))
                 add(key.span, locals.at(key.text));
             }
+        // A pin's aliases, `1 (signal):`, also name that pin.
+        if (auto *key = as<ast::FieldKey>(&node))
+          for (const auto &alias : key->aliases)
+            if (locals.contains(alias.text))
+              add(alias.span, locals.at(alias.text));
         if (kind == Kind::FieldKey || kind == Kind::PinKey ||
             kind == Kind::Endpoint)
           return;

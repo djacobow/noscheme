@@ -317,8 +317,7 @@ board B:
     checks:
       test: {check}
   inst p[2]: P
-    connections:
-      [1, 2]: n
+    [1, 2]: n
 """
     compare(
         probe,

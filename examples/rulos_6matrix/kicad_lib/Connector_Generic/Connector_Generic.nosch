@@ -4,13 +4,11 @@ component Conn_01x02:
   params:
     value: string = "Conn_01x02"
   pins:
-    "1":
-      aliases: ["Pin_1"]
+    "1" (Pin_1):
       role: role.passive
       custom:
         kicad_pin_types: ["passive"]
-    "2":
-      aliases: ["Pin_2"]
+    "2" (Pin_2):
       role: role.passive
       custom:
         kicad_pin_types: ["passive"]
@@ -249,18 +247,15 @@ component Conn_01x03:
   params:
     value: string = "Conn_01x03"
   pins:
-    "1":
-      aliases: ["Pin_1"]
+    "1" (Pin_1):
       role: role.passive
       custom:
         kicad_pin_types: ["passive"]
-    "2":
-      aliases: ["Pin_2"]
+    "2" (Pin_2):
       role: role.passive
       custom:
         kicad_pin_types: ["passive"]
-    "3":
-      aliases: ["Pin_3"]
+    "3" (Pin_3):
       role: role.passive
       custom:
         kicad_pin_types: ["passive"]
@@ -490,53 +485,43 @@ component Conn_02x05_Odd_Even:
   params:
     value: string = "Conn_02x05_Odd_Even"
   pins:
-    "1":
-      aliases: ["Pin_1"]
+    "1" (Pin_1):
       role: role.passive
       custom:
         kicad_pin_types: ["passive"]
-    "10":
-      aliases: ["Pin_10"]
+    "10" (Pin_10):
       role: role.passive
       custom:
         kicad_pin_types: ["passive"]
-    "2":
-      aliases: ["Pin_2"]
+    "2" (Pin_2):
       role: role.passive
       custom:
         kicad_pin_types: ["passive"]
-    "3":
-      aliases: ["Pin_3"]
+    "3" (Pin_3):
       role: role.passive
       custom:
         kicad_pin_types: ["passive"]
-    "4":
-      aliases: ["Pin_4"]
+    "4" (Pin_4):
       role: role.passive
       custom:
         kicad_pin_types: ["passive"]
-    "5":
-      aliases: ["Pin_5"]
+    "5" (Pin_5):
       role: role.passive
       custom:
         kicad_pin_types: ["passive"]
-    "6":
-      aliases: ["Pin_6"]
+    "6" (Pin_6):
       role: role.passive
       custom:
         kicad_pin_types: ["passive"]
-    "7":
-      aliases: ["Pin_7"]
+    "7" (Pin_7):
       role: role.passive
       custom:
         kicad_pin_types: ["passive"]
-    "8":
-      aliases: ["Pin_8"]
+    "8" (Pin_8):
       role: role.passive
       custom:
         kicad_pin_types: ["passive"]
-    "9":
-      aliases: ["Pin_9"]
+    "9" (Pin_9):
       role: role.passive
       custom:
         kicad_pin_types: ["passive"]

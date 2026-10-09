@@ -166,17 +166,20 @@ def footprint_completion(path, config, sources, offset):
 
 
 def connection_instance(masked, owner, line_start):
-    """Find the enclosing instance when editing its connections section."""
+    """Find the enclosing instance when editing its connections, which lead its body."""
     active, section = None, None
     for line in masked[owner.end() : line_start].splitlines():
         if match := INSTANCE.match(line):
-            active, section = match, None
+            active, section = match, "connections"
         elif active and line.strip():
             indent = len(line) - len(line.lstrip())
             if indent <= len(active[1]):
                 active, section = None, None
-            elif re.fullmatch(r"\s*(connections|params|metadata):\s*", line):
+            elif re.fullmatch(r"\s*(params|metadata|elements):\s*", line):
                 section = line.strip().rstrip(":")
+    current = masked[line_start:]
+    if active and len(current) - len(current.lstrip(" ")) <= len(active[1]):
+        return None  # The cursor's line is outside the instance body.
     return active if section == "connections" else None
 
 
@@ -432,7 +435,7 @@ def inline_completion(path, config, sources, offset, masked):
     if "." in argument:
         reference = re.sub(rf"^(?:{IDENTIFIER}|[0-9]+)?\s*:\s*", "", argument)
         if re.fullmatch(rf".+\.{WORD}", reference):
-            prefix = f"\n{active[1]}{INDENT}connections:\n{active[1]}{INDENT * 2}1: "
+            prefix = f"\n{active[1]}{INDENT}1: "
             source = sources[path]
             reference_start = offset - len(reference)
             virtual = source[:opening] + prefix + source[reference_start:]

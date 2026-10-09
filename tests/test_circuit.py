@@ -11,8 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PRELUDE = "from noscheme import role, unused, nettype\n"
 PART = """component P:
   pins:
-    1:
-      aliases: [A]
+    1 (A):
       unused: unused.explicit
     2:
       unused: unused.explicit
@@ -98,10 +97,9 @@ def test_shapes_scalar_sharing_and_leading_indices(tmp_path):
   net common: nettype.passive
   net data: nettype.passive[2][3]
   inst p[2][3]: P
-    connections:
-      1: data
-      [0].2: common
-      [1].2: common
+    1: data
+    [0].2: common
+    [1].2: common
 """,
     )
     assert len(c["parts"]) == 6
@@ -121,8 +119,7 @@ def test_port_indices_apply_within_each_instance(tmp_path):
 board B:
   net n: nettype.digital[2]
   inst w[2]: W
-    connections:
-      data[1]: n
+    data[1]: n
 """,
     )
     for i in range(2):
@@ -145,7 +142,7 @@ board B:
 def test_shape_errors(tmp_path, net_shape, inst_shape, binding, code):
     source = (
         PART
-        + f"board B:\n  net n: nettype.passive{net_shape}\n  inst p{inst_shape}: P\n    connections:\n      {binding}\n"
+        + f"board B:\n  net n: nettype.passive{net_shape}\n  inst p{inst_shape}: P\n    {binding}\n"
     )
     with pytest.raises(DiagnosticError) as exc:
         compile_source(tmp_path, source)
@@ -155,20 +152,17 @@ def test_shape_errors(tmp_path, net_shape, inst_shape, binding, code):
 @pytest.mark.parametrize(
     "bindings",
     [
-        "1: n\n      A: n",
-        "1..2: n\n      2: n",
-        "1: n\n      [0].1: n",
-        "1: no_connect\n      A: n",
+        "1: n\n    A: n",
+        "1..2: n\n    2: n",
+        "1: n\n    [0].1: n",
+        "1: no_connect\n    A: n",
     ],
 )
 def test_alias_range_array_and_no_connect_overlap(tmp_path, bindings):
     with pytest.raises(DiagnosticError) as exc:
         compile_source(
             tmp_path,
-            PART
-            + "board B:\n  net n: nettype.passive\n  inst p[2]: P\n    connections:\n      "
-            + bindings
-            + "\n",
+            PART + "board B:\n  net n: nettype.passive\n  inst p[2]: P\n    " + bindings + "\n",
         )
     assert exc.value.diagnostics[0].code == "connection.overlap"
     assert exc.value.diagnostics[0].related
@@ -181,8 +175,7 @@ def test_pin_range_and_slice(tmp_path):
         + """board B:
   net n: nettype.passive[4]
   inst p: P
-    connections:
-      1..2: n[1:3]
+    1..2: n[1:3]
 """,
     )
     assert [c["parts"][0]["pins"][p]["net"] for p in ("1", "2")] == ["n[1]", "n[2]"]
@@ -205,13 +198,12 @@ def test_bundle_nominal_types_and_breakout(tmp_path):
     with pytest.raises(DiagnosticError) as exc:
         compile_source(
             tmp_path,
-            BUNDLES + "board B:\n  net n: Other\n  inst w: W\n    connections:\n      bus: n\n",
+            BUNDLES + "board B:\n  net n: Other\n  inst w: W\n    bus: n\n",
         )
     assert exc.value.diagnostics[0].code == "connection.bundle-type"
     c = compile_source(
         tmp_path,
-        BUNDLES
-        + "board B:\n  net n: Other\n  inst w: W\n    connections:\n      bus.x: n.y\n      bus.y: n.x\n",
+        BUNDLES + "board B:\n  net n: Other\n  inst w: W\n    bus.x: n.y\n    bus.y: n.x\n",
     )
     block = next(b for b in c["blocks"] if b["path"] == ["w"])
     assert [p["net"] for p in block["ports"]["bus"]] == ["n.y", "n.x"]
@@ -221,8 +213,7 @@ def test_bundle_whole_and_field_overlap(tmp_path):
     with pytest.raises(DiagnosticError) as exc:
         compile_source(
             tmp_path,
-            BUNDLES
-            + "board B:\n  net n: A\n  inst w: W\n    connections:\n      bus: n\n      bus.x: n.x\n",
+            BUNDLES + "board B:\n  net n: A\n  inst w: W\n    bus: n\n    bus.x: n.x\n",
         )
     assert exc.value.diagnostics[0].code == "connection.overlap"
 
@@ -239,9 +230,8 @@ def test_caller_connections_cannot_fake_port_implementation(tmp_path):
 board B:
   net n: nettype.passive
   inst e: Empty
-    connections:
-      a: n
-      b: n
+    a: n
+    b: n
 """,
         )
     assert exc.value.diagnostics[0].code == "port.unimplemented"
@@ -252,8 +242,7 @@ def test_missing_global_only_fails_when_expanded(tmp_path):
         PART
         + """block Global:
   inst p: P
-    connections:
-      1: global.missing
+    1: global.missing
 """
     )
     compile_source(tmp_path, unused + "board B:\n  net n: nettype.passive\n")
@@ -265,7 +254,7 @@ def test_missing_global_only_fails_when_expanded(tmp_path):
 def test_explicit_no_connect_and_omitted_pins(tmp_path):
     c = compile_source(
         tmp_path,
-        PART + "board B:\n  inst p: P\n    connections:\n      1: no_connect\n",
+        PART + "board B:\n  inst p: P\n    1: no_connect\n",
     )
     pins = c["parts"][0]["pins"]
     assert pins["1"]["binding"] == "no_connect" and pins["1"]["net"] is None
@@ -284,7 +273,7 @@ def test_limits_and_array_explicit_identity(tmp_path):
 def test_compile_repeatability_and_failed_run_preserves_output(tmp_path, capsys):
     p = make(
         tmp_path,
-        PART + "board B:\n  net n: nettype.passive\n  inst p: P\n    connections:\n      1: n\n",
+        PART + "board B:\n  net n: nettype.passive\n  inst p: P\n    1: n\n",
     )
     args = ["compile", "--project", str(p)]
     assert main(args) == 0
@@ -299,7 +288,7 @@ def test_compile_repeatability_and_failed_run_preserves_output(tmp_path, capsys)
 def test_scalar_bundle_shares_across_instances(tmp_path):
     c = compile_source(
         tmp_path,
-        BUNDLES + "board B:\n  net n: A\n  inst w[2]: W\n    connections:\n      bus: n\n",
+        BUNDLES + "board B:\n  net n: A\n  inst w[2]: W\n    bus: n\n",
     )
     for block in c["blocks"]:
         if block["path"]:
@@ -315,15 +304,13 @@ def test_multiple_ports_can_share_caller_net_and_count_pins_once(tmp_path):
     a: nettype.passive
     b: nettype.passive
   inst p: P
-    connections:
-      1: a
-      2: b
+    1: a
+    2: b
 board B:
   net n: nettype.passive
   inst w: W
-    connections:
-      a: n
-      b: n
+    a: n
+    b: n
 """,
     )
     assert len(c["nets"]) == 1
@@ -349,8 +336,7 @@ def test_external_port_is_explicit_structural_support(tmp_path):
 board B:
   net n: nettype.digital
   inst w: W
-    connections:
-      a: n
+    a: n
     metadata:
       pins:
         a:
@@ -365,7 +351,7 @@ board B:
 def test_source_reordering_preserves_semantic_circuit(tmp_path):
     first = (
         PART
-        + "board B:\n  net a: nettype.passive\n  net b: nettype.passive\n  inst p: P\n    connections:\n      1: a\n      2: b\n"
+        + "board B:\n  net a: nettype.passive\n  net b: nettype.passive\n  inst p: P\n    1: a\n    2: b\n"
     )
     second = (
         first.replace("  net a: nettype.passive\n  net b: nettype.passive\n", "").replace(
@@ -396,12 +382,10 @@ def test_no_connect_on_block_port_preserved(tmp_path):
   ports:
     a: nettype.passive
   inst p: P
-    connections:
-      1: a
+    1: a
 board B:
   inst w: W
-    connections:
-      a: no_connect
+    a: no_connect
 """,
     )
     assert (

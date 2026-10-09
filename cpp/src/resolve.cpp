@@ -148,12 +148,17 @@ std::vector<std::string> physical_keys(const ast::FieldKey &key,
     fail("resolve.pin-range",
          "physical ranges require non-padded integer labels", key.span);
   Integer lo(first), hi(last);
-  if (hi < lo || hi - lo + 1 > max_pins)
-    fail("resolve.pin-range", "descending or excessively large physical range",
+  if ((hi < lo ? lo - hi : hi - lo) + 1 > max_pins)
+    fail("resolve.pin-range", "physical pin range exceeds the pin limit",
          key.span);
+  // A descending range selects its pins in descending order.
   std::vector<std::string> result;
-  for (auto index = lo; index <= hi; ++index)
+  int step = hi < lo ? -1 : 1;
+  for (auto index = lo;; index += step) {
     result.push_back(index.str());
+    if (index == hi)
+      break;
+  }
   return result;
 }
 Definitions resolve_interfaces(const Project &project,

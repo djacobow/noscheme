@@ -385,13 +385,58 @@ class Builder {
     result.first = result.items.front().first;
     return result;
   }
+  ast::FieldKey aliased_key(P::AliasedKeyContext *x) {
+    auto result = at<ast::FieldKey>(x);
+    auto keys = x->pinKey();
+    result.first = pin_key(keys.front());
+    for (std::size_t i = 1; i < keys.size(); ++i)
+      result.aliases.push_back(pin_key(keys[i]));
+    return result;
+  }
+  ast::Ptr field_value(P::FieldValueContext *x) {
+    if (x->RANGE()) {
+      auto result = shared<ast::Range>(span(x));
+      result->low = expr(x->expr(0));
+      result->high = expr(x->expr(1));
+      return result;
+    }
+    if (x->TOLERANCE()) {
+      auto result = shared<ast::Tolerance>(span(x));
+      result->center = expr(x->expr(0));
+      result->deviation = expr(x->expr(1));
+      result->percent = x->PERCENT() != nullptr;
+      auto where = result->span;
+      auto binary = [&](std::string op, ast::Ptr left, ast::Ptr right) {
+        auto node = shared<ast::Binary>(where);
+        node->op = std::move(op);
+        node->left = std::move(left);
+        node->right = std::move(right);
+        return node;
+      };
+      auto bound = [&](const char *op) -> ast::Ptr {
+        if (!result->percent)
+          return binary(op, result->center, result->deviation);
+        auto hundred = shared<ast::Number>(where);
+        hundred->spelling = "100";
+        hundred->integer = true;
+        auto group = shared<ast::Group>(where);
+        group->expression = binary(op, hundred, result->deviation);
+        return binary("/", binary("*", result->center, group), hundred);
+      };
+      result->low = bound("-");
+      result->high = bound("+");
+      return result;
+    }
+    return expr(x->expr(0));
+  }
   ast::Field field(P::FieldContext *x) {
     auto result = at<ast::Field>(x);
-    result.key = field_key(x->fieldKey());
-    if (!x->expr().empty())
-      result.value = expr(x->expr(0));
-    if (x->expr().size() > 1)
-      result.default_value = expr(x->expr(1));
+    result.key =
+        x->fieldKey() ? field_key(x->fieldKey()) : aliased_key(x->aliasedKey());
+    if (x->fieldValue())
+      result.value = field_value(x->fieldValue());
+    if (x->expr())
+      result.default_value = expr(x->expr());
     result.fields = fields(x->field());
     return result;
   }
@@ -413,19 +458,56 @@ class Builder {
   ast::Ptr entry_node(P::FieldContext *x) {
     return std::make_shared<ast::Field>(field(x));
   }
+  ast::FieldKey binding_key(P::BindingKeyContext *x) {
+    if (!x->LBRACK()) {
+      auto result = at<ast::FieldKey>(x);
+      auto pins = x->bindingPin();
+      auto pin = [&](P::BindingPinContext *p) {
+        auto key = at<ast::PinKey>(p);
+        key.spelling = p->getText();
+        key.text = p->STRING() ? string(p) : key.spelling;
+        return key;
+      };
+      result.first = pin(pins.front());
+      if (pins.size() > 1)
+        result.last = pin(pins.back());
+      return result;
+    }
+    auto result = at<ast::FieldKey>(x);
+    for (auto *item : x->keyItem())
+      result.items.push_back(key_item(item));
+    result.first = result.items.front().first;
+    return result;
+  }
+  // A net reference, or flat(net) for an array net's elements in row-major
+  // order.
+  ast::Ptr target(P::TargetContext *x) {
+    if (!x->LPAREN())
+      return reference(x->reference());
+    auto callee = name(x->name());
+    if (callee.text != "flat")
+      throw Failure("syntax.target",
+                    "a connection target is a net reference or flat(net)",
+                    begin(x->name()), end(x->name()));
+    auto result = shared<ast::Call>(span(x));
+    result->callee = std::make_shared<ast::Name>(std::move(callee));
+    result->arguments.push_back(reference(x->reference()));
+    return result;
+  }
   ast::Ptr entry_node(P::BindingContext *x) {
     auto result = std::make_shared<ast::Binding>(at<ast::Binding>(x));
     auto *e = x->endpoint();
     auto &endpoint = result->endpoint;
     endpoint.span = span(e);
     endpoint.instance_indices = indices(e->index());
-    endpoint.head = field_key(e->fieldKey());
+    endpoint.head =
+        e->fieldKey() ? field_key(e->fieldKey()) : binding_key(e->bindingKey());
     for (auto *selection : e->endpointSuffix())
       endpoint.selectors.push_back(
           selection->name()
               ? ast::Ptr(std::make_shared<ast::Name>(name(selection->name())))
               : std::make_shared<ast::Index>(index(selection->index())));
-    result->target = reference(x->reference());
+    result->target = target(x->target());
     return result;
   }
   ast::Ptr entry_node(P::ArgumentContext *x) {
@@ -448,8 +530,6 @@ class Builder {
     auto *ctx = dynamic_cast<Ctx *>(t);
     if (ctx->getRuleIndex() == P::RuleInstSection)
       return inst_section(ctx->children[0]);
-    if (auto *x = dynamic_cast<P::ConnectionsContext *>(t))
-      return section(x, "connections", x->binding());
     if (auto *x = dynamic_cast<P::ArgumentsContext *>(t))
       return section(x, "params", x->argument());
     if (auto *x = dynamic_cast<P::InstanceMetadataContext *>(t))
@@ -462,18 +542,31 @@ class Builder {
     result->name = name(x->name());
     result->dimensions = indices(x->index());
     result->component = path(x->path());
+    // Bindings precede the sections and form the connections section.
+    if (auto bindings = x->binding(); !bindings.empty()) {
+      auto connections = section(x, "connections", bindings);
+      connections.span = {owner, connections.entries.front()->span.start,
+                          connections.entries.back()->span.end};
+      result->sections.push_back(std::move(connections));
+    }
     for (auto *child : x->instSection())
       result->sections.push_back(inst_section(child));
     std::vector<ast::Ptr> bindings, params;
     if (auto *args = x->inlineArguments())
       for (auto *arg : args->inlineArgument()) {
-        if (arg->COLON()) {
+        if (arg->MUL()) {
+          if (arg->getText() != "*" || result->wildcard)
+            throw Failure("syntax.wildcard",
+                          "write one * to connect same-name nets", begin(arg),
+                          end(arg));
+          result->wildcard = span(arg);
+        } else if (arg->COLON()) {
           auto binding = std::make_shared<ast::Binding>(at<ast::Binding>(arg));
           auto &endpoint = binding->endpoint;
           endpoint.span = span(arg->pinKey());
           endpoint.head.span = endpoint.span;
           endpoint.head.first = pin_key(arg->pinKey());
-          binding->target = reference(arg->reference());
+          binding->target = target(arg->target());
           bindings.push_back(std::move(binding));
         } else if (arg->EQUAL()) {
           auto argument =
@@ -482,7 +575,7 @@ class Builder {
           argument->value = expr(arg->expr());
           params.push_back(std::move(argument));
         } else
-          result->positional.push_back(reference(arg->reference()));
+          result->positional.push_back(target(arg->target()));
       }
     // Inline arguments join the first section of their kind, before its own
     // entries; otherwise they form a section at the end.
@@ -507,21 +600,27 @@ class Builder {
       }
     return result;
   }
-  ast::Ptr definition_item(P::DefinitionItemContext *x) {
+  void definition_item(P::DefinitionItemContext *x,
+                       std::vector<ast::Ptr> &body) {
     if (auto *i = x->instance())
-      return instance(i);
-    if (auto *n = x->netDecl()) {
-      auto result = std::make_shared<ast::Net>(at<ast::Net>(n));
-      result->name = name(n->name());
-      result->type = expr(n->expr());
-      result->global = n->GLOBAL() != nullptr;
-      result->fields = fields(n->field());
-      return result;
-    }
-    if (auto *s = x->section())
-      return std::make_shared<ast::Section>(
-          section(s, s->sectionName()->getText(), s->field()));
-    return entry_node(x->field());
+      body.push_back(instance(i));
+    else if (auto *n = x->netDecl()) {
+      // `net a, b: T` declares one net per name, sharing the type and fields.
+      auto type = expr(n->expr());
+      auto declared = fields(n->field());
+      for (auto *declared_name : n->name()) {
+        auto result = std::make_shared<ast::Net>(at<ast::Net>(n));
+        result->name = name(declared_name);
+        result->type = type;
+        result->global = n->GLOBAL() != nullptr;
+        result->fields = declared;
+        body.push_back(std::move(result));
+      }
+    } else if (auto *s = x->section())
+      body.push_back(std::make_shared<ast::Section>(
+          section(s, s->sectionName()->getText(), s->field())));
+    else
+      body.push_back(entry_node(x->field()));
   }
   ast::Ptr item(Ctx *ctx) {
     if (auto *x = dynamic_cast<P::ImportDeclContext *>(ctx)) {
@@ -543,7 +642,7 @@ class Builder {
     if (x->path())
       result->base = path(x->path());
     for (auto *child : x->definitionItem())
-      result->body.push_back(definition_item(child));
+      definition_item(child, result->body);
     return result;
   }
 

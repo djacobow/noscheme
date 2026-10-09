@@ -45,6 +45,8 @@ namespace ast {
   X(Unary)                                                                     \
   X(Group)                                                                     \
   X(ListExpr)                                                                  \
+  X(Range)                                                                     \
+  X(Tolerance)                                                                 \
   X(Index)                                                                     \
   X(PinKey)                                                                    \
   X(FieldKey)                                                                  \
@@ -136,6 +138,19 @@ struct Group : Typed<Kind::Group> {
 struct ListExpr : Typed<Kind::ListExpr> {
   std::vector<Ptr> items;
 };
+// Field values only: `low..high`, and `center ± deviation`, a percentage of
+// center with `%`.
+struct Range : Typed<Kind::Range> {
+  Ptr low, high;
+};
+struct Tolerance : Typed<Kind::Tolerance> {
+  Ptr center, deviation;
+  bool percent = false;
+  // The bounds as expressions, center - deviation and center + deviation, or
+  // center * (100 ∓ deviation) / 100; built by the parser, which owns them,
+  // and not part of the comparison form.
+  Ptr low, high;
+};
 
 // Declarations.
 struct PinKey : Typed<Kind::PinKey> {
@@ -145,6 +160,8 @@ struct FieldKey : Typed<Kind::FieldKey> {
   PinKey first;
   std::optional<PinKey> last;
   std::vector<FieldKey> items;
+  // Pin aliases written in the key: `1 (cathode, K):`.
+  std::vector<PinKey> aliases;
 };
 struct Field : Typed<Kind::Field> {
   FieldKey key;
@@ -187,6 +204,8 @@ struct Instance : Typed<Kind::Instance> {
   std::vector<Name> component;
   std::vector<Section> sections;
   std::vector<Ptr> positional;
+  // `*`: connect remaining pins and ports to same-name nets.
+  std::optional<Span> wildcard;
 };
 struct ImportedName : Typed<Kind::ImportedName> {
   Name name;
@@ -219,8 +238,8 @@ std::string dotted(const std::vector<const Name *> &names);
 std::vector<const Name *> name_chain(const Node &expression);
 // The dotted spelling of name_chain.
 std::string expression_path(const Node &expression);
-// A connection target such as bus.sd[0]: its first Name, then its member
-// Names and Index selections in source order.
+// A connection target such as bus.sd[0], or the net of flat(bus.sd): its
+// first Name, then its member Names and Index selections in source order.
 struct ReferenceParts {
   const Name *head = nullptr;
   std::vector<const Node *> selectors;

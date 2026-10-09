@@ -22,8 +22,7 @@ board B:
       contention: std.count(std.active_digital_driver, max=1)
       presence: std.any(std.active_digital_driver)
   inst devices[2]: Endpoint
-    connections:
-      1: bus
+    1: bus
 """
 
 
@@ -222,8 +221,7 @@ component Child extends Base:
 board B:
   net bus: nettype.passive
   inst load: Child
-    connections:
-      1: bus
+    1: bus
     metadata:
       pins:
         1:
@@ -379,8 +377,7 @@ component Part:
 board B:
   net bus: nettype.passive
   inst load: Part
-    connections:
-      1: bus
+    1: bus
 """
     make(tmp_path, source)
     (tmp_path / "checks.py").write_text(
@@ -414,15 +411,13 @@ block Inner:
       checks:
         contention: std.count(std.active_digital_driver, max=0)
   inst endpoint: Endpoint
-    connections:
-      1: bus
+    1: bus
 board B:
   net bus: nettype.digital
     waivers:
       contention: "Reviewed: the inner limit is a test fixture."
   inst inner: Inner
-    connections:
-      bus: bus
+    bus: bus
 """
 
 

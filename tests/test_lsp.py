@@ -22,8 +22,7 @@ component Receiver:
 board B:
     net bus: nettype.tristate
     inst receivers[2]: Receiver
-        connections:
-            signal: bus
+        signal: bus
 """
 
 
@@ -274,9 +273,9 @@ def test_utf16_diagnostics_and_incremental_edits(client, project):
 
 def test_lexical_net_and_pin_alias_navigation(project):
     path = project / "main.nosch"
-    text = SOURCE.replace(
-        "            role:", "            aliases: [input]\n            role:"
-    ).replace("signal: bus", "input: bus")
+    text = SOURCE.replace("        signal:", "        signal (input):", 1).replace(
+        "signal: bus", "input: bus"
+    )
     result = analyze(path, project, {path: text})
     pin = result.reference_at(path, text.index("input: bus"))
     net = result.reference_at(path, text.index("input: bus") + len("input: "))
@@ -434,16 +433,16 @@ def test_bundle_member_protocol_completion_navigation_and_hover(client, project)
     path = project / "main.nosch"
     text = (
         "import interfaces\nboard B:\n    net wire: interfaces.Bus\n"
-        "    inst p: interfaces.Port\n        connections:\n"
-        "            bus.sck: wire.sck\n"
+        "    inst p: interfaces.Port\n"
+        "        bus.sck: wire.sck\n"
     )
     open_document(client, path, text)
-    for column in [16, 26]:
+    for column in [12, 22]:
         result = client.request(
             "textDocument/definition",
             {
                 "textDocument": {"uri": path.as_uri()},
-                "position": {"line": 5, "character": column},
+                "position": {"line": 4, "character": column},
             },
         )
         assert result["uri"] == library.as_uri()
@@ -452,7 +451,7 @@ def test_bundle_member_protocol_completion_navigation_and_hover(client, project)
             "textDocument/hover",
             {
                 "textDocument": {"uri": path.as_uri()},
-                "position": {"line": 5, "character": column},
+                "position": {"line": 4, "character": column},
             },
         )
         assert "bundle field sck" in hover["contents"]["value"]
@@ -468,13 +467,13 @@ def test_bundle_member_protocol_completion_navigation_and_hover(client, project)
         "textDocument/completion",
         {
             "textDocument": {"uri": path.as_uri()},
-            "position": {"line": 5, "character": 26},
+            "position": {"line": 4, "character": 22},
         },
     )
     assert [item["label"] for item in result["items"]] == ["sck"]
     assert result["items"][0]["textEdit"] == {
         "newText": "sck",
-        "range": {"start": {"line": 5, "character": 26}, "end": {"line": 5, "character": 26}},
+        "range": {"start": {"line": 4, "character": 22}, "end": {"line": 4, "character": 22}},
     }
 
 
@@ -738,13 +737,11 @@ block Bus:
             checks:
                 load: std.sum(capacitance, max=capacitance * 10)
     inst p: P
-        connections:
-            1: line
+        1: line
 board B:
     net n: nettype.passive
     inst bus: Bus
-        connections:
-            line: n
+        line: n
 """
     make(tmp_path, "")
     path = tmp_path / "main.nosch"

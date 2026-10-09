@@ -250,7 +250,7 @@ def test_shadowed_attribute_enum(probe, tmp_path):
         ("board", 'erc_choices:\n  supply: ["usb", "header"]'),
         ("board", 'configurations:\n  usb:\n    supply: "usb"'),
         ("component", "current_loads:\n  core:\n    pins: [1, 2]\n    max_load_current: 10m"),
-        ("instance_pin", 'role:\n  choice: "mode"\n  cases:\n    input: role.digital_input'),
+        ("instance_pin", "role: choice(mode, input=role.digital_input)"),
     ],
 )
 def test_specialized_forms(probe, tmp_path, scope, text):
@@ -296,19 +296,19 @@ def test_specialized_forms(probe, tmp_path, scope, text):
         ("instance", 'erc_choices:\n  supply: "usb"'),
         (
             "instance",
-            'erc_choices:\n  supply:\n    choice: "mode"\n    cases:\n      on: "usb"\n      off: "header"',
+            'erc_choices:\n  supply: choice(mode, on="usb", off="header")',
         ),
-        ("instance", 'erc_choices:\n  supply:\n    choice: "mode"'),
+        ("instance", "erc_choices:\n  supply: choice(mode)"),
         (
             "instance",
-            'erc_choices:\n  supply:\n    choice: "parent.mode"\n    cases:\n      on: "usb"',
+            'erc_choices:\n  supply: choice(parent.mode, on="usb")',
         ),
-        ("instance", 'erc_choices:\n  supply:\n    choice: "mode"\n    cases:\n      on: 3'),
+        ("instance", "erc_choices:\n  supply: choice(mode, on=3)"),
         (
             "instance_pin",
-            'role:\n  choice: "mode"\n  cases:\n    in: role.digital_input\n    out: role.digital_output',
+            "role: choice(mode, in=role.digital_input, out=role.digital_output)",
         ),
-        ("instance_pin", 'role:\n  choice: "mode"\n  cases:\n    in: "digital_input"'),
+        ("instance_pin", 'role: choice(mode, in="digital_input")'),
         ("net", 'waivers:\n  custom_application: "prototypé"'),
         ("net", 'waivers:\n  missing_driver:\n    reason: "prototype"\n    pins: ["r.1", "r.2"]'),
         ("net", 'waivers:\n  unused_pin: "bad waiver"'),

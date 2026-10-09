@@ -161,9 +161,9 @@ def test_pin_ranges_and_limits(probe, tmp_path, pins, limit):
     "override",
     [
         "pins:\n    3: role.passive",
-        "pins:\n    A:\n      aliases: [new]",
+        "pins:\n    A (new):",
         "pins:\n    A:\n      unused: unused.never\n    1:\n      unused: unused.always",
-        'pins:\n    1:\n      aliases: ["2"]',
+        'pins:\n    1 ("2"):',
         'metadata:\n    custom:\n      note: "héllo"',
     ],
 )
@@ -171,8 +171,7 @@ def test_component_specialization(probe, tmp_path, override):
     source = (
         """component Base:
   pins:
-    1: role.passive
-      aliases: [A]
+    1 (A): role.passive
     2: role.passive
 component Child extends Base:
   """
@@ -210,8 +209,7 @@ block Base:
   ports:
     a: nettype.passive
   inst r: R(value=value)
-    connections:
-      [1, 2]: a
+    [1, 2]: a
 """,
             "src/main.nosch": PRELUDE
             + """from library import Base
@@ -241,8 +239,7 @@ block Child extends Base:
 def test_current_groups(probe, tmp_path, role, individual, members):
     source = f"""component C:
   pins:
-    1: role.{role}
-      aliases: [vdd]
+    1 (vdd): role.{role}
       {individual}
     2: role.power_input
   metadata:
@@ -270,8 +267,7 @@ def test_interchangeable(probe, tmp_path, second, group):
     first = "      capacitance: 1\n" if "capacitance" in second else ""
     source = f"""component C:
   pins:
-    1: role.passive
-      aliases: [a]
+    1 (a): role.passive
 {first}    2:
       {second}
   metadata:

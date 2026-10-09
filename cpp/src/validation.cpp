@@ -95,11 +95,21 @@ class Validator {
   }
   void fields(const std::vector<const ast::Field *> &entries,
               bool defaults = false, bool pin_keys = false,
-              bool instance_metadata = false) {
+              bool instance_metadata = false, bool pins = false) {
     unique(
         entries, [](const ast::Field &f) { return key_id(f.key); },
         [](const ast::Field &f) { return key_json(f.key); });
     for (const auto *f : entries) {
+      if (!f->key.aliases.empty() && !pins)
+        error("syntax.alias-context",
+              "pin aliases are declared in a component's pins section",
+              f->key.span);
+      if ((ast::is(f->value, Kind::Range) ||
+           ast::is(f->value, Kind::Tolerance)) &&
+          (f->key.first.text != "voltage" || f->default_value))
+        error("syntax.range-context",
+              "ranges and tolerances are only valid as a voltage value",
+              f->value->span);
       if (!f->key.items.empty() && !pin_keys)
         error("syntax.pin-list-context",
               "pin lists are only allowed for physical pins and connection "
@@ -196,7 +206,8 @@ public:
                   name + " section is not allowed in this " + kind +
                       " definition",
                   section->span);
-          fields(entries, name == "params", name == "pins");
+          fields(entries, name == "params", name == "pins", false,
+                 name == "pins" && kind == "component");
         } else if (auto *field = as<ast::Field>(n)) {
           // Lark commits to structural keywords in a definition body. ANTLR
           // permits them as names in other contexts, so retain that boundary.

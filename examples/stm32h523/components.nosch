@@ -18,32 +18,50 @@ component LedResistor extends Resistor0603:
   defaults:
     value: 1k
 
-component I2CPullup extends Resistor0603:
+// Pin 1 reaches the supply and pin 2 pulls the signal up, so the pins are no
+// longer interchangeable.
+component Pullup0603 extends Resistor0603:
   pins:
     2:
       bias: bias.pull_up
       pull_resistance: value
       checks:
         reference: std.bias_reference("1")
+  metadata:
+    interchangeable: []
+
+component I2CPullup extends Pullup0603:
   defaults:
     value: 4.7k
-  metadata:
-    // The pull-up side is pin 2, so the pins are no longer interchangeable.
-    interchangeable: []
 
 // Provisional values; verify input leakage and timing when selecting the MCU pins.
 component InputBias0603 extends Resistor0603:
   defaults:
     value: 10k
 
-component PushButton:
+component InputPullup0603 extends Pullup0603:
+  defaults:
+    value: 10k
+
+// Pin 1 pulls the signal down and pin 2 reaches ground.
+component InputPulldown0603 extends Resistor0603:
   pins:
     1:
-      aliases: [signal]
+      bias: bias.pull_down
+      pull_resistance: value
+      checks:
+        reference: std.bias_reference("2")
+  defaults:
+    value: 10k
+  metadata:
+    interchangeable: []
+
+component PushButton:
+  pins:
+    1 (signal):
       role: role.passive
       unused: unused.never
-    2:
-      aliases: [ground]
+    2 (ground):
       role: role.passive
       unused: unused.never
   metadata:
@@ -64,12 +82,10 @@ component Led:
   params:
     value: string
   pins:
-    1:
-      aliases: [cathode, K]
+    1 (cathode, K):
       role: role.passive
       unused: unused.never
-    2:
-      aliases: [anode, A]
+    2 (anode, A):
       role: role.passive
       unused: unused.never
   metadata:
@@ -111,12 +127,9 @@ component Header2x10:
 component UartHeaderJST3:
   pins:
     MP: [role.do_not_connect, unused.always]
-    1:
-      aliases: [gnd]
-    2:
-      aliases: [tx]
-    3:
-      aliases: [rx]
+    1 (gnd):
+    2 (tx):
+    3 (rx):
   metadata:
     ref_prefix: "J"
     custom:

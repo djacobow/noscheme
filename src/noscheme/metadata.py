@@ -66,7 +66,6 @@ SCHEMAS = {
     "bundle": {"custom": "custom"},
     "pin": {
         "tristate_capable": "bool",
-        "aliases": "aliases",
         "role": "roles",
         "unused": "unused",
         "custom": "custom",
@@ -181,8 +180,82 @@ def literal(expr):
     fail("metadata.value", "expected a literal metadata value", expr.span)
 
 
+def voltage_fields(fields):
+    """Expand `voltage: low..high` and `voltage: center ± deviation[%]` into bounds."""
+    written = {f.key.first.text: f for f in fields}
+    field = written.get("voltage")
+    if field is None:
+        return fields
+    if written.keys() & {"min_voltage", "max_voltage"}:
+        fail(
+            "metadata.voltage",
+            "voltage sets min_voltage and max_voltage; write one form",
+            field.span,
+        )
+    value = field.value
+    if isinstance(value, a.Range):
+        low, high = value.low, value.high
+    elif isinstance(value, a.Tolerance):
+        center, deviation, span = value.center, value.deviation, value.span
+
+        def binary(operator, left, right):
+            return a.Binary(span, operator, left, right)
+
+        if value.percent:
+            hundred = a.Number(span, "100", "integer")
+            low, high = (
+                binary(
+                    "/", binary("*", center, a.Group(span, binary(op, hundred, deviation))), hundred
+                )
+                for op in "-+"
+            )
+        else:
+            low, high = binary("-", center, deviation), binary("+", center, deviation)
+    else:
+        fail(
+            "metadata.voltage",
+            "voltage takes a range, low..high, or a tolerance, center ± deviation",
+            field.span,
+        )
+    bounds = []
+    for name, expr in (("min_voltage", low), ("max_voltage", high)):
+        key = a.FieldKey(field.key.span, a.PinKey(field.key.span, name, name))
+        bounds.append(a.Field(field.span, key, expr, None, ()))
+    return tuple(f for f in fields if f is not field) + tuple(bounds)
+
+
+def read_choice(expr, module, read_case=None):
+    """Read `choice(name, alternative=value, ...)`, a value selected by a local ERC choice."""
+    read_case = read_case or choice_string
+    if not (
+        isinstance(expr, a.Call)
+        and isinstance(expr.callee, a.Name)
+        and expr.callee.text == "choice"
+        and len(expr.arguments) == 1
+        and isinstance(expr.arguments[0], a.Name)
+        and expr.keywords
+    ):
+        fail(
+            "metadata.erc",
+            "a selection is choice(name, alternative=value, ...) with a local choice name",
+            expr.span,
+        )
+    name = expr.arguments[0]
+    cases = {k.name.text: Value(read_case(k.value), k.span, module) for k in expr.keywords}
+    return {
+        "choice": Value(name.text, name.span, module),
+        "cases": Value(cases, expr.span, module),
+    }
+
+
+def is_choice(expr):
+    return isinstance(expr, a.Call) and getattr(expr.callee, "text", None) == "choice"
+
+
 def read_metadata(fields, scope, project, module, local_names=()):
     result = {}
+    if isinstance(scope, str) and scope not in {"custom", "attributes"}:
+        fields = voltage_fields(fields)
     for field in fields:
         key = field.key.first.text
         if field.key.grouped:
@@ -217,10 +290,8 @@ def read_metadata(fields, scope, project, module, local_names=()):
             value = read_value(key, kind, expr, scope, project, module, local_names)
         elif kind in {"choice_declarations", "choice_bindings", "configurations"}:
             value = read_choices(field, kind, module)
-        elif scope == "instance_pin" and kind in {"roles", "role"} and field.fields:
-            value = read_selection(
-                field, module, lambda expr: enum(expr, "role", ROLES, project, module, local_names)
-            )
+        elif scope == "instance_pin" and kind in {"roles", "role"} and is_choice(expr):
+            value = read_role_choice(expr, project, module, local_names)
         elif kind == "aggregate_load":
             if expr is not None or not field.fields:
                 fail(
@@ -414,8 +485,25 @@ def pin_metadata(field, scope, project, module, local_names=()):
     namespace form a list, such as a definition's permitted roles.
     """
     result = read_metadata(field.fields, scope, project, module, local_names)
+    if field.key.aliases:
+        names = tuple(alias.text for alias in field.key.aliases)
+        span = a.Span(
+            field.key.span.filename,
+            field.key.aliases[0].span.start_pos,
+            field.key.aliases[-1].span.end_pos,
+            field.key.aliases[0].span.line,
+            field.key.aliases[0].span.column,
+            field.key.aliases[-1].span.end_line,
+            field.key.aliases[-1].span.end_column,
+        )
+        result = {"aliases": Value(names, span, module), **result}
     if field.value is None:
         return result
+    if scope == "instance_pin" and is_choice(field.value):
+        if "role" in result:
+            fail("metadata.shorthand", "'role' is already set", field.value.span)
+        role = read_role_choice(field.value, project, module, local_names)
+        return {**result, "role": Value(role, field.value.span, module)}
     symbols = project.modules[module].symbols
     groups = {}
     expr = field.value
@@ -490,27 +578,10 @@ def choice_string(expr):
     return expr.value
 
 
-def read_selection(field, module, read_case=choice_string):
-    fields = mapping(field)
-    if set(fields) != {"choice", "cases"}:
-        fail("metadata.erc", "a selection requires exactly choice and cases", field.span)
-    choice = fields["choice"]
-    if choice.value is None or choice.fields:
-        fail("metadata.erc", "choice requires a local choice name string", choice.span)
-    name = choice_string(choice.value)
-    if not re.fullmatch(IDENTIFIER, name):
-        fail(
-            "metadata.erc", "choice references must be local names, not instance paths", choice.span
-        )
-    cases = {}
-    for name, case in mapping(fields["cases"]).items():
-        if case.value is None or case.fields:
-            fail("metadata.erc", "each case requires one value", case.span)
-        cases[name] = Value(read_case(case.value), case.span, module)
-    return {
-        "choice": Value(choice_string(choice.value), choice.span, module),
-        "cases": Value(cases, fields["cases"].span, module),
-    }
+def read_role_choice(expr, project, module, local_names=()):
+    return read_choice(
+        expr, module, lambda case: enum(case, "role", ROLES, project, module, local_names)
+    )
 
 
 def read_choices(field, kind, module):
@@ -532,8 +603,8 @@ def read_choices(field, kind, module):
             value = tuple(choice_string(x) for x in entry.value.items)
             if len(set(value)) != len(value):
                 fail("metadata.erc", "choice alternatives must be distinct", entry.span)
-        elif entry.fields and kind == "choice_bindings":
-            value = read_selection(entry, module)
+        elif kind == "choice_bindings" and is_choice(entry.value):
+            value = read_choice(entry.value, module)
         else:
             if entry.value is None or entry.fields:
                 fail("metadata.erc", "choice selection requires a string", entry.span)

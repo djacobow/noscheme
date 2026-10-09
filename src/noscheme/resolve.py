@@ -25,6 +25,17 @@ from .units import QUANTITIES
 PARAMETER_TYPES = frozenset({"number", "string", *QUANTITIES})
 
 
+def binding(span, pin, target):
+    """A connection from a pin or port name to a target, located at span."""
+    key = a.FieldKey(span, a.PinKey(span, pin, pin))
+    return a.Binding(span, a.Endpoint(span, (), key, ()), target)
+
+
+def flat_reference(target):
+    """The net reference of a connection target, unwrapping flat(net)."""
+    return target.arguments[0] if isinstance(target, a.Call) else target
+
+
 @dataclass(frozen=True)
 class Parameter:
     name: str
@@ -140,11 +151,11 @@ class Resolver:
                 key.span,
             )
         lo, hi = int(first), int(last)
-        if hi < lo or hi - lo + 1 > self.max_pins:
-            fail(
-                "resolve.pin-range", "descending or excessively large physical pin range", key.span
-            )
-        return tuple(str(x) for x in range(lo, hi + 1))
+        if abs(hi - lo) + 1 > self.max_pins:
+            fail("resolve.pin-range", "physical pin range exceeds the pin limit", key.span)
+        # A descending range selects its pins in descending order.
+        step = 1 if hi >= lo else -1
+        return tuple(str(x) for x in range(lo, hi + step, step))
 
     def key_spans(self, key):
         """Preserve each list member's location for navigation and hover."""
@@ -335,45 +346,78 @@ class Resolver:
                 self.definitions[key] = self.build(key[0], source, parent)
         return dict(sorted(self.definitions.items()))
 
-    def expand_positional(self, definition):
-        """Bind one-line instances' positional nets to the target's interchangeable pins."""
+    def expand_arguments(self, definition):
+        """Turn positional nets and `*` into ordinary connections.
+
+        Positional nets bind the target's interchangeable pins in order. `*` binds
+        each remaining pin or port, by its name or an alias, to the caller's net or
+        port of the same name; unmatched ones keep their unused-connection policy.
+        """
+        scope = {n.name.text for n in definition.body if isinstance(n, a.Net) and not n.global_}
+        if definition.kind == "block":
+            scope |= definition.interface.keys()
         body = []
         for node in definition.body:
-            if isinstance(node, a.Instance) and node.positional:
+            if isinstance(node, a.Instance) and (node.positional or node.wildcard):
                 key = self.symbol(definition.body_module, node.component, {"component", "block"})
                 target = self.definitions[key]
-                group = target.metadata.get("interchangeable")
-                pins = group.value if group else ()
-                if not pins:
-                    fail(
-                        "resolve.positional",
-                        f"{target.name} declares no interchangeable pins; connect pins by name",
-                        node.positional[0].span,
-                    )
-                if len(node.positional) != len(pins):
-                    fail(
-                        "resolve.positional",
-                        f"{target.name} has {len(pins)} interchangeable pins; "
-                        "give a net or no_connect for each",
-                        node.span,
-                    )
-                bindings = tuple(
-                    a.Binding(
-                        expr.span,
-                        a.Endpoint(
-                            expr.span, (), a.FieldKey(expr.span, a.PinKey(expr.span, pin, pin)), ()
-                        ),
-                        expr,
-                    )
-                    for pin, expr in zip(pins, node.positional)
-                )
-                sections = [s for s in node.sections if s.name != "connections"]
                 existing = next((s for s in node.sections if s.name == "connections"), None)
-                entries = (existing.entries if existing else ()) + bindings
+                entries = (existing.entries if existing else ()) + self.positional_bindings(
+                    node, target
+                )
+                if node.wildcard:
+                    entries += self.wildcard_bindings(node, target, entries, scope)
+                sections = [s for s in node.sections if s.name != "connections"]
                 sections.append(a.Section(node.span, "connections", entries))
-                node = replace(node, sections=tuple(sections), positional=())
+                node = replace(node, sections=tuple(sections), positional=(), wildcard=None)
             body.append(node)
         return replace(definition, body=tuple(body))
+
+    def positional_bindings(self, node, target):
+        if not node.positional:
+            return ()
+        group = target.metadata.get("interchangeable")
+        pins = group.value if group else ()
+        if not pins:
+            fail(
+                "resolve.positional",
+                f"{target.name} declares no interchangeable pins; connect pins by name",
+                node.positional[0].span,
+            )
+        if len(node.positional) != len(pins):
+            fail(
+                "resolve.positional",
+                f"{target.name} has {len(pins)} interchangeable pins; "
+                "give a net or no_connect for each",
+                node.span,
+            )
+        return tuple(binding(expr.span, pin, expr) for pin, expr in zip(pins, node.positional))
+
+    def wildcard_bindings(self, node, target, entries, scope):
+        bound = {
+            target.aliases.get(name, name)
+            for entry in entries
+            for name in self.keys(entry.endpoint.head)
+        }
+        names = {}
+        for alias, pin in target.aliases.items():
+            names.setdefault(pin, []).append(alias)
+        result = []
+        for pin in target.interface:
+            matches = sorted(name for name in names.get(pin, ()) if name in scope)
+            if pin in bound or not matches:
+                continue
+            if len(matches) > 1:
+                fail(
+                    "resolve.wildcard",
+                    f"* matches pin {pin!r} through several names: {', '.join(matches)}",
+                    node.wildcard,
+                )
+            span = node.wildcard
+            result.append(binding(span, matches[0], a.Name(span, matches[0])))
+        if not result:
+            fail("resolve.wildcard", "* matches no caller net or port", node.wildcard)
+        return tuple(result)
 
     @cached_resolution
     def resolve_all(self):
@@ -381,7 +425,7 @@ class Resolver:
         errors = []
         for key, definition in list(self.definitions.items()):
             with collect_errors(errors):
-                self.definitions[key] = self.expand_positional(definition)
+                self.definitions[key] = self.expand_arguments(definition)
         for definition in self.definitions.values():
             with collect_errors(errors):
                 self.check_body(definition)
@@ -593,7 +637,7 @@ class Resolver:
                         binding.endpoint.span,
                     )
                 self.select(port.type, binding.endpoint.selectors)
-        expr, selectors = binding.target, []
+        expr, selectors = flat_reference(binding.target), []
         while isinstance(expr, (a.Member, a.Subscript)):
             selectors.append(expr.name if isinstance(expr, a.Member) else expr.selection)
             expr = expr.base
@@ -610,6 +654,8 @@ class Resolver:
                 )
             return  # Existence depends on the board during expansion.
         if expr.text == "no_connect" and not selectors:
+            if expr is not binding.target:
+                fail("resolve.flat", "flat() takes an array net, not no_connect", expr.span)
             return
         if expr.text not in nets:
             fail(

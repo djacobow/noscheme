@@ -1,0 +1,46 @@
+from noscheme import role, nettype, unused, f, num
+
+component Part:
+    params:
+        count: number = 2
+        value: string
+    pins:
+        1..20:
+            unused: unused.explicit
+        01 (extra, "EP-1"):
+        A1:
+            role: role.passive
+    metadata:
+        custom:
+            url: "https://example.invalid/*not a comment*/"
+
+component Specialized extends Part:
+    defaults:
+        value: f.kOhm(4.7)
+
+bundle Parallel:
+    data: nettype.digital[4]
+
+block Block:
+    ports:
+        bus: Parallel[2]
+            placeholder: true
+
+board Test:
+    global net #ground: nettype.ground
+    net signal#: nettype.digital[2][4]
+    net values: Parallel[2]
+    inst parts[2][4]: Specialized
+        [0][1].A1: signal#[0][1]
+        1..4: signal#[0:2]
+        extra: no_connect
+        params:
+            count: num.int(4 / 2) + (1 << 2) - (8 >> 1)
+            value: "{value:.1f}".format(3e0)
+        metadata:
+            pins:
+                1..20:
+                    external_role: role.digital_input
+    inst blocks[2]: Block
+        [0].bus[1].data[2]: signal#[0][0]
+// Parsing does not imply this fixture is electrically or shape-valid.

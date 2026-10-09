@@ -4,8 +4,7 @@ component STM32H523VCTx:
   params:
     value: string = "STM32H523VCTx"
   pins:
-    "1":
-      aliases: ["PE2"]
+    "1" (PE2):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
@@ -21,83 +20,67 @@ component STM32H523VCTx:
       role: [role.ground, role.power_input]
       custom:
         kicad_pin_types: ["power_in"]
-    "12":
-      aliases: ["PH0"]
+    "12" (PH0):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "13":
-      aliases: ["PH1"]
+    "13" (PH1):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "14":
-      aliases: ["NRST"]
+    "14" (NRST):
       role: role.digital_input
       custom:
         kicad_pin_types: ["input"]
-    "15":
-      aliases: ["PC0"]
+    "15" (PC0):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "16":
-      aliases: ["PC1"]
+    "16" (PC1):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "17":
-      aliases: ["PC2"]
+    "17" (PC2):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "18":
-      aliases: ["PC3"]
+    "18" (PC3):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "19":
-      aliases: ["VSSA"]
+    "19" (VSSA):
       role: [role.ground, role.power_input]
       custom:
         kicad_pin_types: ["power_in"]
-    "2":
-      aliases: ["PE3"]
+    "2" (PE3):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "20":
-      aliases: ["VREF-"]
+    "20" ("VREF-"):
       role: role.digital_input
       custom:
         kicad_pin_types: ["input"]
-    "21":
-      aliases: ["VREF+"]
+    "21" ("VREF+"):
       role: role.digital_input
       custom:
         kicad_pin_types: ["input"]
-    "22":
-      aliases: ["VDDA"]
+    "22" (VDDA):
       role: [role.ground, role.power_input]
       custom:
         kicad_pin_types: ["power_in"]
-    "23":
-      aliases: ["PA0"]
+    "23" (PA0):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "24":
-      aliases: ["PA1"]
+    "24" (PA1):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "25":
-      aliases: ["PA2"]
+    "25" (PA2):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "26":
-      aliases: ["PA3"]
+    "26" (PA3):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
@@ -109,108 +92,87 @@ component STM32H523VCTx:
       role: [role.ground, role.power_input]
       custom:
         kicad_pin_types: ["power_in"]
-    "29":
-      aliases: ["PA4"]
+    "29" (PA4):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "3":
-      aliases: ["PE4"]
+    "3" (PE4):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "30":
-      aliases: ["PA5"]
+    "30" (PA5):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "31":
-      aliases: ["PA6"]
+    "31" (PA6):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "32":
-      aliases: ["PA7"]
+    "32" (PA7):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "33":
-      aliases: ["PC4"]
+    "33" (PC4):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "34":
-      aliases: ["PC5"]
+    "34" (PC5):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "35":
-      aliases: ["PB0"]
+    "35" (PB0):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "36":
-      aliases: ["PB1"]
+    "36" (PB1):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "37":
-      aliases: ["PB2"]
+    "37" (PB2):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "38":
-      aliases: ["PE7"]
+    "38" (PE7):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "39":
-      aliases: ["PE8"]
+    "39" (PE8):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "4":
-      aliases: ["PE5"]
+    "4" (PE5):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "40":
-      aliases: ["PE9"]
+    "40" (PE9):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "41":
-      aliases: ["PE10"]
+    "41" (PE10):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "42":
-      aliases: ["PE11"]
+    "42" (PE11):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "43":
-      aliases: ["PE12"]
+    "43" (PE12):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "44":
-      aliases: ["PE13"]
+    "44" (PE13):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "45":
-      aliases: ["PE14"]
+    "45" (PE14):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "46":
-      aliases: ["PE15"]
+    "46" (PE15):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "47":
-      aliases: ["PB10"]
+    "47" (PB10):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
@@ -222,8 +184,7 @@ component STM32H523VCTx:
       role: role.passive
       custom:
         kicad_pin_types: ["passive"]
-    "5":
-      aliases: ["PE6"]
+    "5" (PE6):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
@@ -231,128 +192,103 @@ component STM32H523VCTx:
       role: [role.ground, role.power_input]
       custom:
         kicad_pin_types: ["power_in"]
-    "51":
-      aliases: ["PB12"]
+    "51" (PB12):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "52":
-      aliases: ["PB13"]
+    "52" (PB13):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "53":
-      aliases: ["PB14"]
+    "53" (PB14):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "54":
-      aliases: ["PB15"]
+    "54" (PB15):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "55":
-      aliases: ["PD8"]
+    "55" (PD8):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "56":
-      aliases: ["PD9"]
+    "56" (PD9):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "57":
-      aliases: ["PD10"]
+    "57" (PD10):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "58":
-      aliases: ["PD11"]
+    "58" (PD11):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "59":
-      aliases: ["PD12"]
+    "59" (PD12):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "6":
-      aliases: ["VBAT"]
+    "6" (VBAT):
       role: [role.ground, role.power_input]
       custom:
         kicad_pin_types: ["power_in"]
-    "60":
-      aliases: ["PD13"]
+    "60" (PD13):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "61":
-      aliases: ["PD14"]
+    "61" (PD14):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "62":
-      aliases: ["PD15"]
+    "62" (PD15):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "63":
-      aliases: ["PC6"]
+    "63" (PC6):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "64":
-      aliases: ["PC7"]
+    "64" (PC7):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "65":
-      aliases: ["PC8"]
+    "65" (PC8):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "66":
-      aliases: ["PC9"]
+    "66" (PC9):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "67":
-      aliases: ["PA8"]
+    "67" (PA8):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "68":
-      aliases: ["PA9"]
+    "68" (PA9):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "69":
-      aliases: ["PA10"]
+    "69" (PA10):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "7":
-      aliases: ["PC13"]
+    "7" (PC13):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "70":
-      aliases: ["PA11"]
+    "70" (PA11):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "71":
-      aliases: ["PA12"]
+    "71" (PA12):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "72":
-      aliases: ["PA13(JTMS"]
+    "72" ("PA13(JTMS"):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "73":
-      aliases: ["VDDUSB"]
+    "73" (VDDUSB):
       role: [role.ground, role.power_input]
       custom:
         kicad_pin_types: ["power_in"]
@@ -364,123 +300,99 @@ component STM32H523VCTx:
       role: [role.ground, role.power_input]
       custom:
         kicad_pin_types: ["power_in"]
-    "76":
-      aliases: ["PA14(JTCK"]
+    "76" ("PA14(JTCK"):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "77":
-      aliases: ["PA15(JTDI)"]
+    "77" ("PA15(JTDI)"):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "78":
-      aliases: ["PC10"]
+    "78" (PC10):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "79":
-      aliases: ["PC11"]
+    "79" (PC11):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "8":
-      aliases: ["PC14"]
+    "8" (PC14):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "80":
-      aliases: ["PC12"]
+    "80" (PC12):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "81":
-      aliases: ["PD0"]
+    "81" (PD0):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "82":
-      aliases: ["PD1"]
+    "82" (PD1):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "83":
-      aliases: ["PD2"]
+    "83" (PD2):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "84":
-      aliases: ["PD3"]
+    "84" (PD3):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "85":
-      aliases: ["PD4"]
+    "85" (PD4):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "86":
-      aliases: ["PD5"]
+    "86" (PD5):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "87":
-      aliases: ["PD6"]
+    "87" (PD6):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "88":
-      aliases: ["PD7"]
+    "88" (PD7):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "89":
-      aliases: ["PB3(JTDO"]
+    "89" ("PB3(JTDO"):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "9":
-      aliases: ["PC15"]
+    "9" (PC15):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "90":
-      aliases: ["PB4(NJTRST)"]
+    "90" ("PB4(NJTRST)"):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "91":
-      aliases: ["PB5"]
+    "91" (PB5):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "92":
-      aliases: ["PB6"]
+    "92" (PB6):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "93":
-      aliases: ["PB7"]
+    "93" (PB7):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "94":
-      aliases: ["BOOT0"]
+    "94" (BOOT0):
       role: role.digital_input
       custom:
         kicad_pin_types: ["input"]
-    "95":
-      aliases: ["PB8"]
+    "95" (PB8):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "96":
-      aliases: ["PB9"]
+    "96" (PB9):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "97":
-      aliases: ["PE0"]
+    "97" (PE0):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]

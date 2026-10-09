@@ -54,8 +54,7 @@ SOURCE = """component Contact:
 board B:
   net bus: nettype.tristate
   inst connectors[2]: Contact
-    connections:
-      1: bus
+    1: bus
     metadata:
       pins:
         1:
@@ -89,13 +88,11 @@ block Device:
   ports:
     bus: nettype.tristate
   inst output: Driver
-    connections:
-      1: bus
+    1: bus
 board B:
   net bus: nettype.tristate
   inst devices[2]: Device
-    connections:
-      bus: bus
+    bus: bus
 """
     assert codes(compile_source(tmp_path, source)) == []
     assert (
@@ -164,11 +161,7 @@ def test_named_configurations_use_selected_roles(tmp_path):
         )
         .replace(
             "role: role.digital_output",
-            """role:
-            choice: "mode"
-            cases:
-              input: role.digital_input
-              output: role.digital_output""",
+            "role: choice(mode, input=role.digital_input, output=role.digital_output)",
         )
         .replace("tristate_capable: true", "tristate_capable: false")
     )

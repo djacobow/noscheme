@@ -5,12 +5,10 @@ component Pullup:
   params:
     value: resistance = 4.7k
   pins:
-    1:
-      aliases: [supply]
+    1 (supply):
       role: role.passive
       unused: unused.never
-    2:
-      aliases: [signal]
+    2 (signal):
       role: role.passive
       unused: unused.never
       bias: bias.pull_up

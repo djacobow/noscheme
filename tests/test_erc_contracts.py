@@ -63,8 +63,7 @@ def test_selectable_roles_are_not_guessed(tmp_path):
         + """board B:
   net n: nettype.digital
   inst p[2]: P
-    connections:
-      1: n
+    1: n
 """,
     )
     assert codes(c) == ["incomplete_roles"]
@@ -89,24 +88,20 @@ def hierarchy(
       role: role.{contract}
       unused: unused.never
   inst p: {internal}
-    connections:
-      1: signal
+    1: signal
 block Forward:
   ports:
     signal: nettype.{inner_type}
       role: role.{contract}
       unused: unused.never
   inst child: W
-    connections:
-      signal: signal
+    signal: signal
 board B:
   net n: nettype.{outer_type}
   inst w: Forward
-    connections:
-      signal: n
+    signal: n
   inst receiver: Receiver
-    connections:
-      1: n
+    1: n
 """
     )
 
@@ -171,7 +166,7 @@ def test_all_type_constraints_share_one_role_selection(tmp_path):
     ],
 )
 def test_port_connection_contracts_need_an_outside_endpoint(tmp_path, binding, policy, expected):
-    clause = "    connections:\n      " + binding + "\n" if binding else ""
+    clause = "    " + binding + "\n" if binding else ""
     source = (
         component("passive")
         + f"""block W:
@@ -179,8 +174,7 @@ def test_port_connection_contracts_need_an_outside_endpoint(tmp_path, binding, p
     signal: nettype.passive
       unused: unused.{policy}
   inst p[2]: P
-    connections:
-      1: signal
+    1: signal
 board B:
   net n: nettype.passive
     placeholder: true
@@ -202,15 +196,13 @@ def test_explicit_external_port_supplies_real_endpoint_once(tmp_path):
 board B:
   net n: nettype.digital
   inst e: External
-    connections:
-      signal: n
+    signal: n
     metadata:
       pins:
         signal:
           external_role: role.digital_output
   inst p: P
-    connections:
-      1: n
+    1: n
 """,
     )
     assert codes(c) == []
@@ -252,16 +244,13 @@ block W:
   ports:
     bus: Bus[2]
   inst driver[2]: Driver
-    connections:
-      1: bus[0:2].signal
+    1: bus[0:2].signal
 board B:
   net bus: Bus[2]
   inst w: W
-    connections:
-      bus: bus
+    bus: bus
   inst receiver[2]: Receiver
-    connections:
-      1: bus[0:2].signal
+    1: bus[0:2].signal
 """
     )
     c = compile_source(tmp_path, source)

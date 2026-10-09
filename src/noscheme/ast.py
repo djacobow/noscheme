@@ -97,6 +97,23 @@ Expr = Name | Number | String | ListExpr | Unary | Binary | Member | Subscript |
 
 
 @dataclass(frozen=True)
+class Range(Node):
+    """`low..high`, written as a field value."""
+
+    low: Expr
+    high: Expr
+
+
+@dataclass(frozen=True)
+class Tolerance(Node):
+    """`center ± deviation`, or a percentage of center with `%`; a field value."""
+
+    center: Expr
+    deviation: Expr
+    percent: bool
+
+
+@dataclass(frozen=True)
 class PinKey(Node):
     text: str
     spelling: str
@@ -107,6 +124,8 @@ class FieldKey(Node):
     first: PinKey
     last: PinKey | None = None
     items: tuple[FieldKey, ...] = ()
+    # Pin aliases written in the key: `1 (cathode, K):`.
+    aliases: tuple[PinKey, ...] = ()
 
     @property
     def grouped(self):
@@ -116,7 +135,7 @@ class FieldKey(Node):
 @dataclass(frozen=True)
 class Field(Node):
     key: FieldKey
-    value: Expr | None
+    value: Expr | Range | Tolerance | None
     default: Expr | None
     fields: tuple[Field, ...]
 
@@ -160,6 +179,8 @@ class Instance(Node):
     sections: tuple[Section, ...]
     # Nets bound in order to the component's interchangeable pins.
     positional: tuple[Expr, ...] = ()
+    # `*`: connect remaining pins and ports to same-name nets.
+    wildcard: Span | None = None
 
 
 @dataclass(frozen=True)

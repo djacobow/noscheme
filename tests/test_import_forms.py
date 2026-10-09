@@ -24,8 +24,7 @@ block Wrapper:
   ports:
     bus: Bus
   inst r: R
-    connections:
-      1: bus.signal
+    1: bus.signal
 """
 
 SOURCE = """import Device
@@ -43,17 +42,13 @@ board B:
   net bus: Device.Bus
   net other: SignalBus
   inst r: Device.R
-    connections:
-      1: a
+    1: a
   inst s: Specialized
-    connections:
-      1: a
+    1: a
   inst alias: KiCadResistor
-    connections:
-      1: a
+    1: a
   inst wrapper: Device.Wrapper
-    connections:
-      bus: bus
+    bus: bus
 """
 
 

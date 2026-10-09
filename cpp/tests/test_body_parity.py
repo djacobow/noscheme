@@ -174,9 +174,9 @@ def test_element_metadata(probe, tmp_path, change):
     [
         ('power_source: "usb"', 'power_source: "invalid"'),
         ('power_source: "usb"', 'private_connector: "usb"'),
-        ('choice: "power_mode"', 'choice: "typo"'),
-        ("absent: role.passive", "typo: role.passive"),
-        ('header: "absent"', 'header: "invalid"'),
+        ("choice(power_mode,", "choice(typo,"),
+        ("absent=role.passive", "typo=role.passive"),
+        ('header="absent"', 'header="invalid"'),
         ("1..2: [role.passive, unused.never]", "1..2: [role.ground, role.passive, unused.never]"),
     ],
 )
@@ -330,8 +330,7 @@ block Wrapper:
 board B:
   net n: Bus
   inst w: Wrapper
-    connections:
-      {binding}
+    {binding}
 """,
     )
 

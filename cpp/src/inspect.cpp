@@ -22,8 +22,7 @@ void names(const Node *node, std::set<std::string> &used) {
 }
 void uses(const Node &node, std::set<std::string> &used) {
   if (auto *field = as<Field>(&node)) {
-    if ((field->key.first.text == "custom" && !field->fields.empty()) ||
-        (field->key.first.text == "aliases" && as<ListExpr>(field->value)))
+    if (field->key.first.text == "custom" && !field->fields.empty())
       return;
     names(field->value.get(), used);
     names(field->default_value.get(), used);

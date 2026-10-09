@@ -17,18 +17,11 @@ block Supply:
     erc_choices:
       power_mode: ["source", "load", "absent"]
   inst connector: Header
-    connections:
-      1: supply
-      2: global.gnd
+    1: supply
+    2: global.gnd
     metadata:
       pins:
-        1:
-          role:
-            choice: "power_mode"
-            cases:
-              source: role.power_output
-              load: role.power_input
-              absent: role.passive
+        1: choice(power_mode, source=role.power_output, load=role.power_input, absent=role.passive)
         2: role.ground
 
 board PowerModes:
@@ -43,29 +36,18 @@ board PowerModes:
   global net gnd: nettype.ground
   net v5: nettype.power
   inst usb: Supply
-    connections:
-      supply: v5
+    supply: v5
     metadata:
       erc_choices:
-        power_mode:
-          choice: "power_source"
-          cases:
-            usb: "source"
-            header: "absent"
+        power_mode: choice(power_source, usb="source", header="absent")
   inst expansion: Supply
-    connections:
-      supply: v5
+    supply: v5
     metadata:
       erc_choices:
-        power_mode:
-          choice: "power_source"
-          cases:
-            usb: "load"
-            header: "source"
+        power_mode: choice(power_source, usb="load", header="source")
   inst load: Header
-    connections:
-      1: v5
-      2: global.gnd
+    1: v5
+    2: global.gnd
     metadata:
       pins:
         1: role.power_input

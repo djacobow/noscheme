@@ -78,6 +78,7 @@ class Formatter {
   std::string masked;
   std::vector<Comment> comments;
   std::vector<Line> lines;
+  std::map<const ast::Net *, std::vector<std::string>> net_names;
   std::size_t trim(std::size_t pos) const {
     pos = std::min(pos, masked.size());
     while (pos && std::isspace(static_cast<unsigned char>(masked[pos - 1])))
@@ -145,6 +146,24 @@ class Formatter {
       const auto &subscript = as<ast::Subscript>(n);
       return join(expr(*subscript.base), expr(subscript.selection));
     }
+    case Kind::Range: {
+      const auto &range = as<ast::Range>(n);
+      return join(join(expr(*range.low), {std::string("..")}),
+                  expr(*range.high));
+    }
+    case Kind::Tolerance: {
+      // Keep the author's operator spelling, ± or +/-.
+      const auto &tolerance = as<ast::Tolerance>(n);
+      auto from = end(*tolerance.center), to = start(*tolerance.deviation);
+      auto written = masked.substr(from, to - from);
+      auto op = written.find("+/-") != std::string::npos ? "+/-" : "\u00b1";
+      auto result =
+          join(join(expr(*tolerance.center), {" " + std::string(op) + " "}),
+               expr(*tolerance.deviation));
+      if (tolerance.percent)
+        result.push_back(std::string("%"));
+      return result;
+    }
     case Kind::Call: {
       const auto &call = as<ast::Call>(n);
       std::vector<Item> items;
@@ -179,6 +198,12 @@ class Formatter {
     auto result = n.first.spelling;
     if (n.last)
       result += ".." + n.last->spelling;
+    if (!n.aliases.empty()) {
+      result += " (";
+      for (std::size_t i = 0; i < n.aliases.size(); ++i)
+        result += (i ? ", " : "") + n.aliases[i].spelling;
+      result += ")";
+    }
     return result;
   }
   Parts endpoint(const ast::Endpoint &n) {
@@ -275,7 +300,22 @@ class Formatter {
       auto text = definition.keyword + " " + definition.name.text;
       if (!definition.base.empty())
         text += " extends " + ast::dotted(definition.base);
-      statement(n, depth, {text + ":"}, nodes(definition.body), true);
+      // `net a, b: T` parses to one Net per name, sharing the declaration's
+      // span; print the declaration once.
+      Nodes body;
+      const ast::Net *group = nullptr;
+      for (const auto &child : definition.body) {
+        auto *net = as<ast::Net>(child);
+        if (net && group && net->span == group->span) {
+          net_names[group].push_back(net->name.text);
+          continue;
+        }
+        group = net;
+        if (net)
+          net_names[net] = {net->name.text};
+        body.push_back(child.get());
+      }
+      statement(n, depth, {text + ":"}, body, true);
       return;
     }
     case Kind::Section: {
@@ -285,9 +325,12 @@ class Formatter {
     }
     case Kind::Net: {
       const auto &net = as<ast::Net>(n);
+      std::string names;
+      for (const auto &name : net_names.at(&net))
+        names += (names.empty() ? "" : ", ") + name;
       statement(n, depth,
-                join({std::string(net.global ? "global net " : "net ") +
-                      net.name.text + ": "},
+                join({std::string(net.global ? "global net " : "net ") + names +
+                      ": "},
                      expr(*net.type)),
                 nodes(net.fields));
       return;
@@ -354,6 +397,10 @@ class Formatter {
       std::vector<Item> args;
       for (const auto &v : instance.positional)
         args.push_back(item_of(*v));
+      if (instance.wildcard)
+        args.push_back({{std::string("*")},
+                        instance.wildcard->start,
+                        instance.wildcard->end});
       // Sections without the entries written inline.
       std::vector<ast::Section> kept;
       for (const auto &section : instance.sections) {
@@ -376,7 +423,16 @@ class Formatter {
                 [](const auto &a, const auto &b) { return a.start < b.start; });
       if (!args.empty())
         parts.push_back(seq("(", ")", opening, closing, std::move(args)));
-      statement(n, depth, parts, nodes(kept));
+      // Connections lead the body without a section header.
+      Nodes body;
+      for (const auto &section : kept)
+        if (section.name == "connections")
+          for (const auto &entry : section.entries)
+            body.push_back(entry.get());
+      for (const auto &section : kept)
+        if (section.name != "connections")
+          body.push_back(&section);
+      statement(n, depth, parts, body);
     }
   }
 
@@ -514,6 +570,9 @@ Json shape(Json value) {
       v = shape(v);
   else if (value.is_object()) {
     value.erase("span");
+    // An instance's `*` is located by a bare span.
+    if (auto wildcard = value.find("wildcard"); wildcard != value.end())
+      *wildcard = !wildcard->is_null();
     for (auto &[k, v] : value.items())
       v = shape(v);
   }

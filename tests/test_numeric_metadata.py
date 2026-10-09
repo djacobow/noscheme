@@ -28,13 +28,11 @@ board B:
     checks:
       pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=1k + 1k)
   inst pull: Pull
-    connections:
-      1: bus
+    1: bus
     params:
       resistance: 3.3k
   inst device: Device
-    connections:
-      1: bus
+    1: bus
 """
 
 
@@ -103,8 +101,7 @@ def test_nested_current_load_expression(tmp_path):
 board B:
   net rail: nettype.power
   inst load: Load
-    connections:
-      1: rail
+    1: rail
 """
     circuit = compile_source(tmp_path, source)
     assert circuit["parts"][0]["metadata"]["current_loads"]["value"]["supply"]["value"][

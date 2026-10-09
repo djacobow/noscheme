@@ -107,7 +107,7 @@ CompletionResult keyword_completion(const std::string &text,
                ancestors[ancestors.size() - 3].text.starts_with("inst ")) {
       words = {"params", "metadata"};
     } else if (head.empty() && parent.starts_with("inst ")) {
-      words = {"connections", "params", "metadata", "elements"};
+      words = {"params", "metadata", "elements"};
     }
   }
   for (const auto &word : words)

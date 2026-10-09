@@ -13,8 +13,7 @@ from test_circuit import compile_source, make
 
 PART = """component P:
   pins:
-    1:
-      aliases: [VDD]
+    1 (VDD):
       role: [role.passive, role.power_input]
     [2..3, 7]:
       role: [role.passive, role.power_input]
@@ -27,8 +26,7 @@ def design(key="[VDD, 2..3, 7]", rhs="n", extra="", dimensions=""):
         + f"""board B:
   net n: nettype.passive
   inst p{dimensions}: P
-    connections:
-      {key}: {rhs}
+    {key}: {rhs}
 {extra}
 """
     )
@@ -104,7 +102,7 @@ board B:""",
         ("[1..3, 2]", "resolve.duplicate-pin"),
         ("[1, VDD]", "connection.overlap"),
         ("[1, missing]", "resolve.private"),
-        ("[3..1]", "resolve.pin-range"),
+        ("[3..1, 2]", "resolve.duplicate-pin"),
         ("[01..3]", "resolve.pin-range"),
     ],
 )
@@ -116,7 +114,7 @@ def test_invalid_or_overlapping_bindings(tmp_path, key, code):
 
 def test_overlap_between_binding_lines(tmp_path):
     with pytest.raises(DiagnosticError) as error:
-        compile_source(tmp_path, design("[1..3]", extra="      [3, 7]: n\n"))
+        compile_source(tmp_path, design("[1..3]", extra="    [3, 7]: n\n"))
     assert error.value.diagnostics[0].code == "connection.overlap"
 
 
@@ -164,7 +162,7 @@ def test_shape_and_explicit_list_order_match_range_semantics(tmp_path):
 def test_instance_array_selection_and_no_connect(tmp_path):
     circuit = compile_source(
         tmp_path,
-        design("[0].[1, 3]", dimensions="[2]", extra="      [1].[1..3, 7]: no_connect\n"),
+        design("[0].[1, 3]", dimensions="[2]", extra="    [1].[1..3, 7]: no_connect\n"),
     )
     assert circuit["parts"][0]["pins"]["1"]["net"] == "n"
     assert circuit["parts"][0]["pins"]["3"]["net"] == "n"
@@ -200,8 +198,7 @@ def test_singleton_exact_physical_names(tmp_path, pin):
 board B:
   net n: nettype.passive
   inst p: P
-    connections:
-      [{pin}]: n
+    [{pin}]: n
 """
     circuit = compile_source(tmp_path, source)
     assert circuit["parts"][0]["pins"][pin.strip('"')]["net"] == "n"

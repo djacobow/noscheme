@@ -278,8 +278,7 @@ block G:
   ports:
     p: nettype.passive[n]
   inst parts[n]: P(value=r)
-    connections:
-      1: p[0:n]
+    1: p[0:n]
     elements:
       [1]:
         params:

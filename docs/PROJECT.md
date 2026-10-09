@@ -201,9 +201,13 @@ for a PCB handoff. Current performance measurements are recorded in its README.
 
 Named connections prevent silent rewiring when declarations move. `:` indicates
 a connection or binding; `=` is used for parameter defaults and call
-arguments. An instance's parentheses hold arguments, and indented sections follow
-its line, as fields follow a net declaration; the two can be combined, and no
-newline changes the meaning. Definition bodies hold internal circuitry. Instance
+arguments. An instance's parentheses hold arguments, and its indented body
+follows its line, as fields follow a net declaration: connections first, one per
+line, then `params`, `metadata`, and `elements` sections. The two can be
+combined, and no newline changes the meaning. `*` connects the remaining pins and
+ports to nets of the same name, which removes the `supply: supply` lines of
+pass-through wiring without creating nets or hiding a missing connection: an
+unmatched pin still needs a connection or `no_connect`. Definition bodies hold internal circuitry. Instance
 arguments allow positional connections only for a component's
 explicitly declared group of interchangeable pins, such as a resistor's two
 terminals. All group members must be supplied, and their electrical metadata must

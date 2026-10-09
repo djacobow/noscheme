@@ -149,8 +149,7 @@ block Unit:
 board B:
   net n: nettype.digital
   inst p: Unit
-    connections:
-      input: n
+    input: n
     metadata:
       pins:
         input:
@@ -196,8 +195,7 @@ component Pin:
       role: role.passive
 block Unit:
   inst p: Pin
-    connections:
-      1: global.supply
+    1: global.supply
 """
     make_project(tmp_path, source, {"child": child})
     s = RenameSession(tmp_path, {})
@@ -286,8 +284,7 @@ board B:
         reason: "old is intentionally grounded"
         pins: ["old[0].1", "old[1].1"]
   inst old[2]: Part
-    connections:
-      1: gnd
+    1: gnd
     metadata:
       custom:
         note: "old"

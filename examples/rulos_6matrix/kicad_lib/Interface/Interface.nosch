@@ -4,43 +4,35 @@ component PCA9600D:
   params:
     value: string = "PCA9600D"
   pins:
-    "1":
-      aliases: ["SX"]
+    "1" (SX):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "2":
-      aliases: ["RX"]
+    "2" (RX):
       role: role.digital_input
       custom:
         kicad_pin_types: ["input"]
-    "3":
-      aliases: ["TX"]
+    "3" (TX):
       role: role.open_drain
       custom:
         kicad_pin_types: ["open_collector"]
-    "4":
-      aliases: ["GND"]
+    "4" (GND):
       role: [role.ground, role.power_input]
       custom:
         kicad_pin_types: ["power_in"]
-    "5":
-      aliases: ["TY"]
+    "5" (TY):
       role: role.open_drain
       custom:
         kicad_pin_types: ["open_collector"]
-    "6":
-      aliases: ["RY"]
+    "6" (RY):
       role: role.digital_input
       custom:
         kicad_pin_types: ["input"]
-    "7":
-      aliases: ["SY"]
+    "7" (SY):
       role: role.digital_bidirectional
       custom:
         kicad_pin_types: ["bidirectional"]
-    "8":
-      aliases: ["VCC"]
+    "8" (VCC):
       role: [role.ground, role.power_input]
       custom:
         kicad_pin_types: ["power_in"]

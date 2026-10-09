@@ -110,10 +110,10 @@ def test_unknown_choice_is_not_guessed_when_forwarding_missing(tmp_path):
     [
         ('power_source: "usb"', 'power_source: "invalid"', "erc.choice_value"),
         ('power_source: "usb"', 'private_connector: "usb"', "erc.unknown_choice"),
-        ('choice: "power_mode"', 'choice: "private.power_mode"', "metadata.erc"),
-        ('choice: "power_mode"', 'choice: "typo"', "erc.unknown_choice"),
-        ("absent: role.passive", "typo: role.passive", "erc.choice_cases"),
-        ('header: "absent"', 'header: "invalid"', "erc.choice_value"),
+        ("choice(power_mode,", "choice(private.power_mode,", "metadata.erc"),
+        ("choice(power_mode,", "choice(typo,", "erc.unknown_choice"),
+        ("absent=role.passive", "typo=role.passive", "erc.choice_cases"),
+        ('header="absent"', 'header="invalid"', "erc.choice_value"),
         ('["usb", "header"]', '["usb", "usb"]', "metadata.erc"),
         ('["usb", "header"]', "[]", "metadata.erc"),
         ("usb_powered:", '"usb.private":', "metadata.erc"),
@@ -146,16 +146,10 @@ def test_nested_public_choice_forwarding(tmp_path):
     erc_choices:
       power_mode: ["source", "load", "absent"]
   inst inner: Supply
-    connections:
-      supply: supply
+    supply: supply
     metadata:
       erc_choices:
-        power_mode:
-          choice: "power_mode"
-          cases:
-            source: "source"
-            load: "load"
-            absent: "absent"
+        power_mode: choice(power_mode, source="source", load="load", absent="absent")
 
 """
     source = SOURCE.replace("board B:", wrapper + "board B:").replace(
@@ -208,14 +202,42 @@ def test_fixed_child_selection_does_not_depend_on_board_configuration(tmp_path):
     assert not any(d.configuration == "usb_powered" for d in diagnostics)
 
 
-def test_no_named_configurations_reports_unselected_roles(tmp_path):
+def test_unnamed_configurations_check_every_combination(tmp_path):
     start = SOURCE.index("    configurations:")
     end = SOURCE.index("  global net gnd:", start)
     _, circuit = project(tmp_path, SOURCE[:start] + SOURCE[end:])
+    _, named = project(tmp_path, SOURCE)
     diagnostics = apply_erc(circuit)
-    assert any(d.code == "erc.incomplete_roles" for d in diagnostics)
-    assert all(d.configuration is None for d in diagnostics)
-    assert circuit["erc"]["configurations"][0]["name"] is None
+    assert [c["name"] for c in circuit["erc"]["configurations"]] == [
+        "power_source=header",
+        "power_source=usb",
+    ]
+    assert [(d.code, d.configuration) for d in diagnostics] == [
+        (d.code, d.configuration.replace("header_powered", "power_source=header"))
+        for d in apply_erc(named)
+    ]
+
+
+def test_no_choices_run_one_unconfigured_check(tmp_path):
+    start = SOURCE.index("board B:")
+    board = SOURCE[start:]
+    board = board[: board.index("    erc_choices:")] + board[board.index("  global net gnd:") :]
+    board = board.replace(
+        'power_mode: choice(power_source, usb="source", header="absent")', 'power_mode: "source"'
+    ).replace('power_mode: choice(power_source, usb="load", header="source")', 'power_mode: "load"')
+    _, circuit = project(tmp_path, SOURCE[:start] + board.replace("  metadata:\n", "", 1))
+    apply_erc(circuit)
+    assert [c["name"] for c in circuit["erc"]["configurations"]] == [None]
+
+
+def test_too_many_combinations_require_named_configurations(tmp_path):
+    start = SOURCE.index("    configurations:")
+    end = SOURCE.index("  global net gnd:", start)
+    choices = "".join(f'      extra{i}: ["a", "b"]\n' for i in range(6))
+    source = SOURCE[:start] + choices + SOURCE[end:]
+    with pytest.raises(DiagnosticError) as exc:
+        project(tmp_path, source)
+    assert exc.value.diagnostics[0].code == "erc.configurations"
 
 
 def test_named_configuration_can_leave_choices_unselected(tmp_path):
@@ -249,19 +271,12 @@ board B:
         direction: "output"
   net n: nettype.digital
   inst p: Pin
-    connections:
-      1: n
+    1: n
     metadata:
       pins:
-        1:
-          role:
-            choice: "direction"
-            cases:
-              input: role.digital_input
-              output: role.digital_output
+        1: choice(direction, input=role.digital_input, output=role.digital_output)
   inst load: Pin
-    connections:
-      1: n
+    1: n
     metadata:
       pins:
         1:
@@ -301,16 +316,11 @@ def test_configuration_selects_public_port_contract_as_well_as_private_roles(tmp
     # The public promise is selected in board scope; private connector behavior
     # is selected independently through the block's public choice binding.
     source = SOURCE.replace(
-        """            header: "absent"
+        """        power_mode: choice(power_source, usb="source", header="absent")
 """,
-        """            header: "absent"
+        """        power_mode: choice(power_source, usb="source", header="absent")
       pins:
-        supply:
-          role:
-            choice: "power_source"
-            cases:
-              usb: role.power_output
-              header: role.power_output
+        supply: choice(power_source, usb=role.power_output, header=role.power_output)
 """,
         1,
     )
@@ -318,7 +328,7 @@ def test_configuration_selects_public_port_contract_as_well_as_private_roles(tmp
     diagnostics = apply_erc(circuit)
     assert [(d.code, d.configuration) for d in diagnostics] == [("erc.port_role", "header_powered")]
     _, corrected = project(
-        tmp_path, source.replace("header: role.power_output", "header: role.passive")
+        tmp_path, source.replace("header=role.power_output)", "header=role.passive)")
     )
     assert apply_erc(corrected) == ()
 

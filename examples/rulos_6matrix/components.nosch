@@ -13,35 +13,25 @@ component Display:
   params:
     value: string = "7-SEG_SA56-11"
   pins:
-    "1":
-      aliases: [E]
+    "1" (E):
       role: role.passive
-    "10":
-      aliases: [G]
+    "10" (G):
       role: role.passive
-    "2":
-      aliases: [D]
+    "2" (D):
       role: role.passive
-    "3":
-      aliases: [COM_1]
+    "3" (COM_1):
       role: role.passive
-    "4":
-      aliases: [C]
+    "4" (C):
       role: role.passive
-    "5":
-      aliases: [DP]
+    "5" (DP):
       role: role.passive
-    "6":
-      aliases: [B]
+    "6" (B):
       role: role.passive
-    "7":
-      aliases: [A]
+    "7" (A):
       role: role.passive
-    "8":
-      aliases: [COM_2]
+    "8" (COM_2):
       role: role.passive
-    "9":
-      aliases: [F]
+    "9" (F):
       role: role.passive
   metadata:
     ref_prefix: "D"
@@ -55,86 +45,61 @@ component SinkDriver:
   params:
     value: string = "STP16CPC26XTR"
   pins:
-    "1":
-      aliases: [GND]
+    "1" (GND):
       role: role.ground
-    "10":
-      aliases: [OUT5]
+    "10" (OUT5):
       role: role.analog_output
-    "11":
-      aliases: [OUT6]
+    "11" (OUT6):
       role: role.analog_output
-    "12":
-      aliases: [OUT7]
+    "12" (OUT7):
       role: role.analog_output
-    "13":
-      aliases: [OUT8]
+    "13" (OUT8):
       role: role.analog_output
-    "14":
-      aliases: [OUT9]
+    "14" (OUT9):
       role: role.analog_output
-    "15":
-      aliases: [OUT10]
+    "15" (OUT10):
       role: role.analog_output
-    "16":
-      aliases: [OUT11]
+    "16" (OUT11):
       role: role.analog_output
-    "17":
-      aliases: [OUT12]
+    "17" (OUT12):
       role: role.analog_output
-    "18":
-      aliases: [OUT13]
+    "18" (OUT13):
       role: role.analog_output
-    "19":
-      aliases: [OUT14]
+    "19" (OUT14):
       role: role.analog_output
-    "2":
-      aliases: [SDI]
+    "2" (SDI):
       role: role.digital_input
-    "20":
-      aliases: [OUT15]
+    "20" (OUT15):
       role: role.analog_output
-    "21":
-      aliases: [OE]
+    "21" (OE):
       role: role.digital_input
-    "22":
-      aliases: [SDO]
+    "22" (SDO):
       role: role.digital_output
       unused: unused.always
-    "23":
-      aliases: [R_EXT]
+    "23" (R_EXT):
       role: role.analog_input
-    "24":
-      aliases: [VCC]
+    "24" (VCC):
       role: role.power_input
       // Demo allocation for logic supply, not LED sink current.
       max_load_current: 20m
       min_voltage: 0
       max_voltage: 7
     // XTR exposed pad: deliberately added to the original 24-pin interface.
-    "25":
-      aliases: [EP]
+    "25" (EP):
       role: role.ground
-    "3":
-      aliases: [CLK]
+    "3" (CLK):
       role: role.digital_input
-    "4":
-      aliases: [LE]
+    "4" (LE):
       role: role.digital_input
-    "5":
-      aliases: [OUT0]
+    "5" (OUT0):
       role: role.analog_output
-    "6":
-      aliases: [OUT1]
+    "6" (OUT1):
       role: role.analog_output
-    "7":
-      aliases: [OUT2]
+    "7" (OUT2):
       role: role.analog_output
-    "8":
-      aliases: [OUT3]
+    "8" (OUT3):
       role: role.analog_output
-    "9":
-      aliases: [OUT4]
+    "9" (OUT4):
       role: role.analog_output
   metadata:
     ref_prefix: "U"
@@ -283,11 +248,9 @@ component Inductor:
   params:
     value: inductance = 2.2u
   pins:
-    "1":
-      aliases: [pin1]
+    "1" (pin1):
       role: role.passive
-    "2":
-      aliases: [pin2]
+    "2" (pin2):
       role: role.passive
   metadata:
     ref_prefix: "L"
@@ -327,14 +290,11 @@ component PowerJack:
   params:
     value: string = "PJ-036AH-SMT-TR"
   pins:
-    "1":
-      aliases: [PWR]
+    "1" (PWR):
       role: role.passive
-    "2":
-      aliases: [GND]
+    "2" (GND):
       role: role.passive
-    "3":
-      aliases: [GNDBREAK]
+    "3" (GNDBREAK):
       role: role.passive
   metadata:
     ref_prefix: "J"

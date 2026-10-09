@@ -16,34 +16,15 @@ block SurroundingWren:
 board WrenOutputs:
   // Boundary nets represent power and signals provided by the rest of WREN.
   // Electrical policies are deliberately unchecked in this connectivity pilot.
-  net supply: nettype.unchecked
-  net logic_supply: nettype.unchecked
-  net ground: nettype.unchecked
-  net enable#: nettype.unchecked
-  net input: nettype.unchecked[4][4][2]
-  net output: nettype.unchecked[4][4][2]
-  inst banks[4]: OutputBank
-    connections:
-      supply: supply
-      logic_supply: logic_supply
-      ground: ground
-      enable#: enable#
-      input: input
-      output: output
+  net supply, logic_supply, ground, enable#: nettype.unchecked
+  net input, output: nettype.unchecked[4][4][2]
+  inst banks[4]: OutputBank(*)
   inst enable_pullup: Resistor
-    connections:
-      1: enable#
-      2: supply
+    1: enable#
+    2: supply
     params:
       value: "R0402_10K_1%_0.0625W_100PPM"
-  inst surrounding: SurroundingWren
-    connections:
-      supply: supply
-      logic_supply: logic_supply
-      ground: ground
-      enable#: enable#
-      input: input
-      output: output
+  inst surrounding: SurroundingWren(*)
     metadata:
       pins:
         supply:

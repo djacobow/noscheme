@@ -4,6 +4,7 @@
 #include "noscheme/lsp_instance_completion.hpp"
 #include "noscheme/validation.hpp"
 #include <algorithm>
+#include <iterator>
 #include <set>
 namespace noscheme {
 namespace {
@@ -522,10 +523,17 @@ CompletionResult complete(const std::string &text, std::size_t offset,
   CompletionResult result{offset, offset, {}};
   if (offset > text.size())
     return result;
-  if (auto keywords = keyword_completion(text, offset);
-      !keywords.entries.empty())
+  auto keywords = keyword_completion(text, offset);
+  auto section = section_completion(text, offset, catalog);
+  // An instance body's first lines take connections or section keywords.
+  if (section && !keywords.entries.empty() &&
+      section->start == keywords.start && section->end == keywords.end) {
+    std::ranges::move(keywords.entries, std::back_inserter(section->entries));
+    return *section;
+  }
+  if (!keywords.entries.empty())
     return keywords;
-  if (auto section = section_completion(text, offset, catalog))
+  if (section)
     return *section;
   if (auto instance = instance_completion(text, offset, catalog))
     return *instance;

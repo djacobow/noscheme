@@ -6,8 +6,7 @@ from test_circuit import compile_source
 SOURCE = """from noscheme import bias, std
 component Pull:
   pins:
-    1:
-      aliases: [reference]
+    1 (reference):
       role: role.passive
     2:
       role: role.passive
@@ -22,12 +21,10 @@ board B:
   net supply: nettype.power
   net bus: nettype.open_drain
   inst pull: Pull
-    connections:
-      1: supply
-      2: bus
+    1: supply
+    2: bus
   inst driver: Driver
-    connections:
-      1: bus
+    1: bus
 """
 
 

@@ -182,13 +182,18 @@ def test_passive_policy_and_stm32_swd_footprint():
     assert set(by_reference["PROG"]["pins"]) == set(header["pins"])
 
 
+def configuration(supply_5v, port):
+    """The name of a configuration generated from the board's two supply choices."""
+    return f"supply_12v=port{port},supply_5v={supply_5v}"
+
+
 def test_power_configuration_detects_two_external_sources(tmp_path):
     destination = copy_example(tmp_path)
     main = destination / "main.nosch"
     text = main.read_text()
     start = text.index("  inst power_header:")
     end = text.index("  inst logic_regulator:", start)
-    header = text[start:end].replace("jack: role.power_input", "jack: role.power_output")
+    header = text[start:end].replace("jack=role.power_input", "jack=role.power_output")
     main.write_text(text[:start] + header + text[end:])
     project, definitions = resolve_project(destination)
     circuit, warnings = elaborate_project(project, definitions)
@@ -196,7 +201,7 @@ def test_power_configuration_detects_two_external_sources(tmp_path):
     diagnostics = apply_erc(circuit)
     conflicts = [d for d in diagnostics if d.code == "erc.multiple_drivers"]
     assert len(conflicts) == 3
-    assert {d.configuration for d in conflicts} == {f"jack_port{i}" for i in range(3)}
+    assert {d.configuration for d in conflicts} == {configuration("jack", i) for i in range(3)}
     assert all(d.application == "net:v5:multiple_drivers" for d in conflicts)
 
 
@@ -209,7 +214,7 @@ def test_power_configuration_detects_two_external_sources(tmp_path):
             "erc.bias_reference",
         ),
         ("value: 2k", "value: 1k", "erc.std.parallel"),
-        ("max_voltage: 5 * 1.05", "max_voltage: 7", "erc.voltage_limits"),
+        ("voltage: 5 ± 5%", "voltage: 4.75..7", "erc.voltage_limits"),
     ],
 )
 def test_electrical_limits_detect_faults(tmp_path, old, new, code):
@@ -224,7 +229,7 @@ def test_electrical_limits_detect_faults(tmp_path, old, new, code):
     faults = [d for d in apply_erc(circuit) if d.code == code and d.severity == "error"]
     assert faults
     assert {d.configuration for d in faults} == {
-        f"{source}_port{port}" for source in ("jack", "header") for port in range(3)
+        configuration(source, port) for source in ("jack", "header") for port in range(3)
     }
 
 
@@ -247,15 +252,17 @@ def test_electrical_limits_detect_faults(tmp_path, old, new, code):
         ),
         (
             "main.nosch",
-            "net scl: LocalI2C\n    wiring_capacitance: 50p",
-            "net scl: LocalI2C\n    wiring_capacitance: 500p",
+            "net scl, sda: LocalI2C\n    wiring_capacitance: 50p\n",
+            "net sda: LocalI2C\n    wiring_capacitance: 50p\n    voltage: 0..3.465\n"
+            "  net scl: LocalI2C\n    wiring_capacitance: 500p\n",
             "erc.std.sum",
             "net:scl:capacitance",
         ),
         (
             "main.nosch",
-            "net sda_hv: BufferedI2C\n    wiring_capacitance: 100p",
-            "net sda_hv: BufferedI2C\n    wiring_capacitance: 5n",
+            "net scl_hv, sda_hv: BufferedI2C\n    wiring_capacitance: 100p",
+            "net scl_hv: BufferedI2C\n    wiring_capacitance: 100p\n"
+            "  net sda_hv: BufferedI2C\n    wiring_capacitance: 5n",
             "erc.std.sum",
             "net:sda_hv:capacitance",
         ),
@@ -289,7 +296,7 @@ def test_quantitative_budget_overloads(tmp_path, filename, old, new, code, appli
     assert len(faults) == 6
     assert {d.application for d in faults} == {application}
     assert {d.configuration for d in faults} == {
-        f"{supply}_port{port}" for supply in ("jack", "header") for port in range(3)
+        configuration(supply, port) for supply in ("jack", "header") for port in range(3)
     }
 
 
@@ -361,7 +368,7 @@ def test_capacitance_budget_contributions(tmp_path, filename, old, new, severity
     assert len(diagnostics) == 12
     assert all(d.code == "erc.std.sum" and d.severity == severity for d in diagnostics)
     assert {(d.configuration, d.application) for d in diagnostics} == {
-        (f"{supply}_port{port}", f"net:{net}:capacitance")
+        (configuration(supply, port), f"net:{net}:capacitance")
         for supply in ("jack", "header")
         for port in range(3)
         for net in nets

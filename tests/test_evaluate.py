@@ -328,7 +328,7 @@ def test_connection_index_evaluation_and_warning(tmp_path):
     p = make(
         tmp_path,
         'component C:\n  pins:\n    1:\n      custom:\n        note: "pin"\n',
-        "board B:\n  net n: nettype.passive[4]\n  inst c: C\n    connections:\n      1: n[3.0]\n",
+        "board B:\n  net n: nettype.passive[4]\n  inst c: C\n    1: n[3.0]\n",
     )
     report, warnings = evaluate_project(*resolve_project(p))
     assert report["instances"][0]["connection_selections"]["c"][0]["start"] == 3

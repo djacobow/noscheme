@@ -12,8 +12,7 @@ SOURCE = """component Output:
 board B:
   net bus: nettype.digital
   inst outputs[2]: Output
-    connections:
-      1: bus
+    1: bus
 """
 
 

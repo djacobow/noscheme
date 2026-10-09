@@ -1,6 +1,7 @@
 #include "noscheme/resolve.hpp"
 #include "noscheme/validation.hpp"
 #include <algorithm>
+#include <iterator>
 
 namespace noscheme {
 namespace {
@@ -251,8 +252,12 @@ class BodyResolver {
              head->span);
       return;
     }
-    if (name == "no_connect" && selectors.empty())
+    if (name == "no_connect" && selectors.empty()) {
+      if (binding.target->kind == Kind::Call)
+        fail("resolve.flat", "flat() takes an array net, not no_connect",
+             head->span);
       return;
+    }
     if (!nets.contains(name))
       fail("resolve.net", "'" + name + "' is not a declared caller net or port",
            head->span);
@@ -409,52 +414,120 @@ public:
                std::size_t max_depth)
       : project(project), registry(registry), definitions(definitions),
         max_pins(max_pins), max_depth(max_depth) {}
+  // A connection from a pin or port name to a target, located at span.
+  static ast::Ptr connection(const Span &span, const std::string &pin,
+                             ast::Ptr target) {
+    auto binding = std::make_shared<ast::Binding>();
+    binding->span = span;
+    auto &head = binding->endpoint.head;
+    binding->endpoint.span = head.span = head.first.span = span;
+    head.first.text = head.first.spelling = pin;
+    binding->target = std::move(target);
+    return binding;
+  }
+  std::vector<ast::Ptr> positional_bindings(const ast::Instance &instance,
+                                            const Definition &part) const {
+    if (instance.positional.empty())
+      return {};
+    auto *interchangeable = meta_value(part.metadata, "interchangeable");
+    auto pins = interchangeable ? meta_strings(*interchangeable)
+                                : std::vector<std::string>{};
+    if (pins.empty())
+      fail("resolve.positional",
+           part.key.second +
+               " declares no interchangeable pins; connect pins by name",
+           instance.positional.front()->span);
+    if (pins.size() != instance.positional.size())
+      fail("resolve.positional",
+           part.key.second + " has " + std::to_string(pins.size()) +
+               " interchangeable pins; give a net or no_connect for each",
+           instance.span);
+    std::vector<ast::Ptr> result;
+    for (std::size_t i = 0; i < pins.size(); ++i)
+      result.push_back(connection(instance.positional[i]->span, pins[i],
+                                  instance.positional[i]));
+    return result;
+  }
+  // `*` binds each remaining pin or port, by its name or an alias, to the
+  // caller's net or port of the same name.
+  std::vector<ast::Ptr>
+  wildcard_bindings(const ast::Instance &instance, const Definition &part,
+                    const std::vector<ast::Ptr> &entries,
+                    const std::set<std::string> &scope) const {
+    std::set<std::string> bound;
+    for (const auto &entry : entries)
+      for (const auto &name :
+           physical_keys(as<ast::Binding>(*entry).endpoint.head, max_pins)) {
+        auto alias = part.aliases.find(name);
+        bound.insert(alias == part.aliases.end() ? name : alias->second);
+      }
+    std::map<std::string, std::vector<std::string>> names;
+    for (const auto &[alias, pin] : part.aliases)
+      names[pin].push_back(alias);
+    const auto &span = *instance.wildcard;
+    std::vector<ast::Ptr> result;
+    for (const auto &pin : part.interface_order) {
+      std::vector<std::string> matches;
+      for (const auto &name : names[pin])
+        if (scope.contains(name))
+          matches.push_back(name);
+      if (bound.contains(pin) || matches.empty())
+        continue;
+      if (matches.size() > 1) {
+        std::string listed;
+        for (const auto &name : matches)
+          listed += (listed.empty() ? "" : ", ") + name;
+        fail("resolve.wildcard",
+             "* matches pin '" + pin + "' through several names: " + listed,
+             span);
+      }
+      auto target = std::make_shared<ast::Name>();
+      target->span = span;
+      target->text = matches.front();
+      result.push_back(connection(span, matches.front(), std::move(target)));
+    }
+    if (result.empty())
+      fail("resolve.wildcard", "* matches no caller net or port", span);
+    return result;
+  }
+  // Turn positional nets and `*` into ordinary connections.
   void expand(Definition &definition) const {
     // Build transactionally: a failed expansion leaves this definition
     // unchanged.
+    std::set<std::string> scope;
+    for (const auto *node : definition.body)
+      if (auto *net = as<ast::Net>(node); net && !net->global)
+        scope.insert(net->name.text);
+    if (definition.kind == "block")
+      for (const auto &[name, unused] : definition.interface)
+        scope.insert(name);
     auto body = definition.body;
     std::vector<std::shared_ptr<const ast::Node>> owned;
     for (auto &node : body) {
       auto *instance = as<ast::Instance>(node);
-      if (!instance || instance->positional.empty())
+      if (!instance || (instance->positional.empty() && !instance->wildcard))
         continue;
       const auto &part = target(definition.body_module, instance->component,
                                 {"component", "block"});
-      auto *interchangeable = meta_value(part.metadata, "interchangeable");
-      auto pins = interchangeable ? meta_strings(*interchangeable)
-                                  : std::vector<std::string>{};
-      if (pins.empty())
-        fail("resolve.positional",
-             part.key.second +
-                 " declares no interchangeable pins; connect pins by name",
-             instance->positional.front()->span);
-      if (pins.size() != instance->positional.size())
-        fail("resolve.positional",
-             part.key.second + " has " + std::to_string(pins.size()) +
-                 " interchangeable pins; give a net or no_connect for each",
-             instance->span);
       auto copy = std::make_shared<ast::Instance>(*instance);
       ast::Section connections;
       connections.span = instance->span;
       connections.name = "connections";
       connections.entries =
           ast::section_entries(instance->sections, "connections");
-      for (std::size_t i = 0; i < pins.size(); ++i) {
-        const auto &expr = instance->positional[i];
-        auto binding = std::make_shared<ast::Binding>();
-        binding->span = expr->span;
-        auto &head = binding->endpoint.head;
-        binding->endpoint.span = head.span = head.first.span = expr->span;
-        head.first.text = head.first.spelling = pins[i];
-        binding->target = expr;
-        connections.entries.push_back(std::move(binding));
-      }
+      std::ranges::move(positional_bindings(*instance, part),
+                        std::back_inserter(connections.entries));
+      if (instance->wildcard)
+        std::ranges::move(
+            wildcard_bindings(*instance, part, connections.entries, scope),
+            std::back_inserter(connections.entries));
       copy->sections.clear();
       for (const auto &section : instance->sections)
         if (section.name != "connections")
           copy->sections.push_back(section);
       copy->sections.push_back(std::move(connections));
       copy->positional.clear();
+      copy->wildcard.reset();
       node = copy.get();
       owned.push_back(std::move(copy));
     }

@@ -1,0 +1,3 @@
+board Board:
+    inst a: Part(
+        // The argument list is never closed.

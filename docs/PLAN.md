@@ -1476,3 +1476,42 @@ was considered and declined as too much type machinery for now.
   instances drop `(` and their `)` line); the WREN extractor emits the new form and
   its regeneration matches the migrated file byte for byte. The prototype grammar in
   tools/experiments follows the same rule, so the shared corpus parses with both.
+
+### Concise syntax (October 9, 2026)
+
+User direction: cut ceremony that adds no information, without implicit nets,
+net merging, or inferred net types. Counting the hand-written examples showed
+906 `connections:` headers for 976 instances, repeated `supply: supply` wiring,
+per-rail `min_voltage`/`max_voltage` pairs, four-line alias declarations, and
+hand-enumerated configuration products.
+
+- [x] An instance's connections are its body: `pin: net` lines directly under
+  `inst`, before any `params`, `metadata`, or `elements` section. The
+  `connections` keyword is gone; a pin named after a section word is quoted.
+- [x] `*` in the argument list connects each remaining pin or port, by name or
+  alias, to the caller's local net or block port of that name. Globals are never
+  matched; unmatched pins keep their unused-connection policy; matching nothing,
+  or one pin through two names, is an error.
+- [x] `net a, b: T` declares several nets sharing a type and fields.
+- [x] `voltage: low..high` and `voltage: center ± deviation[%]` (`+/-` in ASCII)
+  set `min_voltage` and `max_voltage`. Ranges and tolerances are field values
+  only, and only for `voltage`.
+- [x] Pin aliases are written in the key, `1 (cathode, K):`; the `aliases` field
+  is gone. The KiCad converter writes plain names bare and others quoted.
+- [x] `choice(name, alternative=value, ...)` replaces the `choice:`/`cases:`
+  mapping for role selections and choice bindings, also as a pin's shorthand value.
+- [x] A board without named configurations checks every combination of its
+  choices, named like `supply_12v=port0,supply_5v=jack`; more than 64 must be named.
+- [x] `flat(net)` binds an array net's elements in row-major order to a pin list,
+  and a range such as `21..14` counts down.
+- [x] Examples use the new forms: WREN uses `*`, grouped nets, and `flat()`; Rulos
+  drops its six hand-written configurations and uses tolerances; the STM32 board
+  replaces per-instance pull metadata with `InputPullup0603` and
+  `InputPulldown0603` specializations. The WREN extractor emits body connections,
+  and regenerating the full board from KiCad's export matches byte for byte.
+- [x] Production tests read their own copy of the parser corpus in `tests/corpus`;
+  the frozen experiment grammar keeps the historical corpus.
+- [ ] Not done: flattening component `metadata` fields such as `footprint` into
+  the component body, and a pull-reference shorthand. `pull_to:` would bring back
+  a field that triggers a check, which the ERC redesign removed on purpose
+  (`bias_reference_pin` became the explicit `std.bias_reference` check).

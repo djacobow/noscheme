@@ -27,7 +27,8 @@ class MetadataReader {
                                  bool respect_locals = true) const;
   Fields mapping(const ast::Field &field) const;
   std::string choice_string(const ast::Node *expr) const;
-  MetaFields selection(const ast::Field &field, bool roles = false);
+  // choice(name, alternative=value, ...): a value selected by a local choice.
+  MetaFields selection(const ast::Node &expr, bool roles = false);
   MetaFields choices(const ast::Field &field, const std::string &kind);
   MetaFields waivers(const ast::Field &field);
   MetaFields checks(const ast::Field &field, const std::string &scope);

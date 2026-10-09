@@ -19,12 +19,10 @@ SOURCE = """component R:
       role: role.passive
 board B:
   inst r: R
-    connections:
-      1: missing1
-      2: missing2
+    1: missing1
+    2: missing2
   inst q: Nope
-    connections:
-      unknown_pin: unknown_net
+    unknown_pin: unknown_net
 """
 
 
@@ -47,8 +45,8 @@ def test_multiple_bad_bindings_and_unknown_sibling_instance(tmp_path):
 
 def test_arguments_and_bindings_are_independent_but_each_binding_stops(tmp_path):
     source = SOURCE.replace("1: missing1", "absent: missing1").replace(
-        "  inst r: R\n",
-        "  inst r: R\n    params:\n      missing_arg: 1\n      value: missing_value\n",
+        "    2: missing2\n",
+        "    2: missing2\n    params:\n      missing_arg: 1\n      value: missing_value\n",
     )
     make(tmp_path, source)
     errors = resolve_errors(tmp_path)
@@ -89,8 +87,7 @@ def test_bad_net_type_stops_its_body_but_not_an_independent_definition(tmp_path)
         + """block BadNet:
   net n: MissingBundle
   inst dependent: R
-    connections:
-      1: n.nonexistent
+    1: n.nonexistent
 """
     )
     make(tmp_path, source)

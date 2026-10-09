@@ -2,6 +2,7 @@
 #include "noscheme/validation.hpp"
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <numeric>
 
 namespace noscheme {
@@ -71,6 +72,8 @@ struct Node {
   std::vector<Tree> items;
   std::map<std::string, Tree> fields;
 };
+// Combinations of board choices checked when no configurations are named.
+constexpr std::size_t max_configurations = 64;
 Tree array_node(std::vector<Tree> items) {
   return std::make_shared<Node>(
       Node{NodeKind::array, "", 0, std::move(items), {}});
@@ -413,6 +416,23 @@ class Elaborator {
   Tree reference(const ast::Node &expression,
                  const std::map<std::string, Tree> &nets,
                  const std::string &module, const Environment &env) {
+    if (expression.kind == ast::Kind::Call) {
+      // flat(net): the array's elements in row-major order.
+      auto node = reference(*ast::as<ast::Call>(expression).arguments.front(),
+                            nets, module, env);
+      if (!node || node->kind != NodeKind::array)
+        error("connection.flat", "flat() takes an array net", expression.span);
+      std::vector<Tree> elements;
+      std::function<void(const Tree &)> flatten = [&](const Tree &item) {
+        if (item->kind != NodeKind::array)
+          elements.push_back(item);
+        else
+          for (const auto &child : item->items)
+            flatten(child);
+      };
+      flatten(node);
+      return array_node(std::move(elements));
+    }
     auto [head, selectors] = ast::reference_parts(expression);
     auto name = head->text;
     if (name == "no_connect" && selectors.empty())
@@ -839,11 +859,51 @@ public:
     circuit.erc_rule_sets = project.config.erc_rule_sets;
     circuit.board = project.board.module + "." + project.board.name;
     circuit.source = board.source->span;
-    circuit.configurations = fields_of(board.metadata, "configurations");
     expand({project.board.module, project.board.name}, {}, nullptr,
            project.board.module, {});
     finish();
+    circuit.configurations = configurations(board);
     return std::move(circuit);
+  }
+  // Named configurations, or by default every combination of the board's
+  // choices.
+  MetaFields configurations(const Definition &board) const {
+    if (auto *named = meta_value(board.metadata, "configurations"))
+      return named->fields();
+    auto *choices = meta_value(board.metadata, "erc_choices");
+    if (!choices)
+      return {};
+    const auto &declared = choices->fields();
+    std::size_t count = 1;
+    for (const auto &[name, alternatives] : declared)
+      count *= alternatives.value.list().size();
+    if (count > max_configurations)
+      error("erc.configurations",
+            "the board's choices form " + std::to_string(count) +
+                " combinations, more than " +
+                std::to_string(max_configurations) +
+                "; name the configurations to check",
+            board.metadata.at("erc_choices").span);
+    MetaFields result;
+    for (std::size_t i = 0; i < count; ++i) {
+      // Mixed-radix digits, the last choice varying fastest.
+      MetaFields values;
+      std::string name;
+      auto rest = i;
+      for (auto it = declared.rbegin(); it != declared.rend(); ++it) {
+        const auto &alternatives = it->second.value.list();
+        values.insert_or_assign(it->first,
+                                Meta{alternatives[rest % alternatives.size()],
+                                     it->second.span, board.key.first});
+        rest /= alternatives.size();
+      }
+      for (const auto &[choice, value] : values)
+        name += (name.empty() ? "" : ",") + choice + "=" + value.value.string();
+      result.insert_or_assign(name, Meta{std::move(values),
+                                         board.metadata.at("erc_choices").span,
+                                         board.key.first});
+    }
+    return result;
   }
 };
 Json leaf_metadata(const Leaf &leaf) {

@@ -64,6 +64,8 @@ std::string expression_path(const Node &expression) {
 ReferenceParts reference_parts(const Node &reference) {
   ReferenceParts result;
   const Node *current = &reference;
+  if (auto *call = as<Call>(current))
+    current = call->arguments.front().get();
   while (true) {
     if (auto *member = as<Member>(current)) {
       result.selectors.push_back(&member->name);
@@ -170,8 +172,21 @@ void for_each_child(const Node &node, const ChildVisitor &visit) {
     optional("stop", n.stop, visit);
     return;
   }
+  case Kind::Range: {
+    const auto &n = as<Range>(node);
+    visit("high", *n.high);
+    visit("low", *n.low);
+    return;
+  }
+  case Kind::Tolerance: {
+    const auto &n = as<Tolerance>(node);
+    visit("center", *n.center);
+    visit("deviation", *n.deviation);
+    return;
+  }
   case Kind::FieldKey: {
     const auto &n = as<FieldKey>(node);
+    each("aliases", n.aliases, visit);
     visit("first", n.first);
     each("items", n.items, visit);
     if (n.last)
@@ -317,6 +332,15 @@ Json fields_json(const Node &node) {
     const auto &n = as<Index>(node);
     return object("start", to_json(*n.start), "stop", optional_json(n.stop));
   }
+  case Kind::Range: {
+    const auto &n = as<Range>(node);
+    return object("low", to_json(*n.low), "high", to_json(*n.high));
+  }
+  case Kind::Tolerance: {
+    const auto &n = as<Tolerance>(node);
+    return object("center", to_json(*n.center), "deviation",
+                  to_json(*n.deviation), "percent", n.percent);
+  }
   case Kind::PinKey: {
     const auto &n = as<PinKey>(node);
     return object("text", n.text, "spelling", n.spelling);
@@ -325,7 +349,7 @@ Json fields_json(const Node &node) {
     const auto &n = as<FieldKey>(node);
     return object("first", to_json(n.first), "last",
                   n.last ? to_json(*n.last) : Json(nullptr), "items",
-                  list_json(n.items));
+                  list_json(n.items), "aliases", list_json(n.aliases));
   }
   case Kind::Field: {
     const auto &n = as<Field>(node);
@@ -366,7 +390,8 @@ Json fields_json(const Node &node) {
     return object("name", to_json(n.name), "dimensions",
                   list_json(n.dimensions), "component", list_json(n.component),
                   "sections", list_json(n.sections), "positional",
-                  list_json(n.positional));
+                  list_json(n.positional), "wildcard",
+                  n.wildcard ? n.wildcard->json() : Json(nullptr));
   }
   case Kind::ImportedName: {
     const auto &n = as<ImportedName>(node);

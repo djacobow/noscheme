@@ -175,7 +175,12 @@ test(
 test(
     'native-circuit-parity',
     py,
-    args: ['-m', 'pytest', '-q', files('cpp/tests/test_circuit_parity.py')],
+    args: [
+        '-m',
+        'pytest',
+        '-q',
+        files('cpp/tests/test_circuit_parity.py', 'cpp/tests/test_concise_parity.py'),
+    ],
     env: {'NOSCHEME_NATIVE_PROBE': probe.full_path()},
     timeout: 180,
 )

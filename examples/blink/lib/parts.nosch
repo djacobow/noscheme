@@ -14,12 +14,10 @@ component Led:
   params:
     value: string = "Green"
   pins:
-    1:
-      aliases: [cathode]
+    1 (cathode):
       role: role.passive
       unused: unused.never
-    2:
-      aliases: [anode]
+    2 (anode):
       role: role.passive
       unused: unused.never
   metadata:

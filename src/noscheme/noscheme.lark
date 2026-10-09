@@ -19,8 +19,14 @@ section_name.1: PARAMS -> params_name
             | "ports" -> ports_name
             | "metadata" -> metadata_name
 // Metadata field schemas are validated during resolution.
-field: field_key ":" [expr ["=" expr]] _NL [_INDENT field+ _DEDENT]
+field: (field_key | aliased_key) ":" [field_value ["=" expr]] _NL [_INDENT field+ _DEDENT]
+// Ranges and tolerances are field values only: `voltage: 4.75..5.25`, `voltage: 5 ± 5%`.
+?field_value: expr
+            | expr ".." expr -> range_value
+            | expr TOLERANCE expr [PERCENT] -> tolerance_value
 ?field_key: plain_field_key | index -> single_pin_list
+// A pin declaration may name its aliases: `1 (cathode, K): role.passive`.
+aliased_key: pin_key _LPAR pin_key ("," pin_key)* [","] _RPAR
 plain_field_key: pin_key [".." pin_key] -> field_key
                | _LSQB pin_group _RSQB -> field_key
 // Singleton lists share the index syntax to keep leading instance selectors
@@ -30,25 +36,32 @@ pin_group: pin_key ".." pin_key ("," pin_selection)* [","] -> range_group
 pin_selection: pin_key [".." pin_key]
 // pins is also a metadata key, including after nested sibling mappings.
 ?pin_key: NAME | INT | STRING | PINS | PARAMS
-net_decl: global_modifier? "net" NAME ":" expr _NL [_INDENT field+ _DEDENT]
+net_decl: global_modifier? "net" NAME ("," NAME)* ":" expr _NL [_INDENT field+ _DEDENT]
 global_modifier: "global"
-// Parentheses hold arguments: positional nets for interchangeable pins, pin: net, and
-// param=value. Indented sections follow the instance line; both may be used together.
-instance: "inst" NAME index* ":" name_path [_LPAR [inline_arguments] _RPAR] _NL [_INDENT inst_section+ _DEDENT]
+// Parentheses hold arguments: positional nets for interchangeable pins, pin: net,
+// param=value, and `*` for same-name connections. The indented body holds connections,
+// then params, metadata, and elements sections; both may be used together.
+instance: "inst" NAME index* ":" name_path [_LPAR [inline_arguments] _RPAR] _NL [_INDENT _instance_body _DEDENT]
 inline_arguments: inline_argument ("," inline_argument)* [","]
-?inline_argument: reference -> positional_argument
+?inline_argument: target -> positional_argument
                 | (NAME | INT | STRING) ":" target -> inline_binding
                 | NAME "=" expr -> inline_parameter
-?inst_section: connections | arguments | instance_metadata | elements
+                | MUL -> wildcard_argument
+_instance_body: binding+ inst_section* | inst_section+
+?inst_section: arguments | instance_metadata | elements
 elements: "elements" ":" _NL _INDENT element_override+ _DEDENT
 element_override: index+ ":" _NL _INDENT element_section+ _DEDENT
 ?element_section: arguments | instance_metadata
-connections: "connections" ":" _NL _INDENT binding+ _DEDENT
 binding: endpoint ":" target _NL
-?endpoint: plain_field_key endpoint_suffix* | index+ "." field_key endpoint_suffix*
+// Section words start sections here; quote a pin with such a name: "params": net.
+?endpoint: binding_key endpoint_suffix* | index+ "." field_key endpoint_suffix*
          | index -> singleton_endpoint
+binding_key: (NAME | INT | STRING | PINS) [".." (NAME | INT | STRING | PINS)] -> field_key
+           | _LSQB pin_group _RSQB -> field_key
 ?endpoint_suffix: "." NAME | index
+// flat(net) binds an array net's elements in row-major order.
 ?target: reference
+       | NAME _LPAR reference _RPAR -> call_target
 arguments: "params" ":" _NL _INDENT argument+ _DEDENT
 argument: NAME ":" expr _NL
 instance_metadata: "metadata" ":" _NL _INDENT field+ _DEDENT
@@ -78,6 +91,8 @@ index: _LSQB expr [":" expr] _RSQB
 name_path: NAME ("." NAME)*
 
 SHIFT: "<<" | ">>"
+TOLERANCE: "±" | "+/-"
+PERCENT: "%"
 PINS: "pins"
 PARAMS: "params"
 ADD: "+" | "-"

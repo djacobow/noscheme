@@ -19,31 +19,27 @@ block Port:
   ports:
     line: nettype.passive
   inst contact: Contact
-    connections:
-      1: line
-      2: no_connect
+    1: line
+    2: no_connect
 board B:
   net a: nettype.passive
   net b: nettype.passive
   inst contact: Contact
-    connections:
-      1: a
-      2: b
-      3: no_connect
+    1: a
+    2: b
+    3: no_connect
     metadata:
       pins:
         1: [role.power_output, bias.none]
         2: role.ground
   inst chip: Chip
-    connections:
-      1: b
-      2: a
+    1: b
+    2: a
     metadata:
       pins:
         1: role.ground
   inst port: Port
-    connections:
-      line: a
+    line: a
     metadata:
       pins:
         line:

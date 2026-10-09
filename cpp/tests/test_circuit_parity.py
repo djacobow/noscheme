@@ -43,7 +43,6 @@ def circuit_data(value):
 
 
 def compare(probe, path, **options):
-    project = load_project(path)
     request = {
         "project": str(path),
         "elaborate": True,
@@ -54,6 +53,7 @@ def compare(probe, path, **options):
         **options,
     }
     try:
+        project = load_project(path)
         definitions = Resolver(project).resolve_all()
         expected, _ = elaborate_project(
             project,
@@ -136,8 +136,7 @@ def test_shapes(probe, tmp_path, net_shape, inst_shape, binding):
         + f"""board B:
   net n: nettype.passive{net_shape}
   inst p{inst_shape}: P
-    connections:
-      {binding}
+    {binding}
 """,
     )
 
@@ -145,25 +144,20 @@ def test_shapes(probe, tmp_path, net_shape, inst_shape, binding):
 @pytest.mark.parametrize(
     "bindings",
     [
-        "1: n\n      A: n",
-        "1..2: n\n      2: n",
-        "1: n\n      [0].1: n",
-        "1: no_connect\n      A: n",
-        "[0].1: n\n      [1].1: no_connect",
+        "1: n\n    A: n",
+        "1..2: n\n    2: n",
+        "1: n\n    [0].1: n",
+        "1: no_connect\n    A: n",
+        "[0].1: n\n    [1].1: no_connect",
         "1..2: no_connect",
     ],
 )
 def test_overlapping_bindings(probe, tmp_path, bindings):
-    part = PART.replace(
-        "1..2: role.passive", "1: role.passive\n      aliases: [A]\n    2: role.passive"
-    )
+    part = PART.replace("1..2: role.passive", "1 (A): role.passive\n    2: role.passive")
     check_source(
         probe,
         tmp_path,
-        part
-        + "board B:\n  net n: nettype.passive\n  inst p[2]: P\n    connections:\n      "
-        + bindings
-        + "\n",
+        part + "board B:\n  net n: nettype.passive\n  inst p[2]: P\n    " + bindings + "\n",
     )
 
 
@@ -187,8 +181,8 @@ block W:
         ("Bus", "[2]", "bus: n"),
         ("Bus[2]", "[2]", "bus: n"),
         ("Other", "", "bus: n"),
-        ("Other", "", "bus.x: n.y\n      bus.y: n.x"),
-        ("Bus", "", "bus: n\n      bus.x: n.x"),
+        ("Other", "", "bus.x: n.y\n    bus.y: n.x"),
+        ("Bus", "", "bus: n\n    bus.x: n.x"),
         ("nettype.passive", "", "bus: n"),
         ("Bus", "", "bus: no_connect"),
     ],
@@ -201,8 +195,7 @@ def test_bundles(probe, tmp_path, net_type, inst_shape, binding):
         + f"""board B:
   net n: {net_type}
   inst w{inst_shape}: W
-    connections:
-      {binding}
+    {binding}
 """,
     )
 
@@ -467,8 +460,7 @@ def test_port_index_within_instance(probe, tmp_path):
 board B:
   net n: nettype.digital[2]
   inst w[2]: W
-    connections:
-      data[1]: n
+    data[1]: n
 """,
     )
 

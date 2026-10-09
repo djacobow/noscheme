@@ -30,11 +30,9 @@ board B:
       capacitance: std.sum(capacitance, net=wiring_capacitance, max=20p)
     wiring_capacitance: 2p
   inst pull[2]: Pull
-    connections:
-      1: bus
+    1: bus
   inst device: Device
-    connections:
-      1: bus
+    1: bus
 """
 
 
@@ -84,8 +82,7 @@ def test_known_minimum_violation_with_unknown_additional_pull(tmp_path):
       capacitance: 0p
 board B:
   inst unknown: Unknown
-    connections:
-      1: bus
+    1: bus
 """,
     )
     result = [d for d in check(tmp_path, source) if d.application.endswith(":pull_up")]
@@ -289,13 +286,12 @@ def test_inner_port_capacitance_limit_counts_physical_pins_once(tmp_path):
       checks:
         capacitance: std.sum(capacitance, net=wiring_capacitance, max=20p)
   inst inner: Device
-    connections:
-      1: bus
+    1: bus
 board B:""",
     ).replace("inst device: Device", "inst device: Receiver")
     source = source.replace(
-        "  inst device: Receiver\n    connections:\n      1: bus",
-        "  inst device: Receiver\n    connections:\n      bus: bus",
+        "  inst device: Receiver\n    1: bus",
+        "  inst device: Receiver\n    bus: bus",
     )
     assert [d.code for d in check(tmp_path, source)] == ["erc.std.parallel"]
 
