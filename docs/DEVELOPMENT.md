@@ -24,6 +24,20 @@ configured output directory. Electrical errors allow compilation/export;
 `noscheme check` returns a failing status when it finds electrical errors.
 Structural errors block compilation.
 
+### Emacs integration tests
+
+With Emacs 29+ installed, `pytest` also runs the real Eglot client against the
+Python server and an available native build. Run only these checks with:
+
+```sh
+.venv/bin/python -m pytest -q tests/test_emacs.py
+```
+
+Set `NOSCHEME_NATIVE_LSP` to select a native binary; otherwise the test uses
+`build/native-release/noscheme-native-lsp`. Missing Emacs or native binaries are
+reported as skips. CI installs Emacs explicitly so editor validation runs there.
+See [Emacs setup](EDITOR_SUPPORT.md#emacs-eglot) for interactive use.
+
 ### Trying the native CLI
 
 Python remains the default. To use the C++ compiler, first follow the

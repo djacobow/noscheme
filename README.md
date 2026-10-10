@@ -14,8 +14,8 @@ or capacitance budget violations.
 
 Python is the default compiler and language server implementation. An optional
 [C++23 implementation](cpp/README.md) shares its compiler core between the CLI
-and LSP. Vim, Neovim, and the local VS Code extension provide syntax highlighting
-and LSP integration for diagnostics, definition navigation, references, rename,
+and LSP. Vim, Neovim, Emacs (Eglot), and the local VS Code extension provide
+syntax highlighting and LSP integration for diagnostics, definition navigation, references, rename,
 hover, completion, and
 formatting while editing unsaved designs. `noscheme format` applies the same
 canonical layout from the command line.
@@ -66,7 +66,7 @@ Placement, routing, and hardware validation remain separate steps.
   and a complete example.
 - [Development](docs/DEVELOPMENT.md) — installation, tests, example projects,
   KiCad export, CI, and repository search.
-- [Editor support](docs/EDITOR_SUPPORT.md) — Vim, Neovim, and VS Code setup and LSP capabilities.
+- [Editor support](docs/EDITOR_SUPPORT.md) — Vim, Neovim, Emacs, and VS Code setup and LSP capabilities.
 - [Project design](docs/PROJECT.md) — goals, design decisions, and reference-board details.
 - [Implementation plan](docs/PLAN.md) — completed milestones and remaining work.
 - [KiCad experiments](docs/experiments/README.md) and

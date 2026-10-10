@@ -31,6 +31,9 @@ jobs:
           python-version: ${{ matrix.python }}
           enable-cache: true
       - run: uv sync --locked
+      - name: Install Emacs for editor integration tests
+        if: matrix.python == '3.11'
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y emacs-nox
       - run: uv run --locked ruff format --check .
       - run: uv run --locked ruff check .
       - run: uv run --locked coverage run -m pytest -q -rs
@@ -96,7 +99,7 @@ jobs:
       - name: Install native build tools
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends -y g++ clang meson ninja-build cmake default-jre-headless libssl-dev
+          sudo apt-get install --no-install-recommends -y g++ clang meson ninja-build cmake default-jre-headless libssl-dev emacs-nox
       - run: python3 -m tools.native_dependencies --fetch
       - name: Build native compiler core
         env:
@@ -109,3 +112,7 @@ jobs:
           fi
           meson compile -C build/native -j 4
       - run: meson test -C build/native --print-errorlogs
+      - name: Validate Emacs with Python and native servers
+        env:
+          NOSCHEME_NATIVE_LSP: ${{ github.workspace }}/build/native/noscheme-native-lsp
+        run: uv run --locked pytest -q tests/test_emacs.py

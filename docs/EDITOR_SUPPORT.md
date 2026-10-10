@@ -1,6 +1,6 @@
 # Editor support
 
-NoScheme provides Vim/Neovim syntax highlighting, a local VS Code extension, and
+NoScheme provides Vim/Neovim and Emacs integrations, a local VS Code extension, and
 an independent language server for diagnostics, navigation, references, rename,
 hover, completion, and formatting. Follow
 [Development setup](DEVELOPMENT.md#environment-and-checks) to install the tools.
@@ -48,6 +48,140 @@ two-space indentation with spaces, word motions that include `#`, and `//`
 comment formatting. Completion and whole-file formatting come from the language server.
 To override indentation, put your preferences in `after/ftplugin/noscheme.vim`
 under your Vim/Neovim configuration directory.
+
+## Emacs (Eglot)
+
+Use Emacs 29 or newer and its bundled [Eglot LSP client](https://www.gnu.org/software/emacs/manual/html_node/eglot/).
+The integration in `editors/emacs` supplies `noscheme-mode` and starts Eglot when
+opening `.nosch` files. It needs no additional Emacs packages. The mode provides
+syntax highlighting, `//` and `/* ... */` comments, `#` in identifiers, two-space
+indentation, and **Shift-TAB** to dedent. Whole-file formatting comes from the
+server. Eglot uses Emacs's built-in completion, Eldoc, Xref, and Flymake interfaces.
+
+### Try it without changing your Emacs configuration
+
+From the NoScheme checkout:
+
+```sh
+uv sync --locked
+emacs -Q -L "$PWD/editors/emacs" -l noscheme-eglot \
+  "$PWD/examples/stm32h523/stm32h523.nosch"
+```
+
+`-Q` ignores your personal Emacs configuration, so this also serves as a clean
+smoke test. Add `-nw` to run in a terminal. The mode line should show `NoScheme`
+and `Eglot`; startup may take a moment while the server analyzes the project.
+No circuit exports are written when you open or edit a design.
+
+For someone new to Emacs: `C-` means hold **Ctrl**, `M-` usually means hold **Alt**
+(or press **Esc**, release it, then press the following key). `M-x` opens a command
+prompt: type the command's name and press **Enter**. Use **C-g** to cancel a command,
+**C-x C-f** to open a file, **C-x C-s** to save, and **C-x C-c** to quit.
+
+### Keep it enabled
+
+Add the following to your Emacs init file (normally `~/.emacs.d/init.el`), adjusting
+the checkout path. You can open that file with **C-x C-f** and create it if needed:
+
+```elisp
+(add-to-list 'load-path "/home/david/personal/noscheme/editors/emacs")
+(require 'noscheme-eglot)
+```
+
+Restart Emacs, then open a `.nosch` file. The default command is the checkout's
+`.venv/bin/noscheme-lsp`; if that executable does not exist, the integration looks
+for `noscheme-lsp` on Emacs's `exec-path`. It does not require shell activation of
+the virtual environment. For highlighting alone, require `noscheme-mode` instead.
+To start LSP manually rather than on opening files, remove the automatic hook:
+
+```elisp
+(remove-hook 'noscheme-mode-hook #'eglot-ensure)
+;; Use M-x eglot once in each project when wanted.
+```
+
+The nearest parent `noscheme.toml` defines the Emacs project for NoScheme buffers,
+ahead of a surrounding Git root. Separate designs such as `examples/blink` and
+`examples/stm32h523` therefore get separate server sessions. Without a matching
+configuration, normal Emacs project discovery applies and the server can provide
+syntax-only diagnostics. For shared libraries with ambiguous ownership, specify
+`--project` in the command below.
+
+### Commands and completion
+
+| Action | Key or command |
+| --- | --- |
+| Complete a type, parameter, pin, or connection | **C-M-i** or `M-x completion-at-point` |
+| View hover information | Pause on a symbol; `M-x eldoc-doc-buffer` opens the documentation buffer |
+| Go to definition / return | **M-.** / **M-,** |
+| Find references | **M-?** or `M-x xref-find-references` |
+| Rename a supported symbol | `M-x eglot-rename` |
+| Format the whole file | `M-x eglot-format-buffer` |
+| Apply a code action | `M-x eglot-code-actions` |
+| List diagnostics in this buffer | `M-x flymake-show-buffer-diagnostics` |
+| List diagnostics across the project | `M-x flymake-show-project-diagnostics` |
+| Jump to the next diagnostic | `M-x flymake-goto-next-error` |
+| Restart the server after rebuilding it | `M-x eglot-reconnect` |
+
+For example, enter `Capacitor0603<` on a board body line and invoke completion to
+get `value: `. After `Capacitor0603<100n> cap(`, completion offers the component's
+pins. Eglot supplies candidates to Emacs's completion interface; the stock setup
+does **not** automatically open a completion menu merely because you type `<` or
+`(`. A user's completion frontend may offer that automatically. Parameter
+signature popups are not implemented by the server.
+
+Diagnostics update for unsaved edits. Missing required connections are underlined
+at the instance declaration; related information identifies the pin or port
+whose contract is being violated. Other syntax errors can temporarily prevent
+semantic completion or navigation; fix those first.
+
+### Use the native server or an explicit project
+
+After building the native server as described in [cpp/README.md](../cpp/README.md#build-and-check),
+set this variable in your init file, before opening a design:
+
+```elisp
+(setq noscheme-eglot-server-command
+      '("/home/david/personal/noscheme/.venv/bin/noscheme-lsp"
+        "--implementation" "native"
+        "--native-server" "/home/david/personal/noscheme/build/native/noscheme-native-lsp"))
+```
+
+The value is an argument list, not a shell command; paths containing spaces do
+not need embedded quote characters. Append `"--project" "/path/to/design"` when
+needed. For a Python server outside this checkout, use a one-element list with
+the full path to its installed `noscheme-lsp` executable. After changing the
+command, use `M-x eglot-shutdown`, then `M-x eglot` to start a new session.
+
+### Troubleshooting and validation
+
+- **No Eglot connection:** use `M-x eglot` to display the startup error. Confirm
+  the configured executable exists and `uv sync --locked` has completed.
+- **Server output or unexpected behavior:** use `M-x eglot-events-buffer`,
+  `M-x eglot-stderr-buffer`, or `M-x view-echo-area-messages`.
+- **No completion popup:** explicitly use **C-M-i**. **M-TAB** is another binding,
+  but desktops often intercept it for window switching.
+- **Configuration interference:** retry the `emacs -Q` command above. The
+  [Eglot quick start](https://www.gnu.org/software/emacs/manual/html_node/eglot/Quick-Start.html)
+  explains how Eglot integrates with Emacs's standard editing features.
+
+The automated check launches `emacs -Q --batch` with the real Eglot client and
+both server implementations, without reading or modifying your personal init
+file. From the checkout, run:
+
+```sh
+.venv/bin/python -m pytest -q tests/test_emacs.py
+# Select a different native build if desired:
+NOSCHEME_NATIVE_LSP="$PWD/build/native/noscheme-native-lsp" \
+  .venv/bin/python -m pytest -q tests/test_emacs.py
+```
+
+The Python case requires Emacs 29+; the native case additionally requires a built
+server. Missing prerequisites are reported as skips. Coverage includes mode
+syntax and indentation, project discovery, warning-free byte compilation,
+automatic connection, Flymake diagnostics, Xref definitions, Eldoc hover,
+rename, formatting, and completion in unsaved buffers. Test project paths contain
+spaces. Validated locally with Emacs 30.2 and both language servers; CI installs
+Emacs and runs these checks too.
 
 ## Language server
 
