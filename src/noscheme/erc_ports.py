@@ -7,7 +7,7 @@ from .erc_rules import PORT_ALLOWED, PORT_EVIDENCE
 from .erc_facts import Results, attribute
 
 
-def check_port(port, endpoints, emit):
+def check_port(port, endpoints, emit, connection):
     """Check the block side of a public boundary without inventing endpoints."""
     scope = port["scope"]
     label = path_text(port["path"])
@@ -31,21 +31,21 @@ def check_port(port, endpoints, emit):
     # regardless of how many physical endpoints happen to exist inside them.
     if scope:
         if binding == "omitted" and policy == "explicit":
-            emit(
+            connection(
                 "unused_port",
                 f"port {label} must connect or explicitly bind to no_connect",
                 port,
                 label,
             )
         elif policy == "never" and binding != "connected":
-            emit(
+            connection(
                 "required_port_connection",
                 f"port {label} must connect; no_connect cannot override unused.never",
                 port,
                 label,
             )
         elif policy != "always" and binding == "connected" and not external:
-            emit(
+            connection(
                 "required_port_connection",
                 f"port {label} needs an endpoint outside its block",
                 port,
@@ -109,5 +109,10 @@ def net_results(ctx):
     results = Results()
     for declaration in ctx.net["declarations"]:
         if declaration["kind"] == "port":
-            check_port(declaration, ctx.endpoints, results.emit)
+            check_port(
+                declaration,
+                ctx.endpoints,
+                results.emit,
+                lambda *args: results.connection(ctx, *args),
+            )
     return tuple(results.diagnostics)

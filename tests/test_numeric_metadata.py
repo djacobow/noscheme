@@ -9,7 +9,7 @@ from test_circuit import compile_source
 SOURCE = """from noscheme import bias, std
 component Pull:
   params:
-    resistance: resistance = 4.7k
+    resistance resistance = 4.7k
   pins:
     1:
       role: role.passive
@@ -24,14 +24,12 @@ component Device:
       role: role.open_drain
       bias: bias.none
 board B:
-  net bus: nettype.open_drain
+  net.open_drain bus:
     checks:
       pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=1k + 1k)
-  inst pull: Pull
+  Pull<resistance: 3.3k> pull:
     1: bus
-    params:
-      resistance: 3.3k
-  inst device: Device
+  Device device:
     1: bus
 """
 
@@ -68,18 +66,18 @@ def test_metadata_expression_names_are_resolved_even_for_uninstantiated_parts(tm
 
 def test_instance_quantities_use_caller_environment(tmp_path):
     source = SOURCE.replace(
-        "board B:\n", "block Circuit:\n  params:\n    resistance: number = 2200\n"
+        "board B:\n", "block Circuit:\n  params:\n    number resistance = 2200\n"
     )
     source = source.replace(
-        "      resistance: 3.3k\n",
-        """      resistance: 3.3k
+        "    1: bus\n  Device",
+        """    1: bus
     metadata:
       pins:
         1:
           pull_resistance: resistance
-""",
+  Device""",
     )
-    source += "board B:\n  inst circuit: Circuit()\n"
+    source += "board B:\n  Circuit circuit()\n"
     circuit = compile_source(tmp_path, source)
     pull = next(p for p in circuit["parts"] if p["identity"] == "circuit.pull")
     assert pull["value"]["value"] == "3.3kOhm"
@@ -89,7 +87,7 @@ def test_instance_quantities_use_caller_environment(tmp_path):
 def test_nested_current_load_expression(tmp_path):
     source = """component Load:
   params:
-    current: current = 12m
+    current current = 12m
   pins:
     1:
       role: role.power_input
@@ -99,8 +97,8 @@ def test_nested_current_load_expression(tmp_path):
         pins: ["1"]
         max_load_current: current * 2
 board B:
-  net rail: nettype.power
-  inst load: Load
+  net.power rail
+  Load load:
     1: rail
 """
     circuit = compile_source(tmp_path, source)
@@ -113,13 +111,13 @@ def test_overridden_quantity_does_not_evaluate_shadowed_expression(tmp_path):
     source = SOURCE.replace(
         "pull_resistance: resistance", "pull_resistance: resistance / 0"
     ).replace(
-        "      resistance: 3.3k\n",
-        """      resistance: 3.3k
+        "    1: bus\n  Device",
+        """    1: bus
     metadata:
       pins:
         1:
           pull_resistance: 2200
-""",
+  Device""",
     )
     circuit = compile_source(tmp_path, source)
     pull = next(p for p in circuit["parts"] if p["identity"] == "pull")

@@ -104,8 +104,8 @@ def test_simple(probe, tmp_path):
         tmp_path,
         PART
         + """board B:
-  net n: nettype.passive
-  inst p: P(1: n, 2: no_connect)
+  net.passive n
+  P p(1: n, 2: no_connect)
 """,
     )
 
@@ -134,8 +134,8 @@ def test_shapes(probe, tmp_path, net_shape, inst_shape, binding):
         tmp_path,
         PART
         + f"""board B:
-  net n: nettype.passive{net_shape}
-  inst p{inst_shape}: P
+  net.passive{net_shape} n
+  P p{inst_shape}:
     {binding}
 """,
     )
@@ -157,19 +157,19 @@ def test_overlapping_bindings(probe, tmp_path, bindings):
     check_source(
         probe,
         tmp_path,
-        part + "board B:\n  net n: nettype.passive\n  inst p[2]: P\n    " + bindings + "\n",
+        part + "board B:\n  net.passive n\n  P p[2]:\n    " + bindings + "\n",
     )
 
 
 BUNDLES = """bundle Bus:
-  x: nettype.digital
-  y: nettype.digital
+  net.digital x
+  net.digital y
 bundle Other:
-  x: nettype.digital
-  y: nettype.digital
+  net.digital x
+  net.digital y
 block W:
   ports:
-    bus: Bus
+    Bus bus:
       placeholder: true
 """
 
@@ -183,7 +183,7 @@ block W:
         ("Other", "", "bus: n"),
         ("Other", "", "bus.x: n.y\n    bus.y: n.x"),
         ("Bus", "", "bus: n\n    bus.x: n.x"),
-        ("nettype.passive", "", "bus: n"),
+        ("net.passive", "", "bus: n"),
         ("Bus", "", "bus: no_connect"),
     ],
 )
@@ -193,8 +193,8 @@ def test_bundles(probe, tmp_path, net_type, inst_shape, binding):
         tmp_path,
         BUNDLES
         + f"""board B:
-  net n: {net_type}
-  inst w{inst_shape}: W
+  {net_type} n
+  W w{inst_shape}:
     {binding}
 """,
     )
@@ -209,12 +209,12 @@ def test_port_support(probe, tmp_path, support):
         tmp_path,
         """block W:
   ports:
-    p: nettype.passive
-"""
+    net.passive p"""
+        + (":\n" if support else "\n")
         + support
         + """board B:
-  net n: nettype.passive
-  inst w: W(p: n)
+  net.passive n
+  W w(p: n)
 """,
     )
 
@@ -224,13 +224,13 @@ def test_globals(probe, tmp_path, use, declare):
     source = (
         PART
         + """block W:
-  inst p: P(1: global.gnd)
+  P p(1: global.gnd)
 board B:
 """
     )
-    source += "  global net gnd: nettype.ground\n" if declare else "  net n: nettype.passive\n"
+    source += "  global net.ground gnd\n" if declare else "  net.passive n\n"
     if use:
-        source += "  inst w: W\n"
+        source += "  W w\n"
     check_source(probe, tmp_path, source)
 
 
@@ -244,7 +244,7 @@ def test_limits(probe, tmp_path, limits):
         tmp_path,
         PART
         + """board B:
-  inst p[3]: P
+  P p[3]:
     metadata:
       identity: "stable"
 """,
@@ -255,12 +255,12 @@ def test_limits(probe, tmp_path, limits):
 @pytest.mark.parametrize(
     "body",
     [
-        'inst p: P\n    metadata:\n      identity: ""',
-        'inst p[2]: P\n    metadata:\n      ref: "R1"',
-        'inst p: P\n    metadata:\n      ref: ""',
-        'inst p: P\n    metadata:\n      identity: "q"\n  inst q: P',
-        "inst p: P(1: no_connect)",
-        "inst p: P",
+        'P p:\n    metadata:\n      identity: ""',
+        'P p[2]:\n    metadata:\n      ref: "R1"',
+        'P p:\n    metadata:\n      ref: ""',
+        'P p:\n    metadata:\n      identity: "q"\n  P q',
+        "P p(1: no_connect)",
+        "P p",
     ],
 )
 def test_identity_and_omissions(probe, tmp_path, body):
@@ -269,8 +269,8 @@ def test_identity_and_omissions(probe, tmp_path, body):
 
 @pytest.mark.parametrize("unused", [False, True])
 def test_instance_cycles(probe, tmp_path, unused):
-    source = "block W:\n  inst w: W\nboard B:\n"
-    source += "  net n: nettype.passive\n" if unused else "  inst w: W\n"
+    source = "block W:\n  W w\nboard B:\n"
+    source += "  net.passive n\n" if unused else "  W w\n"
     check_source(probe, tmp_path, source)
 
 
@@ -290,12 +290,12 @@ def test_port_union(probe, tmp_path):
         PART
         + """block W:
   ports:
-    a: nettype.passive
-    b: nettype.passive
-  inst p: P(1: a, 2: b)
+    net.passive a
+    net.passive b
+  P p(1: a, 2: b)
 board B:
-  net n: nettype.passive
-  inst w: W(a: n, b: n)
+  net.passive n
+  W w(a: n, b: n)
 """,
     )
 
@@ -306,9 +306,9 @@ def test_inherited_identity(probe, tmp_path):
         tmp_path,
         PART
         + """block W:
-  inst p[2]: P
+  P p[2]
 board B:
-  inst w[2]: W
+  W w[2]:
     metadata:
       identity: "stable"
 """,
@@ -332,13 +332,13 @@ def test_quantity_override_does_not_evaluate_shadowed_expression(probe, tmp_path
         fixture_source("test_numeric_metadata.py")
         .replace("pull_resistance: resistance", "pull_resistance: resistance / 0")
         .replace(
-            "      resistance: 3.3k\n",
-            """      resistance: 3.3k
+            "    1: bus\n  Device",
+            """    1: bus
     metadata:
       pins:
         1:
           pull_resistance: 2200
-""",
+  Device""",
         )
     )
     assert "circuit" in check_source(probe, tmp_path, source)
@@ -349,18 +349,18 @@ def test_quantity_override_uses_caller(probe, tmp_path):
 
     source = (
         fixture_source("test_numeric_metadata.py")
-        .replace("board B:\n", "block Circuit:\n  params:\n    resistance: resistance = 2200\n")
+        .replace("board B:\n", "block Circuit:\n  params:\n    resistance resistance = 2200\n")
         .replace(
-            "      resistance: 3.3k\n",
-            """      resistance: 3.3k
+            "    1: bus\n  Device",
+            """    1: bus
     metadata:
       value: resistance
       pins:
         1:
           pull_resistance: resistance
-""",
+  Device""",
         )
-        + "board B:\n  inst circuit: Circuit\n"
+        + "board B:\n  Circuit circuit\n"
     )
     assert "circuit" in check_source(probe, tmp_path, source)
 
@@ -374,12 +374,12 @@ def test_inherited_quantity_error_order(probe, tmp_path):
     1:
       max_source_current: (0 - 1)
       max_load_current: (0 - 2)
-component Child extends Base:
+extend Base Child:
   pins:
     1:
       max_source_current: (0 - 3)
 board B:
-  inst c: Child
+  Child c
 """,
     )
 
@@ -397,20 +397,20 @@ def test_nested_quantity_metadata(probe, tmp_path, override):
         tmp_path,
         """block W:
   params:
-    current: current = 12m
+    current current = 12m
   ports:
-    p: nettype.power
+    net.power p:
       placeholder: true
       aggregate_load:
         max_load_current: current * 2
 block Caller:
   params:
-    current: current = 10m
-  inst w: W
-"""
+    current current = 10m
+  W w"""
+        + (":\n" if override else "\n")
         + override
         + """board B:
-  inst caller: Caller
+  Caller caller
 """,
     )
 
@@ -425,10 +425,10 @@ def test_expression_limits(probe, tmp_path, kind, limit):
         tmp_path,
         """component C:
   params:
-    value: number = 1000 + 1
-    text: string = "abcdef"
+    number value = 1000 + 1
+    string text = "abcdef"
 board B:
-  inst c[3]: C
+  C c[3]
 """,
         expression_limits={kind: limit},
     )
@@ -439,12 +439,12 @@ def test_type_depth_limit(probe, tmp_path):
         probe,
         tmp_path,
         """bundle A:
-  n: nettype.passive
+  net.passive n
 bundle B:
-  a: A
+  A a
 board B:
-  net n: B
-""".replace("bundle B:", "bundle Bus:").replace("net n: B", "net n: Bus"),
+  B n
+""".replace("bundle B:", "bundle Bus:").replace("B n", "Bus n"),
         expansion_limits={"type_depth": 0},
     )
 
@@ -455,11 +455,11 @@ def test_port_index_within_instance(probe, tmp_path):
         tmp_path,
         """block W:
   ports:
-    data: nettype.digital[3]
+    net.digital data[3]:
       placeholder: true
 board B:
-  net n: nettype.digital[2]
-  inst w[2]: W
+  net.digital n[2]
+  W w[2]:
     data[1]: n
 """,
     )
@@ -472,11 +472,11 @@ def test_no_connect_block_port(probe, tmp_path):
         PART
         + """block W:
   ports:
-    p: nettype.passive
-  inst p: P(1: p)
+    net.passive p
+  P p(1: p)
 board B:
-  inst w: W(p: no_connect)
-""".replace("inst p: P", "inst part: P"),
+  W w(p: no_connect)
+""".replace("P p", "P part"),
     )
 
 
@@ -486,12 +486,12 @@ def test_caller_does_not_implement_empty_port(probe, tmp_path):
         tmp_path,
         """block W:
   ports:
-    a: nettype.passive
+    net.passive a:
       placeholder: true
-    b: nettype.passive
+    net.passive b
 board B:
-  net n: nettype.passive
-  inst w: W(a: n, b: n)
+  net.passive n
+  W w(a: n, b: n)
 """,
     )
 
@@ -502,27 +502,25 @@ def test_inherited_lexical_scope(probe, tmp_path):
         {
             "src/main.nosch": PRELUDE
             + """from library import Base
-block Derived extends Base:
-  defaults:
-    value: 20k
+extend Base<value: 20k> Derived
 board B:
-  net n: nettype.passive
-  inst d: Derived(p: n)
+  net.passive n
+  Derived d(p: n)
 """,
             "src/library.nosch": PRELUDE
             + """component R:
   params:
-    value: resistance
+    resistance value
   pins:
     1..2: role.passive
   metadata:
     interchangeable: [1, 2]
 block Base:
   params:
-    value: resistance = 10k
+    resistance value = 10k
   ports:
-    p: nettype.passive
-  inst r: R(p, no_connect, value=value)
+    net.passive p
+  R<value: value> r(p, no_connect)
 """,
         },
     )
@@ -536,8 +534,8 @@ def test_repeat_and_edit_in_one_process(probe, tmp_path):
             "src/main.nosch": PRELUDE
             + PART
             + """board B:
-  net n: nettype.passive
-  inst p: P(1: n, 2: no_connect)
+  net.passive n
+  P p(1: n, 2: no_connect)
 """
         },
     )
@@ -568,11 +566,11 @@ def test_parameter_binding(probe, tmp_path, default, args):
         tmp_path,
         f"""component C:
   params:
-    value: capacitance{default}
+    capacitance{default} value
   pins:
     1: role.passive
 board B:
-  inst c: C{args}
+  C{args} c
 """,
     )
 
@@ -582,14 +580,14 @@ def test_named_net_type_metadata(probe, tmp_path):
         probe,
         tmp_path,
         """from noscheme import std
-nettype Bus extends nettype.open_drain:
+extend net.open_drain Bus:
   checks:
     capacitance: std.sum(capacitance, max=400p)
-nettype Child extends Bus:
+extend Bus Child:
   custom:
     label: "derived"
 board B:
-  net n: Child[2]
+  Child n[2]:
     custom:
       extra: "local"
 """,
@@ -609,6 +607,6 @@ def test_lossless_custom_metadata(probe, tmp_path):
       constraint: "positive"
       label: "héllo"
 board B:
-  inst c: C
+  C c
 """,
     )

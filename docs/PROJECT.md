@@ -93,7 +93,7 @@ these rails. ERC configurations model the alternative uses without changing
 those physical connections.
 
 The UART circuitry uses `uart_tx[2]` and `uart_rx[2]` nets with
-`inst uart_headers[2]: UartHeaderJST3(...)`. Ground is shared across both headers;
+`UartHeaderJST3 uart_headers[2](...)`. Ground is shared across both headers;
 each TX/RX element connects to the corresponding header. The selected connector
 is JST XH S3B-XH-SM4-TB, 2.50 mm pitch, side-entry SMT. Its mounting tabs
 are electrically unconnected. See the [JST XH datasheet](https://www.jst-mfg.com/product/pdf/eng/eXH.pdf).
@@ -211,7 +211,7 @@ unmatched pin still needs a connection or `no_connect`. Definition bodies hold i
 arguments allow positional connections only for a component's
 explicitly declared group of interchangeable pins, such as a resistor's two
 terminals. All group members must be supplied, and their electrical metadata must
-match. Other pins remain named; parameter arguments use `name=value`.
+match. Other pins remain named; parameter arguments use `<name: value>` before the instance name.
 The group order fixes physical pad assignments, with no automatic PCB pin swapping.
 
 Named imports, import aliases, and qualified module references let authors choose
@@ -297,7 +297,7 @@ Electrical quantities are metadata fields in base SI units; a field's declared
 quantity, not its name, carries the unit, and the scale belongs in the literal
 (`capacitance: 10p`). Budgets are opt-in
 because many nets have no meaningful pull-resistance or capacitance limit. A
-`nettype` definition gathers such checks for a kind of signal, such as an I2C
+net-type extension gathers such checks for a kind of signal, such as an I2C
 line, so every net, port, and bundle field of that type carries them. Missing
 annotations do not imply zero load, and source capacities are not automatically
 summed. Tri-state checking verifies declared capability, not runtime arbitration.

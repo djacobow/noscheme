@@ -1,5 +1,5 @@
 // Electrical example: capability checking does not verify bus arbitration.
-from noscheme import role, nettype, unused
+from noscheme import role, net, unused
 
 component Transceiver:
   pins:
@@ -13,6 +13,6 @@ component Receiver:
     data: [role.digital_input, unused.never]
 
 board SharedBus:
-  net data: nettype.tristate
-  inst devices[2]: Transceiver(data: data)
-  inst receiver: Receiver(data: data)
+  net.tristate data
+  Transceiver devices[2](data: data)
+  Receiver receiver(data: data)

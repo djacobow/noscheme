@@ -191,8 +191,8 @@ def test_power_configuration_detects_two_external_sources(tmp_path):
     destination = copy_example(tmp_path)
     main = destination / "main.nosch"
     text = main.read_text()
-    start = text.index("  inst power_header:")
-    end = text.index("  inst logic_regulator:", start)
+    start = text.index('  Header2<"22-23-2021"> power_header:')
+    end = text.index("  LogicRegulator logic_regulator", start)
     header = text[start:end].replace("jack=role.power_input", "jack=role.power_output")
     main.write_text(text[:start] + header + text[end:])
     project, definitions = resolve_project(destination)
@@ -208,12 +208,8 @@ def test_power_configuration_detects_two_external_sources(tmp_path):
 @pytest.mark.parametrize(
     ("old", "new", "code"),
     [
-        (
-            '"2": vcc\n    params:\n      value: 2k',
-            '"2": gnd\n    params:\n      value: 2k',
-            "erc.bias_reference",
-        ),
-        ("value: 2k", "value: 1k", "erc.std.parallel"),
+        ('    "2": vcc\n\n  Cap0805', '    "2": gnd\n\n  Cap0805', "erc.bias_reference"),
+        ("I2CPullup<2k>", "I2CPullup<1k>", "erc.std.parallel"),
         ("voltage: 5 ± 5%", "voltage: 4.75..7", "erc.voltage_limits"),
     ],
 )
@@ -252,17 +248,17 @@ def test_electrical_limits_detect_faults(tmp_path, old, new, code):
         ),
         (
             "main.nosch",
-            "net scl, sda: LocalI2C\n    wiring_capacitance: 50p\n",
-            "net sda: LocalI2C\n    wiring_capacitance: 50p\n    voltage: 0..3.465\n"
-            "  net scl: LocalI2C\n    wiring_capacitance: 500p\n",
+            "LocalI2C scl, sda:\n    wiring_capacitance: 50p\n",
+            "LocalI2C sda:\n    wiring_capacitance: 50p\n    voltage: 0..3.465\n"
+            "  LocalI2C scl:\n    wiring_capacitance: 500p\n",
             "erc.std.sum",
             "net:scl:capacitance",
         ),
         (
             "main.nosch",
-            "net scl_hv, sda_hv: BufferedI2C\n    wiring_capacitance: 100p",
-            "net scl_hv: BufferedI2C\n    wiring_capacitance: 100p\n"
-            "  net sda_hv: BufferedI2C\n    wiring_capacitance: 5n",
+            "BufferedI2C scl_hv, sda_hv:\n    wiring_capacitance: 100p",
+            "BufferedI2C scl_hv:\n    wiring_capacitance: 100p\n"
+            "  BufferedI2C sda_hv:\n    wiring_capacitance: 5n",
             "erc.std.sum",
             "net:sda_hv:capacitance",
         ),

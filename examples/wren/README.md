@@ -110,7 +110,7 @@ physical endpoints, component fields, and source hashes independently of the
 NoScheme elaborator. Tests compare every value, footprint, pin, connection,
 and no-connect against that reference.
 
-All nets deliberately use `nettype.unchecked`. KiCad electrical pin types and
+All nets deliberately use `net.unchecked`. KiCad electrical pin types and
 tri-state capability are retained, but operating configurations and NoScheme
 electrical policies have not been modeled. Compilation produces zero errors
 and no warnings; the ERC report counts 1,309 explicitly unchecked nets. Original footprint identifiers are retained;

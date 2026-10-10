@@ -609,20 +609,21 @@ public:
       }
       send(object(
           "id", id, "result",
-          object(
-              "capabilities",
-              object(
-                  "completionProvider",
-                  object("triggerCharacters", Json::array({".", "\"", ":"})),
-                  "definitionProvider", true, "referencesProvider", true,
-                  "documentFormattingProvider", true, "codeActionProvider",
-                  object("codeActionKinds", Json::array({"refactor.rewrite"})),
-                  "renameProvider", object("prepareProvider", true),
-                  "hoverProvider", true, "positionEncoding", "utf-16",
-                  "textDocumentSync",
-                  object("openClose", true, "change", 1, "save", true)),
-              "serverInfo",
-              object("name", "noscheme-native", "version", "0.1.0"))));
+          object("capabilities",
+                 object("completionProvider",
+                        object("triggerCharacters",
+                               Json::array({".", "\"", ":", "<", "(", ","})),
+                        "definitionProvider", true, "referencesProvider", true,
+                        "documentFormattingProvider", true,
+                        "codeActionProvider",
+                        object("codeActionKinds",
+                               Json::array({"refactor.rewrite"})),
+                        "renameProvider", object("prepareProvider", true),
+                        "hoverProvider", true, "positionEncoding", "utf-16",
+                        "textDocumentSync",
+                        object("openClose", true, "change", 1, "save", true)),
+                 "serverInfo",
+                 object("name", "noscheme-native", "version", "0.1.0"))));
       return {};
     }
     if (!initialized || shutdown) {

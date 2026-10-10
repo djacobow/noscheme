@@ -71,8 +71,32 @@ def reference_index(project, definitions, hover=None):
     result = []
     bundles = BundleLookup(project, definitions)
 
+    # Grouped declarations share a span; include the name to select one member.
+    names = {}
+    declaration_spans = {}
+
+    def field_names(node):
+        if isinstance(node, a.Field) and not node.key.items and node.key.last is None:
+            names[node.span, node.key.first.text] = node.key.first.span
+            declaration_spans[node.key.first.span] = node.span
+        if isinstance(node, a.Node):
+            for field_ in fields(node):
+                value = getattr(node, field_.name)
+                if isinstance(value, a.Node):
+                    field_names(value)
+                elif isinstance(value, tuple):
+                    for child in value:
+                        field_names(child)
+
+    for module in project.modules.values():
+        field_names(module.ast)
+
+    def declared_name(span, name):
+        return names.get((span, name), span)
+
     def add(span, target, description, identity=(), *, declaration=False):
-        identity = identity or (target.filename, target.start_pos, target.end_pos)
+        original = declaration_spans.get(target, target)
+        identity = identity or (original.filename, original.start_pos, original.end_pos)
         result.append(Reference(span, target, description, identity, declaration))
 
     def path_span(names):
@@ -90,7 +114,7 @@ def reference_index(project, definitions, hover=None):
             key = bundles.resolver.symbol(original.module, original.source.base, {original.kind})
             original = definitions[key]
         return (
-            pin.span,
+            declared_name(pin.span, pin.name),
             hover.interface(definition, canonical)
             if hover
             else f"{definition.kind} {definition.name}: {canonical}",
@@ -134,7 +158,9 @@ def reference_index(project, definitions, hover=None):
             local = {}
             for node in item.body:
                 if isinstance(node, (a.Net, a.Instance)):
-                    description = f"{'net' if isinstance(node, a.Net) else 'inst'} {node.name.text}"
+                    description = (
+                        f"{'net' if isinstance(node, a.Net) else 'instance'} {node.name.text}"
+                    )
                     if hover:
                         if isinstance(node, a.Net):
                             description = hover.net(node)
@@ -155,7 +181,7 @@ def reference_index(project, definitions, hover=None):
             if owner:
                 for name, param in owner.parameters.items():
                     local[name] = (
-                        param.span,
+                        declared_name(param.span, param.name),
                         hover.parameter(owner, name)
                         if hover
                         else f"parameter {name}: {param.type}",
@@ -193,7 +219,7 @@ def reference_index(project, definitions, hover=None):
                         if member:
                             add(
                                 expr.name.span,
-                                member.span,
+                                declared_name(member.span, member.name),
                                 hover.field(member) if hover else f"bundle field {member.name}",
                             )
                 elif isinstance(expr, a.Name):
@@ -308,7 +334,7 @@ def reference_index(project, definitions, hover=None):
                                                         break
                                                     add(
                                                         selector.span,
-                                                        member.span,
+                                                        declared_name(member.span, member.name),
                                                         hover.field(member)
                                                         if hover
                                                         else f"bundle field {member.name}",
@@ -320,7 +346,7 @@ def reference_index(project, definitions, hover=None):
                                     param = target_def.parameters[entry.name.text]
                                     add(
                                         entry.name.span,
-                                        param.span,
+                                        declared_name(param.span, param.name),
                                         hover.parameter(target_def, param.name)
                                         if hover
                                         else f"parameter {param.name}: {param.type}",
@@ -352,7 +378,7 @@ def reference_index(project, definitions, hover=None):
                         member = owner.interface[node.key.first.text]
                         add(
                             node.key.span,
-                            member.span,
+                            declared_name(member.span, member.name),
                             hover.field(member) if hover else f"bundle field {member.name}",
                             declaration=True,
                         )

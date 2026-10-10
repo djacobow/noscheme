@@ -84,7 +84,7 @@ def main():
                 expected = to_data(parse(source, str(path)))
             except DiagnosticError as exc:
                 if not re.match(
-                    r"\s*(?:component|block|board|bundle|nettype|from|import)\b", source
+                    r"\s*(?:component|block|board|bundle|extend|from|import)\b", source
                 ):
                     continue
                 expected_error = exc.diagnostics

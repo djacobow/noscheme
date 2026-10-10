@@ -1,4 +1,5 @@
 #include "noscheme/project.hpp"
+#include "noscheme/classify.hpp"
 #include "noscheme/validation.hpp"
 #include <algorithm>
 #include <fstream>
@@ -8,6 +9,21 @@
 #include <toml++/toml.hpp>
 
 namespace noscheme {
+bool builtin_net(const Symbols &symbols, const std::string &spelling) {
+  auto dot = spelling.rfind('.');
+  if (dot == std::string::npos)
+    return false;
+  auto prefix = symbols.find(spelling.substr(0, dot));
+  return prefix != symbols.end() && !prefix->second.declaration &&
+         prefix->second.name == "net";
+}
+bool net_type(const Symbols &symbols, const std::string &spelling) {
+  if (auto symbol = symbols.find(spelling); symbol != symbols.end())
+    return symbol->second.declaration &&
+           (symbol->second.declaration->keyword == "bundle" ||
+            symbol->second.declaration->keyword == "nettype");
+  return builtin_net(symbols, spelling);
+}
 bool is_identifier(std::string_view text) {
   auto first = [](char c) {
     return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_' ||
@@ -20,8 +36,8 @@ bool is_identifier(std::string_view text) {
 namespace {
 const std::regex
     qualified(R"([A-Za-z_#][A-Za-z0-9_#]*(\.[A-Za-z_#][A-Za-z0-9_#]*)*)");
-const std::set<std::string> builtins{"role", "nettype", "unused",
-                                     "num",  "bias",    "std"};
+const std::set<std::string> builtins{"role", "net",  "unused",
+                                     "num",  "bias", "std"};
 fs::path resolved(const fs::path &path) {
   return fs::weakly_canonical(fs::absolute(path));
 }
@@ -46,6 +62,126 @@ fs::path resolved(const fs::path &path) {
                   nullptr, "application", nullptr)}),
       config ? 2 : 1);
 }
+// Gives each `extend` the kind of its base: a component, block, or net type.
+// An extension of an unknown base stays an "extend", whose resolution reports
+// it.
+std::shared_ptr<const ast::Module> extension_kinds(const std::string &module,
+                                                   const ast::Module &tree,
+                                                   const Symbols &symbols,
+                                                   bool lenient) {
+  std::map<std::string, std::string> kinds;
+  std::function<std::string(const ast::Definition &, std::vector<std::string>)>
+      kind = [&](const ast::Definition &definition,
+                 std::vector<std::string> chain) -> std::string {
+    const auto &name = definition.name.text;
+    if (auto found = kinds.find(name); found != kinds.end())
+      return found->second;
+    if (auto at = std::ranges::find(chain, name); at != chain.end()) {
+      std::string message = "inheritance cycle: ";
+      for (auto i = at; i != chain.end(); ++i)
+        message += module + "." + *i + " -> ";
+      fail("resolve.inheritance-cycle", message + module + "." + name,
+           definition.span);
+    }
+    auto spelling = ast::dotted(definition.base);
+    auto symbol = symbols.find(spelling);
+    std::string result;
+    if (symbol == symbols.end() && builtin_net(symbols, spelling))
+      result = "nettype";
+    else if (symbol == symbols.end() || !symbol->second.declaration)
+      result = "extend";
+    else if (symbol->second.declaration->keyword == "extend") {
+      chain.push_back(name);
+      result = kind(*symbol->second.declaration, chain);
+    } else
+      result = symbol->second.declaration->keyword;
+    return kinds[name] = result;
+  };
+  auto result = std::make_shared<ast::Module>(tree);
+  for (auto &item : result->items) {
+    auto *definition = ast::as<ast::Definition>(item);
+    if (!definition || definition->keyword != "extend")
+      continue;
+    auto resolved = std::make_shared<ast::Definition>(*definition);
+    try {
+      resolved->keyword = kind(*definition, {});
+    } catch (const DiagnosticsFailure &) {
+      if (!lenient)
+        throw;
+      continue;
+    }
+    if (resolved->keyword != "extend" && !lenient)
+      if (auto errors = kind_errors(*resolved); !errors.empty())
+        throw DiagnosticsFailure(std::move(errors));
+    item = std::move(resolved);
+  }
+  return result;
+}
+// Makes each body declaration Nets or an Instance by the kind of its type. A
+// type that names nothing makes an instance, whose resolution reports it,
+// unless the declaration cannot be one. A declaration of an extension whose own
+// base is unknown is left out; that extension's resolution reports the base.
+std::shared_ptr<const ast::Module>
+classify_module(const ast::Module &tree, const Symbols &symbols, bool lenient) {
+  UniqueDiagnostics errors;
+  auto result = std::make_shared<ast::Module>(tree);
+  for (auto &item : result->items) {
+    auto *definition = ast::as<ast::Definition>(item);
+    if (!definition)
+      continue;
+    auto classified = std::make_shared<ast::Definition>(*definition);
+    classified->body.clear();
+    for (const auto &node : definition->body) {
+      auto *declaration = ast::as<ast::Declaration>(node);
+      if (!declaration) {
+        classified->body.push_back(node);
+        continue;
+      }
+      auto spelling = ast::dotted(declaration->type);
+      auto symbol = symbols.find(spelling);
+      bool net = net_type(symbols, spelling);
+      try {
+        for (auto &made : classify(*declaration, net))
+          classified->body.push_back(std::move(made));
+      } catch (const DiagnosticsFailure &failure) {
+        auto *declared =
+            symbol == symbols.end() ? nullptr : symbol->second.declaration;
+        if (lenient || (declared && declared->keyword == "extend"))
+          continue;
+        if (net || symbol != symbols.end())
+          errors.add_all(failure.diagnostics);
+        else
+          errors.add(error_json("resolve.missing-definition",
+                                "unknown definition '" + spelling + "'",
+                                declaration->type.front().span));
+      }
+    }
+    item = std::move(classified);
+  }
+  if (!errors.items().empty())
+    throw DiagnosticsFailure(errors.take());
+  return result;
+}
+void bind_definitions(const std::string &module, const ast::Module &tree,
+                      Symbols &symbols) {
+  for (const auto &item : tree.items)
+    if (auto *definition = ast::as<ast::Definition>(item))
+      symbols[definition->name.text] =
+          Symbol{module, definition->name.text, definition};
+}
+} // namespace
+std::shared_ptr<const ast::Module> classified_module(const std::string &module,
+                                                     const ast::Module &tree,
+                                                     Symbols &symbols,
+                                                     bool lenient) {
+  // Declarations name types by kind, so extensions take their kinds first.
+  auto result = extension_kinds(module, tree, symbols, lenient);
+  bind_definitions(module, *result, symbols);
+  result = classify_module(*result, symbols, lenient);
+  bind_definitions(module, *result, symbols);
+  return result;
+}
+namespace {
 std::string read_source(const fs::path &path, const Sources &sources) {
   if (auto found = sources.find(path); found != sources.end())
     return found->second;
@@ -411,6 +547,7 @@ Project load_project(fs::path path, const Sources &sources,
         }
       }
     }
+    module.ast = classified_module(name, *module.ast, symbols);
     project.modules.emplace(name, std::move(module));
   }
   const auto &board_symbols = project.modules.at(config.board_module).symbols;

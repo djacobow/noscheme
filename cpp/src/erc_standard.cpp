@@ -207,6 +207,31 @@ struct Results {
                            std::move(path)});
   }
 };
+// Missing bindings are actionable at the instance, not its reusable interface.
+void connection_issue(const View &view, Results &results,
+                      const std::string &code, const std::string &message,
+                      std::size_t leaf) {
+  const auto &record = view.leaf(leaf);
+  auto span = view.record_span(leaf);
+  Related related;
+  if (!record.binding_span) {
+    Span declaration;
+    if (auto pin = view.pins[leaf])
+      declaration = view.circuit.parts[pin->first].declaration;
+    else
+      for (const auto &block : view.circuit.blocks)
+        if (block.path == record.scope) {
+          declaration = block.declaration;
+          break;
+        }
+    if (declaration) {
+      span = declaration.json();
+      related.emplace_back("interface declared here", record.span.json());
+    }
+  }
+  results.emit(code, message, span, view.label(leaf), "error",
+               std::move(related));
+}
 template <class T, class F>
 const T &shared(const Context &ctx, const std::string &key, F &&calculate) {
   auto &slot = ctx.memo.facts[key];
@@ -440,10 +465,10 @@ std::vector<Diagnostic> connection_results(const Context &ctx) {
     if (view.leaf(pin).kind != "port" && endpoints.size() < 2 &&
         attribute_text(view, pin, "unused", "explicit") != "always" &&
         !exactly(view, pin, "role", "do_not_connect"))
-      results.emit("required_connection",
-                   view.label(pin) + " on " + python_repr(name) +
-                       " needs another physical endpoint",
-                   view.record_span(pin), view.label(pin));
+      connection_issue(view, results, "required_connection",
+                       view.label(pin) + " on " + python_repr(name) +
+                           " needs another physical endpoint",
+                       pin);
   if (endpoints.empty() &&
       std::ranges::none_of(
           view.circuit.nets[*ctx.net].declarations,
@@ -472,14 +497,14 @@ std::vector<Diagnostic> pin_results(const Context &ctx) {
     return results.diagnostics;
   }
   if (record.binding == BindingState::omitted && policy == "explicit")
-    results.emit("unused_pin",
-                 label + " must connect or explicitly bind to no_connect", span,
-                 label);
+    connection_issue(view, results, "unused_pin",
+                     label + " must connect or explicitly bind to no_connect",
+                     pin);
   else if (!record.net && policy == "never")
-    results.emit("required_connection",
-                 label + " must connect; no_connect cannot override "
-                         "unused.never",
-                 span, label);
+    connection_issue(view, results, "required_connection",
+                     label + " must connect; no_connect cannot override "
+                             "unused.never",
+                     pin);
   return results.diagnostics;
 }
 
@@ -600,7 +625,7 @@ std::vector<Diagnostic> compatibility_results(const Context &ctx) {
   for (const auto &conflict : compatibility(ctx).conflicts) {
     Related related;
     for (auto d : conflict.incompatible)
-      related.emplace_back("nettype." + view.leaf(d).type.value_or("") +
+      related.emplace_back("net." + view.leaf(d).type.value_or("") +
                                " constraint",
                            view.leaf(d).span.json());
     results.emit(
@@ -653,20 +678,21 @@ void check_port(const View &view, std::size_t port,
   // regardless of how many physical endpoints happen to exist inside them.
   if (!scope.empty()) {
     if (binding == BindingState::omitted && policy == "explicit")
-      results.emit("unused_port",
-                   "port " + label +
-                       " must connect or explicitly bind to no_connect",
-                   span, label);
+      connection_issue(view, results, "unused_port",
+                       "port " + label +
+                           " must connect or explicitly bind to no_connect",
+                       port);
     else if (policy == "never" && binding != BindingState::connected)
-      results.emit("required_port_connection",
-                   "port " + label +
-                       " must connect; no_connect cannot override unused.never",
-                   span, label);
+      connection_issue(
+          view, results, "required_port_connection",
+          "port " + label +
+              " must connect; no_connect cannot override unused.never",
+          port);
     else if (policy != "always" && binding == BindingState::connected &&
              external.empty())
-      results.emit("required_port_connection",
-                   "port " + label + " needs an endpoint outside its block",
-                   span, label);
+      connection_issue(view, results, "required_port_connection",
+                       "port " + label + " needs an endpoint outside its block",
+                       port);
   }
   if (roles.empty() || roles == Strings{"unchecked"})
     return;

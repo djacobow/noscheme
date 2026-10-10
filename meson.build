@@ -53,6 +53,7 @@ core = static_library(
     'cpp/src/meta.cpp',
     'cpp/src/source.cpp',
     'cpp/src/parser.cpp',
+    'cpp/src/classify.cpp',
     'cpp/src/formatter.cpp',
     'cpp/src/validation.cpp',
     'cpp/src/project.cpp',

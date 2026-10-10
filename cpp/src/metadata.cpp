@@ -191,7 +191,7 @@ MetaValue MetadataReader::read_value(const Json &schema, const ast::Node &expr,
   if (auto *member = as<ast::Member>(&expr); scope == "attributes" && member) {
     const auto *symbol = namespace_symbol(*member->base, false);
     if (!symbol ||
-        !std::set<std::string>{"bias", "role", "nettype", "unused"}.contains(
+        !std::set<std::string>{"bias", "role", "net", "unused"}.contains(
             symbol->name))
       error("metadata.value", "expected a literal or imported enum value",
             expr.span);

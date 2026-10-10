@@ -1,3 +1,3 @@
 board Board:
-    net a: T
-  net b: T
+    T a
+  T b

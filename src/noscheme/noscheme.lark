@@ -1,20 +1,21 @@
 // Production front-end syntax. Metadata schemas and name resolution are separate.
-start: _NL* (import_stmt | definition)*
+start: _NL* (import_stmt | definition | extension)*
 import_stmt: "from" name_path "import" imported_name ("," imported_name)* _NL
            | "import" name_path _NL
 imported_name: NAME ["as" NAME]
-definition: definition_kind NAME extends? ":" _NL _INDENT definition_item+ _DEDENT
+definition: definition_kind NAME ":" _NL _INDENT definition_item+ _DEDENT
 definition_kind: "component" -> component_kind
                | "block" -> block_kind
                | "board" -> board_kind
                | "bundle" -> bundle_kind
-               | "nettype" -> nettype_kind
-extends: "extends" name_path
-?definition_item: instance | net_decl | section | field
-section: section_name ":" _NL _INDENT field+ _DEDENT
+// `extend Base<params> Name:` specializes a component, block, or net type, and
+// is of the base's kind; `<...>` gives parameter defaults. The body is optional.
+extension: "extend" name_path [type_arguments | _LANGLE _RANGLE] NAME (_NL | ":" _NL _INDENT definition_item+ _DEDENT)
+?definition_item: declaration | section | field
+section: section_name ":" _NL _INDENT _section_entry+ _DEDENT
+_section_entry: field | typed_field
 // Prefer definition sections where a section and a field could both parse.
 section_name.1: PARAMS -> params_name
-            | "defaults" -> defaults_name
             | PINS -> pins_name
             | "ports" -> ports_name
             | "metadata" -> metadata_name
@@ -36,23 +37,33 @@ pin_group: pin_key ".." pin_key ("," pin_selection)* [","] -> range_group
 pin_selection: pin_key [".." pin_key]
 // pins is also a metadata key, including after nested sibling mappings.
 ?pin_key: NAME | INT | STRING | PINS | PARAMS
-net_decl: global_modifier? "net" NAME ("," NAME)* ":" expr _NL [_INDENT field+ _DEDENT]
-global_modifier: "global"
-// Parentheses hold arguments: positional nets for interchangeable pins, pin: net,
-// param=value, and `*` for same-name connections. The indented body holds connections,
-// then params, metadata, and elements sections; both may be used together.
-instance: "inst" NAME index* ":" name_path [_LPAR [inline_arguments] _RPAR] _NL [_INDENT _instance_body _DEDENT]
+// Declarations put the type first, then one or more names with their array
+// dimensions. A ':' ends the line when an indented body follows.
+// In params and ports: `number gain = 2`, `net.power supply:`.
+typed_field: name_path declarator ("," declarator)* ["=" expr] (_NL | ":" _NL _INDENT field+ _DEDENT)
+declarator: NAME index*
+// In a block, board, or bundle: a net or an instance, told apart once the type
+// resolves. `<...>` holds parameters, `(...)` connections: positional nets for
+// interchangeable pins, pin: net, and `*` for same-name connections. The body
+// holds net fields, or connections then params, metadata, and elements sections.
+declaration: [GLOBAL] name_path [type_arguments | _LANGLE _RANGLE] declarator ("," declarator)* [argument_list | _LPAR _RPAR] (_NL | ":" _NL _INDENT _declaration_body _DEDENT)
+// Shifts in parameter values need parentheses: `<n: (a >> 1)>`. An empty `<>` or
+// `()` makes no node, so formatting can drop it.
+type_arguments: _LANGLE type_argument ("," type_argument)* [","] _RANGLE
+?type_argument: NAME ":" sum -> named_parameter
+              | sum -> positional_parameter
+argument_list: _LPAR inline_arguments _RPAR
 inline_arguments: inline_argument ("," inline_argument)* [","]
 ?inline_argument: target -> positional_argument
                 | (NAME | INT | STRING) ":" target -> inline_binding
-                | NAME "=" expr -> inline_parameter
                 | MUL -> wildcard_argument
-_instance_body: binding+ inst_section* | inst_section+
+_declaration_body: body_entry+ inst_section* | inst_section+
+// A connection, or a net field; which one depends on the declaration's type.
+body_entry: endpoint ":" [field_value] _NL [_INDENT field+ _DEDENT]
 ?inst_section: arguments | instance_metadata | elements
 elements: "elements" ":" _NL _INDENT element_override+ _DEDENT
 element_override: index+ ":" _NL _INDENT element_section+ _DEDENT
 ?element_section: arguments | instance_metadata
-binding: endpoint ":" target _NL
 // Section words start sections here; quote a pin with such a name: "params": net.
 ?endpoint: binding_key endpoint_suffix* | index+ "." field_key endpoint_suffix*
          | index -> singleton_endpoint
@@ -107,6 +118,9 @@ _LPAR: "("
 _RPAR: ")"
 _LSQB: "["
 _RSQB: "]"
+_LANGLE: "<"
+_RANGLE: ">"
+GLOBAL: "global"
 _NL: /(\r?\n[\t ]*)+/
 %import common.WS_INLINE
 %ignore WS_INLINE

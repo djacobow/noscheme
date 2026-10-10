@@ -123,7 +123,7 @@ for ref, name in [
     lp = libparts[(lib.get("lib"), lib.get("part"))]
     text += ["component " + name + ":"]
     if name == "Resistor":
-        text += ["    params:", "        value: string"]
+        text += ["    params:", "        string value"]
     text += ["    pins:"]
     for p in lp.findall("./pins/pin"):
         role = roles[p.get("type")]

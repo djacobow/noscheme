@@ -413,7 +413,8 @@ def create_server(project=None):
         return None
 
     @server.feature(
-        types.TEXT_DOCUMENT_COMPLETION, types.CompletionOptions(trigger_characters=[".", ":", '"'])
+        types.TEXT_DOCUMENT_COMPLETION,
+        types.CompletionOptions(trigger_characters=[".", ":", '"', "<", "(", ","]),
     )
     async def completion(ls: NoSchemeServer, params: types.CompletionParams):
         uri = params.text_document.uri

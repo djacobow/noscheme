@@ -2,7 +2,7 @@ from noscheme import role
 
 component Conn_01x02:
   params:
-    value: string = "Conn_01x02"
+    string value = "Conn_01x02"
   pins:
     "1" (Pin_1):
       role: role.passive
@@ -245,7 +245,7 @@ component Conn_01x02:
 
 component Conn_01x03:
   params:
-    value: string = "Conn_01x03"
+    string value = "Conn_01x03"
   pins:
     "1" (Pin_1):
       role: role.passive
@@ -483,7 +483,7 @@ component Conn_01x03:
 
 component Conn_02x05_Odd_Even:
   params:
-    value: string = "Conn_02x05_Odd_Even"
+    string value = "Conn_02x05_Odd_Even"
   pins:
     "1" (Pin_1):
       role: role.passive

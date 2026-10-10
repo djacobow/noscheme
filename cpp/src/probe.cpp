@@ -58,7 +58,7 @@ int main() {
       auto request = noscheme::Json::parse(line);
       if (request.contains("expression")) {
         auto source = std::make_shared<const noscheme::Source>(
-            "component Eval:\n  params:\n    x: number = " +
+            "component Eval:\n  params:\n    number x = " +
                 request["expression"].get<std::string>() + "\n",
             "expression.nosch");
         noscheme::Symbols symbols;

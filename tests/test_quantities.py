@@ -13,7 +13,7 @@ from test_convert import library, pin
 
 SOURCE = """component Resistor:
   params:
-    value: resistance = 4.7k
+    resistance value = 4.7k
   pins:
     1..2:
       role: role.passive
@@ -21,15 +21,13 @@ SOURCE = """component Resistor:
   metadata:
     footprint: "Resistor_SMD:R_0603_1608Metric"
 board B:
-  net a: nettype.passive
-  inst default: Resistor
+  net.passive a
+  Resistor default:
     1: a
     2: a
-  inst rkm: Resistor
+  Resistor<value: 22k1> rkm:
     1: a
     2: a
-    params:
-      value: 22k1
 """
 
 
@@ -45,7 +43,7 @@ def test_quantity_parameters_display_with_units_in_the_netlist(tmp_path):
 
 
 def test_quantity_accepts_verbatim_text_without_numeric_meaning(tmp_path):
-    text = SOURCE.replace("      value: 22k1", '      value: "22k1 1%"')
+    text = SOURCE.replace("<value: 22k1>", '<value: "22k1 1%">')
     with pytest.raises(DiagnosticError, match="expected a number"):
         compile_source(tmp_path, text)
     text = text.replace("      pull_resistance: value\n", "")
@@ -56,8 +54,8 @@ def test_quantity_accepts_verbatim_text_without_numeric_meaning(tmp_path):
     "source,code",
     [
         ("component C:\n  pins:\n    10k:\n      role: role.passive\n", "syntax"),
-        ("component C:\n  params:\n    x: number = 4.7k7\n", "syntax.number"),
-        ("component C:\n  params:\n    x: number = 10kOhm\n", "syntax"),
+        ("component C:\n  params:\n    number x = 4.7k7\n", "syntax.number"),
+        ("component C:\n  params:\n    number x = 10kOhm\n", "syntax"),
     ],
 )
 def test_scaled_literal_syntax(source, code):
@@ -98,13 +96,13 @@ def test_passive_symbols_convert_to_quantity_values(tmp_path):
     convert_library(source, tmp_path / "out")
     text = (tmp_path / "out/Device.nosch").read_text()
     for name, kind in [("R", "resistance"), ("C", "capacitance"), ("L", "inductance")]:
-        assert f"component {name}:\n  params:\n    value: {kind}\n" in text
-    assert 'component D:\n  params:\n    value: string = "D"\n' in text
+        assert f"component {name}:\n  params:\n    {kind} value\n" in text
+    assert 'component D:\n  params:\n    string value = "D"\n' in text
 
 
 DISPLAY = """component Part:
   params:
-    value: resistance = 4.7k
+    resistance value = 4.7k
   pins:
     1:
       role: role.passive
@@ -113,20 +111,20 @@ DISPLAY = """component Part:
     value: value / 1k
 block Holder:
   params:
-    chosen: resistance = 22k
-    count: number = 3
-  inst bare: Part()
-  inst caller_quantity: Part
+    resistance chosen = 22k
+    number count = 3
+  Part bare()
+  Part caller_quantity:
     metadata:
       value: chosen
-  inst caller_number: Part
+  Part caller_number:
     metadata:
       value: count
-  inst literal: Part
+  Part literal:
     metadata:
       value: 4.7k
 board B:
-  inst holder: Holder()
+  Holder holder()
 """
 
 

@@ -9,8 +9,8 @@ from noscheme.resolve import Resolver, resolve_project
 from noscheme.cli import main
 
 
-PRELUDE = "from noscheme import role, unused, nettype, num\n"
-BOARD = "\nboard B:\n  net n: nettype.passive\n"
+PRELUDE = "from noscheme import role, unused, net, num\n"
+BOARD = "\nboard B:\n  net.passive n\n"
 
 
 def make_project(tmp_path, text, libraries=None):
@@ -30,9 +30,7 @@ def resolve(tmp_path, text):
 def test_inheritance_merge_alias_replacement_and_defaults(tmp_path):
     definitions = resolve(
         tmp_path,
-        """component Child extends Base:
-  defaults:
-    value: "2kOhm"
+        """extend Base<value: "2kOhm"> Child:
   pins:
     01 (new):
       unused: unused.always
@@ -42,7 +40,7 @@ def test_inheritance_merge_alias_replacement_and_defaults(tmp_path):
         changed: "child"
 component Base:
   params:
-    value: string = "1k"
+    string value = "1k"
   pins:
     01 (old):
       unused: unused.never
@@ -71,25 +69,23 @@ def test_inherited_body_and_default_keep_original_module(tmp_path):
     p = make_project(
         tmp_path,
         PRELUDE
-        + 'from library import Base\nblock Child extends Base:\n  metadata:\n    custom:\n      note: "child"\n'
+        + 'from library import Base\nextend Base Child:\n  metadata:\n    custom:\n      note: "child"\n'
         + BOARD,
         {
             "library": PRELUDE
             + """component R:
   params:
-    value: string
+    string value
   pins:
     1:
       role: role.passive
 block Base:
   params:
-    value: string = "10Ohm"
+    string value = "10Ohm"
   ports:
-    a: nettype.passive
-  inst r: R
+    net.passive a
+  R<value: value> r:
     1: a
-    params:
-      value: value
 """
         },
     )
@@ -104,14 +100,14 @@ block Base:
     "text,code",
     [
         (
-            "component C extends Missing:\n  metadata:\n    custom:\n      a: 1\n",
+            "extend Missing C:\n  metadata:\n    custom:\n      a: 1\n",
             "resolve.missing-definition",
         ),
         (
-            "component A extends Z:\n  metadata:\n    custom:\n      a: 1\ncomponent Z extends A:\n  metadata:\n    custom:\n      b: 1\n",
+            "extend Z A:\n  metadata:\n    custom:\n      a: 1\nextend A Z:\n  metadata:\n    custom:\n      b: 1\n",
             "resolve.inheritance-cycle",
         ),
-        ("component C:\n  params:\n    x: quantity\n", "resolve.parameter-type"),
+        ("component C:\n  params:\n    quantity x\n", "resolve.parameter-type"),
         (
             "component C:\n  pins:\n    01..02:\n      role: role.passive\n",
             "resolve.pin-range",
@@ -136,16 +132,16 @@ block Base:
             "component C:\n  pins:\n    1:\n      max_load_current: -1m\n",
             "metadata.value",
         ),
-        ("block C:\n  ports:\n    a: Missing\n", "resolve.missing-definition"),
-        ("block C:\n  ports:\n    a: nettype.typo\n", "metadata.enum"),
+        ("block C:\n  ports:\n    Missing a\n", "resolve.missing-definition"),
+        ("block C:\n  ports:\n    net.typo a\n", "metadata.enum"),
         (
             'component C:\n  metadata:\n    waivers:\n      x: "reason"\n',
             "metadata.unknown",
         ),
-        ("component C:\n  params:\n    value: string = missing\n", "resolve.expression-name"),
-        ("component C:\n  params:\n    value: string = num.typo(10)\n", "resolve.helper"),
+        ("component C:\n  params:\n    string value = missing\n", "resolve.expression-name"),
+        ("component C:\n  params:\n    string value = num.typo(10)\n", "resolve.helper"),
         (
-            'component C:\n  params:\n    value: string = "x".__class__\n',
+            'component C:\n  params:\n    string value = "x".__class__\n',
             "resolve.expression",
         ),
     ],
@@ -160,7 +156,7 @@ def test_definition_errors(tmp_path, text, code):
     "override,code",
     [
         ("pins:\n    2:\n      role: role.passive", "resolve.specialization"),
-        ("defaults:\n    other: 1", "resolve.default"),
+        ("", "resolve.default"),
         ('pins:\n    1 ("2"):', "resolve.alias"),
     ],
 )
@@ -169,8 +165,9 @@ def test_invalid_specialization(tmp_path, override, code):
     # The added-pin case must actually introduce a new pin.
     if code == "resolve.specialization":
         override = override.replace("2:", "3:")
+    header = "extend Base<other: 1> Child" if code == "resolve.default" else "extend Base Child:"
     with pytest.raises(DiagnosticError) as exc:
-        resolve(tmp_path, base + "component Child extends Base:\n  " + override + "\n")
+        resolve(tmp_path, base + header + "\n  " + override + "\n")
     assert exc.value.diagnostics[0].code == code
 
 
@@ -181,35 +178,35 @@ BASE = """component C:
       unused: unused.never
 block Hidden:
   ports:
-    public: nettype.passive
+    net.passive public:
       placeholder: true
-  net private: nettype.passive
+  net.passive private
 """
 
 
 @pytest.mark.parametrize(
     "instance,code",
     [
-        ("inst c: C\n    9: n", "resolve.private"),
-        ("inst h: Hidden\n    private: n", "resolve.private"),
-        ("inst c: C\n    1: missing", "resolve.net"),
+        ("C c:\n    9: n", "resolve.private"),
+        ("Hidden h:\n    private: n", "resolve.private"),
+        ("C c:\n    1: missing", "resolve.net"),
         (
-            "inst c: C\n    1: h.private\n  inst h: Hidden()",
+            "C c:\n    1: h.private\n  Hidden h()",
             "resolve.net",
         ),
         (
-            "inst c: C\n    metadata:\n      pins:\n        1:\n          unused: unused.always",
+            "C c:\n    metadata:\n      pins:\n        1:\n          unused: unused.always",
             "metadata.unknown",
         ),
         (
-            "inst c: C\n    metadata:\n      pins:\n        1:\n          role: role.digital_output",
+            "C c:\n    metadata:\n      pins:\n        1:\n          role: role.digital_output",
             "metadata.constraint",
         ),
         (
-            "inst c: C\n    metadata:\n      pins:\n        1:\n          role: role.passive\n        A:\n          role: role.passive",
+            "C c:\n    metadata:\n      pins:\n        1:\n          role: role.passive\n        A:\n          role: role.passive",
             "resolve.duplicate-pin",
         ),
-        ("inst c: C\n    params:\n      extra: 1", "resolve.argument"),
+        ("C<extra: 1> c\n", "resolve.argument"),
     ],
 )
 def test_instance_privacy_and_constraints(tmp_path, instance, code):
@@ -225,7 +222,7 @@ def test_valid_role_selection_and_global_deferred(tmp_path):
             PRELUDE
             + BASE
             + BOARD
-            + """  inst c: C
+            + """  C c:
     A: global.gnd
     metadata:
       pins:
@@ -240,14 +237,14 @@ def test_bundles_and_nested_public_field_selection(tmp_path):
     definitions = resolve(
         tmp_path,
         """bundle Bus:
-  data: nettype.digital[4]
+  net.digital data[4]
 block Wrapper:
   ports:
-    bus: Bus
+    Bus bus:
       placeholder: true
 block Use:
-  net n: Bus
-  inst w: Wrapper
+  Bus n
+  Wrapper w:
     bus.data: n.data
 """,
     )
@@ -272,7 +269,7 @@ def test_cli_resolve_is_explicit_about_remaining_stages(tmp_path, capsys):
     assert result["stage"] == "definition-resolution"
     assert "expression-evaluation" in result["remaining_stages"]
     (p / "main.nosch").write_text(
-        PRELUDE + "component C extends Missing:\n  metadata:\n    custom:\n      a: 1\n" + BOARD
+        PRELUDE + "extend Missing C:\n  metadata:\n    custom:\n      a: 1\n" + BOARD
     )
     assert main(["resolve", "--project", str(p), "--diagnostics", "json"]) == 1
     assert (
@@ -284,8 +281,7 @@ def test_cli_resolve_is_explicit_about_remaining_stages(tmp_path, capsys):
 def test_no_inheritance_depth_limit(tmp_path):
     source = "component C0:\n  metadata:\n    custom:\n      x: 0\n"
     source += "".join(
-        f"component C{i} extends C{i - 1}:\n  metadata:\n    custom:\n      x: {i}\n"
-        for i in range(1, 1050)
+        f"extend C{i - 1} C{i}:\n  metadata:\n    custom:\n      x: {i}\n" for i in range(1, 1050)
     )
     definitions = resolve(tmp_path, source)
     assert definitions["main", "C1049"].metadata["custom"].value["x"].value == 1049
@@ -303,7 +299,7 @@ def test_unimported_metadata_namespace(tmp_path):
 
 def test_recursive_bundle(tmp_path):
     with pytest.raises(DiagnosticError) as exc:
-        resolve(tmp_path, "bundle Bus:\n  nested: Bus\n")
+        resolve(tmp_path, "bundle Bus:\n  Bus nested\n")
     assert exc.value.diagnostics[0].code == "resolve.bundle-cycle"
 
 

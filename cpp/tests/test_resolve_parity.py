@@ -24,8 +24,8 @@ PYTHON_TESTS = runpy.run_path(str(ROOT / "tests/test_resolve.py"))
 CASES = next(
     m.args[1] for m in PYTHON_TESTS["test_definition_errors"].pytestmark if m.name == "parametrize"
 )
-PRELUDE = "from noscheme import role, unused, nettype, num, std\n"
-BOARD = "board B:\n  net n: nettype.passive\n"
+PRELUDE = "from noscheme import role, unused, net, num, std\n"
+BOARD = "board B:\n  net.passive n\n"
 
 
 def normalize(value):
@@ -173,7 +173,7 @@ def test_component_specialization(probe, tmp_path, override):
   pins:
     1 (A): role.passive
     2: role.passive
-component Child extends Base:
+extend Base Child:
   """
         + override
         + "\n"
@@ -181,14 +181,10 @@ component Child extends Base:
     compare(probe, source_project(tmp_path, source))
 
 
-@pytest.mark.parametrize(
-    "port", ["a: nettype.digital", "b: nettype.passive", "a:\n      placeholder: true"]
-)
+@pytest.mark.parametrize("port", ["net.digital a", "net.passive b", "a:\n      placeholder: true"])
 def test_block_specialization(probe, tmp_path, port):
     source = (
-        "block Base:\n  ports:\n    a: nettype.passive\nblock Child extends Base:\n  ports:\n    "
-        + port
-        + "\n"
+        "block Base:\n  ports:\n    net.passive a\nextend Base Child:\n  ports:\n    " + port + "\n"
     )
     compare(probe, source_project(tmp_path, source))
 
@@ -200,22 +196,20 @@ def test_inherited_scope_and_body(probe, tmp_path):
             "src/library.nosch": PRELUDE
             + """component R:
   params:
-    value: resistance = 10k
+    resistance value = 10k
   pins:
     [1, 2]: role.passive
 block Base:
   params:
-    value: resistance = 10k
+    resistance value = 10k
   ports:
-    a: nettype.passive
-  inst r: R(value=value)
+    net.passive a
+  R<value: value> r():
     [1, 2]: a
 """,
             "src/main.nosch": PRELUDE
             + """from library import Base
-block Child extends Base:
-  defaults:
-    value: 47k
+extend Base<value: 47k> Child:
   ports:
     a:
       placeholder: true
@@ -286,7 +280,7 @@ def test_clear_inherited_group(probe, tmp_path):
     [1, 2]: role.passive
   metadata:
     interchangeable: [1, 2]
-component Child extends Base:
+extend Base Child:
   pins:
     2: role.ground
   metadata:
@@ -301,15 +295,15 @@ def test_nettype_inheritance(probe, tmp_path):
         probe,
         source_project(
             tmp_path,
-            """nettype Rail extends nettype.power:
+            """extend net.power Rail:
   custom:
     note: "rail"
-nettype Small extends Rail:
+extend Rail Small:
   custom:
     other: true
 bundle Bus:
-  power: Small
-  ground: nettype.ground
+  Small power
+  net.ground ground
 """,
         ),
     )
@@ -368,7 +362,7 @@ def test_inherited_group_error_order(probe, tmp_path):
       a_second:
         pins: [2]
         max_load_current: 20m
-component Child extends Base:
+extend Base Child:
   metadata:
     current_loads:
       z_first:
@@ -397,5 +391,5 @@ def test_diagnostic_precedence(probe, tmp_path):
 def test_deep_inheritance(probe, tmp_path):
     source = "component C0:\n  pins:\n    [1, 2]: role.passive\n"
     for i in range(1, 180):
-        source += f'component C{i} extends C{i - 1}:\n  metadata:\n    value: "{i}"\n'
+        source += f'extend C{i - 1} C{i}:\n  metadata:\n    value: "{i}"\n'
     compare(probe, source_project(tmp_path, source))

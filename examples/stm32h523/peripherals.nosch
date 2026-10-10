@@ -1,6 +1,6 @@
 // USB-C power/data, regulator, microSD, and SWD subsystems.
 
-from noscheme import role, nettype
+from noscheme import role, net
 from interfaces import SPI, USB2, SWD
 from components import Resistor0603, InputBias0603, InputPullup0603, Capacitor0603
 
@@ -40,11 +40,11 @@ block UsbC:
     erc_choices:
       power_mode: ["source", "absent"]
   ports:
-    vbus: nettype.power
-    ground: nettype.ground
-    data: USB2
-  net cc: nettype.passive[2]
-  inst connector: UsbCConnector
+    net.power vbus
+    net.ground ground
+    USB2 data
+  net.passive cc[2]
+  UsbCConnector connector:
     [A1, A12, B1, B12, SH]: ground
     [A4, A9, B4, B9]: vbus
     A5: cc[0]
@@ -56,26 +56,26 @@ block UsbC:
       pins:
         A4: choice(power_mode, source=role.power_output, absent=role.passive)
         [A6, A7]: role.digital_bidirectional
-  inst cc_pulldowns[2]: Resistor0603(cc, ground, value=5.1k)
+  Resistor0603<5.1k> cc_pulldowns[2](cc, ground)
 
 block Ldo3v3:
   ports:
-    input: nettype.power
-    output: nettype.power
-    ground: nettype.ground
-  inst regulator: TLV1117LV33(1: ground, 2: output, 3: input)
-  inst input_cap: Capacitor0603(input, ground, value=1u)
-  inst output_cap: Capacitor0603(output, ground, value=4.7u)
+    net.power input
+    net.power output
+    net.ground ground
+  TLV1117LV33 regulator(1: ground, 2: output, 3: input)
+  Capacitor0603<1u> input_cap(input, ground)
+  Capacitor0603<4.7u> output_cap(output, ground)
   // POC: direct rails, no reverse-feed isolation or automatic power selection.
 
 block MicroSD:
   ports:
-    supply: nettype.power
-    ground: nettype.ground
-    bus: SPI
-    detect#: nettype.digital
-  net unused_dat: nettype.passive[2]
-  inst socket: MicroSDConnector
+    net.power supply
+    net.ground ground
+    SPI bus
+    net.digital detect#
+  net.passive unused_dat[2]
+  MicroSDConnector socket:
     1: unused_dat[0]
     2: bus.cs#
     3: bus.mosi
@@ -94,26 +94,24 @@ block MicroSD:
   // DAT1/DAT2 are unused by SPI but each has a physical pull-up to supply.
   // These passive nets have no resistance budget; their two-terminal wiring
   // is explicit even though no bias metadata is needed for current checks.
-  inst unused_dat_pullups[2]: InputBias0603(supply, unused_dat)
-  inst cs_pullup: InputPullup0603(1: supply, 2: bus.cs#)
-  inst miso_pullup: InputPullup0603(1: supply, 2: bus.miso)
-  inst detect_pullup: InputPullup0603(1: supply, 2: detect#)
-  inst decouple: Capacitor0603
+  InputBias0603 unused_dat_pullups[2](supply, unused_dat)
+  InputPullup0603 cs_pullup(1: supply, 2: bus.cs#)
+  InputPullup0603 miso_pullup(1: supply, 2: bus.miso)
+  InputPullup0603 detect_pullup(1: supply, 2: detect#)
+  Capacitor0603<100n> decouple:
     1: supply
     2: ground
-    params:
-      value: 100n
     metadata:
       custom:
         placement: "Place adjacent to microSD VDD pad."
-  inst bulk: Capacitor0603(supply, ground, value=4.7u)
+  Capacitor0603<4.7u> bulk(supply, ground)
 
 block CortexDebug:
   ports:
-    reference: nettype.power
-    ground: nettype.ground
-    debug: SWD
-  inst header: CortexHeader
+    net.power reference
+    net.ground ground
+    SWD debug
+  CortexHeader header:
     1: reference
     2: debug.swdio
     [3, 5, 9]: ground

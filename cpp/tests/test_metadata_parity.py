@@ -50,7 +50,7 @@ def compare(
     source = (
         "from noscheme import role, unused, bias, num, std\nfrom noscheme import role as r\ncomponent Part:\n"
         + body
-        + "\nboard B:\n  inst p: Part\n"
+        + "\nboard B:\n  Part p\n"
     )
     source = imports + source
     if plugin:
@@ -217,7 +217,7 @@ component Child:
       expression:
         new: false
 board B:
-  inst p: Child
+  Child p
 """
         },
     )
@@ -411,7 +411,7 @@ component Child:
     checks:
       cap: {child_call}
 board B:
-  inst p: Child
+  Child p
 """
         },
     )

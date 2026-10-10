@@ -10,17 +10,11 @@
 namespace noscheme {
 namespace {
 using completion_scan::name_char;
-const std::regex instance_type_pattern(
-    R"(^[ \t]*inst[ \t]+[A-Za-z_#][A-Za-z0-9_#]*(?:\[[^\n]*?\])*[ \t]*:[ \t]*([A-Za-z0-9_#.]*)$)",
-    std::regex::multiline);
-
-const std::regex base_type_pattern(
-    R"(^(component|block|nettype)[ \t]+([A-Za-z_#][A-Za-z0-9_#]*)[ \t]+extends[ \t]+([A-Za-z0-9_#.]*)$)",
-    std::regex::multiline);
-
-const std::regex net_type_pattern(
-    R"(^[ \t]*(?:global[ \t]+)?net[ \t]+[A-Za-z_#][A-Za-z0-9_#]*(?:[ \t]*,[ \t]*[A-Za-z_#][A-Za-z0-9_#]*)*[ \t]*:[ \t]*([A-Za-z0-9_#.]*)$)",
-    std::regex::multiline);
+const std::regex
+    instance_type_pattern(R"(^[ \t]+(?:global[ \t]+)?([A-Za-z0-9_#.]*)$)",
+                          std::regex::multiline);
+const std::regex base_type_pattern(R"(^(extend)[ \t]+([A-Za-z0-9_#.]*)$)",
+                                   std::regex::multiline);
 
 bool name_start(char c) { return name_char(c) && !(c >= '0' && c <= '9'); }
 // Keep array selections in the replacement range but omit them when matching
@@ -150,37 +144,78 @@ std::string completion_recovery(const std::string &text,
   }
   auto mask = code_mask(text);
   std::map<std::size_t, TextRepair> repairs;
-  // A missing type still needs the import graph for completion. The temporary
-  // name is used only in the completion snapshot, never to produce diagnostics.
-  for (const auto *pattern : {&instance_type_pattern, &net_type_pattern}) {
-    for (std::sregex_iterator it(mask.begin(), mask.end(), *pattern), end;
-         it != end; ++it) {
-      if (!(*it)[1].str().empty())
-        continue;
-      auto at =
-          static_cast<std::size_t>(it->position()) + it->str().rfind(':') + 1;
-      repairs[at] = {at, at, " NoschemeCompletionType"};
+  // Remove incomplete declaration/type lines while retaining the enclosing
+  // scope. A harmless metadata section keeps an otherwise empty body valid.
+  if (recover_calls)
+    for (const auto *pattern : {&instance_type_pattern, &base_type_pattern}) {
+      for (std::sregex_iterator it(mask.begin(), mask.end(), *pattern), end;
+           it != end; ++it) {
+        auto start = static_cast<std::size_t>(it->position());
+        auto stop = start + it->length();
+        auto raw = it->str();
+        auto indent = raw.find_first_not_of(" \t");
+        // Masked comments are not empty declaration lines. Preserve their
+        // delimiters and contents so recovery cannot turn prose into code.
+        if (indent == std::string::npos &&
+            text.substr(start, stop - start).find_first_not_of(" \t\r") !=
+                std::string::npos)
+          continue;
+        if (pattern == &base_type_pattern)
+          repairs[start] = {start, stop, ""};
+        else {
+          if (indent == std::string::npos)
+            indent = raw.size();
+          bool has_sibling = false;
+          auto sibling = [&](std::size_t begin, std::size_t end) {
+            auto first = mask.find_first_not_of(" \t\r", begin);
+            if (first == std::string::npos || first >= end)
+              return true;
+            auto depth = first - begin;
+            if (depth < indent)
+              return false;
+            if (depth == indent &&
+                !std::regex_match(mask.substr(begin, end - begin),
+                                  instance_type_pattern))
+              has_sibling = true;
+            return true;
+          };
+          for (auto end = start; end > 0 && !has_sibling;) {
+            --end;
+            auto previous = end ? mask.rfind('\n', end - 1) : std::string::npos;
+            auto begin = previous == std::string::npos ? 0 : previous + 1;
+            if (!sibling(begin, end))
+              break;
+            end = begin;
+          }
+          for (auto begin = mask.find('\n', stop);
+               begin != std::string::npos && !has_sibling;) {
+            ++begin;
+            auto end = mask.find('\n', begin);
+            if (!sibling(begin, end == std::string::npos ? mask.size() : end))
+              break;
+            begin = end;
+          }
+          if (has_sibling) {
+            repairs[start] = {start, stop, ""};
+            continue;
+          }
+          repairs[start] = {start, stop,
+                            std::string(indent, ' ') + "metadata:\n" +
+                                std::string(indent + 2, ' ') + "custom:\n" +
+                                std::string(indent + 4, ' ') +
+                                "completion: true"};
+        }
+      }
     }
-  }
-  for (std::sregex_iterator it(mask.begin(), mask.end(), base_type_pattern),
-       end;
-       it != end; ++it) {
-    auto start = static_cast<std::size_t>(it->position());
-    auto stop = start + it->length();
-    const bool nettype = (*it)[1].str() == "nettype";
-    auto next = mask.find_first_not_of(" \t\r\n", stop);
-    auto next_line = next == std::string::npos ? next : mask.rfind('\n', next);
-    const bool has_body = next != std::string::npos &&
-                          next_line != std::string::npos &&
-                          next > next_line + 1;
-    auto header = (*it)[1].str() + " " + (*it)[2].str() +
-                  (nettype ? " extends NoschemeCompletionType:" : ":");
-    if (!has_body)
-      header += nettype ? "\n  wiring_capacitance: 0"
-                        : "\n  metadata:\n    custom:\n      completion: true";
-    repairs[start] = {start, stop, std::move(header)};
-  }
 
+  if (recover_calls)
+    for (const auto &list : completion_scan::parameter_lists(mask)) {
+      if (list.closed)
+        repairs[list.opening] = {list.opening, list.end + 1, ""};
+      else
+        repairs[list.opening] = {list.opening, list.end,
+                                 " _noscheme_completion"};
+    }
   for (const auto &value : footprint_values(text))
     if (!value.closed)
       repairs[value.start] = {value.start, value.end, "\"\""};
@@ -624,6 +659,8 @@ void interface_completions(CompletionCatalog &catalog, const Project &project,
                                              !unused->is<std::string>() ||
                                              unused->string() != "always"));
           }
+        if (node->parameter && target->parameters.unnamed)
+          supplied.insert(*target->parameters.unnamed);
         for (const auto &param : target->parameters.parameters)
           if (!supplied.contains(param.name))
             action_params.push_back(
@@ -657,6 +694,42 @@ CompletionResult complete(const std::string &text, std::size_t offset,
   auto scoped = scope_completion(text, offset, catalog);
   if (!scoped.entries.empty())
     return scoped;
+  for (const auto &list : completion_scan::parameter_lists(code_mask(text))) {
+    if (offset <= list.opening || offset > list.end)
+      continue;
+    auto args =
+        code_mask(text).substr(list.opening + 1, offset - list.opening - 1);
+    auto comma = args.rfind(',');
+    auto fragment = args.substr(comma == std::string::npos ? 0 : comma + 1);
+    auto word = completion_scan::trim(fragment);
+    if (!std::all_of(word.begin(), word.end(), name_char))
+      return result;
+    result.start = offset - word.size();
+    while (result.end < text.size() && name_char(text[result.end]))
+      ++result.end;
+    std::set<std::string> bound;
+    static const std::regex named(R"(([A-Za-z_#][A-Za-z0-9_#]*)[ \t]*:)");
+    auto previous =
+        comma == std::string::npos ? std::string() : args.substr(0, comma);
+    for (std::sregex_iterator it(previous.begin(), previous.end(), named), end;
+         it != end; ++it)
+      bound.insert((*it)[1]);
+    for (const auto &entry : catalog)
+      if (entry.name == list.type)
+        for (const auto &name : entry.parameter_names)
+          if (name.starts_with(word) && !bound.contains(name))
+            result.entries.push_back(
+                {name,
+                 "instance parameter",
+                 10,
+                 {},
+                 {},
+                 name + (completion_scan::trim(text.substr(result.end))
+                                 .starts_with(':')
+                             ? ""
+                             : ": ")});
+    return result;
+  }
   auto keywords = keyword_completion(text, offset);
   auto section = section_completion(text, offset, catalog);
   // An instance body's first lines take connections or section keywords.
@@ -665,8 +738,8 @@ CompletionResult complete(const std::string &text, std::size_t offset,
     std::ranges::move(keywords.entries, std::back_inserter(section->entries));
     return *section;
   }
-  if (!keywords.entries.empty())
-    return keywords;
+  // Type completion adds to keywords in board/block bodies. Elsewhere the
+  // lexical keywords stand alone, including files without a project.
   if (section)
     return *section;
   if (auto instance = instance_completion(text, offset, catalog))
@@ -701,17 +774,44 @@ CompletionResult complete(const std::string &text, std::size_t offset,
   auto line = offset ? text.rfind('\n', offset - 1) : std::string::npos;
   auto begin = line == std::string::npos ? 0 : line + 1;
   auto before = text.substr(begin, offset - begin);
-  std::smatch type_match, base_match, net_match;
-  const bool net_type = std::regex_match(before, net_match, net_type_pattern);
+  std::smatch type_match, base_match;
   const bool instance_type =
       std::regex_match(before, type_match, instance_type_pattern);
   const bool base_type =
       std::regex_match(before, base_match, base_type_pattern);
   if (code_mask(text.substr(0, offset) + "x").back() == 'x' &&
-      (instance_type || base_type || net_type)) {
-    const auto prefix =
-        base_type ? base_match[3].str()
-                  : (net_type ? net_match[1].str() : type_match[1].str());
+      (instance_type || base_type)) {
+    const auto prefix = base_type ? base_match[2].str() : type_match[1].str();
+    bool nets_only = before.find("global ") != std::string::npos;
+    // A bundle body or ports section accepts only net and bundle types.
+    std::vector<std::pair<std::size_t, std::string>> parents;
+    auto indent = before.find_first_not_of(" \t");
+    if (indent == std::string::npos)
+      indent = before.size();
+    for (std::size_t pos = 0; pos < begin;) {
+      auto end = mask.find('\n', pos);
+      if (end == std::string::npos)
+        end = mask.size();
+      auto row = mask.substr(pos, end - pos);
+      auto first = row.find_first_not_of(" \t\r");
+      if (first != std::string::npos) {
+        while (!parents.empty() && parents.back().first >= first)
+          parents.pop_back();
+        parents.emplace_back(first, completion_scan::trim(row));
+      }
+      pos = end + 1;
+    }
+    while (!parents.empty() && parents.back().first >= indent)
+      parents.pop_back();
+    if (!base_type) {
+      if (parents.empty())
+        return keywords;
+      const auto &parent = parents.back().second;
+      nets_only |= parent == "ports:" || parent.starts_with("bundle ");
+      if (!(parent.starts_with("board ") || parent.starts_with("block ") ||
+            nets_only))
+        return keywords;
+    }
     auto dot = prefix.rfind('.');
     auto qualifier =
         dot == std::string::npos ? std::string() : prefix.substr(0, dot + 1);
@@ -719,20 +819,30 @@ CompletionResult complete(const std::string &text, std::size_t offset,
     while (result.end < text.size() &&
            (name_char(text[result.end]) || text[result.end] == '.'))
       ++result.end;
+    std::string owner_name;
+    if (!base_type && !parents.empty()) {
+      static const std::regex owner(
+          R"(^(?:component|block|board|bundle)\s+([A-Za-z_#][A-Za-z0-9_#]*))");
+      std::smatch match;
+      if (std::regex_search(parents.front().second, match, owner))
+        owner_name = match[1];
+    }
+    result.entries = keywords.entries;
     for (const auto &entry : catalog) {
-      const bool valid_kind =
-          base_type ? entry.type_kind == base_match[1].str()
-          : net_type
-              ? (entry.type_kind == "nettype" || entry.type_kind == "bundle")
-              : (entry.type_kind == "component" || entry.type_kind == "block");
-      if ((entry.kind == 7 || ((net_type || base_type) && entry.kind == 20)) &&
-          valid_kind && !(base_type && entry.name == base_match[2].str()) &&
-          entry.name.starts_with(prefix))
+      const bool valid_kind = entry.type_kind == "nettype" ||
+                              (!base_type && entry.type_kind == "bundle") ||
+                              (!nets_only && (entry.type_kind == "component" ||
+                                              entry.type_kind == "block")) ||
+                              entry.type_kind == "net";
+      if ((entry.kind == 7 || entry.kind == 20) && valid_kind &&
+          entry.name.starts_with(prefix) && entry.name != owner_name)
         result.entries.push_back({entry.name.substr(qualifier.size()),
                                   entry.description, entry.kind});
     }
     return result;
   }
+  if (!keywords.entries.empty())
+    return keywords;
   auto start = reference_start(mask, offset);
   if (start == offset)
     return result;
@@ -755,7 +865,7 @@ CompletionResult complete(const std::string &text, std::size_t offset,
     auto before =
         mask.substr(line == std::string::npos ? 0 : line + 1,
                     start - (line == std::string::npos ? 0 : line + 1));
-    type_position = before.find("extends ") != std::string::npos ||
+    type_position = before.find("extend ") != std::string::npos ||
                     before.find(':') != std::string::npos;
   }
   bool interface_position =

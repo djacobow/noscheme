@@ -241,8 +241,25 @@ void for_each_child(const Node &node, const ChildVisitor &visit) {
     each("component", n.component, visit);
     each("dimensions", n.dimensions, visit);
     visit("name", n.name);
+    optional("parameter", n.parameter, visit);
     each("positional", n.positional, visit);
     each("sections", n.sections, visit);
+    return;
+  }
+  case Kind::Declarator: {
+    const auto &n = as<Declarator>(node);
+    each("dimensions", n.dimensions, visit);
+    visit("name", n.name);
+    return;
+  }
+  case Kind::Declaration: {
+    const auto &n = as<Declaration>(node);
+    each("declarators", n.declarators, visit);
+    each("fields", n.fields, visit);
+    optional("parameter", n.parameter, visit);
+    each("positional", n.positional, visit);
+    each("sections", n.sections, visit);
+    each("type", n.type, visit);
     return;
   }
   case Kind::ImportedName: {
@@ -263,6 +280,7 @@ void for_each_child(const Node &node, const ChildVisitor &visit) {
     each("base", n.base, visit);
     each("body", n.body, visit);
     visit("name", n.name);
+    optional("parameter", n.parameter, visit);
     return;
   }
   case Kind::Module:
@@ -274,6 +292,9 @@ void for_each_child(const Node &node, const ChildVisitor &visit) {
 namespace {
 Json optional_json(const Ptr &node) {
   return node ? to_json(*node) : Json(nullptr);
+}
+Json optional_span(const std::optional<Span> &span) {
+  return span ? span->json() : Json(nullptr);
 }
 template <class T> Json list_json(const std::vector<T> &items) {
   auto result = Json::array();
@@ -387,11 +408,26 @@ Json fields_json(const Node &node) {
   }
   case Kind::Instance: {
     const auto &n = as<Instance>(node);
+    return object(
+        "name", to_json(n.name), "dimensions", list_json(n.dimensions),
+        "component", list_json(n.component), "sections", list_json(n.sections),
+        "positional", list_json(n.positional), "wildcard",
+        optional_span(n.wildcard), "parameter", optional_json(n.parameter));
+  }
+  case Kind::Declarator: {
+    const auto &n = as<Declarator>(node);
     return object("name", to_json(n.name), "dimensions",
-                  list_json(n.dimensions), "component", list_json(n.component),
-                  "sections", list_json(n.sections), "positional",
-                  list_json(n.positional), "wildcard",
-                  n.wildcard ? n.wildcard->json() : Json(nullptr));
+                  list_json(n.dimensions));
+  }
+  case Kind::Declaration: {
+    const auto &n = as<Declaration>(node);
+    return object(
+        "global_", n.global, "type", list_json(n.type), "declarators",
+        list_json(n.declarators), "parameters", optional_span(n.parameters),
+        "arguments", optional_span(n.arguments), "sections",
+        list_json(n.sections), "fields", list_json(n.fields), "parameter",
+        optional_json(n.parameter), "positional", list_json(n.positional),
+        "wildcard", optional_span(n.wildcard));
   }
   case Kind::ImportedName: {
     const auto &n = as<ImportedName>(node);
@@ -406,7 +442,7 @@ Json fields_json(const Node &node) {
     const auto &n = as<Definition>(node);
     return object("kind", n.keyword, "name", to_json(n.name), "base",
                   n.base.empty() ? Json(nullptr) : list_json(n.base), "body",
-                  list_json(n.body));
+                  list_json(n.body), "parameter", optional_json(n.parameter));
   }
   case Kind::Module:
     return object("items", list_json(as<Module>(node).items));

@@ -13,7 +13,7 @@ local_ast(std::shared_ptr<const Source> shared_source) {
   std::vector<std::size_t> starts;
   for (std::size_t line = 0; line < masked.size();) {
     for (auto word : {"from", "import", "component", "block", "board", "bundle",
-                      "nettype"}) {
+                      "extend"}) {
       auto length = std::char_traits<char>::length(word);
       if (masked.compare(line, length, word) == 0 &&
           line + length < masked.size() &&
@@ -66,8 +66,8 @@ void local_index(LspAnalysis &result, const Sources &sources,
       else
         module.symbols.emplace(std::move(name), std::move(symbol));
     };
-    const std::set<std::string> builtins{"role", "nettype", "unused",
-                                         "num",  "bias",    "std"};
+    const std::set<std::string> builtins{"role", "net",  "unused",
+                                         "num",  "bias", "std"};
     for (const auto &item : ast->items) {
       if (auto *definition = ast::as<ast::Definition>(item)) {
         const auto &name = definition->name.text;
@@ -83,6 +83,10 @@ void local_index(LspAnalysis &result, const Sources &sources,
             if (builtins.contains(entry.name.text))
               add(entry.local().text, {"noscheme", entry.name.text});
       }
+    }
+    try {
+      module.ast = classified_module("local", *ast, module.symbols, true);
+    } catch (const DiagnosticsFailure &) {
     }
     result.retain(project);
     Definitions definitions;

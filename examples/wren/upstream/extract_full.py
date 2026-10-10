@@ -214,16 +214,17 @@ def extract(netlist, source, output):
         )
         for n in sorted(node["nets"].values(), key=lambda n: n["key"]):
             if n["port"]:
-                lines += [f"        {n['key']}: nettype.unchecked"]
+                lines += [f"        net.unchecked {n['key']}"]
         for n in sorted(node["nets"].values(), key=lambda n: n["key"]):
             # Nets wholly contained in a child are declared in that child.
             used_here = any(n["key"] in pins.values() for pins in pin_bindings.values()) or any(
                 n["key"] in links.values() for _, _, links in child_items
             )
             if not n["port"] and used_here:
-                lines += [f"    net {n['key']}: nettype.unchecked"]
+                lines += [f"    net.unchecked {n['key']}"]
         for _, ref in items:
-            lines += [f"    inst {local_names[ref]}: {ref_types[ref]}"]
+            body = ":" if pin_bindings[ref] else ""
+            lines += [f"    {ref_types[ref]} {local_names[ref]}{body}"]
             lines += [
                 f"        {json.dumps(pin)}: {net}"
                 for pin, net in sorted(pin_bindings[ref].items())
@@ -231,7 +232,9 @@ def extract(netlist, source, output):
         for group_index, (kind, children) in enumerate(sorted(groups.items())):
             label = "sub_" + str(group_index)
             array = len(children) > 1
-            lines += [f"    inst {label}{'[' + str(len(children)) + ']' if array else ''}: {kind}"]
+            dimensions = "[" + str(len(children)) + "]" if array else ""
+            body = ":" if any(links for _, _, links in children) else ""
+            lines += [f"    {kind} {label}{dimensions}{body}"]
             for i, (_, ch, links) in enumerate(children):
                 child_names[ch] = label + (f"[{i}]" if array else "")
                 for port, net in sorted(links.items()):
@@ -254,7 +257,7 @@ def extract(netlist, source, output):
     imports = "from parts import " + ", ".join(sorted(component_types))
     lines = [
         "// Generated hierarchical benchmark. See ../README.md.",
-        "from noscheme import nettype",
+        "from noscheme import net",
         imports,
         "",
     ]

@@ -1,3 +1,4 @@
+#include "noscheme/classify.hpp"
 #include "noscheme/source.hpp"
 #include "noscheme/units.hpp"
 #include "noscheme/validation.hpp"
@@ -114,9 +115,11 @@ std::vector<std::unique_ptr<antlr4::Token>> layout(NoSchemeLexer &lexer,
       result.push_back(std::move(t));
       break;
     }
-    if (kind == P::LPAREN || kind == P::LBRACK)
+    // Newlines inside brackets, including an instance's <parameters>, are not
+    // layout.
+    if (kind == P::LPAREN || kind == P::LBRACK || kind == P::LANGLE)
       ++depth;
-    if (kind == P::RPAREN || kind == P::RBRACK)
+    if (kind == P::RPAREN || kind == P::RBRACK || kind == P::RANGLE)
       --depth;
     if (kind != P::NL) {
       result.push_back(std::move(t));
@@ -494,20 +497,52 @@ class Builder {
     result->arguments.push_back(reference(x->reference()));
     return result;
   }
-  ast::Ptr entry_node(P::BindingContext *x) {
-    auto result = std::make_shared<ast::Binding>(at<ast::Binding>(x));
-    auto *e = x->endpoint();
-    auto &endpoint = result->endpoint;
-    endpoint.span = span(e);
-    endpoint.instance_indices = indices(e->index());
-    endpoint.head =
+  ast::Endpoint endpoint(P::EndpointContext *e) {
+    ast::Endpoint result;
+    result.span = span(e);
+    result.instance_indices = indices(e->index());
+    result.head =
         e->fieldKey() ? field_key(e->fieldKey()) : binding_key(e->bindingKey());
     for (auto *selection : e->endpointSuffix())
-      endpoint.selectors.push_back(
+      result.selectors.push_back(
           selection->name()
               ? ast::Ptr(std::make_shared<ast::Name>(name(selection->name())))
               : std::make_shared<ast::Index>(index(selection->index())));
-    result->target = target(x->target());
+    return result;
+  }
+  [[noreturn]] void fail_at(const std::string &code, const std::string &message,
+                            const Span &where) {
+    throw Failure(code, message, where.start - base, where.end - base);
+  }
+  [[noreturn]] void declaration_form(Tree *t, bool typed_entry) {
+    throw Failure(
+        "syntax.declaration-form",
+        typed_entry ? "declare names with a type first only in params, ports, "
+                      "and bundles"
+                    : "write the type first: `net.power supply`, `number "
+                      "gain = 2`",
+        begin(t), end(t));
+  }
+  // A body line: a connection when it reads as one, otherwise a net field.
+  ast::Ptr body_entry(P::BodyEntryContext *x) {
+    auto head = endpoint(x->endpoint());
+    auto nested = fields(x->field());
+    ast::Ptr value = x->fieldValue() ? field_value(x->fieldValue()) : nullptr;
+    bool plain = head.instance_indices.empty() && head.selectors.empty();
+    if ((is_target(value.get()) && nested.empty()) || !plain) {
+      if (!is_target(value.get()) || !nested.empty())
+        fail_at("syntax.target",
+                "a connection target is a net reference or flat(net)",
+                target_error_node(value ? *value : head).span);
+      auto result = std::make_shared<ast::Binding>(at<ast::Binding>(x));
+      result->endpoint = std::move(head);
+      result->target = std::move(value);
+      return result;
+    }
+    auto result = std::make_shared<ast::Field>(at<ast::Field>(x));
+    result->key = head.head;
+    result->value = std::move(value);
+    result->fields = std::move(nested);
     return result;
   }
   ast::Ptr entry_node(P::ArgumentContext *x) {
@@ -537,29 +572,58 @@ class Builder {
     auto *x = static_cast<P::ElementsContext *>(t);
     return section(x, "elements", x->elementOverride());
   }
-  ast::Ptr instance(P::InstanceContext *x) {
-    auto result = std::make_shared<ast::Instance>(at<ast::Instance>(x));
-    result->name = name(x->name());
-    result->dimensions = indices(x->index());
-    result->component = path(x->path());
-    // Bindings precede the sections and form the connections section.
-    if (auto bindings = x->binding(); !bindings.empty()) {
-      auto connections = section(x, "connections", bindings);
-      connections.span = {owner, connections.entries.front()->span.start,
-                          connections.entries.back()->span.end};
-      result->sections.push_back(std::move(connections));
+  ast::Declarator declarator(P::DeclaratorContext *x) {
+    auto result = at<ast::Declarator>(x);
+    result.name = name(x->name());
+    result.dimensions = indices(x->index());
+    return result;
+  }
+  // `<4.7k, tol: 1>`: the unnamed parameter, if any, and the named ones.
+  std::pair<ast::Ptr, std::vector<ast::Ptr>>
+  type_arguments(P::TypeArgumentsContext *x) {
+    ast::Ptr parameter;
+    std::vector<ast::Ptr> named;
+    for (auto *argument :
+         x ? x->typeArgument() : std::vector<P::TypeArgumentContext *>{}) {
+      if (argument->COLON()) {
+        auto result =
+            std::make_shared<ast::Argument>(at<ast::Argument>(argument));
+        result->name = name(argument->name());
+        result->value = expr(argument->sum());
+        named.push_back(std::move(result));
+      } else if (!parameter && named.empty())
+        parameter = expr(argument->sum());
+      else
+        throw Failure("syntax.parameter-order",
+                      "write one unnamed parameter, before the named ones",
+                      begin(argument), end(argument));
     }
-    for (auto *child : x->instSection())
-      result->sections.push_back(inst_section(child));
-    std::vector<ast::Ptr> bindings, params;
-    if (auto *args = x->inlineArguments())
-      for (auto *arg : args->inlineArgument()) {
+    return {std::move(parameter), std::move(named)};
+  }
+  // `<>` and `()` with nothing in them are as if absent.
+  static P::TypeArgumentsContext *written(P::TypeArgumentsContext *x) {
+    return x && !x->typeArgument().empty() ? x : nullptr;
+  }
+  static P::ArgumentListContext *written(P::ArgumentListContext *x) {
+    return x && x->inlineArguments() ? x : nullptr;
+  }
+  // Merges `R<4.7k, tol: 1>(a, b, 1: c)` into the declaration's own sections:
+  // named parameters join its params, inline bindings its connections, before
+  // their own entries; otherwise they form sections at the end.
+  void instance_arguments(ast::Declaration &result,
+                          P::TypeArgumentsContext *parameters,
+                          P::InlineArgumentsContext *arguments) {
+    auto [parameter, params] = type_arguments(parameters);
+    result.parameter = std::move(parameter);
+    std::vector<ast::Ptr> bindings;
+    if (arguments)
+      for (auto *arg : arguments->inlineArgument()) {
         if (arg->MUL()) {
-          if (arg->getText() != "*" || result->wildcard)
+          if (arg->getText() != "*" || result.wildcard)
             throw Failure("syntax.wildcard",
                           "write one * to connect same-name nets", begin(arg),
                           end(arg));
-          result->wildcard = span(arg);
+          result.wildcard = span(arg);
         } else if (arg->COLON()) {
           auto binding = std::make_shared<ast::Binding>(at<ast::Binding>(arg));
           auto &endpoint = binding->endpoint;
@@ -568,18 +632,10 @@ class Builder {
           endpoint.head.first = pin_key(arg->pinKey());
           binding->target = target(arg->target());
           bindings.push_back(std::move(binding));
-        } else if (arg->EQUAL()) {
-          auto argument =
-              std::make_shared<ast::Argument>(at<ast::Argument>(arg));
-          argument->name = name(arg->name());
-          argument->value = expr(arg->expr());
-          params.push_back(std::move(argument));
         } else
-          result->positional.push_back(target(arg->target()));
+          result.positional.push_back(target(arg->target()));
       }
-    // Inline arguments join the first section of their kind, before its own
-    // entries; otherwise they form a section at the end.
-    for (auto &section : result->sections) {
+    for (auto &section : result.sections) {
       auto *inline_entries = section.name == "connections" ? &bindings
                              : section.name == "params"    ? &params
                                                            : nullptr;
@@ -590,37 +646,110 @@ class Builder {
       section.entries = std::move(*inline_entries);
       inline_entries->clear();
     }
-    for (auto [entries, section_name] :
-         {std::pair{&bindings, "connections"}, std::pair{&params, "params"}})
+    for (auto [entries, section_name, where] :
+         {std::tuple<std::vector<ast::Ptr> *, const char *, Tree *>{
+              &bindings, "connections", arguments},
+          {&params, "params", parameters}})
       if (!entries->empty()) {
-        auto section = at<ast::Section>(x->inlineArguments());
+        auto section = at<ast::Section>(where);
         section.name = section_name;
         section.entries = std::move(*entries);
-        result->sections.push_back(std::move(section));
+        result.sections.push_back(std::move(section));
       }
+  }
+  ast::Ptr declaration(P::DeclarationContext *x) {
+    auto result = std::make_shared<ast::Declaration>(at<ast::Declaration>(x));
+    result->global = x->GLOBAL() != nullptr;
+    result->type = path(x->path());
+    for (auto *d : x->declarator())
+      result->declarators.push_back(declarator(d));
+    auto *parameters = written(x->typeArguments());
+    auto *list = written(x->argumentList());
+    if (parameters)
+      result->parameters = span(parameters);
+    if (list)
+      result->arguments = span(list);
+    // Bindings precede the sections and form the connections section.
+    std::vector<ast::Ptr> bindings;
+    for (auto *entry : x->bodyEntry()) {
+      auto line = body_entry(entry);
+      if (auto *field = ast::as<ast::Field>(line))
+        result->fields.push_back(*field);
+      else
+        bindings.push_back(std::move(line));
+    }
+    if (!bindings.empty()) {
+      ast::Section connections;
+      connections.span = {owner, bindings.front()->span.start,
+                          bindings.back()->span.end};
+      connections.name = "connections";
+      connections.entries = std::move(bindings);
+      result->sections.push_back(std::move(connections));
+    }
+    for (auto *child : x->instSection())
+      result->sections.push_back(inst_section(child));
+    instance_arguments(*result, parameters,
+                       list ? list->inlineArguments() : nullptr);
     return result;
   }
-  void definition_item(P::DefinitionItemContext *x,
-                       std::vector<ast::Ptr> &body) {
-    if (auto *i = x->instance())
-      body.push_back(instance(i));
-    else if (auto *n = x->netDecl()) {
-      // `net a, b: T` declares one net per name, sharing the type and fields.
-      auto type = expr(n->expr());
-      auto declared = fields(n->field());
-      for (auto *declared_name : n->name()) {
-        auto result = std::make_shared<ast::Net>(at<ast::Net>(n));
-        result->name = name(declared_name);
-        result->type = type;
-        result->global = n->GLOBAL() != nullptr;
-        result->fields = declared;
-        body.push_back(std::move(result));
+  // `net.power supply:` or `number gain = 2`: one Field per declared name.
+  std::vector<ast::Field> typed_field(P::TypedFieldContext *x) {
+    auto type = path_expression(path(x->path()));
+    ast::Ptr default_value = x->expr() ? expr(x->expr()) : nullptr;
+    auto nested = fields(x->field());
+    std::vector<ast::Field> result;
+    for (auto *d : x->declarator()) {
+      auto declared = declarator(d);
+      auto field = at<ast::Field>(x);
+      field.key = declared_key(declared.name);
+      field.value = typed(type, declared);
+      field.default_value = default_value;
+      field.fields = nested;
+      result.push_back(std::move(field));
+    }
+    return result;
+  }
+  ast::Section section(P::SectionContext *x) {
+    auto result = at<ast::Section>(x);
+    result.name = x->sectionName()->getText();
+    bool typed_section = result.name == "params" || result.name == "ports";
+    for (auto *child : x->children) {
+      if (auto *f = dynamic_cast<P::FieldContext *>(child)) {
+        if (typed_section && f->fieldValue())
+          declaration_form(f->fieldKey() ? static_cast<Tree *>(f->fieldKey())
+                                         : f->aliasedKey(),
+                           false);
+        result.entries.push_back(entry_node(f));
+      } else if (auto *t = dynamic_cast<P::TypedFieldContext *>(child)) {
+        if (!typed_section)
+          declaration_form(t->declarator(0), true);
+        for (auto &field : typed_field(t))
+          result.entries.push_back(
+              std::make_shared<ast::Field>(std::move(field)));
       }
+    }
+    return result;
+  }
+  void definition_item(P::DefinitionItemContext *x, std::vector<ast::Ptr> &body,
+                       bool bundle) {
+    if (auto *d = x->declaration()) {
+      auto node = declaration(d);
+      if (!bundle) {
+        body.push_back(std::move(node));
+        return;
+      }
+      for (auto &field : member_fields(ast::as<ast::Declaration>(*node)))
+        body.push_back(std::make_shared<ast::Field>(std::move(field)));
     } else if (auto *s = x->section())
-      body.push_back(std::make_shared<ast::Section>(
-          section(s, s->sectionName()->getText(), s->field())));
-    else
-      body.push_back(entry_node(x->field()));
+      body.push_back(std::make_shared<ast::Section>(section(s)));
+    else {
+      auto *f = x->field();
+      if (bundle && f->fieldValue())
+        declaration_form(f->fieldKey() ? static_cast<Tree *>(f->fieldKey())
+                                       : f->aliasedKey(),
+                         false);
+      body.push_back(entry_node(f));
+    }
   }
   ast::Ptr item(Ctx *ctx) {
     if (auto *x = dynamic_cast<P::ImportDeclContext *>(ctx)) {
@@ -635,14 +764,38 @@ class Builder {
       }
       return result;
     }
-    auto *x = static_cast<P::DefinitionContext *>(ctx);
-    auto result = std::make_shared<ast::Definition>(at<ast::Definition>(x));
-    result->keyword = x->kind()->getText();
+    auto result = std::make_shared<ast::Definition>(at<ast::Definition>(ctx));
+    if (auto *x = dynamic_cast<P::DefinitionContext *>(ctx)) {
+      result->keyword = x->kind()->getText();
+      result->name = name(x->name());
+      for (auto *child : x->definitionItem())
+        definition_item(child, result->body, result->keyword == "bundle");
+      return result;
+    }
+    auto *x = static_cast<P::ExtensionContext *>(ctx);
+    result->keyword = "extend";
+    result->base = path(x->path());
     result->name = name(x->name());
-    if (x->path())
-      result->base = path(x->path());
+    auto *parameters = written(x->typeArguments());
+    auto [parameter, named] = type_arguments(parameters);
+    result->parameter = std::move(parameter);
+    if (!named.empty()) {
+      // Named parameters are the extension's defaults.
+      auto defaults = at<ast::Section>(parameters);
+      defaults.name = "defaults";
+      for (const auto &entry : named) {
+        const auto &argument = ast::as<ast::Argument>(*entry);
+        auto field = std::make_shared<ast::Field>();
+        field->span = argument.span;
+        field->key = declared_key(argument.name);
+        field->value = argument.value;
+        defaults.entries.push_back(std::move(field));
+      }
+      result->body.push_back(
+          std::make_shared<ast::Section>(std::move(defaults)));
+    }
     for (auto *child : x->definitionItem())
-      definition_item(child, result->body);
+      definition_item(child, result->body, false);
     return result;
   }
 

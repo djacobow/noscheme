@@ -13,15 +13,15 @@ from test_circuit import make
 
 SOURCE = """component R:
   params:
-    value: string = "1k"
+    string value = "1k"
   pins:
     1..2:
       role: role.passive
 board B:
-  inst r: R
+  R r:
     1: missing1
     2: missing2
-  inst q: Nope
+  Nope q:
     unknown_pin: unknown_net
 """
 
@@ -63,15 +63,15 @@ def test_arguments_and_bindings_are_independent_but_each_binding_stops(tmp_path)
 def test_independent_definitions_and_shared_body_deduplication(tmp_path):
     source = (
         SOURCE.replace("board B:", "block W:")
-        + """block Derived extends W:
+        + """extend W Derived:
   metadata:
     custom:
       note: "Same body"
 component BadDefault:
   params:
-    value: string = unknown_default
+    string value = unknown_default
 board B:
-  inst w: W()
+  W w()
 """
     )
     make(tmp_path, source)
@@ -85,8 +85,8 @@ def test_bad_net_type_stops_its_body_but_not_an_independent_definition(tmp_path)
     source = (
         SOURCE
         + """block BadNet:
-  net n: MissingBundle
-  inst dependent: R
+  MissingBundle n
+  R dependent:
     1: n.nonexistent
 """
     )

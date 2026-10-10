@@ -181,7 +181,7 @@ class HoverDetails:
         if definition.source.base:
             lines.append("Extends: " + ".".join(n.text for n in definition.source.base))
         if definition.electrical:
-            lines.append(f"Electrical type: nettype.{definition.electrical}")
+            lines.append(f"Electrical type: net.{definition.electrical}")
         env = self.environment(definition)
         if "value" in definition.metadata or env is not None and "value" in env:
             lines.append("Default value: " + self.default_value(definition, env))
@@ -215,7 +215,7 @@ class HoverDetails:
         return "\n".join(lines)
 
     def instance(self, node, target):
-        lines = [f"inst {node.name.text}: {target.module}.{target.name}"]
+        lines = [f"{target.module}.{target.name} {node.name.text}"]
         records = self.instances.get(key(node.span), [])
         if records:
             lines.append(f"Elaborated instances: {len(records)}")

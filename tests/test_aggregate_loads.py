@@ -20,17 +20,17 @@ component Load:
       max_load_current: 80m
 block Module:
   ports:
-    power: nettype.power
+    net.power power:
       role: role.power_input
       aggregate_load:
         max_load_current: 100m
-  inst load: Load
+  Load load:
     1: power
 board B:
-  net rail: nettype.power
-  inst supply: Supply
+  net.power rail
+  Supply supply:
     1: rail
-  inst module: Module
+  Module module:
     power: rail
 """
 
@@ -66,7 +66,7 @@ def test_missing_internal_annotation_remains_visible(tmp_path):
 
 
 def test_array_instances_have_independent_aggregate_budgets(tmp_path):
-    source = SOURCE.replace("inst module:", "inst module[2]:")
+    source = SOURCE.replace("Module module:", "Module module[2]:")
     assert codes(tmp_path, source) == ["erc.current_overload"]
 
 
@@ -75,14 +75,14 @@ def test_nested_boundaries_check_each_level(tmp_path):
         "board B:",
         """block Outer:
   ports:
-    power: nettype.power
+    net.power power:
       role: role.power_input
       aggregate_load:
         max_load_current: 90m
-  inst inner: Module
+  Module inner:
     power: power
 board B:""",
-    ).replace("inst module: Module", "inst module: Outer")
+    ).replace("Module module", "Outer module")
     source = source.replace("max_load_current: 80m", "max_load_current: 120m")
     diagnostics = errors(tmp_path, source)
     assert [d.code for d in diagnostics] == ["erc.aggregate_current_overload"] * 2
@@ -91,10 +91,10 @@ board B:""",
 
 def test_siblings_and_outside_loads_are_not_hidden(tmp_path):
     source = SOURCE.replace(
-        "  inst module: Module",
-        """  inst outside: Load
+        "  Module module",
+        """  Load outside:
     1: rail
-  inst module: Module""",
+  Module module""",
     )
     assert codes(tmp_path, source) == ["erc.current_overload"]
 
@@ -115,14 +115,14 @@ def test_grouped_physical_loads_inside_aggregate(tmp_path):
 
 def test_same_scope_overlapping_boundaries_are_rejected(tmp_path):
     source = SOURCE.replace(
-        "  inst load: Load",
-        """    second: nettype.power
+        "  Load load",
+        """    net.power second:
       role: role.power_input
       aggregate_load:
         max_load_current: 100m
-  inst load2: Load
+  Load load2:
     1: second
-  inst load: Load""",
+  Load load""",
     ).replace("    power: rail", "    power: rail\n    second: rail")
     result = codes(tmp_path, source)
     assert result.count("erc.aggregate_load_boundary") == 2
@@ -131,10 +131,10 @@ def test_same_scope_overlapping_boundaries_are_rejected(tmp_path):
 
 def test_internal_source_cannot_be_hidden_by_aggregate(tmp_path):
     source = SOURCE.replace(
-        "  inst load: Load",
-        """  inst generator: Supply
+        "  Load load",
+        """  Supply generator:
     1: power
-  inst load: Load""",
+  Load load""",
     )
     result = codes(tmp_path, source)
     assert "erc.aggregate_load_boundary" in result
@@ -150,7 +150,7 @@ def test_invalid_amounts_are_source_errors(tmp_path, amount):
 
 
 def test_internal_check_survives_unchecked_outer_net(tmp_path):
-    source = SOURCE.replace("net rail: nettype.power", "net rail: nettype.unchecked").replace(
+    source = SOURCE.replace("net.power rail", "net.unchecked rail").replace(
         "max_load_current: 80m", "max_load_current: 120m"
     )
     assert "erc.aggregate_current_overload" in codes(tmp_path, source)
@@ -175,13 +175,13 @@ def test_rechecking_preserves_original_circuit(tmp_path):
 def test_inherited_port_budget_override(tmp_path):
     source = SOURCE.replace(
         "board B:",
-        """block Smaller extends Module:
+        """extend Module Smaller:
   ports:
     power:
       aggregate_load:
         max_load_current: 70m
 board B:""",
-    ).replace("inst module: Module", "inst module: Smaller")
+    ).replace("Module module", "Smaller module")
     assert codes(tmp_path, source) == ["erc.aggregate_current_overload"]
 
 
@@ -191,11 +191,11 @@ def test_configuration_role_selection_checks_each_internal_budget(tmp_path):
         "      role: [role.power_input, role.passive]\n      max_load_current: 120m",
     )
     source = source.replace(
-        "  inst load: Load",
+        "  Load load",
         """  metadata:
     erc_choices:
       mode: ["on", "off"]
-  inst load: Load""",
+  Load load""",
     ).replace(
         "    1: power",
         """    1: power

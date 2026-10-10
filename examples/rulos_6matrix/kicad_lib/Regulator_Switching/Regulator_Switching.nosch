@@ -2,7 +2,7 @@ from noscheme import role
 
 component TPS563200:
   params:
-    value: string = "TPS563200"
+    string value = "TPS563200"
   pins:
     "1" (GND):
       role: [role.ground, role.power_input]

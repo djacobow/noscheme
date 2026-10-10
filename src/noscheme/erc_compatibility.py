@@ -21,7 +21,7 @@ def net_results(ctx):
             pin,
             label,
             related=[
-                Related(f"nettype.{d['type']} constraint", Span(**d["span"])) for d in incompatible
+                Related(f"net.{d['type']} constraint", Span(**d["span"])) for d in incompatible
             ],
         )
     return tuple(results.diagnostics)

@@ -10,19 +10,31 @@ from .parser import parse
 from .lsp_bundles import BundleLookup
 from .erc_registry import namespace, signature
 from .metadata import MISSING, NETTYPES, PIN_SCOPES, ROLES, endpoint_fields
-from .project import ERC_MODULE, IDENTIFIER, load_project
+from .project import ERC_MODULE, IDENTIFIER, load_project, net_type
 from .resolve import Resolver
 from .syntax import comment_lexer
 
 WORD = r"[A-Za-z0-9_#]*"
 TYPE_PATH = rf"{IDENTIFIER}(?:\.{IDENTIFIER})*"
 TYPE_PREFIX = r"[A-Za-z0-9_#.]*"
-DEFINITION = re.compile(
-    rf"^(component|block|board|bundle|nettype)\s+({IDENTIFIER})(?=\s|:)[^\n]*:", re.M
+# A definition header: `component Name:`, or `extend Base<params> Name`, on one line.
+HEADER = re.compile(
+    rf"^(?:(component|block|board|bundle)[ \t]+({IDENTIFIER})"
+    rf"|extend[ \t]+({TYPE_PATH})(?:[ \t]*<[^\n]*>)?[ \t]+({IDENTIFIER}))"
+    r"(?=[ \t]*(?::|$))[^\n]*",
+    re.M,
 )
-INSTANCE = re.compile(rf"^([ \t]*)inst\s+{IDENTIFIER}(?:\[[^\n]*?\])*\s*:\s*({TYPE_PATH})")
-# An instance line whose argument list is open at the end of the match.
-ARGUMENTS = re.compile(INSTANCE.pattern + r"\s*\(")
+# An indented `Type<params> name` line: a net or an instance, told apart by the type.
+DECLARATION = re.compile(
+    rf"^([ \t]+)(?:global[ \t]+)?({TYPE_PATH})(?:[ \t]*<[^\n]*?>)?[ \t]+({IDENTIFIER})", re.M
+)
+# A declaration whose connection list is open at the end of the match.
+ARGUMENTS = re.compile(DECLARATION.pattern + r"(?:\[[^\n]*?\])*[ \t]*\(", re.M)
+# The type, `<...>`, and names of a declaration line, without its connections.
+SKELETON = re.compile(
+    rf"([ \t]+)(global[ \t]+)?({TYPE_PATH})(?:[ \t]*<[^\n]*?>)?[ \t]+"
+    rf"({IDENTIFIER}(?:\[[^\n]*?\])*(?:[ \t]*,[ \t]*{IDENTIFIER}(?:\[[^\n]*?\])*)*)"
+)
 
 
 @dataclass(frozen=True)
@@ -33,6 +45,41 @@ class Suggestion:
     kind: str
     start: int
     end: int
+
+
+@dataclass(frozen=True)
+class Owner:
+    """A definition header in a masked buffer; an extension's kind is its base's."""
+
+    kind: str  # component, block, board, bundle, or extend
+    name: str
+    base: str | None
+    start: int
+    end: int  # The end of the header line, before its newline.
+
+
+def owners(masked, stop=None):
+    return [
+        Owner(m[1] or "extend", m[2] or m[4], m[3], m.start(), m.end())
+        for m in HEADER.finditer(masked, 0, len(masked) if stop is None else stop)
+    ]
+
+
+def owner_before(masked, offset):
+    """The definition whose header precedes offset, and where its region stops."""
+    found = owners(masked, offset)
+    if not found:
+        return None, len(masked)
+    owner = found[-1]
+    following = HEADER.search(masked, owner.end)
+    return owner, following.start() if following else len(masked)
+
+
+def stub(owner):
+    """A parseable stand-in for a definition whose body is being edited."""
+    if owner.kind == "extend":
+        return f"extend {owner.base} {owner.name}\n"
+    return f"{owner.kind} {owner.name}:\n    metadata:\n        custom:\n            completion: true\n"
 
 
 def masked_source(source, offset):
@@ -76,13 +123,12 @@ def footprint_completion(path, config, sources, offset):
     masked = masked_source(safe, value_start)
     if masked is None:
         return []
-    owners = list(DEFINITION.finditer(masked, 0, line_start))
-    if not owners:
+    owner, stop = owner_before(masked, line_start)
+    if owner is None:
         return []
-    owner = owners[-1]
     # Track indentation ancestors to exclude custom fields and pin metadata.
     ancestors = []
-    for previous in masked[owner.end() : line_start].splitlines():
+    for previous in masked[owner.end : line_start].splitlines():
         if not previous.strip():
             continue
         indent = len(previous) - len(previous.lstrip())
@@ -95,22 +141,18 @@ def footprint_completion(path, config, sources, offset):
     if not ancestors or ancestors[-1][1] != "metadata:":
         return []
     active = (
-        INSTANCE.match(" " * ancestors[-2][0] + ancestors[-2][1]) if len(ancestors) >= 2 else None
+        DECLARATION.match(" " * ancestors[-2][0] + ancestors[-2][1])
+        if len(ancestors) >= 2
+        else None
     )
-    if active is None and (owner[1] != "component" or len(ancestors) != 1):
+    if active is None and (owner.kind not in {"component", "extend"} or len(ancestors) != 1):
         return []
     if active:
-        next_owner = DEFINITION.search(masked, owner.end())
-        stop = next_owner.start() if next_owner else len(source)
-        recovered = (
-            source[: owner.start()]
-            + f"{owner[1]} {owner[2]}:\n    metadata:\n        custom:\n            completion: true\n"
-            + source[stop:]
-        )
+        recovered = source[: owner.start] + stub(owner) + source[stop:]
         target_name = active[2]
     else:
         recovered = source[:value_start] + '""' + source[value_end:]
-        target_name = owner[2]
+        target_name = owner.name
     try:
         project = load_project(config, sources={**sources, path: recovered})
         module = next(m for m in project.modules.values() if m.path == path)
@@ -122,15 +164,9 @@ def footprint_completion(path, config, sources, offset):
         if target.kind != "component":
             return []
         default = target.metadata.get("footprint")
-        if not active:
-            # The edited field masks inheritance; fetch the base's default separately.
-            base = re.search(
-                r"\bextends\s+(" + TYPE_PATH + ")", source[owner.start() : owner.end()]
-            )
-            if base and (base_symbol := module.symbols.get(base[1])):
-                default = definitions[(base_symbol.module, base_symbol.name)].metadata.get(
-                    "footprint"
-                )
+        # The edited field masks inheritance; fetch the base's default separately.
+        if not active and owner.base and (base_symbol := module.symbols.get(owner.base)):
+            default = definitions[(base_symbol.module, base_symbol.name)].metadata.get("footprint")
         names = [default.value] if default and default.value else []
         custom = target.metadata.get("custom")
         candidates = custom.value.get("kicad_footprint_candidates") if custom else None
@@ -165,32 +201,58 @@ def footprint_completion(path, config, sources, offset):
         return []
 
 
+def body_indent(masked, owner):
+    """The indentation of a definition's first body line, or None."""
+    found = re.search(r"\n([ \t]+)\S", masked[owner.end :])
+    return len(found[1]) if found else None
+
+
 def connection_instance(masked, owner, line_start):
-    """Find the enclosing instance when editing its connections, which lead its body."""
+    """Find the enclosing declaration when editing its connections, which lead its body."""
     active, section = None, None
-    for line in masked[owner.end() : line_start].splitlines():
-        if match := INSTANCE.match(line):
-            active, section = match, "connections"
-        elif active and line.strip():
-            indent = len(line) - len(line.lstrip())
-            if indent <= len(active[1]):
-                active, section = None, None
-            elif re.fullmatch(r"\s*(params|metadata|elements):\s*", line):
-                section = line.strip().rstrip(":")
+    body = body_indent(masked, owner)
+    for line in masked[owner.end : line_start].splitlines():
+        if not line.strip():
+            continue
+        indent = len(line) - len(line.lstrip())
+        if indent == body:
+            active = DECLARATION.match(line)
+            section = "connections" if active else None
+        elif active and indent > body and re.fullmatch(r"\s*(params|metadata|elements):\s*", line):
+            section = line.strip().rstrip(":")
     current = masked[line_start:]
     if active and len(current) - len(current.lstrip(" ")) <= len(active[1]):
-        return None  # The cursor's line is outside the instance body.
+        return None  # The cursor's line is outside the declaration body.
     return active if section == "connections" else None
+
+
+def skeleton(masked, source, owner, stop):
+    """The owner's body with each declaration reduced to its type and names.
+
+    Unfinished connections and bodies cannot break the parse; nets keep the
+    types that bundle member lookups need, and sections stay as written.
+    """
+    kept, skipping = [], False
+    body = body_indent(masked, owner)
+    raw_lines = source[owner.end : stop].splitlines(keepends=True)
+    for raw, line in zip(raw_lines, masked[owner.end : stop].splitlines(keepends=True)):
+        indent = len(line) - len(line.lstrip())
+        if line.strip() and (indent == body and not line.strip().startswith((")", ">"))):
+            match = SKELETON.match(line)
+            skipping = match is not None
+            if match:
+                kept.append(f"{match[1]}{match[2] or ''}{match[3]} {match[4]}\n")
+                continue
+        if not skipping:
+            kept.append(raw)
+    return "".join(kept)
 
 
 def bundle_completion(path, config, sources, offset, masked):
     source = sources[path]
     line_start = source.rfind("\n", 0, offset) + 1
-    owners = list(DEFINITION.finditer(masked, 0, line_start))
-    if not owners:
-        return []
-    owner = owners[-1]
-    if owner[1] not in {"board", "block"}:
+    owner, stop = owner_before(masked, line_start)
+    if owner is None or owner.kind not in {"board", "block"}:
         return []
     active = connection_instance(masked, owner, line_start)
     if active is None:
@@ -215,39 +277,23 @@ def bundle_completion(path, config, sources, offset, masked):
         return []
     try:
         # Reuse the real expression parser for nested members and array selectors.
-        fragment = parse("board Completion:\n    net value: " + match[1] + "\n")
-        expr = fragment.items[0].body[0].type
-        next_owner = DEFINITION.search(masked, owner.end())
-        stop = next_owner.start() if next_owner else len(source)
-        # Preserve this owner's interfaces/nets, but remove instance bodies, which
-        # may be unfinished. Resolve public types without elaborating connections.
-        kept, instance_indent = [], None
-        raw_lines = source[owner.end() : stop].splitlines(keepends=True)
-        for raw, line in zip(raw_lines, masked[owner.end() : stop].splitlines(keepends=True)):
-            indent = len(line) - len(line.lstrip())
-            if instance_indent is not None and line.strip() and indent <= instance_indent:
-                if line.strip().startswith(")"):
-                    continue
-                instance_indent = None
-            if INSTANCE.match(line):
-                instance_indent = indent
-            if instance_indent is None:
-                kept.append(raw)
+        fragment = parse("component Completion:\n    metadata:\n        value: " + match[1] + "\n")
+        expr = fragment.items[0].body[0].entries[0].value
         dummy = "__lsp_completion"
         while dummy in source:
             dummy += "_"
-        # The placeholder instance takes the body's own indentation.
-        body = re.search(r"\n([ \t]+)\S", masked[owner.end() : stop])
+        # A placeholder declaration takes the body's own indentation.
+        body = re.search(r"\n([ \t]+)\S", masked[owner.end : stop])
         recovered = (
-            source[: owner.end()]
-            + f"\n{body[1] if body else INDENT}inst {dummy}: {dummy}\n"
-            + "".join(kept)
+            source[: owner.end]
+            + f"\n{body[1] if body else INDENT}{dummy} {dummy}"
+            + skeleton(masked, source, owner, stop)
             + source[stop:]
         )
         project = load_project(config, sources={**sources, path: recovered})
         module = next(m for m in project.modules.values() if m.path == path)
         definitions = Resolver(project).resolve_interfaces()
-        context = definitions[(module.name, owner[2])]
+        context = definitions[(module.name, owner.name)]
         if ports_only:
             symbol = module.symbols.get(active[2])
             if symbol is None or symbol.declaration is None:
@@ -298,8 +344,8 @@ def erc_completion(path, config, sources, offset):
     """Complete rule names, parameter keywords, and typed arguments in check calls."""
     source = sources[path]
     masked = masked_source(source, offset)
-    owners = list(DEFINITION.finditer(masked or "", 0, offset))
-    if masked is None or not owners:
+    owner, _ = owner_before(masked or "", offset)
+    if masked is None or owner is None:
         return []
     ancestors = []
     pos = 0
@@ -325,7 +371,7 @@ def erc_completion(path, config, sources, offset):
     start = offset - len(word)
     end = offset + len(re.match(r"[A-Za-z0-9_#]*", masked[offset:]).group())
     try:
-        project, module = recovered_project(path, config, sources, masked, owners[-1])
+        project, module = recovered_project(path, config, sources, masked, owner)
     except (DiagnosticError, OSError, UnicodeError, ValueError):
         return []
     if module is None:
@@ -415,30 +461,41 @@ def recovered_project(path, config, sources, masked, owner):
     import graph and component definitions, without stale ASTs.
     """
     source = sources[path]
-    next_owner = DEFINITION.search(masked, owner.end())
-    stop = next_owner.start() if next_owner else len(source)
-    base = " extends NoschemeCompletionType" if owner[1] == "nettype" else ""
-    body = (
-        "    wiring_capacitance: 0\n"
-        if owner[1] == "nettype"
-        else "    metadata:\n        custom:\n            completion: true\n"
-    )
-    recovered = source[: owner.start()] + f"{owner[1]} {owner[2]}{base}:\n" + body + source[stop:]
+    following = HEADER.search(masked, owner.end)
+    stop = following.start() if following else len(source)
+    return loaded(path, config, sources, source[: owner.start] + stub(owner) + source[stop:])
+
+
+def loaded(path, config, sources, recovered):
     project = load_project(config, sources={**sources, path: recovered})
     return project, next((m for m in project.modules.values() if m.path == path), None)
 
 
+def without_line_region(path, config, sources, masked, line_start):
+    """Load the project without the header being typed and the body that follows it."""
+    source = sources[path]
+    following = HEADER.search(masked, source.find("\n", line_start) + 1 or len(source))
+    stop = following.start() if following else len(source)
+    return loaded(path, config, sources, source[:line_start] + source[stop:])
+
+
+def target_definition(project, module, spelling):
+    symbol = module.symbols.get(spelling) if module else None
+    if symbol is None or symbol.declaration is None:
+        return None
+    return Resolver(project).resolve_interfaces()[(symbol.module, symbol.name)]
+
+
 def inline_completion(path, config, sources, offset, masked):
-    """Offer pins/parameters and bundle members inside an instance's argument list."""
-    owners = list(DEFINITION.finditer(masked, 0, offset))
-    if not owners or owners[-1][1] not in {"board", "block"}:
+    """Offer pins and bundle members inside a declaration's connection list."""
+    owner, _ = owner_before(masked, offset)
+    if owner is None or owner.kind not in {"board", "block"}:
         return []
-    owner = owners[-1]
-    instances = list(re.finditer(ARGUMENTS.pattern, masked[owner.end() : offset], re.M))
+    instances = list(ARGUMENTS.finditer(masked, owner.end, offset))
     if not instances:
         return []
     active = instances[-1]
-    opening = owner.end() + active.end()
+    opening = active.end()
     arguments = masked[opening:offset]
     depth = 0
     for char in arguments:
@@ -447,7 +504,7 @@ def inline_completion(path, config, sources, offset, masked):
         elif char in ")]":
             depth -= 1
         if depth < 0:
-            return []  # The instance has already closed.
+            return []  # The declaration's list has already closed.
     _, keyword, argument = current_argument(arguments)
     if keyword or depth:
         return []
@@ -457,11 +514,13 @@ def inline_completion(path, config, sources, offset, masked):
     if "." in argument:
         reference = re.sub(rf"^(?:{IDENTIFIER}|[0-9]+)?\s*:\s*", "", argument)
         if re.fullmatch(rf".+\.{WORD}", reference):
-            prefix = f"\n{active[1]}{INDENT}1: "
+            prefix = f":\n{active[1]}{INDENT}1: "
             source = sources[path]
+            # The virtual body follows the declaration's name, replacing its list.
             reference_start = offset - len(reference)
-            virtual = source[:opening] + prefix + source[reference_start:]
-            delta = opening + len(prefix) - reference_start
+            header = active.start(3) + len(active[3])
+            virtual = source[:header] + prefix + source[reference_start:]
+            delta = header + len(prefix) - reference_start
             virtual_masked = masked_source(virtual, offset + delta)
             if virtual_masked is not None:
                 return [
@@ -474,10 +533,9 @@ def inline_completion(path, config, sources, offset, masked):
         return []
     try:
         project, module = recovered_project(path, config, sources, masked, owner)
-        symbol = module.symbols.get(active[2]) if module else None
-        if symbol is None or symbol.declaration is None:
+        target = target_definition(project, module, active[2])
+        if target is None:
             return []
-        target = Resolver(project).resolve_interfaces()[(symbol.module, symbol.name)]
         tail = re.match(WORD, masked[offset:]).group()
         start, end = offset - len(argument), offset + len(tail)
         suffix = masked[end:].lstrip()
@@ -492,15 +550,6 @@ def inline_completion(path, config, sources, offset, masked):
                     "pin",
                 )
             )
-        choices.extend(
-            (
-                name,
-                name + ("" if suffix.startswith("=") else "="),
-                f"{target.name}: parameter {name}",
-                "parameter",
-            )
-            for name in target.parameters
-        )
         return [
             Suggestion(label, text, detail, kind, start, end)
             for label, text, detail, kind in sorted(choices)
@@ -508,6 +557,82 @@ def inline_completion(path, config, sources, offset, masked):
         ]
     except (DiagnosticError, OSError, UnicodeError):
         return []
+
+
+def open_parameters(masked, offset):
+    """The `<` of a parameter list open at offset, with the header before it, or None.
+
+    A declaration's header is indented; an extension's header starts its line.
+    """
+    opening = masked.rfind("<", 0, offset)
+    if opening < 0 or ">" in masked[opening:offset]:
+        return None
+    line_start = masked.rfind("\n", 0, opening) + 1
+    header = re.fullmatch(
+        rf"([ \t]*)(extend[ \t]+|global[ \t]+)?({TYPE_PATH})[ \t]*", masked[line_start:opening]
+    )
+    extension = header is not None and (header[2] or "").startswith("extend")
+    if header is None or extension == bool(header[1]):
+        return None
+    return opening, line_start, header
+
+
+def parameter_completion(path, config, sources, offset, masked):
+    """Offer parameter names inside `<...>` of a declaration or an extension header."""
+    found = open_parameters(masked, offset)
+    if found is None:
+        return []
+    opening, line_start, header = found
+    arguments = masked[opening + 1 : offset]
+    if "(" in arguments or "[" in arguments:
+        return []
+    *previous, argument = arguments.split(",")
+    if not re.fullmatch(r"\s*" + WORD, argument):
+        return []
+    word = argument.strip()
+    named = {m[1] for m in re.finditer(rf"({IDENTIFIER})\s*:", ",".join(previous))}
+    try:
+        if header[1]:
+            owner, _ = owner_before(masked, offset)
+            if owner is None:
+                return []
+            project, module = recovered_project(path, config, sources, masked, owner)
+        else:
+            project, module = without_line_region(path, config, sources, masked, line_start)
+        target = target_definition(project, module, header[3])
+        if target is None:
+            return []
+        tail = re.match(WORD, masked[offset:]).group()
+        start, end = offset - len(word), offset + len(tail)
+        suffix = "" if masked[end:].lstrip().startswith(":") else ": "
+        return [
+            Suggestion(
+                name, name + suffix, f"{target.name}: parameter {name}", "parameter", start, end
+            )
+            for name in sorted(target.parameters)
+            if name.startswith(word) and name not in named
+        ]
+    except (DiagnosticError, OSError, UnicodeError):
+        return []
+
+
+def type_choices(module, kinds, owner=None, *, builtin_nets=False):
+    """Visible definitions of the given kinds, except the owner itself, and builtin nets."""
+    choices = [
+        (name, name, f"{symbol.declaration.kind} {symbol.module}.{symbol.name}", "type")
+        for name, symbol in module.symbols.items()
+        if symbol.declaration
+        and symbol.declaration.kind in kinds
+        and not (owner and symbol.module == module.name and symbol.name == owner.name)
+    ]
+    if builtin_nets:
+        choices.extend(
+            (f"{name}.{v}", f"{name}.{v}", f"{name}.{v}", "enum")
+            for name, symbol in module.symbols.items()
+            if symbol.module == "noscheme" and symbol.name == "net"
+            for v in NETTYPES
+        )
+    return choices
 
 
 def completion_items(path, config, sources, offset):
@@ -522,47 +647,44 @@ def completion_items(path, config, sources, offset):
     masked = masked_source(source, offset)
     if masked is None or config is None:
         return []
-    from .lsp_scope_completion import scope_completion
+    from .lsp_scope_completion import ancestors, scope_completion
 
-    if scoped := scope_completion(path, config, sources, offset, masked):
-        return scoped
-    inline = inline_completion(path, config, sources, offset, masked)
-    if inline:
-        return inline
-    bundles = bundle_completion(path, config, sources, offset, masked)
-    if bundles:
-        return bundles
+    for complete in (scope_completion, parameter_completion, inline_completion, bundle_completion):
+        if found := complete(path, config, sources, offset, masked):
+            return found
     line_start = source.rfind("\n", 0, offset) + 1
     before = masked[line_start:offset]
     tail = re.match(WORD, masked[offset:]).group()
     word = re.search(WORD + r"$", before).group()
     start, end = offset - len(word), offset + len(tail)
     namespace = re.search(rf"(?<![A-Za-z0-9_#.])({TYPE_PATH})\.({WORD})$", before)
-    instance_type = re.fullmatch(
-        rf"\s*inst\s+{IDENTIFIER}(?:\[[^\n]*?\])*\s*:\s*{TYPE_PREFIX}", before
+    owner, _ = owner_before(masked, offset)
+    parents, _ = ancestors(masked, offset)
+    # A type starts an extension header, a body line, a bundle member, or a port.
+    base_type = re.fullmatch(rf"extend[ \t]+{TYPE_PREFIX}", before)
+    declared_type = re.fullmatch(rf"[ \t]+(global[ \t]+)?{TYPE_PREFIX}", before)
+    body_line = owner is not None and len(parents) == 1 and owner.kind in {"board", "block"}
+    net_line = owner is not None and (
+        len(parents) == 1 and owner.kind == "bundle" or parents[1:] == ["ports:"]
     )
-    base_type = re.compile(
-        rf"(component|block|nettype)[ \t]+({IDENTIFIER})[ \t]+extends[ \t]+{TYPE_PREFIX}$"
-    ).match(masked, line_start, offset)
-    net_type = re.fullmatch(
-        rf"\s*(?:global\s+)?net\s+{IDENTIFIER}(?:\s*,\s*{IDENTIFIER})*\s*:\s*{TYPE_PREFIX}", before
-    )
-    if instance_type or base_type or net_type:
+    if declared_type and not (body_line or net_line):
+        declared_type = None
+    if base_type or declared_type:
         word = re.search(TYPE_PREFIX + r"$", before).group()
         tail = re.match(TYPE_PREFIX, masked[offset:]).group()
         start, end = offset - len(word), offset + len(tail)
         namespace = None
     pin = re.fullmatch(rf"\s*(?:\[[^\n]*?\]\.)?{WORD}", before)
     pin_list = re.fullmatch(rf"\s*(?:\[[^\n]*?\]\.)?\[[^\]:]*{WORD}", before)
-    if not (namespace or instance_type or base_type or net_type or pin or pin_list):
+    if not (namespace or base_type or declared_type or pin or pin_list):
         return []
-
-    owners = list(DEFINITION.finditer(masked, 0, offset))
-    if not owners and not base_type:
+    if owner is None and not base_type:
         return []
-    owner = base_type or owners[-1]
     try:
-        project, module = recovered_project(path, config, sources, masked, owner)
+        if base_type:
+            project, module = without_line_region(path, config, sources, masked, line_start)
+        else:
+            project, module = recovered_project(path, config, sources, masked, owner)
         if module is None:
             return []
         choices = []
@@ -572,41 +694,25 @@ def completion_items(path, config, sources, offset):
             if (
                 imported is None
                 or imported.module != "noscheme"
-                or imported.name not in {"role", "nettype"}
+                or imported.name not in {"role", "net"}
             ):
                 return []
             choices = [
                 (v, v, f"{name}.{v}", "enum")
                 for v in (ROLES if imported.name == "role" else NETTYPES)
             ]
-        elif instance_type or base_type or net_type:
-            if instance_type and owner[1] not in {"board", "block"}:
-                return []
-            kinds = (
-                {owner[1]}
-                if base_type
-                else ({"nettype", "bundle"} if net_type else {"component", "block"})
-            )
-            choices = [
-                (name, name, f"{symbol.declaration.kind} {symbol.module}.{symbol.name}", "type")
-                for name, symbol in module.symbols.items()
-                if symbol.declaration
-                and symbol.declaration.kind in kinds
-                and not (base_type and symbol.module == module.name and symbol.name == owner[2])
-            ]
-            if net_type or (base_type and owner[1] == "nettype"):
-                choices.extend(
-                    (f"{name}.{v}", f"{name}.{v}", f"{name}.{v}", "enum")
-                    for name, symbol in module.symbols.items()
-                    if symbol.module == "noscheme" and symbol.name == "nettype"
-                    for v in NETTYPES
-                )
+        elif base_type:
+            choices = type_choices(module, {"component", "block", "nettype"}, builtin_nets=True)
+        elif declared_type:
+            nets_only = net_line or declared_type[1]
+            kinds = {"bundle", "nettype"} | (set() if nets_only else {"component", "block"})
+            choices = type_choices(module, kinds, owner, builtin_nets=True)
         else:
             active = connection_instance(masked, owner, line_start)
             if active is None:
                 return []
             symbol = module.symbols.get(active[2])
-            if symbol is None or symbol.declaration is None:
+            if symbol is None or symbol.declaration is None or net_type(module.symbols, active[2]):
                 return []
             definitions = Resolver(project).resolve_interfaces()
             target = definitions[(symbol.module, symbol.name)]
@@ -617,9 +723,7 @@ def completion_items(path, config, sources, offset):
                 )
                 choices.append((alias, spelling, f"{target.name}: pin/port {canonical}", "pin"))
         qualifier = (
-            word.rsplit(".", 1)[0] + "."
-            if (net_type or base_type or instance_type) and "." in word
-            else ""
+            word.rsplit(".", 1)[0] + "." if (base_type or declared_type) and "." in word else ""
         )
         return [
             Suggestion(

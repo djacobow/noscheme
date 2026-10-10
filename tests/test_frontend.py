@@ -16,11 +16,11 @@ ROOT = Path(__file__).resolve().parents[1]
     "source",
     [
         'component NAME:\n  metadata:\n    ref_prefix: "U"\n',
-        "board B:\n  net NAME: nettype.passive\n",
-        "board B:\n  inst NAME: Part()\n",
-        "component P:\n  params:\n    NAME: number = 1\n",
-        "block B:\n  ports:\n    NAME: nettype.passive\n",
-        "bundle B:\n  NAME: nettype.passive\n",
+        "board B:\n  net.passive NAME\n",
+        "board B:\n  Part NAME()\n",
+        "component P:\n  params:\n    number NAME = 1\n",
+        "block B:\n  ports:\n    net.passive NAME\n",
+        "bundle B:\n  net.passive NAME\n",
         "component P:\n  pins:\n    NAME:\n      role: role.passive\n",
         "from library import R as NAME\n",
         "from library import NAME\n",
@@ -49,8 +49,8 @@ def test_quoted_physical_pins_and_metadata_keys_are_not_reserved():
     custom:
       true: false
 board B:
-  net inst: nettype.passive
-  inst net: P
+  net.passive inst
+  P net:
     "global": inst
 """)
 
@@ -90,7 +90,7 @@ def test_reference_and_corpus_are_typed_and_located(path):
 
 def test_ast_preserves_kind_defaults_aliases_and_pin_spelling():
     m = parse(
-        'component R:\n  params:\n    value: string = "1k"\n  pins:\n    01 (A, "EP-1"):\n    1:\n      role: role.passive\ncomponent S extends R:\n  defaults:\n    value: "2k"\n'
+        'component R:\n  params:\n    string value = "1k"\n  pins:\n    01 (A, "EP-1"):\n    1:\n      role: role.passive\nextend R<value: "2k"> S\n'
     )
     base, child = m.items
     assert base.kind == "component"
@@ -104,7 +104,7 @@ def test_ast_preserves_kind_defaults_aliases_and_pin_spelling():
 
 def test_expression_associativity_and_postfix():
     m = parse(
-        'component P:\n  params:\n    n: number = 8 - 3 - 1 << 2 * 3\n    s: string = "{0}".format(f.nF(10))\n'
+        'component P:\n  params:\n    number n = 8 - 3 - 1 << 2 * 3\n    string s = "{0}".format(f.nF(10))\n'
     )
     n, s = m.items[0].body[0].entries
     assert n.default.operator == "<<"
@@ -117,7 +117,7 @@ def test_expression_associativity_and_postfix():
 
 
 def test_endpoint_indices_ranges_and_caller_scope():
-    m = parse("board B:\n  inst r[2]: R\n    [1].bus[2].data: global.n[0:4]\n    11..20: pins\n")
+    m = parse("board B:\n  R r[2]:\n    [1].bus[2].data: global.n[0:4]\n    11..20: pins\n")
     inst = m.items[0].body[0]
     first, second = inst.sections[0].entries
     assert first.endpoint.instance_indices[0].start.spelling == "1"
@@ -135,7 +135,7 @@ def test_endpoint_indices_ranges_and_caller_scope():
         'component C:\n  pins:\n    1 (a):\n    "1" (b):\n',
         "component C:\n  metadata:\n    custom:\n      item: 1\n      item: 2\n",
         "component C:\n  pins:\n    1:\n      role: r\n  pins:\n    2:\n      role: r\n",
-        'board B:\n  inst r: R\n    params:\n      value: "a"\n      value: "b"\n',
+        'board B:\n  R r:\n    params:\n      value: "a"\n      value: "b"\n',
     ],
 )
 def test_duplicates_report_both_locations(source):
@@ -152,18 +152,21 @@ def test_duplicates_report_both_locations(source):
 @pytest.mark.parametrize(
     "source,code",
     [
-        ("component C:\n  net n: T\n", "syntax.declaration-context"),
-        ("block B:\n  global net n: T\n", "syntax.global-context"),
+        ("component C:\n  T n\n", "syntax.declaration-context"),
+        ("block B:\n  global T n\n", "syntax.global-context"),
         ("board B:\n  pins:\n    1:\n      role: r\n", "syntax.section-context"),
         ('component C:\n  metadata:\n    value: string = "x"\n', "syntax.default-context"),
         ("component C:\n  params:\n    value:\n      nested: 1\n", "syntax.parameter"),
-        ("board B:\n\tnet n: T\n", "syntax.indentation"),
+        ("board B:\n\tT n\n", "syntax.indentation"),
         ('component C:\n  metadata:\n    value: "\\q"\n', "syntax.string"),
-        ("component C extends P:\n  ports:\n    n: T\n", "syntax.section-context"),
-        (
-            "bundle B extends A:\n  metadata:\n    custom:\n      x: 1\n",
-            "syntax.inheritance-context",
-        ),
+        ("component C:\n  params:\n    nested:\n      x: 1\n", "syntax.parameter"),
+        ("component C:\n  params:\n    value: number\n", "syntax.declaration-form"),
+        ("block B:\n  ports:\n    supply: net.power\n", "syntax.declaration-form"),
+        ("bundle B:\n  scl: net.passive\n", "syntax.declaration-form"),
+        ("component C:\n  metadata:\n    number gain\n", "syntax.declaration-form"),
+        ("component C:\n  defaults:\n    value: 1\n", "syntax.declaration-context"),
+        ("board B:\n  R<1, 2> r\n", "syntax.parameter-order"),
+        ("board B:\n  R<x: 1, 2> r\n", "syntax.parameter-order"),
     ],
 )
 def test_invalid_structure(source, code):
@@ -186,17 +189,17 @@ def test_negative_corpus_locations(name, expected):
 
 def test_empty_and_crlf_sources_and_comment_offsets():
     assert parse("").items == ()
-    source = "/* a\r\n b */\r\nboard B:\r\n  net n: T"
+    source = "/* a\r\n b */\r\nboard B:\r\n  T n"
     m = parse(source)
     assert m.items[0].name.span.line == 3
     assert m.items[0].span.end_pos == len(source)
-    assert parse("//\tcomment\nboard B:\n  net n: T\n")
+    assert parse("//\tcomment\nboard B:\n  T n\n")
 
 
 def test_cli_atomic_artifact_and_diagnostics(tmp_path, capsys):
     source = tmp_path / "main.nosch"
     output = tmp_path / "out" / "ast.json"
-    source.write_text("board B:\n  net n: T\n")
+    source.write_text("board B:\n  T n\n")
     assert main(["parse", str(source), "--output", str(output)]) == 0
     before = output.read_bytes()
     assert json.loads(before)["module"]["node"] == "Module"

@@ -52,8 +52,8 @@ SOURCE = """component Contact:
       role: role.passive
       unused: unused.never
 board B:
-  net bus: nettype.tristate
-  inst connectors[2]: Contact
+  net.tristate bus
+  Contact connectors[2]:
     1: bus
     metadata:
       pins:
@@ -86,12 +86,12 @@ def test_public_tristate_port_checks_internal_driver(tmp_path):
       tristate_capable: true
 block Device:
   ports:
-    bus: nettype.tristate
-  inst output: Driver
+    net.tristate bus
+  Driver output:
     1: bus
 board B:
-  net bus: nettype.tristate
-  inst devices[2]: Device
+  net.tristate bus
+  Device devices[2]:
     bus: bus
 """
     assert codes(compile_source(tmp_path, source)) == []
@@ -113,13 +113,13 @@ def test_capability_inheritance_and_override(tmp_path):
     source = (
         SOURCE.replace(
             "board B:",
-            """component TriContact extends Contact:
+            """extend Contact TriContact:
   pins:
     1:
       tristate_capable: true
 board B:""",
         )
-        .replace("connectors[2]: Contact", "connectors[2]: TriContact")
+        .replace("Contact connectors[2]:", "TriContact connectors[2]:")
         .replace("          tristate_capable: true\n", "")
     )
     assert codes(compile_source(tmp_path, source)) == []
@@ -134,8 +134,8 @@ def test_capability_waiver_is_reported(tmp_path):
     from noscheme.erc import apply_erc
 
     source = SOURCE.replace("tristate_capable: true", "tristate_capable: false").replace(
-        "  inst connectors",
-        '    waivers:\n      tristate_capability: "Reviewed external equipment."\n  inst connectors',
+        "  net.tristate bus\n",
+        '  net.tristate bus:\n    waivers:\n      tristate_capability: "Reviewed external equipment."\n',
     )
     c = compile_source(tmp_path, source)
     apply_erc(c)

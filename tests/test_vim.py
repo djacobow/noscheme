@@ -16,21 +16,22 @@ def test_noscheme_runtime(tmp_path, editor):
     if binary is None:
         pytest.skip(f"{editor} is not installed")
     source = [
-        "net buttons#: nettype.digital",
-        "net #reset: nettype.digital // TODO test",
+        "net.digital buttons#",
+        "net.digital #reset:  // TODO test",
         "  bias: bias.pull_up",
         '  value: "https://example/*ok*/\\\\path"',
-        "/* block /* does not nest */ net visible: nettype.digital",
-        "net sizes: 10.5e-2 << 1",
-        "inst bank[2]: Device",
+        "/* block /* does not nest */ global net.digital visible",
+        "10.5e-2 << 1 sizes",
+        "Device bank[2]:",
         "  01..03: no_connect",
-        "inst probe: Device(1: n)",
+        "Device<value: 1k> probe(1: n)",
         "net# is_an_identifier",
         "/* multiline",
-        "net hidden: nettype.digital",
+        "net.digital hidden",
         "*/",
         "component Resistor:",
         "  value: num.round(4.7k) + 4k7",
+        "extend Resistor<4.7k> Pullup",
     ]
     design = tmp_path / "sample.nosch"
     design.write_text("\n".join(source) + "\n")
@@ -49,9 +50,8 @@ def test_noscheme_runtime(tmp_path, editor):
         "call assert_equal('#reset', matchstr('#reset', '\\k\\+'))",
     ]
     for line, token, group in [
-        (1, "net", "noschemeKeyword"),
         (1, "buttons#", ""),
-        (1, "nettype.digital", "noschemeBuiltin"),
+        (1, "net.digital", "noschemeBuiltin"),
         (2, "#reset", ""),
         (2, "TODO", "noschemeTodo"),
         (3, "bias.pull_up", "noschemeBuiltin"),
@@ -59,7 +59,7 @@ def test_noscheme_runtime(tmp_path, editor):
         (4, "/*ok*/", "noschemeString"),
         (4, "\\\\", "noschemeEscape"),
         (5, "block", "noschemeBlockComment"),
-        (5, "net visible", "noschemeKeyword"),
+        (5, "global", "noschemeKeyword"),
         (6, "10.5e-2", "noschemeNumber"),
         (6, "<<", "noschemeOperator"),
         (8, "01", "noschemeNumber"),
@@ -70,6 +70,9 @@ def test_noscheme_runtime(tmp_path, editor):
         (15, "num.round", "noschemeFunction"),
         (15, "4.7k", "noschemeNumber"),
         (15, "4k7", "noschemeNumber"),
+        (9, "<", "noschemeDelimiter"),
+        (16, "extend", "noschemeDeclaration"),
+        (16, "Resistor", "noschemeTypeName"),
     ]:
         column = source[line - 1].index(token) + 1
         commands.append(

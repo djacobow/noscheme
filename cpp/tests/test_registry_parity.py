@@ -37,7 +37,7 @@ def test_project_with_real_bridge(probe, example):
 def test_plugin_imports_and_snapshot_edits(probe, tmp_path):
     path = make_project(
         tmp_path,
-        {"src/main.nosch": "from local import custom\nboard B:\n  net n: T\n"},
+        {"src/main.nosch": "from local import custom\nboard B:\n  T n\n"},
         erc_modules=["rules.py"],
     )
     plugin = tmp_path / "rules.py"

@@ -1,14 +1,14 @@
 // Adapted from Jeremy Elson / rulos. See README.md.
-from noscheme import nettype, unused, role
+from noscheme import net, unused, role
 from components import Display, SinkDriver, Resistor, Cap0603
 from interfaces import Rows, Segments
 
 // One column: six digits share segment cathodes; each row has its own anode.
 block Column:
   ports:
-    rows: Rows
-    segments: Segments
-  inst digits[6]: Display
+    Rows rows
+    Segments segments
+  Display digits[6]:
     A: segments.a
     B: segments.b
     C: segments.c
@@ -27,28 +27,28 @@ block Column:
 // Corresponds to the original Eagle module 2COL-7SEG.
 block TwoColumns:
   ports:
-    rows: Rows
-    supply: nettype.power
+    Rows rows
+    net.power supply:
       role: role.power_input
-    ground: nettype.ground
+    net.ground ground:
       role: role.ground
-    sdi: nettype.digital
+    net.digital sdi:
       role: role.digital_input
-    sdo: nettype.digital
+    net.digital sdo:
       role: role.digital_output
       unused: unused.always
-    clock: nettype.digital
+    net.digital clock:
       role: role.digital_input
-    latch: nettype.digital
+    net.digital latch:
       role: role.digital_input
-    blank: nettype.digital
+    net.digital blank:
       role: role.digital_input
-  net left_segments: Segments
-  net right_segments: Segments
-  net current_set: nettype.passive
-  inst left: Column(rows: rows, segments: left_segments)
-  inst right: Column(rows: rows, segments: right_segments)
-  inst driver: SinkDriver(
+  Segments left_segments
+  Segments right_segments
+  net.passive current_set
+  Column left(rows: rows, segments: left_segments)
+  Column right(rows: rows, segments: right_segments)
+  SinkDriver driver(
     VCC: supply,
     GND: ground,
     EP: ground,
@@ -77,5 +77,5 @@ block TwoColumns:
   )
   // 1k sets approximately 20mA: 80% of the Inolux 25mA continuous rating.
   // See README for temperature, multiplexing, and voltage-headroom limits.
-  inst current_resistor: Resistor(ground, current_set, value=1k)
-  inst bypass: Cap0603(supply, ground, value=1u)
+  Resistor<1k> current_resistor(ground, current_set)
+  Cap0603<1u> bypass(supply, ground)

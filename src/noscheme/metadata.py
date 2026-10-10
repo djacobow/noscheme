@@ -452,7 +452,7 @@ def read_value(key, kind, expr, scope, project, module, local_names=()):
             alternatives = {
                 "bias": BIAS_VALUES,
                 "role": ROLES,
-                "nettype": NETTYPES,
+                "net": NETTYPES,
                 "unused": UNUSED,
             }
             if symbol is None or symbol.name not in alternatives:

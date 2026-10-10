@@ -6,6 +6,7 @@ import re
 from . import ast as a
 from .diagnostics import DiagnosticError
 from .lsp_completion import masked_source
+from .lsp_identity import header_end as declaration_end
 from .project import load_project
 from .resolve import Resolver
 
@@ -18,17 +19,7 @@ def action_edits(text, start, pins, parameters, metadata):
     line_start = text.rfind("\n", 0, start) + 1
     indent = text[line_start:start]
     newline = "\r\n" if "\r\n" in text else "\n"
-    depth = 0
-    header_end = len(text)
-    for i in range(start, len(masked)):
-        char = masked[i]
-        if char in "([":
-            depth += 1
-        elif char in ")]":
-            depth -= 1
-        if char == "\n" and depth == 0:
-            header_end = i + 1
-            break
+    header_end = min(len(text), declaration_end(masked, start) + 1)
     stop = len(text)
     sections = []
     default_body_indent = indent + (indent or "    ")
@@ -99,10 +90,17 @@ def action_edits(text, start, pins, parameters, metadata):
         insert(
             stop, [body_indent + "// metadata:", body_indent + "//     Add metadata fields here."]
         )
-    return [
+    result = [
         (at, (newline if at and text[at - 1] != "\n" else "") + value)
         for at, value in sorted(edits.items())
     ]
+    # A body follows the declaration line's ':', before any trailing comment; lines
+    # that are only comments do not make one.
+    code_end = len(masked[:header_end].rstrip())
+    code = [line for value in edits.values() for line in value.splitlines() if line.strip()]
+    if any(not line.strip().startswith("//") for line in code) and masked[code_end - 1] != ":":
+        result.insert(0, (code_end, ":"))
+    return result
 
 
 def instance_actions(path, config, sources, offset):
@@ -147,6 +145,8 @@ def instance_actions(path, config, sources, offset):
                 supplied = {
                     arg.name.text for s in node.sections if s.name == "params" for arg in s.entries
                 }
+                if node.parameter is not None and target.unnamed:
+                    supplied.add(target.unnamed)
                 pins = []
                 for name, pin in sorted(target.interface.items()):
                     if name in bound or (

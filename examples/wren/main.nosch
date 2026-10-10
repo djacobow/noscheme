@@ -1,30 +1,28 @@
 // A disconnected subsystem benchmark, not a standalone functional board.
-from noscheme import nettype, role
+from noscheme import net, role
 from components import Resistor
 from drivers import OutputBank
 
 // Explicit boundary endpoints stand in for the remainder of WREN.
 block SurroundingWren:
   ports:
-    supply: nettype.unchecked
-    logic_supply: nettype.unchecked
-    ground: nettype.unchecked
-    enable#: nettype.unchecked
-    input: nettype.unchecked[4][4][2]
-    output: nettype.unchecked[4][4][2]
+    net.unchecked supply
+    net.unchecked logic_supply
+    net.unchecked ground
+    net.unchecked enable#
+    net.unchecked input[4][4][2]
+    net.unchecked output[4][4][2]
 
 board WrenOutputs:
   // Boundary nets represent power and signals provided by the rest of WREN.
   // Electrical policies are deliberately unchecked in this connectivity pilot.
-  net supply, logic_supply, ground, enable#: nettype.unchecked
-  net input, output: nettype.unchecked[4][4][2]
-  inst banks[4]: OutputBank(*)
-  inst enable_pullup: Resistor
+  net.unchecked supply, logic_supply, ground, enable#
+  net.unchecked input[4][4][2], output[4][4][2]
+  OutputBank banks[4](*)
+  Resistor<"R0402_10K_1%_0.0625W_100PPM"> enable_pullup:
     1: enable#
     2: supply
-    params:
-      value: "R0402_10K_1%_0.0625W_100PPM"
-  inst surrounding: SurroundingWren(*)
+  SurroundingWren surrounding(*):
     metadata:
       pins:
         supply:

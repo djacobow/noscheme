@@ -14,14 +14,14 @@ from noscheme.lsp_analysis import analyze, find_project
 from noscheme.project import load_project
 from test_circuit import make
 
-SOURCE = """from noscheme import role, nettype
+SOURCE = """from noscheme import role, net
 component Receiver:
     pins:
         signal:
             role: role.digital_input
 board B:
-    net bus: nettype.tristate
-    inst receivers[2]: Receiver
+    net.tristate bus
+    Receiver receivers[2]:
         signal: bus
 """
 
@@ -119,6 +119,7 @@ def client(project):
         )["capabilities"]
         assert capabilities["definitionProvider"]
         assert capabilities["hoverProvider"]
+        assert {"<", "(", ","} <= set(capabilities["completionProvider"]["triggerCharacters"])
         c.send("initialized", {})
         yield c
     finally:
@@ -143,12 +144,12 @@ def test_protocol_diagnostics_navigation_and_unsaved_edits(client, project):
     path = project / "main.nosch"
     open_document(client, path, SOURCE)
     assert not any(d["severity"] == 1 for d in client.diagnostics(path.as_uri(), 1))
-    params = {"textDocument": {"uri": path.as_uri()}, "position": {"line": 7, "character": 25}}
+    params = {"textDocument": {"uri": path.as_uri()}, "position": {"line": 7, "character": 6}}
     location = client.request("textDocument/definition", params)
     assert location["uri"] == path.as_uri()
     assert location["range"]["start"]["line"] == 1
     assert "Receiver" in client.request("textDocument/hover", params)["contents"]["value"]
-    broken = SOURCE.replace("nettype.tristate", "nettype.digital")
+    broken = SOURCE.replace("net.tristate", "net.digital")
     client.send(
         "textDocument/didChange",
         {
@@ -241,7 +242,7 @@ def test_utf16_diagnostics_and_incremental_edits(client, project):
     text = (
         SOURCE.replace(
             "component Receiver:\n",
-            'component Receiver:\n    params:\n        value: string = ""\n',
+            'component Receiver:\n    params:\n        string value = ""\n',
         )
         + '        params:\n            value: "😀{0}".format(missing)\n'
     )
@@ -280,7 +281,7 @@ def test_lexical_net_and_pin_alias_navigation(project):
     pin = result.reference_at(path, text.index("input: bus"))
     net = result.reference_at(path, text.index("input: bus") + len("input: "))
     assert pin.target.line == 4
-    assert net.target.start_pos == text.index("bus: nettype")
+    assert net.target.start_pos == text.index("tristate bus") + len("tristate ")
 
 
 def test_standalone_file_gets_syntax_diagnostics(tmp_path):
@@ -293,7 +294,7 @@ def test_open_dependency_edits_recheck_board_and_close_restores_disk(client, pro
     path = project / "main.nosch"
     library = project / "parts.nosch"
     source = (
-        "from noscheme import nettype\nfrom parts import Receiver\n"
+        "from noscheme import net\nfrom parts import Receiver\n"
         + SOURCE[SOURCE.index("board B:") :]
     )
     lib = (
@@ -316,7 +317,7 @@ def test_open_dependency_edits_recheck_board_and_close_restores_disk(client, pro
 @pytest.mark.parametrize(
     "old,new,label",
     [
-        ("receivers[2]: Receiver", "receivers[2]: Rec", "Receiver"),
+        ("Receiver receivers[2]:", "Rec", "Receiver"),
         ("signal: bus", "si", "signal"),
         ("role.digital_input", "role.digital_", "digital_input"),
     ],
@@ -349,7 +350,7 @@ def test_footprint_completion_protocol(client, project):
         custom:
             kicad_footprint_candidates: ["Test:A"]
 board B:
-    inst p: Part
+    Part p:
         metadata:
             footprint: "Test:"
 """
@@ -375,13 +376,13 @@ def test_qualified_import_protocol_completion_and_definition(client, project):
     library = project / "Device.nosch"
     library.write_text('component R:\n    metadata:\n        footprint: "Test:R"\n')
     path = project / "main.nosch"
-    text = "import Device\nfrom Device import R as Resistor\nboard B:\n    inst r: Device.R()\n"
+    text = "import Device\nfrom Device import R as Resistor\nboard B:\n    Device.R r()\n"
     open_document(client, path, text)
     result = client.request(
         "textDocument/definition",
         {
             "textDocument": {"uri": path.as_uri()},
-            "position": {"line": 3, "character": 19},
+            "position": {"line": 3, "character": 11},
         },
     )
     assert result["uri"] == library.as_uri()
@@ -389,24 +390,24 @@ def test_qualified_import_protocol_completion_and_definition(client, project):
         "textDocument/completion",
         {
             "textDocument": {"uri": path.as_uri()},
-            "position": {"line": 3, "character": 19},
+            "position": {"line": 3, "character": 11},
         },
     )
     item = next(i for i in result["items"] if i["label"] == "R")
     assert item["textEdit"]["newText"] == "R"
     assert item["textEdit"]["range"] == {
-        "start": {"line": 3, "character": 19},
-        "end": {"line": 3, "character": 20},
+        "start": {"line": 3, "character": 11},
+        "end": {"line": 3, "character": 12},
     }
 
 
-def test_extends_completion_without_colon_or_body(client, project):
+def test_extend_completion_without_name_or_body(client, project):
     (project / "Device.nosch").write_text(
         'component R:\n    metadata:\n        ref_prefix: "R"\n'
         "block Circuit:\n    metadata:\n        custom:\n            note: true\n"
     )
     path = project / "main.nosch"
-    text = "import Device\ncomponent Resistor extends Device.\nboard B:\n    inst r: Device.R()\n"
+    text = "import Device\nextend Device.\nboard B:\n    Device.R r()\n"
     open_document(client, path, text)
     result = client.request(
         "textDocument/completion",
@@ -415,25 +416,25 @@ def test_extends_completion_without_colon_or_body(client, project):
             "position": {"line": 1, "character": len(text.splitlines()[1])},
         },
     )
-    assert [item["label"] for item in result["items"]] == ["R"]
-    item = result["items"][0]
+    assert [item["label"] for item in result["items"]] == ["Circuit", "R"]
+    item = result["items"][1]
     assert item["textEdit"]["newText"] == "R"
     assert item["textEdit"]["range"] == {
-        "start": {"line": 1, "character": 34},
-        "end": {"line": 1, "character": 34},
+        "start": {"line": 1, "character": 14},
+        "end": {"line": 1, "character": 14},
     }
 
 
 def test_bundle_member_protocol_completion_navigation_and_hover(client, project):
     library = project / "interfaces.nosch"
     library.write_text(
-        "from noscheme import nettype\nbundle Bus:\n    sck: nettype.passive\n"
-        "block Port:\n    ports:\n        bus: Bus\n"
+        "from noscheme import net\nbundle Bus:\n    net.passive sck\n"
+        "block Port:\n    ports:\n        Bus bus\n"
     )
     path = project / "main.nosch"
     text = (
-        "import interfaces\nboard B:\n    net wire: interfaces.Bus\n"
-        "    inst p: interfaces.Port\n"
+        "import interfaces\nboard B:\n    interfaces.Bus wire\n"
+        "    interfaces.Port p:\n"
         "        bus.sck: wire.sck\n"
     )
     open_document(client, path, text)
@@ -484,7 +485,7 @@ def test_find_references_protocol_cross_file_and_unsaved_buffers(client, project
     library.write_text(LIBRARY)
     path = project / "main.nosch"
     open_document(client, path, REFERENCE_SOURCE)
-    offset = REFERENCE_SOURCE.index("library.Unit\n") + len("library.")
+    offset = REFERENCE_SOURCE.index("library.Unit<") + len("library.")
     prefix = REFERENCE_SOURCE[:offset]
     params = {
         "textDocument": {"uri": path.as_uri()},
@@ -496,7 +497,7 @@ def test_find_references_protocol_cross_file_and_unsaved_buffers(client, project
     assert {use["uri"] for use in uses} == {path.as_uri(), library.as_uri()}
     params["context"]["includeDeclaration"] = True
     assert len(client.request("textDocument/references", params)) == 6
-    changed = REFERENCE_SOURCE.replace("inst b: Alias", "inst b: library.Derived")
+    changed = REFERENCE_SOURCE.replace("Alias b", "library.Derived b")
     client.send(
         "textDocument/didChange",
         {
@@ -513,18 +514,18 @@ def test_reference_locations_use_negotiated_utf16(client, project):
     path = project / "main.nosch"
     text = """component Part:
     params:
-        n: number = 1
+        number n = 1
     metadata:
         value: "😀{0}".format(n)
 board B:
-    inst p: Part()
+    Part p()
 """
     open_document(client, path, text)
     result = client.request(
         "textDocument/references",
         {
             "textDocument": {"uri": path.as_uri()},
-            "position": {"line": 2, "character": 8},
+            "position": {"line": 2, "character": 15},
             "context": {"includeDeclaration": False},
         },
     )
@@ -588,18 +589,18 @@ def test_rename_versioned_edits_and_utf16(project):
         path = project / "main.nosch"
         text = """component Part:
     params:
-        count: number = 1
+        number count = 1
     metadata:
         value: "😀{0}".format(count)
 board B:
-    inst p: Part()
+    Part p()
 """
         open_document(c, path, text, version=7)
         result = c.request(
             "textDocument/rename",
             {
                 "textDocument": {"uri": path.as_uri()},
-                "position": {"line": 2, "character": 8},
+                "position": {"line": 2, "character": 15},
                 "newName": "size",
             },
         )
@@ -658,22 +659,22 @@ def test_builtin_hover_format_negotiation(project, formats):
         )
         c.send("initialized", {})
         path = project / "main.nosch"
-        source = "from noscheme import nettype\nboard B:\n    net bus: nettype.tristate\n"
+        source = "from noscheme import net\nboard B:\n    net.tristate bus\n"
         open_document(c, path, source)
         params = {
             "textDocument": {"uri": path.as_uri()},
-            "position": {"line": 2, "character": 23},
+            "position": {"line": 2, "character": 10},
         }
         result = c.request("textDocument/hover", params)
         assert result["contents"]["kind"] == formats[0]
         assert "tristate_capable: true" in result["contents"]["value"].replace("\\", "")
         if formats[0] == "markdown":
-            assert result["contents"]["value"].startswith("**nettype\\.tristate**\n\n- ")
+            assert result["contents"]["value"].startswith("**net\\.tristate**\n\n- ")
         else:
-            assert result["contents"]["value"].startswith("nettype.tristate\n\n")
+            assert result["contents"]["value"].startswith("net.tristate\n\n")
         assert result["range"] == {
-            "start": {"line": 2, "character": 13},
-            "end": {"line": 2, "character": 29},
+            "start": {"line": 2, "character": 4},
+            "end": {"line": 2, "character": 16},
         }
         assert c.request("textDocument/definition", params) is None
     finally:
@@ -683,8 +684,8 @@ def test_builtin_hover_format_negotiation(project, formats):
 def test_board_instance_rename_returns_identity_insertion(client, project):
     path = project / "main.nosch"
     open_document(client, path, SOURCE)
-    line = next(i for i, text in enumerate(SOURCE.splitlines()) if "inst receivers" in text)
-    params = {"textDocument": {"uri": path.as_uri()}, "position": {"line": line, "character": 10}}
+    line = next(i for i, text in enumerate(SOURCE.splitlines()) if "Receiver receivers" in text)
+    params = {"textDocument": {"uri": path.as_uri()}, "position": {"line": line, "character": 15}}
     prepared = client.request("textDocument/prepareRename", params)
     assert prepared["placeholder"] == "receivers"
     result = client.request("textDocument/rename", {**params, "newName": "inputs"})
@@ -723,7 +724,7 @@ def test_analysis_reuses_open_file_parse_and_still_checks_unimported_files(proje
 
 
 def test_check_calls_hover_rules_and_keep_field_names_out_of_scope(tmp_path):
-    source = """from noscheme import role, nettype, std
+    source = """from noscheme import role, net, std
 component P:
     pins:
         1:
@@ -731,16 +732,16 @@ component P:
             capacitance: 2p
 block Bus:
     params:
-        capacitance: number = 3
+        number capacitance = 3
     ports:
-        line: nettype.passive
+        net.passive line:
             checks:
                 load: std.sum(capacitance, max=capacitance * 10)
-    inst p: P
+    P p:
         1: line
 board B:
-    net n: nettype.passive
-    inst bus: Bus
+    net.passive n
+    Bus bus:
         line: n
 """
     make(tmp_path, "")
@@ -754,7 +755,7 @@ board B:
     )
     field = source.index("capacitance, max")
     limit = source.index("capacitance * 10")
-    declaration = source.index("capacitance: number")
+    declaration = source.index("number capacitance") + len("number ")
     assert result.reference_at(path, field) is None
     assert result.reference_at(path, limit).target.start_pos == declaration
 
@@ -762,38 +763,38 @@ board B:
 def test_net_type_navigation_hover_and_checks(tmp_path):
     from test_nettypes import SOURCE as nettypes
 
-    source = "from noscheme import role, unused, nettype\n" + nettypes
+    source = "from noscheme import role, unused, net\n" + nettypes
     make(tmp_path, "")
     path = tmp_path / "main.nosch"
     path.write_text(source)
     result = analyze(path, tmp_path / "noscheme.toml", {})
-    declaration = source.index("I2CLine extends")
-    use = source.index("scl: I2CLine") + len("scl: ")
+    declaration = source.index("I2CLine:")
+    use = source.index("I2CLine scl")
     assert result.reference_at(path, use).target.start_pos == declaration
     hover = result.hover_at(path, declaration).description
-    assert "nettype main.I2CLine" in hover and "Electrical type: nettype.open_drain" in hover
+    assert "nettype main.I2CLine" in hover and "Electrical type: net.open_drain" in hover
     call = source.index("std.parallel(pull_resistance")
     assert result.hover_at(path, call).description.startswith("net rule std.parallel(")
 
 
 def test_formatting_protocol_replaces_the_document_or_explains_a_refusal(client, project):
     path = project / "format.nosch"
-    open_document(client, path, "board B:\n  net a:T // é\n")
+    open_document(client, path, "board B:\n    T   a // é\n")
     params = {
         "textDocument": {"uri": path.as_uri()},
         "options": {"tabSize": 2, "insertSpaces": True},
     }
     (edit,) = client.request("textDocument/formatting", params)
-    assert edit["newText"] == "board B:\n  net a: T  // é\n"
+    assert edit["newText"] == "board B:\n  T a  // é\n"
     assert edit["range"] == {
         "start": {"line": 0, "character": 0},
         "end": {"line": 2, "character": 0},
     }
     open_document(client, path, edit["newText"], version=2)
     assert client.request("textDocument/formatting", params) == []
-    open_document(client, path, "board B:\n    net a:\n", version=3)
+    open_document(client, path, "board B:\n    T a:\n", version=3)
     assert client.request("textDocument/formatting", params) is None
-    open_document(client, path, "board B:\n    /* c */ net a: T\n", version=4)
+    open_document(client, path, "board B:\n    /* c */ T a\n", version=4)
     client.identifier += 1
     client.send("textDocument/formatting", params, client.identifier)
     response = client.wait(lambda m: m.get("id") == client.identifier)
@@ -833,7 +834,7 @@ def test_instance_code_actions_protocol(client, project, case):
 
     path = project / "main.nosch"
     text = case["source"]
-    offset = text.index("inst p") + 6
+    offset = text.index(" p", text.index("board B:")) + 1
     open_document(client, path, text)
 
     def position_at(at):
@@ -871,3 +872,40 @@ def test_instance_code_actions_protocol(client, project, case):
         )
         == []
     )
+
+
+@pytest.mark.parametrize(
+    "declaration,trigger,expected",
+    [
+        ("Capacitor0603<", "<", {"value"}),
+        ("Capacitor0603<100n> foo(", "(", {"1", "2"}),
+        ("Capacitor0603<100n> foo(1: wire,", ",", {"2"}),
+    ],
+)
+def test_automatic_instance_completion(client, project, declaration, trigger, expected):
+    path = project / "main.nosch"
+    text = (
+        """from noscheme import net, role
+component Capacitor:
+  params:
+    capacitance value
+  pins:
+    1..2: role.passive
+  metadata:
+    interchangeable: [1, 2]
+extend Capacitor<100n> Capacitor0603
+board B:
+  net.passive wire
+  """
+        + declaration
+    )
+    open_document(client, path, text)
+    result = client.request(
+        "textDocument/completion",
+        {
+            "textDocument": {"uri": path.as_uri()},
+            "position": {"line": text.count("\n"), "character": len(text.rsplit("\n", 1)[-1])},
+            "context": {"triggerKind": 2, "triggerCharacter": trigger},
+        },
+    )
+    assert expected <= {item["label"] for item in result["items"]}

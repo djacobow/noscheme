@@ -17,7 +17,7 @@ BUILTIN_HELP = {
         "unchecked": "Electrical behavior is unspecified; ERC cannot treat this endpoint as passive or prove its driver behavior.",
         "do_not_connect": "Must not be assigned to any net. Conflicts with unused.never; this connection rule cannot be waived.",
     },
-    "nettype": {
+    "net": {
         "passive": "Allows passive, digital, analog, power, and ground roles. Driver conflicts and power-to-ground conflicts are still checked.",
         "digital": "Digital net with driver checks. Requires a digital output or a compatible declared bias; conflicting active drivers are errors.",
         "analog": "Allows passive and analog endpoints; checks conflicting active drivers without requiring a driver.",

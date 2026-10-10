@@ -17,11 +17,11 @@ component Endpoint:
     1:
       role: role.digital_output
 board B:
-  net bus: nettype.digital
+  net.digital bus:
     checks:
       contention: std.count(std.active_digital_driver, max=1)
       presence: std.any(std.active_digital_driver)
-  inst devices[2]: Endpoint
+  Endpoint devices[2]:
     1: bus
 """
 
@@ -94,16 +94,16 @@ component Pull:
       role: role.passive
       bias: bias.pull_up
       pull_resistance: 4700
-component Maybe extends Pull:
+extend Pull Maybe:
   pins:
     1:
       bias: bias.none
 board B:
-  net bus: nettype.passive
+  net.passive bus:
     checks:
       strength: std.parallel(pull_resistance, where=bias.pull_up, min=2000)
-  inst known: Pull(1: bus)
-  inst maybe: Maybe(1: bus)
+  Pull known(1: bus)
+  Maybe maybe(1: bus)
 """
     c = circuit(tmp_path, source)
     del c["parts"][1]["pins"]["1"]["metadata"]["bias"]
@@ -213,14 +213,14 @@ component Base:
       role: role.passive
       checks:
         limit: test.limit(maximum=20, label="original")
-component Child extends Base:
+extend Base Child:
   pins:
     1:
       checks:
         limit: test.limit(maximum=10)
 board B:
-  net bus: nettype.passive
-  inst load: Child
+  net.passive bus
+  Child load:
     1: bus
     metadata:
       pins:
@@ -258,7 +258,7 @@ def test_structural_errors_remain_with_no_rule_sets(tmp_path):
 
 
 def test_empty_any_all_and_count_are_defined(tmp_path):
-    source = SOURCE[: SOURCE.index("  inst devices")].replace(
+    source = SOURCE[: SOURCE.index("  Endpoint devices")].replace(
         "std.count(std.active_digital_driver, max=1)", "std.all(std.active_digital_driver)"
     )
     result = check_circuit(circuit(tmp_path, source))
@@ -315,7 +315,7 @@ def test_filter_enum_alias_and_missing_mapping_validation(tmp_path):
 
 
 def test_unknown_predicate_rejected_on_empty_net(tmp_path):
-    source = SOURCE[: SOURCE.index("  inst devices")].replace(
+    source = SOURCE[: SOURCE.index("  Endpoint devices")].replace(
         "std.active_digital_driver", "std.unknown_predicate"
     )
     with pytest.raises(DiagnosticError, match="selector"):
@@ -375,8 +375,8 @@ component Part:
       checks:
         limit: bounded(maximum=5)
 board B:
-  net bus: nettype.passive
-  inst load: Part
+  net.passive bus
+  Part load:
     1: bus
 """
     make(tmp_path, source)
@@ -407,16 +407,16 @@ component Endpoint:
       role: role.digital_output
 block Inner:
   ports:
-    bus: nettype.digital
+    net.digital bus:
       checks:
         contention: std.count(std.active_digital_driver, max=0)
-  inst endpoint: Endpoint
+  Endpoint endpoint:
     1: bus
 board B:
-  net bus: nettype.digital
+  net.digital bus:
     waivers:
       contention: "Reviewed: the inner limit is a test fixture."
-  inst inner: Inner
+  Inner inner:
     bus: bus
 """
 

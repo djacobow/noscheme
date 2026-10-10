@@ -270,9 +270,9 @@ def convert_library(source, output, symbols=(), footprint_roots=(), extra_footpr
         lines = [
             f"component {name}:",
             "    params:",
-            f"        value: {quantity}"
+            f"        {quantity} value"
             if quantity
-            else f"        value: string = {json.dumps(props.get('Value', original))}",
+            else f"        string value = {json.dumps(props.get('Value', original))}",
         ]
         if pins:
             lines.append("    pins:")

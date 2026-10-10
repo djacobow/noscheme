@@ -8,22 +8,18 @@ from test_circuit import make
 SOURCE = """from noscheme import num
 component P:
   params:
-    value: string = "10k"
-    resistance: number = 10000
-    placeholder: number = 0
-    unused_arg: number = 1
+    string value = "10k"
+    number resistance = 10000
+    number placeholder = 0
+    number unused_arg = 1
   pins:
     1:
       role: role.passive
       pull_resistance: resistance
-component Specialized extends P:
-  defaults:
-    resistance: 4700
+extend P<resistance: 4700> Specialized
 board B:
-  inst p: Specialized
+  Specialized<unused_arg: 2> p:
     1: no_connect
-    params:
-      unused_arg: 2
 """
 
 
@@ -52,9 +48,9 @@ def test_element_expression_and_dimensions_are_uses(tmp_path):
         "board B:",
         """block Group:
   params:
-    count: number = 2
-    resistance: number = 3300
-  inst p[count]: P
+    number count = 2
+    number resistance = 3300
+  P p[count]:
     1: no_connect
     elements:
       [0]:
@@ -67,8 +63,8 @@ board B:""",
 
 
 def test_format_member_name_is_not_a_parameter_use(tmp_path):
-    source = SOURCE.replace("placeholder: number = 0", "round: number = 0").replace(
-        'value: string = "10k"', 'value: string = "{0}".format(num.round(10))'
+    source = SOURCE.replace("number placeholder = 0", "number round = 0").replace(
+        'string value = "10k"', 'string value = "{0}".format(num.round(10))'
     )
     make(tmp_path, source)
     assert "round" in unused_parameters(resolve_project(tmp_path)[1])[0].message

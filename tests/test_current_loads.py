@@ -22,10 +22,10 @@ component MCU:
         pins: [vdd, "2"]
         max_load_current: 100m
 board B:
-  net rail: nettype.power
-  inst supply: Supply
+  net.power rail
+  Supply supply:
     1: rail
-  inst mcu: MCU
+  MCU mcu:
     1: rail
     2: rail
 """
@@ -46,13 +46,13 @@ def test_group_counted_once_and_aliases_resolved(tmp_path):
 
 
 def test_arrays_count_each_instance_once(tmp_path):
-    errors = diagnostics(tmp_path, SOURCE.replace("inst mcu:", "inst mcu[2]:"))
+    errors = diagnostics(tmp_path, SOURCE.replace("MCU mcu:", "MCU mcu[2]:"))
     assert [d.code for d in errors] == ["erc.current_overload"]
 
 
 @pytest.mark.parametrize("connection", ["other", "no_connect"])
 def test_group_rejects_split_or_disconnected_pins(tmp_path, connection):
-    source = SOURCE.replace("  net rail:", "  net other: nettype.power\n  net rail:")
+    source = SOURCE.replace("  net.power rail\n", "  net.power other\n  net.power rail\n")
     source = source.replace("    2: rail", f"    2: {connection}")
     errors = diagnostics(tmp_path, source)
     group = next(d for d in errors if d.code == "erc.current_load_group")
@@ -95,7 +95,7 @@ def test_group_and_individual_loads_sum(tmp_path):
       role: role.power_input
       max_load_current: 60m
 board B:
-  inst extra: Extra
+  Extra extra:
     1: rail
 """,
     )
@@ -105,13 +105,13 @@ board B:
 def test_inherited_group_amount_override(tmp_path):
     source = SOURCE.replace(
         "board B:",
-        """component Bigger extends MCU:
+        """extend MCU Bigger:
   metadata:
     current_loads:
       core:
         max_load_current: 160m
 board B:""",
-    ).replace("inst mcu: MCU", "inst mcu: Bigger")
+    ).replace("MCU mcu", "Bigger mcu")
     assert [d.code for d in diagnostics(tmp_path, source)] == ["erc.current_overload"]
 
 
@@ -149,11 +149,12 @@ def test_independent_supply_groups_on_separate_rails(tmp_path):
         max_load_current: 20m""",
         )
         .replace(
-            "  net rail:",
-            """  net analog: nettype.power
-  inst analog_supply: Supply
+            "  net.power rail\n",
+            """  net.power analog
+  Supply analog_supply:
     1: analog
-  net rail:""",
+  net.power rail
+""",
         )
         .replace("    2: rail", "    2: analog")
     )

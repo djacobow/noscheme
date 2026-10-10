@@ -36,7 +36,34 @@ def identity_edit(node, source):
     end = source.find("\n", last)
     end = len(source) if end < 0 else end - (source[end - 1] == "\r")
     text = newline + " " * section + "metadata:" + newline + " " * (section + section - base)
+    header = len(masked[: header_end(masked, node.span.start_pos)].rstrip())
+    if masked[header - 1] != ":":
+        # A body follows the declaration line's ':'; the line's comment stays after it.
+        return builder.position_span(header, end), ":" + source[header:end] + text + identity
     return builder.position_span(end, end), text + identity
+
+
+def header_end(masked, start):
+    """The offset of the newline that ends a declaration line, past bracketed lists."""
+    depth, quoted, escaped, parameters = 0, False, False, False
+    for offset in range(start, len(masked)):
+        char = masked[offset]
+        if quoted:
+            quoted = escaped or char != '"'
+            escaped = not escaped and char == "\\"
+        elif char == '"':
+            quoted = True
+        elif char in "([":
+            depth += 1
+        elif char in ")]":
+            depth -= 1
+        elif not depth and char == "<":
+            parameters = True
+        elif not depth and char == ">":
+            parameters = False
+        elif char == "\n" and depth == 0 and not parameters:
+            return offset
+    return len(masked)
 
 
 def renamed_path(value, old, new):

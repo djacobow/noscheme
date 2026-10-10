@@ -50,7 +50,7 @@ std::optional<DefinitionKey> parent_key(const Project &project,
     auto found = symbols.find(
         ast::dotted(std::vector<ast::Name>(base.begin(), base.end() - 1)));
     if (found != symbols.end() && found->second.module == "noscheme" &&
-        found->second.name == "nettype") {
+        found->second.name == "net") {
       static const std::set<std::string> types{
           "tristate",      "passive",  "digital",    "analog",
           "power",         "ground",   "open_drain", "open_source",
@@ -62,8 +62,23 @@ std::optional<DefinitionKey> parent_key(const Project &project,
   }
   return definition_symbol(project, module, base, {source.keyword});
 }
+// The one parameter without a default, or the only parameter.
+std::optional<std::string>
+unnamed_parameter(const ParameterDefinition &target) {
+  std::vector<const Parameter *> candidates;
+  for (const auto &parameter : target.parameters)
+    if (!parameter.default_value)
+      candidates.push_back(&parameter);
+  if (candidates.empty())
+    for (const auto &parameter : target.parameters)
+      candidates.push_back(&parameter);
+  if (candidates.size() != 1)
+    return {};
+  return candidates.front()->name;
+}
 void apply(ParameterDefinition &definition, const ast::Definition &source,
-           const std::string &module, bool capture_part_value) {
+           const std::string &module, bool capture_part_value,
+           const ParameterDefinition *parent) {
   // Process params before defaults regardless of section order.
   for (const auto &item : source.body) {
     auto *section = as<ast::Section>(item);
@@ -90,6 +105,20 @@ void apply(ParameterDefinition &definition, const ast::Definition &source,
       else
         *previous = std::move(item);
     }
+  }
+  if (source.parameter) {
+    if (!parent)
+      fail("resolve.parameter", ast::dotted(source.base) + " has no parameters",
+           source.parameter->span);
+    std::set<std::string> named;
+    for (const auto &item : source.body)
+      if (auto *section = as<ast::Section>(item);
+          section && section->name == "defaults")
+        for (const auto *field : ast::field_list(section->entries))
+          named.insert(field->key.first.text);
+    auto name = unnamed_target(*parent, *source.parameter, named);
+    std::ranges::find(definition.parameters, name, &Parameter::name)
+        ->default_value = ScopedExpression{source.parameter.get(), module};
   }
   for (const auto &item : source.body) {
     auto *section = as<ast::Section>(item);
@@ -225,8 +254,39 @@ ParameterDefinition definition_parameters(const DefinitionKey &key,
                                           bool capture_part_value) {
   auto result = parent ? *parent : ParameterDefinition{};
   result.key = key;
-  apply(result, source, key.first, capture_part_value);
+  apply(result, source, key.first, capture_part_value, parent);
+  if (!parent || !parent->unnamed)
+    result.unnamed = unnamed_parameter(result);
   return result;
+}
+std::string unnamed_target(const ParameterDefinition &target,
+                           const ast::Node &value,
+                           const std::set<std::string> &named) {
+  const auto &name = target.key.second;
+  if (!target.unnamed) {
+    std::vector<std::string> candidates;
+    for (const auto &parameter : target.parameters)
+      if (!parameter.default_value)
+        candidates.push_back(parameter.name);
+    if (candidates.empty())
+      for (const auto &parameter : target.parameters)
+        candidates.push_back(parameter.name);
+    std::string listed;
+    for (const auto &candidate : candidates)
+      listed += (listed.empty() ? "" : ", ") + candidate;
+    fail("resolve.parameter",
+         candidates.empty()
+             ? name + " has no parameters"
+             : name +
+                   " has several parameters an unnamed value could set; "
+                   "name one of: " +
+                   listed,
+         value.span);
+  }
+  if (named.contains(*target.unnamed))
+    fail("resolve.parameter",
+         "parameter '" + *target.unnamed + "' is set twice", value.span);
+  return *target.unnamed;
 }
 ParameterDefinitions resolve_parameters(const Project &project) {
   ParameterDefinitions result;

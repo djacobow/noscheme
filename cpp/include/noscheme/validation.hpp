@@ -9,7 +9,14 @@ struct DiagnosticsFailure : std::runtime_error {
       : runtime_error("diagnostics emitted"),
         diagnostics(std::move(diagnostics)), exit_code(exit_code) {}
 };
+// Structure that does not depend on other modules; for an extension, the
+// checks that depend on its kind wait for kind_errors.
 Json validate_structure(const ast::Module &module);
+Json kind_errors(const ast::Definition &definition);
+Json field_errors(const std::vector<const ast::Field *> &fields);
+// One error diagnostic, with the previous declaration as related information.
+Json error_json(std::string code, std::string message, const Span &span,
+                const Span *previous = nullptr);
 // Order-preserving diagnostic list that skips exact duplicates in linear time.
 class UniqueDiagnostics {
   Json items_ = Json::array();

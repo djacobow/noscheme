@@ -2,7 +2,7 @@ from noscheme import role, unused
 
 component Resistor:
   params:
-    value: resistance
+    resistance value
   pins:
     1..2: [role.passive, unused.never]
   metadata:
@@ -12,7 +12,7 @@ component Resistor:
 
 component Led:
   params:
-    value: string = "Green"
+    string value = "Green"
   pins:
     1 (cathode):
       role: role.passive

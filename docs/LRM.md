@@ -85,7 +85,7 @@ Only modules reachable from the selected board module are loaded by the compiler
 
 ```nosch
 from parts.passives import Resistor, Capacitor
-from noscheme import role, nettype, unused, bias, num, std
+from noscheme import role, net, unused, bias, num, std
 ```
 
 Both module-qualified imports and local aliases are supported:
@@ -94,7 +94,7 @@ Both module-qualified imports and local aliases are supported:
 import Device
 from Device import R as KiCadResistor
 
-component Resistor extends Device.R:
+extend Device.R Resistor:
   metadata:
     footprint: "Resistor_SMD:R_0603_1608Metric"
 ```
@@ -119,7 +119,7 @@ errors; distinct sibling module imports may share a namespace prefix.
 | Import | Provides |
 |---|---|
 | `role` | Endpoint electrical roles |
-| `nettype` | Scalar net types |
+| `net` | Scalar net types |
 | `unused` | Connection policies |
 | `bias` | Explicit pull-up/pull-down assertions |
 | `num` | Numeric conversion and rounding helpers |
@@ -138,17 +138,19 @@ it never grants access to a component or block's private internals.
 
 Indentation defines blocks and must use spaces; indentation tabs are errors.
 Two spaces per level is the canonical layout (section 2.5). Blank and comment-only lines
-do not declare blocks. Newlines inside parentheses and brackets, including an
+do not declare blocks. Newlines inside parentheses, brackets, and parameter angle brackets, including an
 instance's argument list, are not layout.
 Statements and mapping entries use newlines, not semicolons.
 
-`:` separates names from types, bindings, or metadata values. `=` appears in
+Declarations put the type before the name (`number count`, `net.digital signal`,
+`Resistor r`). `:` introduces an indented body and separates binding names or
+metadata keys from their values. `=` appears in
 parameter defaults and named formatting arguments; it is not a connection
 operator. Lists and helper calls use commas. Instance sections do not.
 
 The structural words are `from`, `import`, `as`, `component`, `block`, `board`,
-`bundle`, `nettype`, `extends`, `inst`, `net`, and `global`. Section names are `pins`,
-`ports`, `params`, `defaults`, `metadata`, and `elements`. These words are
+`bundle`, `extend`, and `global`. Section names are `pins`,
+`ports`, `params`, `metadata`, and `elements`. These words are
 recognized in their grammatical contexts. In an instance body, `params`, `metadata`,
 and `elements` start sections, so a pin with one of those names is quoted in a
 connection: `"params": net`. Metadata keys and builtin enum members are not
@@ -170,7 +172,7 @@ validation is a separate backend rule.
 `no_connect`, `global`, `true`, `false`, `number`, and `string` are reserved
 declaration names. They cannot name definitions, nets, instances, parameters,
 ports, bundle fields, or import bindings. Other keywords remain contextual:
-for example, `net inst: nettype.passive` is allowed. Exact physical pin IDs may
+for example, `net.passive inst` is allowed. Exact physical pin IDs may
 use reserved spellings when quoted, such as `"global"`; metadata keys and literal
 strings are not subject to this declaration-name restriction.
 
@@ -262,9 +264,11 @@ bracketed list or a block comment followed by code on its line.
 
 ## 3. Declarations
 
-A module contains imports and definitions. Definitions are `component`, `block`,
-`board`, `bundle`, or `nettype` (section 9.3); their bodies must contain
-declarations, sections, or (for net types) net metadata fields.
+A module contains imports, definitions, and extensions. Definitions start with
+`component`, `block`, `board`, or `bundle` and have a nonempty indented body.
+`extend Base<parameters> Name` specializes a component, block, or net type
+(section 9.3); it takes the kind of its base. Its body is optional. Nets and
+instances both use `Type name`; the resolved type determines which they declare.
 Duplicate names, duplicate sections, and overlapping pin declarations are errors.
 
 ### 3.1 Physical components
@@ -276,7 +280,7 @@ from noscheme import role, unused
 
 component Resistor:
   params:
-    value: resistance
+    resistance value
   pins:
     1..2: [role.passive, unused.never]
   metadata:
@@ -329,15 +333,13 @@ fragment, assuming `Resistor` and the builtin namespaces have been imported:
 ```nosch
 block SeriesResistor:
   params:
-    resistance: resistance = 1k
+    resistance resistance = 1k
   ports:
-    input: nettype.passive
-    output: nettype.passive
-  inst resistor: Resistor
+    net.passive input
+    net.passive output
+  Resistor<value: resistance> resistor:
     1: input
     2: output
-    params:
-      value: resistance
 ```
 
 Ports declare internal connections; do not separately declare a net of the same
@@ -363,13 +365,13 @@ inside the board when those interfaces are needed.
 Board-body fragment:
 
 ```nosch
-global net gnd: nettype.ground
-global net v3v3: nettype.power
-net reset#, cs#: nettype.digital
+global net.ground gnd
+global net.power v3v3
+net.digital reset#, cs#
 ```
 
 One declaration may name several nets. They share its type and indented fields,
-so `net scl, sda: I2CLine` with `wiring_capacitance: 50p` gives each net that
+so `I2CLine scl, sda:` with `wiring_capacitance: 50p` gives each net that
 capacitance.
 
 Reference global nets explicitly as `global.gnd` and `global.v3v3`. A reference
@@ -393,9 +395,9 @@ Definition-body fragment:
 
 ```nosch
 params:
-  count: number = 2
-  value: resistance = 4.7k
-  label: string
+  number count = 2
+  resistance value = 4.7k
+  string label
 ```
 
 | Quantity | Unit | Displayed as |
@@ -415,8 +417,14 @@ no dimensional checking. A quantity parameter also accepts a string, such as
 `"10k 1%"` or `"DNP"`, which is displayed verbatim and has no numeric meaning; using
 it where a number is required is an error.
 
-A parameter without a default is required at instantiation. Instance arguments
-are named entries under `params:`. Unknown arguments and wrong types are errors.
+A parameter without a default is required at instantiation. Supply named values
+between the type and instance name, as `Resistor<value: 4.7k> r`, or under the
+instance's `params:` section as `value: 4.7k`. Unknown arguments and wrong types
+are errors. A single unnamed value, `Resistor<4.7k> r`, selects the sole parameter
+without a default, or the sole parameter if all have defaults. An inherited unnamed
+parameter keeps its identity. An ambiguous or absent target is an error; an unnamed
+value must precede named entries, and the same parameter cannot be set twice. Shifts in such
+lists require parentheses, for example `Part<count: (1 << 3)> p`.
 Defaults may depend on other parameters; dependency cycles are errors. An
 explicit argument replaces its default, so the replaced default is not evaluated.
 
@@ -509,26 +517,25 @@ derives a quantity from a displayed value.
 Definition-body fragment:
 
 ```nosch
-inst series: Resistor
+Resistor<value: 33R> series:
   1: source
   2: destination
-  params:
-    value: 33R
   metadata:
     identity: "series-resistor"
     ref: "R7"
 ```
 
-An instance line names the instance and its type. It may carry an argument list in
-parentheses (below), and it may be followed by an indented body: its connections,
+An instance line starts with the type, optional `<parameters>`, and the instance
+name with any array dimensions. It may carry a connection list in parentheses
+(below). A trailing `:` introduces an indented body: its connections,
 one `pin: net` per line, then `params`, `metadata`, and `elements` sections, in any
 order among themselves. Connections come first; a connection after a section is a
 syntax error. Either the argument list, the body, both, or neither may be present:
-`inst holder: Holder` and `inst holder: Holder()` are the same instance. Omit an
+`Holder holder` and `Holder holder()` are the same instance. Omit an
 empty section rather than writing its header without entries; omitting arguments
 waives nothing, so required parameters and connection policies still apply.
 Connections bind by name, except for the explicit interchangeable-pin group and
-same-name connections described below. Parameters always bind by name.
+same-name connections described below. Parameters bind separately through `<...>` or `params:` (section 4.1).
 
 #### Instance arguments and interchangeable pins
 
@@ -537,7 +544,7 @@ A component may declare one group of electrically interchangeable physical pins:
 ```nosch
 component Resistor:
   params:
-    value: resistance
+    resistance value
   pins:
     1..2: role.passive
   metadata:
@@ -554,16 +561,16 @@ metadata, such as putting pull-up bias on only one terminal, must clear it with
 `interchangeable: []` and use named connections.
 
 ```nosch
-inst series: Resistor(source, destination, value=4.7k)
-inst decouple[4]: Capacitor(global.v3v3, global.gnd, value=100n)
-inst esd: Protection(data, no_connect, gnd: global.gnd)
+Resistor<value: 4.7k> series(source, destination)
+Capacitor<value: 100n> decouple[4](global.v3v3, global.gnd)
+Protection esd(data, no_connect, gnd: global.gnd)
 ```
 
 These fragments assume the referenced types and nets exist. `Capacitor` declares
 two interchangeable pins; `Protection` declares two interchangeable signal pins
 and a separate pin aliased `gnd`.
 
-An argument list has four kinds of argument, separated by commas:
+A connection list has three kinds of argument, separated by commas:
 
 - A positional net reference binds the next pin in the declared interchangeable
   group. If any positional connections are supplied, they must cover the whole
@@ -572,7 +579,6 @@ An argument list has four kinds of argument, separated by commas:
 - `pin: net` connects a single pin or public port by name, alias, or quoted ID.
   Named connections also work without an interchangeable group. A pin cannot be
   bound twice, including through a positional argument and an alias.
-- `parameter=expression` supplies a named parameter in the caller's scope.
 - `*` connects each remaining pin or port to the caller's net or port of the same
   name (below).
 
@@ -583,14 +589,14 @@ same broadcast rules as body connections. Endpoint lists and ranges are written 
 the body.
 
 Arguments and sections describe one instance, and neither overrides the other.
-Named connections join the instance's connections and `name=value` arguments its
+Named connections join the instance's connections and `<name: value>` entries its
 parameters, so binding a pin or parameter twice, in either place or through an
 alias or a positional net, is an error. An `elements:` entry overrides argument
 parameters like any common parameter. Arguments with a `metadata:` or `elements:`
 section suit a part that needs one setting a line cannot hold:
 
 ```nosch
-inst high: Resistor(bus.high, split, value=60.4R)
+Resistor<value: 60.4R> high(bus.high, split):
   metadata:
     custom:
       dnp: true
@@ -608,12 +614,12 @@ supplies and buses straight through:
 ```nosch
 block OutputBank:
   ports:
-    supply: nettype.power
-    ground: nettype.ground
-    input: nettype.digital[4][2]
-    output: nettype.digital[4][2]
-  net translated: nettype.digital[4][2]
-  inst pairs[4]: OutputPair(*, input: translated)
+    net.power supply
+    net.ground ground
+    net.digital input[4][2]
+    net.digital output[4][2]
+  net.digital translated[4][2]
+  OutputPair pairs[4](*, input: translated)
 ```
 
 Here `supply`, `ground`, and `output` bind to the bank's ports of those names and
@@ -639,11 +645,9 @@ An array instance may contain an `elements:` section. Each entry selects exactly
 one element, with one nonnegative integer literal per dimension:
 
 ```nosch
-inst pulls[2]: Pullup
+Pullup<value: 4.7k> pulls[2]:
   supply: supply
   signal: bus
-  params:
-    value: 4.7k
   elements:
     [0]:
       params:
@@ -719,11 +723,11 @@ A required child port also needs an endpoint outside its block instance.
 ### 6.1 Bundle declarations
 
 ```nosch
-from noscheme import nettype
+from noscheme import net
 
 bundle I2C:
-  scl: nettype.open_drain
-  sda: nettype.open_drain
+  net.open_drain scl
+  net.open_drain sda
 ```
 
 A bundle is a named net type with named fields. A port or net can use `I2C` as
@@ -749,9 +753,9 @@ Array dimensions follow the type for nets and ports, and the name for instances.
 Definition-body fragment:
 
 ```nosch
-net signals: nettype.digital[4]
-net matrix: nettype.passive[2][3]
-inst receivers[4]: Receiver
+net.digital signals[4]
+net.passive matrix[2][3]
+Receiver receivers[4]:
   input: signals
 ```
 
@@ -780,7 +784,7 @@ There is no `each` keyword. Shared connections undergo normal ERC.
 Leading selectors choose elements of an instance array. Instance fragment:
 
 ```nosch
-inst indicators[3]: Indicator
+Indicator indicators[3]:
   [0].drive: status
   [1].drive: activity
   [2].drive: fault
@@ -828,7 +832,7 @@ directly. `flat(net)` lists an array net's scalar elements in row-major order,
 the last index varying fastest:
 
 ```nosch
-// input is nettype.digital[4][2]: pins 4, 3 take input[0][0..1], and so on.
+// input is net.digital[4][2]: pins 4, 3 take input[0][0..1], and so on.
 [4, 3, 5..10]: flat(input)
 21..14: flat(translated)
 ```
@@ -857,14 +861,13 @@ instance-array element, write `[0].[1, 3]`; `[0].1` retains its existing meaning
 
 ## 7. Specialization
 
-Components and blocks use `extends` for single inheritance; net types always
-extend a builtin net type or another net type (section 9.3). Boards and bundles
-cannot specialize definitions. Definition fragment:
+Use `extend Base<parameters> Name` for single inheritance. The base must be a
+component, block, or net type (section 9.3); boards and bundles cannot be bases.
+Parameter values in `<...>` replace inherited defaults. A trailing `:` is required
+only when an indented body follows. Definition fragment:
 
 ```nosch
-component Pullup extends Resistor:
-  defaults:
-    value: 4.7k
+extend Resistor<value: 4.7k> Pullup:
   metadata:
     custom:
       purpose: "pull-up"
@@ -980,7 +983,7 @@ Use one numeric parameter for a displayed value and a physical quantity:
 ```nosch
 component Pullup:
   params:
-    value: resistance = 4.7k
+    resistance value = 4.7k
   pins:
     1:
       role: role.passive
@@ -1030,7 +1033,7 @@ particular operating state unless explicitly modeled by other metadata.
 
 All checked scalar types permit passive attachments. Other permitted roles are:
 
-| `nettype` member | Other permitted roles |
+| `net` member | Other permitted roles |
 |---|---|
 | `passive` | Ordinary digital, analog, power, and ground roles |
 | `digital` | Digital input/output/bidirectional, open-drain, open-source |
@@ -1061,31 +1064,31 @@ standard rule name remains available as a compatibility no-op.
 
 ### 9.3 Net type definitions
 
-A `nettype` definition names reusable net metadata, typically checks, on top of a
+An extension of a `net` builtin names reusable net metadata, typically checks, on top of a
 builtin electrical type or another net type:
 
 ```nosch
-from noscheme import nettype, bias, std
+from noscheme import net, bias, std
 
-nettype I2CLine extends nettype.open_drain:
+extend net.open_drain I2CLine:
   wiring_capacitance: 5p
   checks:
     pull: std.parallel(pull_resistance, where=bias.pull_up, min=1.5k, max=10k)
     load: std.sum(capacitance, net=wiring_capacitance, max=400p)
 
-nettype FastI2CLine extends I2CLine:
+extend I2CLine FastI2CLine:
   checks:
     load: std.sum(max=200p)
 
 bundle I2C:
-  scl: I2CLine
-  sda: I2CLine
+  I2CLine scl
+  I2CLine sda
 ```
 
 A net type is used wherever a net type is expected: nets, ports, and bundle
 fields, with or without array dimensions. Its body contains the fields a net
-declaration accepts (section 8), with no sections or parameters. `extends` is
-required, and every chain ends at a builtin `nettype` value, which determines
+declaration accepts (section 8), with no sections or parameters. Every chain
+ends at a builtin `net` value, which determines
 role compatibility and the standard policies (section 9.2). Metadata merges like
 specialization (section 7): a derived type, and then each declaration using the
 type, merges its fields over the inherited ones. A declaration can therefore
@@ -1122,14 +1125,14 @@ an output contract.
 
 ### 9.5 Tri-state buses
 
-On `nettype.tristate`, every digital output-capable endpoint must declare
+On `net.tristate`, every digital output-capable endpoint must declare
 `tristate_capable: true`, including bidirectional and open-drain/open-source roles.
 Digital inputs and passive attachments need no flag. Several capable drivers may
 share the net. Wrong-domain roles remain errors even with the flag.
 
 This checks declared capability, not output-enable timing or bus arbitration.
 An all-input tri-state net does not receive a missing-active-driver error from
-this type. If another declaration on the flattened net is `nettype.digital`,
+this type. If another declaration on the flattened net is `net.digital`,
 that declaration retains its ordinary driver checks. Generic bidirectional roles
 do not imply tri-state capability.
 
@@ -1189,7 +1192,7 @@ A block supply port can declare an aggregate; block-body fragment:
 
 ```nosch
 ports:
-  supply: nettype.power
+  net.power supply:
     role: role.power_input
     aggregate_load:
       max_load_current: 100m
@@ -1220,7 +1223,7 @@ Nets and public ports opt into budgets with named checks (section 12.2). For
 example, with `bias` and `std` imported:
 
 ```nosch
-net bus: nettype.open_drain
+net.open_drain bus:
   wiring_capacitance: 2p
   checks:
     pull_strength: std.parallel(pull_resistance, where=bias.pull_up, min=1.5k, max=10k)
@@ -1259,7 +1262,7 @@ pins:
 ```
 
 With `bias.pull_up`, the reference terminal must reach a net declared
-`nettype.power`; with `bias.pull_down`, it must reach `nettype.ground`. Missing
+`net.power`; with `bias.pull_down`, it must reach `net.ground`. Missing
 pins, disconnected references, conflicting rail types, and a reference tied to the
 signal net itself produce `erc.bias_reference`. The check also runs on a
 disconnected signal pin. It traces no paths through other components and infers
@@ -1276,11 +1279,11 @@ are inclusive; minimum values cannot exceed maximum values.
 `voltage` sets both bounds in one field, as a range or a tolerance:
 
 ```nosch
-net v5: nettype.power
+net.power v5:
   voltage: 5 ± 5%        // 4.75 to 5.25
-net vref: nettype.analog
+net.analog vref:
   voltage: 2.5 +/- 0.01  // 2.49 to 2.51
-net gnd: nettype.ground
+net.ground gnd:
   voltage: 0..0
 ```
 
@@ -1313,7 +1316,7 @@ supported.
 Net-declaration fragment:
 
 ```nosch
-net signal: nettype.digital
+net.digital signal:
   waivers:
     missing_driver: "Driver is across the explicitly modeled series resistor."
 ```
@@ -1334,7 +1337,7 @@ To waive a check only for specific physical pins, use a mapping with `reason`
 and `pins` instead of the string shorthand:
 
 ```nosch
-net gnd: nettype.ground
+net.ground gnd:
   waivers:
     incompatible_role:
       reason: "Ground VDD_AUX to disable the unused power domain."
@@ -1532,10 +1535,10 @@ metadata overlay. Pins accept pin rules; nets and public ports accept net rules.
 Each entry names one application and calls an imported rule:
 
 ```nosch
-from noscheme import nettype, std
+from noscheme import net, std
 
 board B:
-  net signal: nettype.digital
+  net.digital signal:
     checks:
       driver_present: std.any(std.active_digital_driver)
       no_contention: std.count(std.active_digital_driver, max=1)
@@ -1700,7 +1703,7 @@ pin text, follows symbol inheritance, folds duplicate representations, and keeps
 unambiguous aliases, written in the pin key (`"12" (PH0):`). A two-terminal
 symbol whose reference prefix is `R`, `C`, or `L` gets a required `value`
 parameter of type `resistance`, `capacitance`, or `inductance`, since its KiCad
-`Value` is only a placeholder; other symbols keep `value: string` with KiCad's
+`Value` is only a placeholder; other symbols keep `string value` with KiCad's
 `Value` as the default. Ambiguous aliases
 and unsupported electrical types are reported rather than guessed.
 
@@ -1902,11 +1905,11 @@ This two-part test board connects a resistor between an external digital signal
 and ground. `main.nosch`:
 
 ```nosch
-from noscheme import role, nettype, unused
+from noscheme import role, net, unused
 
 component Resistor:
   params:
-    value: resistance
+    resistance value
   pins:
     1..2: [role.passive, unused.never]
   metadata:
@@ -1921,20 +1924,18 @@ component Header:
     footprint: "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical_SMD_Pin1Left"
 
 board Demo:
-  global net gnd: nettype.ground
-  net signal: nettype.digital
-  inst connector: Header
+  global net.ground gnd
+  net.digital signal
+  Header connector:
     1: signal
     2: global.gnd
     metadata:
       pins:
         1: role.digital_output
         2: role.ground
-  inst load: Resistor
+  Resistor<value: 10k> load:
     1: signal
     2: global.gnd
-    params:
-      value: 10k
 ```
 
 Place this `noscheme.toml` beside it:

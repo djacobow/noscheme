@@ -181,6 +181,35 @@ class Instance(Node):
     positional: tuple[Expr, ...] = ()
     # `*`: connect remaining pins and ports to same-name nets.
     wildcard: Span | None = None
+    # `R<4.7k>`: the value of the one parameter without a default.
+    parameter: Expr | None = None
+
+
+@dataclass(frozen=True)
+class Declarator(Node):
+    name: Name
+    dimensions: tuple[Index, ...]
+
+
+@dataclass(frozen=True)
+class Declaration(Node):
+    """`Type<params> name(args):` in a block, board, or bundle, before its type resolves.
+
+    The project loader makes it Nets or an Instance by the kind of its type. Sections
+    are those of an instance, with `<...>` and `(...)` entries merged in; body lines
+    that cannot be connections are fields, which only a net may have.
+    """
+
+    global_: bool
+    type: tuple[Name, ...]
+    declarators: tuple[Declarator, ...]
+    parameters: Span | None  # `<...>`, when written.
+    arguments: Span | None  # `(...)`, when written.
+    sections: tuple[Section, ...]
+    fields: tuple[Field, ...]
+    parameter: Expr | None = None
+    positional: tuple[Expr, ...] = ()
+    wildcard: Span | None = None
 
 
 @dataclass(frozen=True)
@@ -193,10 +222,13 @@ class Net(Node):
 
 @dataclass(frozen=True)
 class Definition(Node):
-    kind: Literal["component", "block", "board", "bundle", "nettype"]
+    # "extend" until the project loader gives an extension its base's kind.
+    kind: Literal["component", "block", "board", "bundle", "nettype", "extend"]
     name: Name
     base: tuple[Name, ...] | None
-    body: tuple[Section | Instance | Net | Field, ...]
+    body: tuple[Section | Declaration | Instance | Net | Field, ...]
+    # `extend R<4.7k> Name`: the default of the one parameter without a default.
+    parameter: Expr | None = None
 
 
 @dataclass(frozen=True)

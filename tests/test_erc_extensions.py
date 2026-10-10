@@ -24,14 +24,14 @@ component Device:
       bias: bias.none
       capacitance: 10p
 board B:
-  net bus: nettype.open_drain
+  net.open_drain bus:
     checks:
       pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=2500, max=5000)
       capacitance: std.sum(capacitance, net=wiring_capacitance, max=20p)
     wiring_capacitance: 2p
-  inst pull[2]: Pull
+  Pull pull[2]:
     1: bus
-  inst device: Device
+  Device device:
     1: bus
 """
 
@@ -54,7 +54,7 @@ def test_capacitance_and_resistance_overload(tmp_path):
 
 def test_no_limits_means_no_budget_warnings(tmp_path):
     start = SOURCE.index("    checks:")
-    end = SOURCE.index("  inst pull", start)
+    end = SOURCE.index("    wiring_capacitance", start)
     source = SOURCE[:start] + SOURCE[end:]
     assert check(tmp_path, source) == ()
 
@@ -81,7 +81,7 @@ def test_known_minimum_violation_with_unknown_additional_pull(tmp_path):
       bias: bias.pull_up
       capacitance: 0p
 board B:
-  inst unknown: Unknown
+  Unknown unknown:
     1: bus
 """,
     )
@@ -109,7 +109,7 @@ def test_invalid_builtin_metadata(tmp_path, field, bad):
 
 def test_bias_satisfies_digital_idle_without_becoming_output(tmp_path):
     source = (
-        SOURCE.replace("nettype.open_drain", "nettype.digital")
+        SOURCE.replace("net.open_drain", "net.digital")
         .replace("role.open_drain", "role.digital_input")
         .replace("min=2500", "min=2000")
     )
@@ -141,8 +141,8 @@ def project(tmp_path, plugin=PLUGIN, source=SOURCE):
 
 def test_extension_schema_and_check_without_grammar_changes(tmp_path):
     source = SOURCE.replace(
-        "  net bus: nettype.open_drain",
-        "  net bus: nettype.open_drain\n    demo:\n      max_pins: 2",
+        "  net.open_drain bus:\n",
+        "  net.open_drain bus:\n    demo:\n      max_pins: 2\n",
     )
     circuit = project(tmp_path, source=source)
     result = apply_erc(circuit)
@@ -163,8 +163,8 @@ event("load")
         "def register(registry):", 'def register(registry):\n  event("register")'
     ).replace("def check(ctx):", 'def check(ctx):\n  event("check")')
     source = SOURCE.replace(
-        "  net bus: nettype.open_drain",
-        "  net bus: nettype.open_drain\n    demo:\n      max_pins: 2",
+        "  net.open_drain bus:\n",
+        "  net.open_drain bus:\n    demo:\n      max_pins: 2\n",
     )
     project(tmp_path, plugin=plugin, source=source)
     log = tmp_path / "events.txt"
@@ -191,20 +191,21 @@ def test_plugin_unknown_nested_fields_rejected(tmp_path):
         project(
             tmp_path,
             source=SOURCE.replace(
-                "  net bus: nettype.open_drain",
-                "  net bus: nettype.open_drain\n    demo:\n      max_pnis: 2",
+                "  net.open_drain bus:\n",
+                "  net.open_drain bus:\n    demo:\n      max_pnis: 2\n",
             ),
         )
 
 
 def test_registered_check_waiver(tmp_path):
     source = SOURCE.replace(
-        "  net bus: nettype.open_drain",
-        '''  net bus: nettype.open_drain
+        "  net.open_drain bus:\n",
+        """  net.open_drain bus:
     demo:
       max_pins: 2
     waivers:
-      demo_pin_count: "Reviewed test fixture."''',
+      demo_pin_count: "Reviewed test fixture."
+""",
     )
     circuit = project(tmp_path, source=source)
     assert not any(d.code == "erc.demo_pin_count" for d in apply_erc(circuit))
@@ -282,16 +283,16 @@ def test_inner_port_capacitance_limit_counts_physical_pins_once(tmp_path):
         "board B:",
         """block Receiver:
   ports:
-    bus: nettype.open_drain
+    net.open_drain bus:
       checks:
         capacitance: std.sum(capacitance, net=wiring_capacitance, max=20p)
-  inst inner: Device
+  Device inner:
     1: bus
 board B:""",
-    ).replace("inst device: Device", "inst device: Receiver")
+    ).replace("Device device", "Receiver device")
     source = source.replace(
-        "  inst device: Receiver\n    1: bus",
-        "  inst device: Receiver\n    bus: bus",
+        "  Receiver device:\n    1: bus",
+        "  Receiver device:\n    bus: bus",
     )
     assert [d.code for d in check(tmp_path, source)] == ["erc.std.parallel"]
 

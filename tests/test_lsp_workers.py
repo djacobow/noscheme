@@ -194,7 +194,7 @@ def check(ctx):
         while not started.exists() and time.monotonic() < deadline:
             time.sleep(0.01)
         assert started.exists()
-        params = {"textDocument": {"uri": path.as_uri()}, "position": {"line": 7, "character": 25}}
+        params = {"textDocument": {"uri": path.as_uri()}, "position": {"line": 7, "character": 6}}
         assert "Receiver" in client.request("textDocument/hover", params)["contents"]["value"]
         for version in (2, 3):
             client.send(

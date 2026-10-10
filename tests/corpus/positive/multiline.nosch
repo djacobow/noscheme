@@ -3,15 +3,15 @@ from noscheme import f, num
 
 component Part:
     params:
-        value: string
-        size: number = (
+        string value
+        number size = (
             1 +
             2
         )
 
 board Board:
     // Whole-line comments should not introduce indentation.
-    inst item: Part
+    Part item:
         /* another comment */
         params:
             value: f.kOhm(

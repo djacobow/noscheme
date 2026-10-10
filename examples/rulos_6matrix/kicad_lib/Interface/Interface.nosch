@@ -2,7 +2,7 @@ from noscheme import role
 
 component PCA9600D:
   params:
-    value: string = "PCA9600D"
+    string value = "PCA9600D"
   pins:
     "1" (SX):
       role: role.digital_bidirectional

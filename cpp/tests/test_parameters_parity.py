@@ -139,7 +139,7 @@ def test_bind(probe, tmp_path, params, args, metadata):
     source = f"from noscheme import num\ncomponent Part:\n  params:\n    {params}\n"
     if metadata:
         source += f"  metadata:\n    {metadata}\n"
-    source += f"board B:\n  inst p: Part({args})\n"
+    source += f"board B:\n  Part p({args})\n"
     path = make_project(tmp_path, {"src/main.nosch": source})
     compare(
         probe,
@@ -161,21 +161,19 @@ def test_lexical_defaults_and_inheritance(probe, tmp_path):
             "src/base.nosch": """from noscheme import num as helper
 component Base:
   params:
-    value: capacitance = helper.ceil(1.2) * 1u
-    x: number = value * 2
+    capacitance value = helper.ceil(1.2) * 1u
+    number x = value * 2
   metadata:
     value: value
 """,
             "src/derived.nosch": """import base.Base
 from noscheme import num as other
-component Derived extends base.Base:
-  defaults:
-    value: other.floor(3.4) * 1u
+extend base.Base<value: other.floor(3.4) * 1u> Derived
 """,
             "src/main.nosch": """from derived import Derived as Part
 from noscheme import num as caller
 board B:
-  inst p: Part(x=caller.ceil(6.2))
+  Part<x: caller.ceil(6.2)> p()
 """,
         },
     )
@@ -185,24 +183,20 @@ board B:
 @pytest.mark.parametrize(
     "body",
     [
-        "component A extends B:\n  defaults:\n    a: 1\ncomponent B extends A:\n  defaults:\n    a: 2\n",
-        "component A extends Missing:\n  defaults:\n    a: 1\n",
-        "block Other:\n  net n: nettype.passive\ncomponent A extends Other:\n  defaults:\n    a: 1\n",
-        "component A:\n  params:\n    a: strange\n",
+        "extend B<a: 1> A\nextend A<a: 2> B\n",
+        "extend Missing<a: 1> A\n",
+        "block Other:\n  net.passive n\nextend Other<a: 1> A\n",
+        "component A:\n  params:\n    strange a\n",
         "component A:\n  params:\n    1: number\n",
-        "component A:\n  params:\n    a: number\ncomponent B extends A:\n  defaults:\n    missing: 1\n",
-        "component A:\n  params:\n    a: number\ncomponent B extends A.hidden:\n  defaults:\n    a: 1\n",
-        "nettype Rail extends nettype.missing:\n  custom:\n    a: true\n",
+        "component A:\n  params:\n    number a\nextend A<missing: 1> B\n",
+        "component A:\n  params:\n    number a\nextend A.hidden<a: 1> B\n",
+        "extend net.missing Rail:\n  custom:\n    a: true\n",
     ],
 )
 def test_resolution_errors(probe, tmp_path, body):
     path = make_project(
         tmp_path,
-        {
-            "src/main.nosch": "from noscheme import nettype\n"
-            + body
-            + "board B0:\n  net n: nettype.passive\n"
-        },
+        {"src/main.nosch": "from noscheme import net\n" + body + "board B0:\n  net.passive n\n"},
         board="main.B0",
     )
     compare(probe, path)
@@ -214,15 +208,13 @@ def test_default_order_and_redeclaration(probe, tmp_path):
         {
             "src/main.nosch": """component Base:
   params:
-    a: number = 2
-    value: resistance = 10k
-component Part extends Base:
-  defaults:
-    value: 47k
+    number a = 2
+    resistance value = 10k
+extend Base<value: 47k> Part:
   params:
-    a: string = "hello"
+    string a = "hello"
 board B:
-  inst p: Part
+  Part p
 """
         },
     )
@@ -246,9 +238,9 @@ def test_quantity_defaults(probe, tmp_path, kind):
         {
             "src/main.nosch": f"""component Part:
   params:
-    value: {kind} = 4.7u
+    {kind} value = 4.7u
 board B:
-  inst p: Part
+  Part p
 """
         },
     )
@@ -256,10 +248,10 @@ board B:
 
 
 def test_long_inheritance_chain(probe, tmp_path):
-    text = "component P0:\n  params:\n    value: resistance = 1k\n"
+    text = "component P0:\n  params:\n    resistance value = 1k\n"
     for i in range(1, 180):
-        text += f"component P{i} extends P{i - 1}:\n  defaults:\n    value: {i}k\n"
-    text += "board B:\n  inst p: P179\n"
+        text += f"extend P{i - 1}<value: {i}k> P{i}\n"
+    text += "board B:\n  P179 p\n"
     path = make_project(tmp_path, {"src/main.nosch": text})
     compare(probe, path, {"module": "main", "definition": "B", "instance": "p"})
 
@@ -269,7 +261,7 @@ def test_long_default_dependencies(probe, tmp_path):
     for i in range(150):
         expr = f"p{i + 1} + 1" if i < 149 else "1"
         text += f"    p{i}: number = {expr}\n"
-    text += "board B:\n  inst p: Part\n"
+    text += "board B:\n  Part p\n"
     path = make_project(tmp_path, {"src/main.nosch": text})
     compare(probe, path, {"module": "main", "definition": "B", "instance": "p"})
 
@@ -281,19 +273,17 @@ def test_inherited_default_keeps_original_namespace(probe, tmp_path):
             "src/base.nosch": """from noscheme import num as helper
 component Base:
   params:
-    value: resistance = helper.ceil(1.2) * 1k
+    resistance value = helper.ceil(1.2) * 1k
   metadata:
     value: "{}".format(helper.floor(value))
 """,
             "src/main.nosch": """from base import Base
 component helper:
   params:
-    x: number = 1
-component Part extends Base:
-  defaults:
-    value: 3.3k
+    number x = 1
+extend Base<value: 3.3k> Part
 board B:
-  inst p: Part
+  Part p
 """,
         },
     )
@@ -306,9 +296,9 @@ def test_probe_observes_changed_defaults(probe, tmp_path):
         {
             "src/main.nosch": """component Part:
   params:
-    value: resistance = 1k
+    resistance value = 1k
 board B:
-  inst p: Part
+  Part p
 """
         },
     )
@@ -327,18 +317,18 @@ def test_inherited_default_namespace_not_caller_namespace(probe, tmp_path):
             "src/base.nosch": """from noscheme import num as helper
 component Base:
   params:
-    value: resistance = helper.ceil(1.2) * 1k
+    resistance value = helper.ceil(1.2) * 1k
 """,
             "src/main.nosch": """from base import Base
 component helper:
   params:
-    x: number = 1
-component Part extends Base:
+    number x = 1
+extend Base Part:
   metadata:
     custom:
       description: "specialized"
 board B:
-  inst p: Part
+  Part p
 """,
         },
     )

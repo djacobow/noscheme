@@ -19,21 +19,12 @@ std::vector<Section> sections(const std::string &text) {
     auto first = line;
     while (first < end && space(mask[first]))
       ++first;
-    auto content = trim(mask.substr(first, end - first));
-    if (content.starts_with("inst ") || content.starts_with("inst\t")) {
+    auto header = completion_scan::header_end(mask, first);
+    auto content = trim(mask.substr(first, header - first));
+    std::replace(content.begin(), content.end(), '\n', ' ');
+    if (first > line && !completion_scan::declaration_type(content).empty()) {
       auto indent = first - line;
       // The header ends at the first line break outside its argument list.
-      int depth = 0;
-      auto header = first;
-      for (; header < text.size(); ++header) {
-        auto c = mask[header];
-        if (c == '(' || c == '[')
-          ++depth;
-        else if (c == ')' || c == ']')
-          --depth;
-        else if (c == '\n' && depth <= 0)
-          break;
-      }
       auto begin = std::min(header + 1, text.size());
       auto limit = text.size();
       for (auto next = begin; next < text.size();) {
@@ -283,7 +274,7 @@ section_completion(const std::string &text, std::size_t offset,
         targets = entry.targets.get();
       }
     if (!context)
-      return empty;
+      continue;
     auto logical = rows(mask, section);
     auto begin = first;
     for (auto [start, stop] : logical)

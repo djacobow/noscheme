@@ -84,10 +84,10 @@ def test_project_commands(project, capsys, command):
 @pytest.mark.parametrize(
     "source",
     [
-        "board B:\n  net n: T\n",
+        "board B:\n  T n\n",
         "component P:\n  pins:\n    1: role.passive\n",
         "board B\n",
-        "// Ω\nboard B:\n  net n: T\n",
+        "// Ω\nboard B:\n  T n\n",
     ],
 )
 def test_parse(tmp_path, capsys, source):
@@ -106,12 +106,12 @@ def test_parse(tmp_path, capsys, source):
 
 def test_format(tmp_path, capsys):
     path = tmp_path / "a.nosch"
-    path.write_text("board B:\n    net a:T\n")
+    path.write_text("board B:\n    T a\n")
     for flags in (["--check"], ["--diff"]):
         args = ["format", str(path), *flags]
         assert invoke(capsys, args, True) == invoke(capsys, args, False)
     assert invoke(capsys, ["format", str(path)], True)[0] == 0
-    assert path.read_text() == "board B:\n  net a: T\n"
+    assert path.read_text() == "board B:\n  T a\n"
 
 
 def artifacts(project):
@@ -151,7 +151,7 @@ def test_export_repeat_rename_and_reservations(project, capsys):
     source = project / "src/main.nosch"
     source.write_text(
         source.read_text()
-        .replace("inst input: Header", "inst connector: Header")
+        .replace("Header input", "Header connector")
         .replace("      pins:", '      identity: "input"\n      ref: "J17"\n      pins:')
     )
     renamed = export_compare(project, capsys)
@@ -264,20 +264,20 @@ def test_publication_rollback(project, capsys, monkeypatch):
 
 
 def test_template_elements_and_lint(project, capsys):
-    (project / "src/main.nosch").write_text("""from noscheme import role, nettype
+    (project / "src/main.nosch").write_text("""from noscheme import role, net
 component P:
   params:
-    value: resistance = 1k
-    unused_parameter: number = 9
+    resistance value = 1k
+    number unused_parameter = 9
   pins:
     1: role.passive
 block G:
   params:
-    n: number = 2
-    r: resistance = 2k
+    number n = 2
+    resistance r = 2k
   ports:
-    p: nettype.passive[n]
-  inst parts[n]: P(value=r)
+    net.passive p[n]
+  P<value: r> parts[n]():
     1: p[0:n]
     elements:
       [1]:
@@ -286,8 +286,8 @@ block G:
         metadata:
           value: r
 board Blink:
-  net p: nettype.passive[2]
-  inst g: G(p: p)
+  net.passive p[2]
+  G g(p: p)
 """)
     for command in ("evaluate", "lint"):
         args = [command, "--project", str(project), "--diagnostics", "json"]
@@ -296,7 +296,7 @@ board Blink:
 
 @pytest.mark.parametrize("command", ["check", "compile", "resolve", "evaluate", "lint"])
 def test_structural_errors(project, capsys, command):
-    (project / "src/main.nosch").write_text("board Blink:\n  inst x: Unknown\n")
+    (project / "src/main.nosch").write_text("board Blink:\n  Unknown x\n")
     args = [command, "--project", str(project), "--diagnostics", "json"]
     expected = json_output(invoke(capsys, args, False))
     assert expected[0] == 1

@@ -21,28 +21,25 @@ std::vector<InstanceList> lists(const std::string &text) {
     auto start = line;
     while (start < end && space(mask[start]))
       ++start;
-    if (mask.compare(start, 5, "inst ") == 0 ||
-        mask.compare(start, 5, "inst\t") == 0) {
-      auto colon = start + 5;
+    std::smatch declaration;
+    auto header = completion_scan::header_end(mask, start);
+    auto content = mask.substr(start, header - start);
+    std::replace(content.begin(), content.end(), '\n', ' ');
+    if (start > line &&
+        std::regex_search(content, declaration,
+                          completion_scan::declaration_pattern())) {
+      auto opening = start + declaration.length();
       int depth = 0;
-      while (colon < end) {
-        if (mask[colon] == '[')
+      while (opening < header) {
+        if (mask[opening] == '[')
           ++depth;
-        if (mask[colon] == ']')
+        else if (mask[opening] == ']')
           --depth;
-        if (mask[colon] == ':' && !depth)
+        else if (!depth && !space(mask[opening]))
           break;
-        ++colon;
+        ++opening;
       }
-      auto opening = colon + 1;
-      while (opening < end && space(mask[opening]))
-        ++opening;
-      while (opening < end &&
-             (name_char(mask[opening]) || mask[opening] == '.'))
-        ++opening;
-      while (opening < end && space(mask[opening]))
-        ++opening;
-      if (opening < end && mask[opening] == '(') {
+      if (opening < header && mask[opening] == '(') {
         auto range = argument_range(text, mask, opening, start - line);
         result.push_back({start, opening, range.end, range.closed});
       }
@@ -135,7 +132,7 @@ instance_completion(const std::string &text, std::size_t offset,
     return connection_choices(
         text, offset, list.end,
         target ? current.substr(separator + 1) : current, *context,
-        !target && !positional, !target,
+        !target && !positional, false,
         target || (!named &&
                    positional < context->at("positional").get<std::size_t>()),
         bound, params, false, false, targets);

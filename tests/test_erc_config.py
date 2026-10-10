@@ -76,9 +76,7 @@ def test_subset_selection_and_unknown_configuration(tmp_path):
 
 
 def test_arrays_keep_separate_local_choices_and_report_conflicts_per_configuration(tmp_path):
-    _, circuit = project(
-        tmp_path, SOURCE.replace("inst expansion: Supply", "inst expansion[2]: Supply")
-    )
+    _, circuit = project(tmp_path, SOURCE.replace("Supply expansion", "Supply expansion[2]"))
     diagnostics = apply_erc(circuit)
     conflict = next(d for d in diagnostics if d.code == "erc.multiple_drivers")
     assert conflict.configuration == "header_powered"
@@ -95,8 +93,8 @@ def test_arrays_keep_separate_local_choices_and_report_conflicts_per_configurati
 def test_unknown_choice_is_not_guessed_when_forwarding_missing(tmp_path):
     # Remove just the USB instance choice binding; the block retains its public
     # alternatives, so both configurations must report incomplete source roles.
-    start = SOURCE.index("    metadata:\n      erc_choices:", SOURCE.index("  inst usb:"))
-    end = SOURCE.index("  inst expansion:", start)
+    start = SOURCE.index("    metadata:\n      erc_choices:", SOURCE.index("  Supply usb:"))
+    end = SOURCE.index("  Supply expansion:", start)
     _, circuit = project(tmp_path, SOURCE[:start] + SOURCE[end:])
     diagnostics = apply_erc(circuit)
     assert {d.configuration for d in diagnostics if d.code == "erc.incomplete_roles"} == {
@@ -141,20 +139,18 @@ def test_conditional_role_cannot_override_component_allowed_roles(tmp_path):
 def test_nested_public_choice_forwarding(tmp_path):
     wrapper = """block Wrapper:
   ports:
-    supply: nettype.power
+    net.power supply
   metadata:
     erc_choices:
       power_mode: ["source", "load", "absent"]
-  inst inner: Supply
+  Supply inner:
     supply: supply
     metadata:
       erc_choices:
         power_mode: choice(power_mode, source="source", load="load", absent="absent")
 
 """
-    source = SOURCE.replace("board B:", wrapper + "board B:").replace(
-        "inst usb: Supply", "inst usb: Wrapper"
-    )
+    source = SOURCE.replace("board B:", wrapper + "board B:").replace("Supply usb", "Wrapper usb")
     _, circuit = project(tmp_path, source)
     assert apply_erc(circuit) == ()
     scopes = circuit["erc"]["configurations"][0]["choices"]
@@ -190,8 +186,8 @@ def test_cli_configuration_errors_preserve_existing_artifacts(tmp_path, capsys):
 
 
 def test_fixed_child_selection_does_not_depend_on_board_configuration(tmp_path):
-    start = SOURCE.index("        power_mode:", SOURCE.index("  inst usb:"))
-    end = SOURCE.index("  inst expansion:", start)
+    start = SOURCE.index("        power_mode:", SOURCE.index("  Supply usb:"))
+    end = SOURCE.index("  Supply expansion:", start)
     source = SOURCE[:start] + '        power_mode: "source"\n' + SOURCE[end:]
     _, circuit = project(tmp_path, source)
     diagnostics = apply_erc(circuit)
@@ -204,7 +200,7 @@ def test_fixed_child_selection_does_not_depend_on_board_configuration(tmp_path):
 
 def test_unnamed_configurations_check_every_combination(tmp_path):
     start = SOURCE.index("    configurations:")
-    end = SOURCE.index("  global net gnd:", start)
+    end = SOURCE.index("  global net.ground gnd", start)
     _, circuit = project(tmp_path, SOURCE[:start] + SOURCE[end:])
     _, named = project(tmp_path, SOURCE)
     diagnostics = apply_erc(circuit)
@@ -221,7 +217,9 @@ def test_unnamed_configurations_check_every_combination(tmp_path):
 def test_no_choices_run_one_unconfigured_check(tmp_path):
     start = SOURCE.index("board B:")
     board = SOURCE[start:]
-    board = board[: board.index("    erc_choices:")] + board[board.index("  global net gnd:") :]
+    board = (
+        board[: board.index("    erc_choices:")] + board[board.index("  global net.ground gnd") :]
+    )
     board = board.replace(
         'power_mode: choice(power_source, usb="source", header="absent")', 'power_mode: "source"'
     ).replace('power_mode: choice(power_source, usb="load", header="source")', 'power_mode: "load"')
@@ -232,7 +230,7 @@ def test_no_choices_run_one_unconfigured_check(tmp_path):
 
 def test_too_many_combinations_require_named_configurations(tmp_path):
     start = SOURCE.index("    configurations:")
-    end = SOURCE.index("  global net gnd:", start)
+    end = SOURCE.index("  global net.ground gnd", start)
     choices = "".join(f'      extra{i}: ["a", "b"]\n' for i in range(6))
     source = SOURCE[:start] + choices + SOURCE[end:]
     with pytest.raises(DiagnosticError) as exc:
@@ -254,7 +252,7 @@ def test_named_configuration_can_leave_choices_unselected(tmp_path):
 
 
 def test_conditional_pin_role_selects_only_definition_permitted_roles(tmp_path):
-    source = """from noscheme import role, nettype, unused
+    source = """from noscheme import role, net, unused
 component Pin:
   pins:
     1:
@@ -269,13 +267,13 @@ board B:
         direction: "input"
       transmit:
         direction: "output"
-  net n: nettype.digital
-  inst p: Pin
+  net.digital n
+  Pin p:
     1: n
     metadata:
       pins:
         1: choice(direction, input=role.digital_input, output=role.digital_output)
-  inst load: Pin
+  Pin load:
     1: n
     metadata:
       pins:
@@ -288,10 +286,10 @@ board B:
 
 
 def test_waived_diagnostics_retain_configuration_names(tmp_path):
-    source = SOURCE.replace("inst expansion: Supply", "inst expansion[2]: Supply")
+    source = SOURCE.replace("Supply expansion", "Supply expansion[2]")
     source = source.replace(
-        "  net v5: nettype.power\n",
-        '  net v5: nettype.power\n    waivers:\n      multiple_drivers: "Bench supply arrangement explicitly reviewed"\n',
+        "  net.power v5\n",
+        '  net.power v5:\n    waivers:\n      multiple_drivers: "Bench supply arrangement explicitly reviewed"\n',
     )
     _, circuit = project(tmp_path, source)
     assert apply_erc(circuit) == ()
@@ -302,7 +300,7 @@ def test_waived_diagnostics_retain_configuration_names(tmp_path):
 
 
 def test_cli_checks_all_but_can_select_a_clean_configuration(tmp_path, capsys):
-    project(tmp_path, SOURCE.replace("inst expansion: Supply", "inst expansion[2]: Supply"))
+    project(tmp_path, SOURCE.replace("Supply expansion", "Supply expansion[2]"))
     assert main(["check", "--project", str(tmp_path)]) == 1
     assert main(["check", "--project", str(tmp_path), "--erc-configuration", "usb_powered"]) == 0
     records = snapshot(tmp_path)
@@ -336,13 +334,13 @@ def test_configuration_selects_public_port_contract_as_well_as_private_roles(tmp
 def test_specialized_blocks_preserve_choice_bindings_in_inherited_body(tmp_path):
     source = SOURCE.replace(
         "board B:",
-        """block SpecializedSupply extends Supply:
+        """extend Supply SpecializedSupply:
   metadata:
     custom:
       note: "Same choice contract and private implementation"
 
 board B:""",
-    ).replace("inst usb: Supply", "inst usb: SpecializedSupply")
+    ).replace("Supply usb", "SpecializedSupply usb")
     _, circuit = project(tmp_path, source)
     assert apply_erc(circuit) == ()
 

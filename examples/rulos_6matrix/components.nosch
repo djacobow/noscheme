@@ -11,7 +11,7 @@ import Connector
 
 component Display:
   params:
-    value: string = "7-SEG_SA56-11"
+    string value = "7-SEG_SA56-11"
   pins:
     "1" (E):
       role: role.passive
@@ -43,7 +43,7 @@ component Display:
 
 component SinkDriver:
   params:
-    value: string = "STP16CPC26XTR"
+    string value = "STP16CPC26XTR"
   pins:
     "1" (GND):
       role: role.ground
@@ -108,12 +108,12 @@ component SinkDriver:
       eagle_deviceset: "ALLEGRO-A6282"
       eagle_package: "SOP65P640X120-24"
 
-component Resistor extends Device.R:
+extend Device.R Resistor:
   metadata:
     footprint: "Resistor_SMD:R_0603_1608Metric"
 
 // Pin 1 faces the signal; pin 2 must reach a declared power rail.
-component I2CPullup extends Resistor:
+extend Resistor I2CPullup:
   pins:
     1:
       // Demo allowance for resistor parasitic loading.
@@ -130,12 +130,12 @@ component I2CPullup extends Resistor:
     interchangeable: []
 
 // User policy: known capacitor values up to and including 1uF use 0603.
-component Cap0603 extends Device.C:
+extend Device.C Cap0603:
   metadata:
     footprint: "Capacitor_SMD:C_0603_1608Metric"
 
 // Known capacitor values above 1uF through 10uF use 0805.
-component Cap0805 extends Device.C:
+extend Device.C Cap0805:
   metadata:
     footprint: "Capacitor_SMD:C_0805_2012Metric"
 
@@ -143,7 +143,7 @@ component Cap0805 extends Device.C:
 // Pins must not be interchangeable.
 component AluminumCap:
   params:
-    value: capacitance
+    capacitance value
   pins:
     1: role.passive
     2: role.passive
@@ -153,15 +153,13 @@ component AluminumCap:
       voltage_rating: "25V"
       dielectric: "aluminum electrolytic"
 
-component BuckOutputCap extends AluminumCap:
-  defaults:
-    value: 47u
+extend AluminumCap<47u> BuckOutputCap:
   metadata:
     footprint: "Capacitor_SMD:CP_Elec_6.3x5.8"
     custom:
       manufacturer_part_number: "EEEFK1E470P"
 
-component MCU extends MCU_ST_STM32F3.STM32F303K8Tx:
+extend MCU_ST_STM32F3.STM32F303K8Tx MCU:
   pins:
     [1, 5, 17]: role.power_input
     [16, 32]: role.ground
@@ -213,15 +211,13 @@ component BusRegulator:
     ref_prefix: "U"
     footprint: "Package_TO_SOT_SMD:SOT-223-3_TabPin2"
 
-component BusOutputCap extends AluminumCap:
-  defaults:
-    value: 22u
+extend AluminumCap<22u> BusOutputCap:
   metadata:
     footprint: "Capacitor_SMD:CP_Elec_5x5.8"
     custom:
       manufacturer_part_number: "EEEFK1E220R"
 
-component I2CBuffer extends Interface.PCA9600D:
+extend Interface.PCA9600D I2CBuffer:
   pins:
     // Datasheet maximum effective input capacitance per signal pad.
     // RX/TX and RY/TY are separate pads and both count on the joined nets.
@@ -238,7 +234,7 @@ component I2CBuffer extends Interface.PCA9600D:
       min_voltage: -0.3
       max_voltage: 18
 
-component PChannel extends Transistor_FET.Q_PMOS_GSD:
+extend Transistor_FET.Q_PMOS_GSD PChannel:
   pins:
     1: role.passive
   metadata:
@@ -246,7 +242,7 @@ component PChannel extends Transistor_FET.Q_PMOS_GSD:
 
 component Inductor:
   params:
-    value: inductance = 2.2u
+    inductance value = 2.2u
   pins:
     "1" (pin1):
       role: role.passive
@@ -263,7 +259,7 @@ component Inductor:
 
 // Application-specific assertion: the assembled buck supplies power at pad 2.
 // This does not infer conversion through arbitrary inductors or check regulation.
-component BuckOutputInductor extends Inductor:
+extend Inductor BuckOutputInductor:
   pins:
     2:
       role: role.power_output
@@ -273,7 +269,7 @@ component BuckOutputInductor extends Inductor:
     // Electrical roles differ even though the physical coil is reversible.
     interchangeable: []
 
-component Buck extends Regulator_Switching.TPS563200:
+extend Regulator_Switching.TPS563200 Buck:
   pins:
     1: role.ground
     2: role.analog_output
@@ -288,7 +284,7 @@ component Buck extends Regulator_Switching.TPS563200:
 
 component PowerJack:
   params:
-    value: string = "PJ-036AH-SMT-TR"
+    string value = "PJ-036AH-SMT-TR"
   pins:
     "1" (PWR):
       role: role.passive
@@ -303,16 +299,16 @@ component PowerJack:
       eagle_deviceset: "CUI-PJ-051"
       eagle_package: "CUI-PJ-051"
 
-component Header2 extends Connector_Generic.Conn_01x02:
+extend Connector_Generic.Conn_01x02 Header2:
   metadata:
     footprint: "Connector_Molex:Molex_KK-254_AE-6410-02A_1x02_P2.54mm_Vertical"
 
-component Header3 extends Connector_Generic.Conn_01x03:
+extend Connector_Generic.Conn_01x03 Header3:
   metadata:
     footprint: "Connector_Molex:Molex_KK-254_AE-6410-03A_1x03_P2.54mm_Vertical"
 
 // Same 10-pin 1.27mm SMT Cortex header footprint as the STM32 example.
-component CortexHeader extends Connector_Generic.Conn_02x05_Odd_Even:
+extend Connector_Generic.Conn_02x05_Odd_Even CortexHeader:
   pins:
     1:
       // Probe senses target voltage; it does not power itself from here.
@@ -321,6 +317,6 @@ component CortexHeader extends Connector_Generic.Conn_02x05_Odd_Even:
   metadata:
     footprint: "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD"
 
-component RJ45 extends Connector.Conn_01x08_Pin:
+extend Connector.Conn_01x08_Pin RJ45:
   metadata:
     footprint: "Connector_RJ:RJ45_Amphenol_54602-x08_Horizontal"

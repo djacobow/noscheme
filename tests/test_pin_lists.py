@@ -24,8 +24,8 @@ def design(key="[VDD, 2..3, 7]", rhs="n", extra="", dimensions=""):
     return (
         PART
         + f"""board B:
-  net n: nettype.passive
-  inst p{dimensions}: P
+  net.passive n
+  P p{dimensions}:
     {key}: {rhs}
 {extra}
 """
@@ -80,13 +80,13 @@ def test_component_specialization_lists_override_existing_pins(tmp_path, selecti
         design()
         .replace(
             "board B:",
-            """component Specialized extends P:
+            """extend P Specialized:
   pins:
     [1, 2..3, 7]:
       unused: unused.never
 board B:""",
         )
-        .replace("inst p: P", "inst p: Specialized")
+        .replace("P p", "Specialized p")
     )
     source = source.replace("[1, 2..3, 7]:", selection + ":")
     circuit = compile_source(tmp_path, source)
@@ -146,7 +146,7 @@ def test_pin_lists_are_literal_selections_not_expressions(tmp_path, key):
 
 
 def test_shape_and_explicit_list_order_match_range_semantics(tmp_path):
-    source = design("[7, 1..3]").replace("net n: nettype.passive", "net n: nettype.passive[4]")
+    source = design("[7, 1..3]").replace("net.passive n", "net.passive n[4]")
     circuit = compile_source(tmp_path, source)
     assert {n: p["net"] for n, p in circuit["parts"][0]["pins"].items()} == {
         "7": "n[0]",
@@ -155,7 +155,7 @@ def test_shape_and_explicit_list_order_match_range_semantics(tmp_path):
         "3": "n[3]",
     }
     with pytest.raises(DiagnosticError) as error:
-        compile_source(tmp_path, source.replace("passive[4]", "passive[3]"))
+        compile_source(tmp_path, source.replace("net.passive n[4]", "net.passive n[3]"))
     assert error.value.diagnostics[0].code == "connection.shape"
 
 
@@ -169,15 +169,19 @@ def test_instance_array_selection_and_no_connect(tmp_path):
     assert all(p["net"] is None for p in circuit["parts"][1]["pins"].values())
 
 
-def test_lists_do_not_apply_to_ordinary_metadata_or_parameters():
-    for source in [
-        'component P:\n  metadata:\n    [value]: "x"\n',
-        "component P:\n  params:\n    [n]: number = 2\n",
-        "bundle B:\n  [a, b]: nettype.passive\n",
-    ]:
-        with pytest.raises(DiagnosticError) as error:
-            parse(source)
-        assert any(d.code == "syntax.pin-list-context" for d in error.value.diagnostics)
+@pytest.mark.parametrize(
+    "source,code",
+    [
+        ('component P:\n  metadata:\n    [value]: "x"\n', "syntax.pin-list-context"),
+        # Declarations name identifiers after their type, so a key form is not one.
+        ("component P:\n  params:\n    [n]: number = 2\n", "syntax.declaration-form"),
+        ("bundle B:\n  [a, b]: net.passive\n", "syntax.declaration-form"),
+    ],
+)
+def test_lists_do_not_apply_to_ordinary_metadata_or_parameters(source, code):
+    with pytest.raises(DiagnosticError) as error:
+        parse(source)
+    assert any(d.code == code for d in error.value.diagnostics)
 
 
 def test_aggregate_selection_limit(tmp_path):
@@ -196,8 +200,8 @@ def test_singleton_exact_physical_names(tmp_path, pin):
     [{pin}]:
       role: role.passive
 board B:
-  net n: nettype.passive
-  inst p: P
+  net.passive n
+  P p:
     [{pin}]: n
 """
     circuit = compile_source(tmp_path, source)

@@ -1,6 +1,6 @@
 // Adapted from Jeremy Elson / rulos, 6-Line Matrix Rev B. See README.md.
 // Preserve source connectivity, including unused nets and unspecified values.
-from noscheme import nettype, role
+from noscheme import net, role
 import matrix
 from interfaces import Rows, LocalI2C, BufferedI2C
 from display import TwoColumns
@@ -12,41 +12,41 @@ board SixLineMatrix:
     erc_choices:
       supply_5v: ["jack", "header"]
       supply_12v: ["port0", "port1", "port2"]
-  net blank#, clock, latch, rx, swclk, tx: nettype.digital
+  net.digital blank#, clock, latch, rx, swclk, tx
   // Switching/feedback nodes retain passive compatibility for this first pass.
-  net bootstrap, feedback, switch_node: nettype.passive
-  net gnd: nettype.ground
+  net.passive bootstrap, feedback, switch_node
+  net.ground gnd:
     voltage: 0..0
-  net reset#: nettype.open_drain
-  net swdio: nettype.bidirectional
-  net scl, sda: LocalI2C
+  net.open_drain reset#
+  net.bidirectional swdio
+  LocalI2C scl, sda:
     wiring_capacitance: 50p
     voltage: 0..3.465
-  net scl_hv, sda_hv: BufferedI2C
+  BufferedI2C scl_hv, sda_hv:
     wiring_capacitance: 100p
   // Supply voltages are assumed steady-state envelopes, not a regulator simulation.
   // BuckOutputInductor explicitly models the converter output at pad 2.
-  net led_power: nettype.power
+  net.power led_power:
     checks:
       // 64 shared sinks, not 6 independent full-row loads.
       // 20mA matches the 1k R_EXT selection; 10% is a design allowance.
       // Extra 1mA covers feedback-divider current and steady leakage.
       display_load: matrix.shared_sink_budget(load=64 * 20m * 1.10 + 1m)
     voltage: 2.5 ± 5%
-  net v10: nettype.power
+  net.power v10:
     voltage: 10 ± 5%
-  net v12: nettype.power
+  net.power v12:
     voltage: 12 ± 5%
-  net v5: nettype.power
+  net.power v5:
     voltage: 5 ± 5%
-  net vcc: nettype.power
+  net.power vcc:
     voltage: 3.3 ± 5%
-  net rows: Rows
-  net row_enable: nettype.digital[6]
-  net serial_data: nettype.digital[5]
+  Rows rows
+  net.digital row_enable[6]
+  net.digital serial_data[5]
 
   // Four modules share controls and row buses. Slices form the serial chain.
-  inst banks[4]: TwoColumns(
+  TwoColumns banks[4](
     rows: rows,
     supply: vcc,
     ground: gnd,
@@ -57,7 +57,7 @@ board SixLineMatrix:
     sdo: serial_data[1:5],
   )
 
-  inst mcu: MCU
+  MCU<"STM32F303K8T6"> mcu:
     ["1", "17", "5"]: vcc
     "10": row_enable[4]
     "11": row_enable[5]
@@ -78,24 +78,20 @@ board SixLineMatrix:
     "7": row_enable[1]
     "8": row_enable[2]
     "9": row_enable[3]
-    params:
-      value: "STM32F303K8T6"
 
-  inst power_header: Header2
+  Header2<"22-23-2021"> power_header:
     1: v5
     2: gnd
-    params:
-      value: "22-23-2021"
     metadata:
       pins:
         1: choice(supply_5v, jack=role.power_input, header=role.power_output)
         2: role.ground
 
-  inst logic_regulator: LogicRegulator(1: gnd, 2: vcc, 3: v5)
+  LogicRegulator logic_regulator(1: gnd, 2: vcc, 3: v5)
 
-  inst bus_regulator: BusRegulator(1: v12, 2: gnd, 3: v10)
+  BusRegulator bus_regulator(1: v12, 2: gnd, 3: v10)
 
-  inst debug: CortexHeader
+  CortexHeader<"CORTEX_HEADERJ"> debug:
     "1": vcc
     "10": reset#
     "2": swdio
@@ -103,8 +99,6 @@ board SixLineMatrix:
     "4": swclk
     // PB3 is used for the LED clock, so trace output is unavailable.
     ["6", "7", "8"]: no_connect
-    params:
-      value: "CORTEX_HEADERJ"
     metadata:
       // Roles describe the attached debug probe, not the MCU.
       pins:
@@ -115,22 +109,18 @@ board SixLineMatrix:
         6: role.digital_input
         10: role.open_drain
 
-  inst bus_buffer: I2CBuffer
+  I2CBuffer<"PCA9600SO8"> bus_buffer:
     "1": sda
     ["2", "3"]: sda_hv
     "4": gnd
     ["5", "6"]: scl_hv
     "7": scl
     "8": v10
-    params:
-      value: "PCA9600SO8"
 
-  inst uart: Header3
+  Header3<"22-23-2031"> uart:
     1: tx
     2: rx
     3: gnd
-    params:
-      value: "22-23-2031"
     metadata:
       // External UART adapter receives TX and drives RX.
       pins:
@@ -138,49 +128,45 @@ board SixLineMatrix:
         2: role.digital_output
         3: role.ground
 
-  inst inductor: BuckOutputInductor(1: switch_node, 2: led_power, value=2.2u)
+  BuckOutputInductor<2.2u> inductor(1: switch_node, 2: led_power)
 
-  inst feedback_top: Resistor(feedback, led_power, value=22.6k)
+  Resistor<22.6k> feedback_top(feedback, led_power)
 
-  inst feedback_bottom: Resistor(gnd, feedback, value=10k)
+  Resistor<10k> feedback_bottom(gnd, feedback)
 
-  inst buck: Buck
+  Buck<"TPS563200"> buck:
     "1": gnd
     "2": switch_node
     ["3", "5"]: v5
     "4": feedback
     "6": bootstrap
-    params:
-      value: "TPS563200"
 
-  inst power_jack: PowerJack
+  PowerJack<"PJ-036AH-SMT-TR"> power_jack:
     PWR: v5
     GND: gnd
     GNDBREAK: no_connect
-    params:
-      value: "PJ-036AH-SMT-TR"
     metadata:
       pins:
         PWR: choice(supply_5v, jack=role.power_output, header=role.power_input)
         GND: role.ground
 
-  inst cap_1: Cap0805(v5, gnd, value=10u)
+  Cap0805<10u> cap_1(v5, gnd)
 
-  inst cap_2: Cap0805(vcc, gnd, value=4.7u)
+  Cap0805<4.7u> cap_2(vcc, gnd)
 
-  inst cap_3: Cap0603(v12, gnd, value=1u)
+  Cap0603<1u> cap_3(v12, gnd)
 
-  inst cap_4: BusOutputCap(1: v10, 2: gnd)
+  BusOutputCap cap_4(1: v10, 2: gnd)
 
-  inst cap_5: Cap0603(vcc, gnd, value=1u)
+  Cap0603<1u> cap_5(vcc, gnd)
 
-  inst cap_8: BuckOutputCap(1: led_power, 2: gnd)
+  BuckOutputCap cap_8(1: led_power, 2: gnd)
 
-  inst cap_9: BuckOutputCap(1: led_power, 2: gnd)
+  BuckOutputCap cap_9(1: led_power, 2: gnd)
 
-  inst cap_10: Cap0603(switch_node, bootstrap, value=100n)
+  Cap0603<100n> cap_10(switch_node, bootstrap)
 
-  inst row_switch[6]: PChannel
+  PChannel<"MOSFET-PCHANNEL"> row_switch[6]:
     G: row_enable
     "2": led_power
     [0]."3": rows.row0
@@ -189,16 +175,12 @@ board SixLineMatrix:
     [3]."3": rows.row3
     [4]."3": rows.row4
     [5]."3": rows.row5
-    params:
-      value: "MOSFET-PCHANNEL"
 
-  inst bus_ports[3]: RJ45
+  RJ45<"54602-908LF"> bus_ports[3]:
     1: sda_hv
     [2, 5, 6, 8]: gnd
     3: scl_hv
     [4, 7]: v12
-    params:
-      value: "54602-908LF"
     metadata:
       pins:
         [1, 3]:
@@ -256,11 +238,9 @@ board SixLineMatrix:
               port2=role.passive,
             )
 
-  inst i2c_pullups[2]: I2CPullup
+  I2CPullup<2k> i2c_pullups[2]:
     [0]."1": sda
     [1]."1": scl
     "2": vcc
-    params:
-      value: 2k
 
-  inst buck_input_caps[2]: Cap0805(v5, gnd, value=10u)
+  Cap0805<10u> buck_input_caps[2](v5, gnd)

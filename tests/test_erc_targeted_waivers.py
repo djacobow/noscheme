@@ -10,12 +10,12 @@ def design(pins='["p[0].1"]'):
     return (
         component("power_input")
         + f"""board B:
-  net gnd: nettype.ground
+  net.ground gnd:
     waivers:
       incompatible_role:
         reason: "Ground the disabled power domain."
         pins: {pins}
-  inst p[2]: P
+  P p[2]:
     1: gnd
 """
     )
@@ -52,7 +52,7 @@ def test_malformed_target_lists_fail_validation(tmp_path, pins):
 
 def test_targeted_waiver_is_relative_to_each_block_instance(tmp_path):
     source = design('["p[0].1", "p[1].1"]').replace("board B:", "block W:")
-    source += "board B:\n  inst w[2]: W()\n"
+    source += "board B:\n  W w[2]()\n"
     circuit = compile_source(tmp_path, source)
     assert apply_erc(circuit) == ()
     assert [w["pins"] for w in circuit["erc"]["waivers"]] == [
@@ -79,8 +79,8 @@ def test_selected_ground_role_is_allowed(tmp_path):
 def test_target_must_be_connected_to_the_waived_net(tmp_path):
     source = (
         design('["other.1"]')
-        + """  net other_net: nettype.passive
-  inst other[2]: P
+        + """  net.passive other_net
+  P other[2]:
     1: other_net
 """
     )
@@ -92,9 +92,7 @@ def test_target_must_be_connected_to_the_waived_net(tmp_path):
 
 def test_pin_target_cannot_waive_net_wide_diagnostic(tmp_path):
     source = (
-        design()
-        .replace("nettype.ground", "nettype.power")
-        .replace("incompatible_role:", "missing_driver:")
+        design().replace("net.ground", "net.power").replace("incompatible_role:", "missing_driver:")
     )
     circuit = compile_source(tmp_path, source)
     assert any(d.code == "erc.missing_driver" for d in apply_erc(circuit))
@@ -106,16 +104,16 @@ def test_targeted_waiver_on_inner_port_still_has_invalid_scope(tmp_path):
         component("power_input")
         + """block W:
   ports:
-    supply: nettype.ground
+    net.ground supply:
       waivers:
         incompatible_role:
           reason: "Disabled domain"
           pins: ["p.1"]
-  inst p: P
+  P p:
     1: supply
 board B:
-  net gnd: nettype.ground
-  inst w[2]: W
+  net.ground gnd
+  W w[2]:
     supply: gnd
 """
     )

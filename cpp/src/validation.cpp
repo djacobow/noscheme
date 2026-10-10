@@ -3,22 +3,33 @@
 #include <map>
 #include <set>
 namespace noscheme {
+Json error_json(std::string code, std::string message, const Span &span,
+                const Span *previous) {
+  Json related = Json::array();
+  if (previous)
+    related.push_back(
+        object("message", "previous declaration", "span", previous->json()));
+  return object("code", std::move(code), "severity", "error", "message",
+                std::move(message), "span", span.json(), "related",
+                std::move(related), "instance_path", nullptr, "configuration",
+                nullptr, "application", nullptr);
+}
 namespace {
 using ast::as;
 using ast::Kind;
+const std::map<std::string, std::set<std::string>> allowed_sections = {
+    {"component", {"params", "pins", "metadata"}},
+    {"block", {"params", "ports", "metadata"}},
+    {"board", {"metadata"}},
+    {"bundle", {"metadata"}},
+    {"nettype", {}}};
 class Validator {
+public:
   Json errors = Json::array();
   void error(std::string code, std::string message, const Span &span,
              const Span *previous = nullptr) {
-    Json related = Json::array();
-    if (previous)
-      related.push_back(
-          object("message", "previous declaration", "span", previous->json()));
-    errors.push_back(object("code", std::move(code), "severity", "error",
-                            "message", std::move(message), "span", span.json(),
-                            "related", std::move(related), "instance_path",
-                            nullptr, "configuration", nullptr, "application",
-                            nullptr));
+    errors.push_back(
+        error_json(std::move(code), std::move(message), span, previous));
   }
   void reserved(const std::string &text, const Span &span) {
     static const std::set<std::string> names{"no_connect", "global", "true",
@@ -86,11 +97,11 @@ class Validator {
         result.push_back(x);
     return result;
   }
-  static std::vector<const ast::Field *>
-  pointers(const std::vector<ast::Field> &fields) {
-    std::vector<const ast::Field *> result;
-    for (const auto &f : fields)
-      result.push_back(&f);
+  static std::vector<const ast::Section *>
+  pointers(const std::vector<ast::Section> &sections) {
+    std::vector<const ast::Section *> result;
+    for (const auto &s : sections)
+      result.push_back(&s);
     return result;
   }
   void fields(const std::vector<const ast::Field *> &entries,
@@ -124,13 +135,30 @@ class Validator {
               "parameter declarations require a type and cannot have nested "
               "fields or ranges",
               f->span);
-      fields(pointers(f->fields), false,
+      fields(ast::field_list(f->fields), false,
              instance_metadata && f->key.first.text == "pins");
     }
   }
-
-public:
-  Json run(const ast::Module &module) {
+  void instance_sections(const std::vector<ast::Section> &instance) {
+    auto sections = pointers(instance);
+    unique_sections(sections);
+    for (const auto &s : instance)
+      if (s.name == "elements")
+        for (const auto *element : only<ast::ElementOverride>(s.entries)) {
+          auto nested = pointers(element->sections);
+          unique_sections(nested);
+          sections.insert(sections.end(), nested.begin(), nested.end());
+        }
+    for (const auto *s : sections) {
+      if (s->name == "params")
+        unique_names(only<ast::Argument>(s->entries));
+      else if (s->name == "metadata")
+        fields(only<ast::Field>(s->entries), false, false, true);
+    }
+  }
+  // Checks that do not depend on other modules; kind_errors follows, at once
+  // or, for an extension, when the loader knows its base's kind.
+  void run(const ast::Module &module) {
     auto definitions = only<ast::Definition>(module.items);
     for (const auto *item : only<ast::Import>(module.items)) {
       if (item->names.empty()) {
@@ -141,44 +169,14 @@ public:
           declared(n.local());
     }
     unique_names(definitions);
-    std::map<std::string, std::set<std::string>> allowed = {
-        {"component", {"params", "pins", "metadata"}},
-        {"block", {"params", "ports", "metadata"}},
-        {"board", {"metadata"}},
-        {"bundle", {"metadata"}},
-        {"nettype", {}}};
     for (const auto *d : definitions) {
       declared(d->name);
-      const auto &kind = d->keyword;
-      bool base = !d->base.empty();
-      if (base && kind != "component" && kind != "block" && kind != "nettype")
-        error(
-            "syntax.inheritance-context",
-            "only components, blocks, and net types may specialize definitions",
-            d->span);
-      if (kind == "nettype" && !base)
-        error("syntax.nettype-base",
-              "a net type extends a builtin nettype value or another net type",
-              d->span);
       unique_sections(only<ast::Section>(d->body));
-      auto bare = only<ast::Field>(d->body);
-      if (kind == "nettype")
-        fields(bare);
-      std::vector<std::pair<std::string, const ast::Node *>> named;
-      for (const auto &n : d->body)
-        if (auto *net = as<ast::Net>(n))
-          named.emplace_back(net->name.text, net);
-        else if (auto *instance = as<ast::Instance>(n))
-          named.emplace_back(instance->name.text, instance);
-      {
-        std::map<std::string, const ast::Node *> seen;
-        for (const auto &[name, n] : named) {
-          auto [it, added] = seen.emplace(name, n);
-          if (!added)
-            error("syntax.duplicate", "duplicate entry " + Json(name).dump(),
-                  n->span, &it->second->span);
-        }
-      }
+      std::vector<const ast::Declarator *> declarators;
+      for (const auto *declaration : only<ast::Declaration>(d->body))
+        for (const auto &declarator : declaration->declarators)
+          declarators.push_back(&declarator);
+      unique_names(declarators);
       for (const auto &n : d->body) {
         if (auto *section = as<ast::Section>(n)) {
           const auto &name = section->name;
@@ -196,83 +194,87 @@ public:
                 for (const auto &k : entry->key.items)
                   check(k);
             }
-          auto permitted = allowed.at(kind);
-          if (base) {
-            permitted.erase("params");
-            permitted.insert("defaults");
-          }
-          if (!permitted.contains(name))
-            error("syntax.section-context",
-                  name + " section is not allowed in this " + kind +
-                      " definition",
-                  section->span);
           fields(entries, name == "params", name == "pins", false,
-                 name == "pins" && kind == "component");
-        } else if (auto *field = as<ast::Field>(n)) {
-          // Lark commits to structural keywords in a definition body. ANTLR
-          // permits them as names in other contexts, so retain that boundary.
-          const auto &first = field->key.first;
-          if (!first.spelling.starts_with('"') &&
-              std::set<std::string>{"params", "defaults", "pins", "ports",
-                                    "metadata", "inst", "net", "global"}
-                  .contains(first.text)) {
-            error("syntax.invalid",
-                  "expected a declaration or an indented section", field->span);
-            continue;
-          }
-          if (kind == "nettype")
-            continue;
-          declared(first);
-          if (kind != "bundle" || base)
-            error("syntax.declaration-context",
-                  "bare fields are only allowed in bundle and net type "
-                  "definitions",
-                  field->span);
-        } else {
-          bool is_net = n->kind == Kind::Net;
-          declared(is_net ? as<ast::Net>(*n).name : as<ast::Instance>(*n).name);
-          if ((kind != "block" && kind != "board") || base)
-            error("syntax.declaration-context",
-                  "internal circuit declarations require a base block or board",
-                  n->span);
-          if (auto *net = as<ast::Net>(n)) {
-            if (net->global && kind != "board")
-              error("syntax.global-context", "only a board may declare globals",
-                    net->span);
-            fields(pointers(net->fields));
-          } else {
-            const auto &instance = as<ast::Instance>(*n);
-            std::vector<const ast::Section *> sections;
-            for (const auto &section : instance.sections)
-              sections.push_back(&section);
-            unique_sections(sections);
-            for (const auto &s : instance.sections)
-              if (s.name == "elements")
-                for (const auto *element :
-                     only<ast::ElementOverride>(s.entries)) {
-                  std::vector<const ast::Section *> nested;
-                  for (const auto &section : element->sections)
-                    nested.push_back(&section);
-                  unique_sections(nested);
-                  sections.insert(sections.end(), nested.begin(), nested.end());
-                }
-            for (const auto *s : sections) {
-              if (s->name == "params")
-                unique_names(only<ast::Argument>(s->entries));
-              else if (s->name == "metadata")
-                fields(only<ast::Field>(s->entries), false, false, true);
-            }
-          }
+                 name == "pins");
+        } else if (auto *declaration = as<ast::Declaration>(n)) {
+          for (const auto &declarator : declaration->declarators)
+            declared(declarator.name);
+          fields(ast::field_list(declaration->fields));
+          instance_sections(declaration->sections);
         }
       }
-      fields(bare);
+      fields(only<ast::Field>(d->body));
+      if (d->keyword != "extend")
+        kinds(*d);
     }
-    return errors;
+  }
+  void kinds(const ast::Definition &d) {
+    const auto &kind = d.keyword;
+    bool base = !d.base.empty();
+    if (base && kind != "component" && kind != "block" && kind != "nettype")
+      error("syntax.inheritance-context",
+            "only components, blocks, and net types may be extended", d.span);
+    auto permitted = allowed_sections.at(kind);
+    if (base) {
+      bool any = !permitted.empty();
+      permitted.erase("params");
+      if (any)
+        permitted.insert("defaults");
+    }
+    for (const auto &n : d.body) {
+      if (auto *section = as<ast::Section>(n)) {
+        if (!permitted.contains(section->name))
+          error("syntax.section-context",
+                section->name + " section is not allowed in this " + kind +
+                    " definition",
+                section->span);
+      } else if (auto *field = as<ast::Field>(n)) {
+        // Lark commits to structural keywords in a definition body. ANTLR
+        // permits them as names in other contexts, so retain that boundary.
+        const auto &first = field->key.first;
+        if (!first.spelling.starts_with('"') &&
+            std::set<std::string>{"params", "pins", "ports", "metadata",
+                                  "global"}
+                .contains(first.text)) {
+          error("syntax.invalid",
+                "expected a declaration or an indented section", field->span);
+          continue;
+        }
+        if (kind == "nettype")
+          continue;
+        declared(first);
+        if (kind != "bundle" || base)
+          error("syntax.declaration-context",
+                "bare fields are only allowed in bundle and net type "
+                "definitions",
+                field->span);
+      } else if (auto *declaration = as<ast::Declaration>(n)) {
+        if ((kind != "block" && kind != "board") || base)
+          error("syntax.declaration-context",
+                "internal circuit declarations require a base block or board",
+                declaration->span);
+        if (declaration->global && kind != "board")
+          error("syntax.global-context", "only a board may declare globals",
+                declaration->span);
+      }
+    }
   }
 };
 } // namespace
 Json validate_structure(const ast::Module &module) {
-  return Validator().run(module);
+  Validator validator;
+  validator.run(module);
+  return validator.errors;
+}
+Json kind_errors(const ast::Definition &definition) {
+  Validator validator;
+  validator.kinds(definition);
+  return validator.errors;
+}
+Json field_errors(const std::vector<const ast::Field *> &fields) {
+  Validator validator;
+  validator.fields(fields);
+  return validator.errors;
 }
 void UniqueDiagnostics::add(const Json &diagnostic) {
   auto hash = std::hash<Json>{}(diagnostic);

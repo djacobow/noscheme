@@ -23,10 +23,10 @@ class NoschemeIndenter(Indenter):
     NL_type = "_NL"
     INDENT_type = "_INDENT"
     DEDENT_type = "_DEDENT"
-    # Newlines inside parentheses and brackets, including instance arguments, are
+    # Newlines inside parentheses, brackets, and an instance's <parameters> are
     # not layout; an instance's sections are indented after its line.
-    OPEN_PAREN_types = ["_LPAR", "_LSQB"]
-    CLOSE_PAREN_types = ["_RPAR", "_RSQB"]
+    OPEN_PAREN_types = ["_LPAR", "_LSQB", "_LANGLE"]
+    CLOSE_PAREN_types = ["_RPAR", "_RSQB", "_RANGLE"]
     tab_len = 8  # Tabs in indentation are rejected before parsing.
 
     def handle_NL(self, token):

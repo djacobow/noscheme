@@ -10,8 +10,8 @@ SOURCE = """component Output:
     1:
       role: role.digital_output
 board B:
-  net bus: nettype.digital
-  inst outputs[2]: Output
+  net.digital bus
+  Output outputs[2]:
     1: bus
 """
 

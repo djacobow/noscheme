@@ -61,10 +61,13 @@ After `uv sync --locked`, configure your editor's LSP client to run:
 
 The language server provides compiler/ERC diagnostics, go-to-definition,
 find-references, rename, formatting, and resolved hover details, plus completion for component/block names, connection pins/ports,
-imported `role.` / `nettype.` values, and footprint strings. It checks unsaved buffers, including
+imported `role.` / `net.` values, and footprint strings. It checks unsaved buffers, including
 imported files, after a 200 ms typing delay. It does not write circuit artifacts,
 netlists, or identity state.
 Checks include project-local Python ERC extensions just as the CLI does.
+Missing required pin or port connections are reported at the instance declaration,
+with the interface definition linked as related information. Explicit binding
+errors point to the binding itself.
 
 Project selection first looks for `noscheme.toml` in parent directories, then
 checks configurations within the editor workspace whose source/library paths
@@ -146,15 +149,21 @@ or run `:nmap <buffer> K <plug>(lsp-hover)` in an already-open buffer.
 
 Completion supports incomplete instance/connection statements, inherited aliases,
 and numeric pins; accepting a suggestion replaces the current token.
+Both servers advertise `<`, `(`, and `,` as automatic completion triggers:
+`Capacitor0603<` offers parameter names such as `value: `, while
+`Capacitor0603<100n> foo(` offers pins/ports and available connection targets.
+Typing `,` requests choices for the next argument. Automatic display requires
+an editor completion client; in Vim, manual completion remains **Ctrl-X Ctrl-O**.
+These are completion suggestions; a separate signature-help popup is not yet
+implemented.
 Pin and alias completion also works inside unfinished connection lists such as
 `[1..3, VD`. Navigation, references, and hover distinguish individual list
 entries; a range represents all of its physical pins, as in an unbracketed range.
 Qualified instance names such as `Device.R` and imported aliases are supported.
-Requesting completion at `inst foo: ` lists all visible components and blocks,
-including qualified names, without requiring the first letter. An empty
-`extends ` position offers bases of the matching kind. After `net wire: `,
-completion offers visible bundles, custom net types, and imported builtin net
-types. Suggestions are filtered as you type; imports are never added implicitly.
+Requesting completion at the start of a board or block body line lists visible
+components, blocks, bundles, and net types. `global `, bundle members, and ports
+restrict choices to net types and bundles. `extend ` offers components, blocks,
+and net types as bases. Qualified imports and builtin aliases are supported.
 
 Both servers also offer local nets, public block ports, and explicit `global.*`
 connections after a connection's colon. Parameter values, numeric metadata,
@@ -200,8 +209,8 @@ Instance argument lists support pin/port and `parameter=` completion, and
 bundle-field completion in positional or named connections, on one line or across
 several. Their net and parameter references
 also support navigation, hover, references, and rename.
-Completion also works after `extends`, including an unfinished header such as
-`component Resistor extends Device.` with no colon or body yet. Component
+Completion also works after `extend`, including an unfinished header such as
+`extend Device.` with no name or body yet. Component
 headers suggest components; block headers suggest blocks. The definition being
 edited is excluded. Both local aliases and qualified names are available.
 Definition navigation and hover follow both forms to the original declaration;
@@ -403,10 +412,10 @@ exists. Arrays keep their index suffixes; renaming a board-level block preserves
 its descendants' identities, including explicitly identified children. Repeated
 renames retain the first preserved identity.
 
-For example, renaming `inst sensor: Sensor()` to `probe` produces:
+For example, renaming `Sensor sensor()` to `probe` produces:
 
 ```nosch
-inst probe: Sensor
+Sensor probe:
   metadata:
     identity: "sensor"
 ```
@@ -461,7 +470,7 @@ Use `:LspHover` on a declaration or use. Hover includes:
 - Pins and ports: types, aliases, roles, unused-pin policy, and electrical
   metadata. Physical pin connection bindings also show effective roles and nets.
 - Nets and bundle fields: declared types, field metadata, and net endpoint counts.
-- Builtin `role`, `nettype`, and `unused` members: explanations of their electrical
+- Builtin `role`, `net`, and `unused` members: explanations of their electrical
   meaning and ERC behavior. This also works with import aliases and qualified
   names such as `noscheme.role.open_drain`.
 
@@ -513,7 +522,7 @@ It provides syntax, project, semantic, and ERC diagnostics using full-document
 updates, plus initial go-to-definition and hover support for project types,
 lexical names, parameters, globals, public pin bindings, and nested bundle fields
 through array indices/slices. Hover includes types, simple parameter defaults, and
-common resolved metadata. Builtin role/nettype/unused descriptions and registered
+common resolved metadata. Builtin role/net/unused descriptions and registered
 ERC rule signatures are available. Initial completion covers imported types,
 qualified names, enum members, and ERC rules; an unfinished member such as
 `role.` can receive suggestions while retaining its syntax diagnostic.
@@ -525,9 +534,10 @@ These are selection hints; verify the package dimensions.
 Named connection targets suggest local nets, public ports, and explicit global
 nets. ERC check calls suggest remaining parameter keywords, selectors, fields,
 and missing-data policies, including imported plugin rules and unfinished calls.
-Rule names are filtered by pin/net scope. Empty or unfinished inline instance
-lists suggest named pins and parameters, plus positional targets for components
-with interchangeable pins; already supplied pins and parameters are excluded.
+Rule names are filtered by pin/net scope. Empty or unfinished connection lists
+suggest named pins, plus positional targets for components with interchangeable
+pins. Angle-bracket parameter lists suggest names followed by `: `. Already
+supplied pins and parameters are excluded.
 Connections in an instance body support empty rows, missing targets, and unfinished
 pin/bundle-member names; an empty row also offers the `params`, `metadata`, and
 `elements` section keywords. Grouped physical pin lists also offer names and aliases,

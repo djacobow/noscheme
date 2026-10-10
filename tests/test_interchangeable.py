@@ -10,7 +10,7 @@ from test_convert import library, pin
 
 SOURCE = """component R:
   params:
-    value: resistance
+    resistance value
   pins:
     1..2: role.passive
   metadata:
@@ -23,13 +23,13 @@ component Tvs:
   metadata:
     interchangeable: [1, 2]
 board B:
-  net a: nettype.passive
-  net b: nettype.passive
-  net g: nettype.ground
-  inst r: R(a, b, value=4.7k)
-  inst caps[2]: R(a,
-    b, value=1k)
-  inst esd: Tvs(a, no_connect, gnd: g)
+  net.passive a
+  net.passive b
+  net.ground g
+  R<4.7k> r(a, b)
+  R<value: 1k> caps[2](a,
+    b)
+  Tvs esd(a, no_connect, gnd: g)
 """
 
 
@@ -54,7 +54,7 @@ def test_positional_nets_bind_the_group_in_declared_order(tmp_path):
 @pytest.mark.parametrize(
     "old,new,code",
     [
-        ("  inst r: R(a, b, value=4.7k)", "  inst r: R(a, value=4.7k)", "resolve.positional"),
+        ("  R<4.7k> r(a, b)", "  R<4.7k> r(a)", "resolve.positional"),
         (
             "  metadata:\n    interchangeable: [1, 2]\ncomponent Tvs",
             "component Tvs",
@@ -75,7 +75,7 @@ def test_positional_nets_bind_the_group_in_declared_order(tmp_path):
             "    interchangeable: [1, 9]\nboard",
             "metadata.interchangeable",
         ),
-        ("Tvs(a, no_connect, gnd: g)", "Tvs(a, no_connect, 1: g, gnd: g)", "connection"),
+        ("esd(a, no_connect, gnd: g)", "esd(a, no_connect, 1: g, gnd: g)", "connection"),
     ],
 )
 def test_invalid_groups_and_positional_instances(tmp_path, old, new, code):
@@ -86,7 +86,7 @@ def test_invalid_groups_and_positional_instances(tmp_path, old, new, code):
 
 
 def test_specialization_can_clear_an_inherited_group(tmp_path):
-    pull = """component Pull extends R:
+    pull = """extend R Pull:
   pins:
     2:
       bias: bias.pull_up
@@ -103,9 +103,9 @@ board B:"""
 
 def test_named_inline_connections_do_not_require_a_group(tmp_path):
     source = SOURCE.replace("interchangeable: [1, 2]", "interchangeable: []")
-    source = source.replace("R(a, b, value=4.7k)", "R(1: a, value=4.7k, 2: b)")
-    source = source.replace("R(a,\n    b, value=1k)", "R(1: a, 2: b, value=1k,)")
-    source = source.replace("Tvs(a, no_connect, gnd: g)", "Tvs(1: a, 2: no_connect, gnd: g)")
+    source = source.replace("r(a, b)", "r(1: a, 2: b)")
+    source = source.replace("caps[2](a,\n    b)", "caps[2](1: a, 2: b,)")
+    source = source.replace("esd(a, no_connect, gnd: g)", "esd(1: a, 2: no_connect, gnd: g)")
     assert nets(compile_source(tmp_path, source)) == nets(compile_source(tmp_path, SOURCE))
 
 
@@ -120,16 +120,16 @@ def test_group_aliases_order_and_inherited_instances(tmp_path):
         "board B:",
         """block Base:
   ports:
-    input: nettype.passive
-    output: nettype.passive
-  inst r: R(input, output, value=1k)
-block Derived extends Base:
+    net.passive input
+    net.passive output
+  R<value: 1k> r(input, output)
+extend Base Derived:
   metadata:
     custom:
       note: "Inherited compact instance"
 board B:""",
     )
-    source += "  inst block: Derived(input: a, output: b)\n"
+    source += "  Derived block(input: a, output: b)\n"
     bound = nets(compile_source(tmp_path, source))
     assert (bound["r.1"], bound["r.2"]) == ("b", "a")
     assert (bound["block.r.1"], bound["block.r.2"]) == ("b", "a")
@@ -139,9 +139,10 @@ board B:""",
     "old,new,code",
     [
         ("[1, 2]", '[1, "1"]', "metadata.interchangeable"),
-        ("R(a, b, value=4.7k)", "R(a, b, a, value=4.7k)", "resolve.positional"),
-        ("R(a, b, value=4.7k)", "R(missing, b, value=4.7k)", "resolve.net"),
-        ("R(a, b, value=4.7k)", "R(a, b, value=4.7k, value=1k)", "syntax.duplicate"),
+        ("R<4.7k> r(a, b)", "R<4.7k> r(a, b, a)", "resolve.positional"),
+        ("R<4.7k> r(a, b)", "R<4.7k> r(missing, b)", "resolve.net"),
+        ("R<4.7k> r(a, b)", "R<value: 4.7k, value: 1k> r(a, b)", "syntax.duplicate"),
+        ("R<4.7k> r(a, b)", "R<4.7k, value: 1k> r(a, b)", "resolve.parameter"),
     ],
 )
 def test_compact_instance_errors(tmp_path, old, new, code):
@@ -154,14 +155,14 @@ def test_positional_array_slices_globals_and_bundle_fields(tmp_path):
     source = (
         SOURCE[: SOURCE.index("board B:")]
         + """bundle Pair:
-  a: nettype.passive
-  b: nettype.passive
+  net.passive a
+  net.passive b
 board B:
-  global net gnd: nettype.ground
-  net signals: nettype.passive[4]
-  net pair: Pair
-  inst r[2]: R(signals[1:3], global.gnd, value=1k)
-  inst bridge: R(pair.a, pair.b, value=4.7k)
+  global net.ground gnd
+  net.passive signals[4]
+  Pair pair
+  R<value: 1k> r[2](signals[1:3], global.gnd)
+  R<value: 4.7k> bridge(pair.a, pair.b)
 """
     )
     bound = nets(compile_source(tmp_path, source))
@@ -175,24 +176,23 @@ board B:
 @pytest.mark.parametrize(
     "arguments",
     [
-        "a, b, value=4.7k",
-        "1: a, value=4.7k, 2: b",
-        "a, /* keep, this */ b,\n    value=4.7k, // keep this too\n  ",
-        'a, b, value="{0}".format(4700)',
+        "a, b",
+        "1: a, 2: b",
+        "a, /* keep, this */ b, // keep this too\n  ",
     ],
 )
 def test_compact_instance_rename_keeps_arguments_and_adds_identity(tmp_path, arguments):
     from noscheme.lsp_rename import RenameSession
     from test_lsp_rename import apply
 
-    source = SOURCE.replace("a, b, value=4.7k", arguments)
+    source = SOURCE.replace("r(a, b)", f"r({arguments})")
     make(tmp_path, source)
     path = tmp_path / "main.nosch"
     session = RenameSession(tmp_path, {})
     text = session.sources[path]
-    result = apply(session.rename(path, text.index("r: R"), "renamed"), session.sources)
+    result = apply(session.rename(path, text.index(" r(") + 1, "renamed"), session.sources)
     # Arguments, including comments, stay as written; a metadata section follows.
-    assert f'inst renamed: R({arguments})\n    metadata:\n      identity: "r"' in result[path]
+    assert f'R<4.7k> renamed({arguments}):\n    metadata:\n      identity: "r"' in result[path]
     # RenameSession validates elaboration and physical identities before returning edits.
     assert path.read_text() == text
 
@@ -205,12 +205,12 @@ def test_inline_references_support_net_and_parameter_rename(tmp_path):
     path = tmp_path / "main.nosch"
     session = RenameSession(tmp_path, {})
     text = session.sources[path]
-    target = session.prepare(path, text.index("R(a,") + 2)
+    target = session.prepare(path, text.index("r(a,") + 2)
     assert target.name == "a"
     result = apply(session.rename(path, target.span.start_pos, "signal"), session.sources)
-    assert "R(signal, b," in result[path] and "Tvs(signal," in result[path]
-    result = apply(session.rename(path, text.index("value=4.7k"), "resistance"), session.sources)
-    assert "resistance=4.7k" in result[path] and "resistance=1k" in result[path]
+    assert "r(signal, b)" in result[path] and "esd(signal," in result[path]
+    result = apply(session.rename(path, text.index("value: 1k"), "resistance"), session.sources)
+    assert "R<resistance: 1k>" in result[path] and "resistance value" not in result[path]
 
 
 def test_converter_marks_only_symmetric_passive_symbols(tmp_path):
@@ -248,11 +248,8 @@ def test_converter_marks_only_symmetric_passive_symbols(tmp_path):
 
 def test_arguments_and_sections_describe_one_instance(tmp_path):
     source = SOURCE.replace(
-        "  inst esd: Tvs(a, no_connect, gnd: g)\n",
-        """  inst esd: Tvs(
-    a,
-    no_connect,
-  )
+        "  Tvs esd(a, no_connect, gnd: g)\n",
+        """  Tvs esd(a, no_connect,):
     gnd: g
     metadata:
       custom:
@@ -268,14 +265,12 @@ def test_arguments_and_sections_describe_one_instance(tmp_path):
 @pytest.mark.parametrize(
     "addition,code",
     [
-        ("    params:\n      value: 1k\n", "syntax.duplicate"),
+        ("    params:\n      value: 1k\n", "resolve.parameter"),
         ("    1: b\n", "connection"),
     ],
 )
 def test_arguments_and_sections_cannot_bind_twice(tmp_path, addition, code):
-    source = SOURCE.replace(
-        "  inst r: R(a, b, value=4.7k)\n", "  inst r: R(a, b, value=4.7k)\n" + addition
-    )
+    source = SOURCE.replace("  R<4.7k> r(a, b)\n", "  R<4.7k> r(a, b):\n" + addition)
     with pytest.raises(DiagnosticError) as error:
         compile_source(tmp_path, source)
     assert any(d.code.startswith(code) for d in error.value.diagnostics)
@@ -283,8 +278,8 @@ def test_arguments_and_sections_cannot_bind_twice(tmp_path, addition, code):
 
 def test_elements_override_argument_parameters(tmp_path):
     source = SOURCE.replace(
-        "  inst caps[2]: R(a,\n    b, value=1k)\n",
-        """  inst caps[2]: R(a, b, value=1k)
+        "  R<value: 1k> caps[2](a,\n    b)\n",
+        """  R<value: 1k> caps[2](a, b):
     elements:
       [1]:
         params:
@@ -297,8 +292,8 @@ def test_elements_override_argument_parameters(tmp_path):
 
 
 def test_bare_instances_still_need_required_parameters(tmp_path):
-    for spelling in ("R", "R()"):
-        source = SOURCE.replace("R(a, b, value=4.7k)", spelling)
+    for spelling in ("R r", "R r()", "R<> r"):
+        source = SOURCE.replace("R<4.7k> r(a, b)", spelling)
         with pytest.raises(DiagnosticError, match="value"):
             compile_source(tmp_path, source)
 
@@ -308,15 +303,12 @@ def test_rename_adds_identity_to_an_existing_metadata_section(tmp_path):
     from test_lsp_rename import apply
 
     source = SOURCE.replace(
-        "  inst r: R(a, b, value=4.7k)\n",
-        '  inst r: R(a, b, value=4.7k)\n    metadata:\n      custom:\n        note: "x"\n',
+        "  R<4.7k> r(a, b)\n",
+        '  R<4.7k> r(a, b):\n    metadata:\n      custom:\n        note: "x"\n',
     )
     make(tmp_path, source)
     path = tmp_path / "main.nosch"
     session = RenameSession(tmp_path, {})
     text = session.sources[path]
-    result = apply(session.rename(path, text.index("r: R"), "renamed"), session.sources)[path]
-    assert (
-        '  inst renamed: R(a, b, value=4.7k)\n    metadata:\n      identity: "r"\n'
-        "      custom:\n" in result
-    )
+    result = apply(session.rename(path, text.index(" r(") + 1, "renamed"), session.sources)[path]
+    assert '  R<4.7k> renamed(a, b):\n    metadata:\n      identity: "r"\n      custom:\n' in result

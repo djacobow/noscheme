@@ -11,18 +11,8 @@ Json action_edits(const std::string &text, std::size_t start, const Json &pins,
   line_start = line_start == std::string::npos ? 0 : line_start + 1;
   auto indent = text.substr(line_start, start - line_start);
   std::string newline = text.find("\r\n") == std::string::npos ? "\n" : "\r\n";
-  auto header_end = text.size();
-  int depth = 0;
-  for (auto i = start; i < mask.size(); ++i) {
-    if (mask[i] == '(' || mask[i] == '[')
-      ++depth;
-    if (mask[i] == ')' || mask[i] == ']')
-      --depth;
-    if (mask[i] == '\n' && depth == 0) {
-      header_end = i + 1;
-      break;
-    }
-  }
+  auto header_end =
+      std::min(text.size(), completion_scan::header_end(mask, start) + 1);
   struct Section {
     std::string name;
     std::size_t start;
@@ -111,6 +101,20 @@ Json action_edits(const std::string &text, std::size_t start, const Json &pins,
     result.push_back(
         object("offset", at, "text",
                (at && text[at - 1] != '\n' ? newline : "") + inserted));
+  auto code_end = mask.find_last_not_of(" \t\r\n", header_end - 1);
+  bool body = false;
+  for (const auto &[at, inserted] : edits) {
+    for (std::size_t pos = 0; pos < inserted.size();) {
+      auto end = inserted.find('\n', pos);
+      if (end == std::string::npos)
+        end = inserted.size();
+      auto row = completion_scan::trim(inserted.substr(pos, end - pos));
+      body |= !row.empty() && !row.starts_with("//");
+      pos = end + 1;
+    }
+  }
+  if (body && code_end != std::string::npos && mask[code_end] != ':')
+    result.insert(result.begin(), object("offset", code_end + 1, "text", ":"));
   return result;
 }
 } // namespace

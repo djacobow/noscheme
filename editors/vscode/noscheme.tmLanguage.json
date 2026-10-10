@@ -24,11 +24,11 @@
     },
     {
       "name": "keyword.control.noscheme",
-      "match": "(?<![\\w#])(?:component|block|board|bundle|nettype(?=[ \\t]+[A-Za-z_#])|inst|net|global|extends|from|import|as)(?![\\w#])"
+      "match": "(?<![\\w#])(?:component|block|board|bundle|extend|global|from|import|as)(?![\\w#])"
     },
     {
       "name": "keyword.other.noscheme",
-      "match": "^\\s*(?:pins|ports|params|defaults|metadata|elements|checks)(?=\\s*:)"
+      "match": "^\\s*(?:pins|ports|params|metadata|elements|checks)(?=\\s*:)"
     },
     {
       "name": "constant.language.noscheme",
@@ -36,7 +36,7 @@
     },
     {
       "name": "support.constant.noscheme",
-      "match": "(?<![\\w#])(?:role|nettype|unused|bias|std)\\.[A-Za-z_#][A-Za-z0-9_#]*"
+      "match": "(?<![\\w#])(?:role|net|unused|bias|std)\\.[A-Za-z_#][A-Za-z0-9_#]*"
     },
     {
       "name": "constant.numeric.noscheme",

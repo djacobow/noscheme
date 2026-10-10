@@ -1,9 +1,9 @@
 // Electrical-model demonstration, not a fabrication design.
-from noscheme import role, unused, nettype, bias, std
+from noscheme import role, unused, net, bias, std
 
 component Pullup:
   params:
-    value: resistance = 4.7k
+    resistance value = 4.7k
   pins:
     1 (supply):
       role: role.passive
@@ -33,15 +33,15 @@ component Endpoint:
       description: "Abstract external source and open-drain endpoint"
 
 board Demo:
-  net supply: nettype.power
+  net.power supply:
     min_voltage: 3.3 * 0.95
     max_voltage: 3.3 * 1.05
-  net bus: nettype.open_drain
+  net.open_drain bus:
     min_voltage: 0
     max_voltage: 3.3 * 1.05
     checks:
       pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=1k)
-  inst pulls[2]: Pullup(supply: supply, signal: bus)
+  Pullup pulls[2](supply: supply, signal: bus):
     elements:
       [0]:
         params:
@@ -53,4 +53,4 @@ board Demo:
         metadata:
           custom:
             placement: "At the remote connector"
-  inst endpoint: Endpoint(1: bus, 2: supply)
+  Endpoint endpoint(1: bus, 2: supply)

@@ -1,6 +1,6 @@
 // Three connectors demonstrate alternative external power sources.
 // Each configuration checks the same physical board and pin connections.
-from noscheme import role, nettype, unused
+from noscheme import role, net, unused
 
 component Header:
   pins:
@@ -11,12 +11,12 @@ component Header:
 
 block Supply:
   ports:
-    supply: nettype.power
+    net.power supply:
       unused: unused.never
   metadata:
     erc_choices:
       power_mode: ["source", "load", "absent"]
-  inst connector: Header
+  Header connector:
     1: supply
     2: global.gnd
     metadata:
@@ -33,19 +33,19 @@ board PowerModes:
         power_source: "usb"
       header_powered:
         power_source: "header"
-  global net gnd: nettype.ground
-  net v5: nettype.power
-  inst usb: Supply
+  global net.ground gnd
+  net.power v5
+  Supply usb:
     supply: v5
     metadata:
       erc_choices:
         power_mode: choice(power_source, usb="source", header="absent")
-  inst expansion: Supply
+  Supply expansion:
     supply: v5
     metadata:
       erc_choices:
         power_mode: choice(power_source, usb="load", header="source")
-  inst load: Header
+  Header load:
     1: v5
     2: global.gnd
     metadata:

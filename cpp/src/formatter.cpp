@@ -78,7 +78,14 @@ class Formatter {
   std::string masked;
   std::vector<Comment> comments;
   std::vector<Line> lines;
-  std::map<const ast::Net *, std::vector<std::string>> net_names;
+  // The sections each declaration keeps after its inline entries are removed;
+  // the body printing them must outlive the statements.
+  std::map<const ast::Declaration *, std::vector<ast::Section>> kept_sections;
+  // The entries around each typed field, for a declaration's other names.
+  std::map<const ast::Node *, Nodes> siblings;
+  const Nodes &owner_entries(const ast::Field &field) {
+    return siblings.at(&field);
+  }
   std::size_t trim(std::size_t pos) const {
     pos = std::min(pos, masked.size());
     while (pos && std::isspace(static_cast<unsigned char>(masked[pos - 1])))
@@ -297,46 +304,56 @@ class Formatter {
     }
     case Kind::Definition: {
       const auto &definition = as<ast::Definition>(n);
-      auto text = definition.keyword + " " + definition.name.text;
-      if (!definition.base.empty())
-        text += " extends " + ast::dotted(definition.base);
-      // `net a, b: T` parses to one Net per name, sharing the declaration's
-      // span; print the declaration once.
       Nodes body;
-      const ast::Net *group = nullptr;
-      for (const auto &child : definition.body) {
-        auto *net = as<ast::Net>(child);
-        if (net && group && net->span == group->span) {
-          net_names[group].push_back(net->name.text);
-          continue;
+      Parts parts;
+      if (definition.keyword == "extend") {
+        // An extension's defaults section holds its `<...>` parameters.
+        std::vector<Item> items;
+        if (definition.parameter)
+          items.push_back(item_of(*definition.parameter));
+        for (const auto &child : definition.body) {
+          auto *section = as<ast::Section>(child);
+          if (section && section->name == "defaults") {
+            for (const auto &entry : section->entries) {
+              const auto &field = as<ast::Field>(*entry);
+              items.push_back(
+                  {join({field.key.first.text + ": "}, expr(*field.value)),
+                   start(field), end(field)});
+            }
+            continue;
+          }
+          body.push_back(child.get());
         }
-        group = net;
-        if (net)
-          net_names[net] = {net->name.text};
-        body.push_back(child.get());
+        parts.push_back("extend " + ast::dotted(definition.base));
+        if (!items.empty()) {
+          auto opening = masked.find('<', end(definition.base.back()));
+          parts.push_back(seq("<", ">", opening, closing(opening, '<', '>') + 1,
+                              std::move(items)));
+        }
+        parts.push_back(" " + definition.name.text + (body.empty() ? "" : ":"));
+      } else {
+        for (const auto &child : definition.body)
+          body.push_back(child.get());
+        parts.push_back(definition.keyword + " " + definition.name.text + ":");
       }
-      statement(n, depth, {text + ":"}, body, true);
+      statement(n, depth, parts, declarations(body), true);
       return;
     }
     case Kind::Section: {
       const auto &section = as<ast::Section>(n);
-      statement(n, depth, {section.name + ":"}, nodes(section.entries));
+      statement(n, depth, {section.name + ":"},
+                declarations(nodes(section.entries)));
       return;
     }
-    case Kind::Net: {
-      const auto &net = as<ast::Net>(n);
-      std::string names;
-      for (const auto &name : net_names.at(&net))
-        names += (names.empty() ? "" : ", ") + name;
-      statement(n, depth,
-                join({std::string(net.global ? "global net " : "net ") + names +
-                      ": "},
-                     expr(*net.type)),
-                nodes(net.fields));
+    case Kind::Declaration:
+      declaration(as<ast::Declaration>(n), depth);
       return;
-    }
     case Kind::Field: {
       const auto &field = as<ast::Field>(n);
+      if (typed(field)) {
+        typed_field(field, depth);
+        return;
+      }
       Parts parts{key(field.key) + ":"};
       if (field.value)
         parts = join(join(parts, {std::string(" ")}), expr(*field.value));
@@ -364,76 +381,164 @@ class Formatter {
                 nodes(element.sections));
       return;
     }
-    case Kind::Instance:
-      break;
     default:
       throw std::logic_error("unhandled formatting statement: " +
                              std::string(ast::kind_name(n.kind)));
     }
-    {
-      const auto &instance = as<ast::Instance>(n);
-      Parts parts{"inst " + instance.name.text};
-      for (const auto &i : instance.dimensions)
-        parts = join(parts, expr(i));
-      parts.push_back(": " + ast::dotted(instance.component));
-      auto opening = end(instance.component.back());
-      while (opening < masked.size() &&
-             (masked[opening] == ' ' || masked[opening] == '\t'))
-        ++opening;
-      auto closing = opening;
-      bool inline_list = opening < masked.size() && masked[opening] == '(';
-      if (inline_list) {
-        // The AST preserves source spans; locate the argument delimiter in the
-        // string-masked buffer so literals cannot close the list early.
-        auto code = code_mask(source.text);
-        int depth = 1;
-        for (closing = opening + 1; closing < code.size() && depth; ++closing) {
-          if (code[closing] == '(')
-            ++depth;
-          if (code[closing] == ')')
-            --depth;
-        }
-      }
-      std::vector<Item> args;
-      for (const auto &v : instance.positional)
-        args.push_back(item_of(*v));
-      if (instance.wildcard)
-        args.push_back({{std::string("*")},
-                        instance.wildcard->start,
-                        instance.wildcard->end});
-      // Sections without the entries written inline.
-      std::vector<ast::Section> kept;
-      for (const auto &section : instance.sections) {
-        auto rest = section;
-        rest.entries.clear();
-        for (const auto &v : section.entries) {
-          if (inline_list && start(*v) < closing) {
-            auto *argument = as<ast::Argument>(v);
-            auto parts = argument ? join({argument->name.text + "="},
-                                         expr(*argument->value))
-                                  : binding(as<ast::Binding>(*v));
-            args.push_back({parts, start(*v), end(*v)});
-          } else
-            rest.entries.push_back(v);
-        }
-        if (!rest.entries.empty())
-          kept.push_back(std::move(rest));
-      }
-      std::sort(args.begin(), args.end(),
-                [](const auto &a, const auto &b) { return a.start < b.start; });
-      if (!args.empty())
-        parts.push_back(seq("(", ")", opening, closing, std::move(args)));
-      // Connections lead the body without a section header.
-      Nodes body;
-      for (const auto &section : kept)
-        if (section.name == "connections")
-          for (const auto &entry : section.entries)
-            body.push_back(entry.get());
-      for (const auto &section : kept)
-        if (section.name != "connections")
-          body.push_back(&section);
-      statement(n, depth, parts, body);
+  }
+  // The offset of the bracket that closes the one at opening, past nested
+  // brackets; strings and comments are masked.
+  std::size_t closing(std::size_t opening, char open, char close) const {
+    int depth = 0;
+    for (auto at = opening; at < masked.size(); ++at) {
+      auto c = masked[at];
+      if (c == open || c == '(' || c == '[')
+        ++depth;
+      else if (c == close || c == ')' || c == ']')
+        if (--depth == 0)
+          return at;
     }
+    return masked.size();
+  }
+  // A typed declaration, `net.power supply`, writes its type before its name.
+  static bool typed(const ast::Field &field) {
+    return field.value && start(*field.value) < start(field.key);
+  }
+  // One typed declaration may declare several names, as Fields sharing its
+  // span; print it once.
+  Nodes declarations(const Nodes &body) {
+    for (const auto *node : body)
+      siblings[node] = body;
+    Nodes result;
+    const ast::Node *previous = nullptr;
+    for (const auto *node : body) {
+      auto *field = as<ast::Field>(node);
+      if (field && typed(*field) && previous && previous->span == node->span)
+        continue;
+      previous = field && typed(*field) ? node : nullptr;
+      result.push_back(node);
+    }
+    return result;
+  }
+  // A declarator's name and the array dimensions written after it.
+  Parts declarator(const ast::Name &name, const ast::Node *type) {
+    Parts dimensions;
+    while (auto *subscript = as<ast::Subscript>(type)) {
+      if (start(subscript->selection) < end(name))
+        break;
+      dimensions = join(expr(subscript->selection), dimensions);
+      type = subscript->base.get();
+    }
+    return join({name.text}, dimensions);
+  }
+  // The type a typed field declares, without the declarator's dimensions.
+  const ast::Node &declared_type(const ast::Field &field) {
+    const ast::Node *type = field.value.get();
+    for (auto *subscript = as<ast::Subscript>(type);
+         subscript && start(subscript->selection) > start(field.key);
+         subscript = as<ast::Subscript>(type))
+      type = subscript->base.get();
+    return *type;
+  }
+  void typed_field(const ast::Field &field, std::size_t depth) {
+    // Fields that share this declaration's span are its other names.
+    Parts names;
+    const auto &owner = owner_entries(field);
+    for (const auto *other : owner)
+      if (other->span == field.span) {
+        auto *declared = as<ast::Field>(other);
+        if (!names.empty())
+          names.push_back(std::string(", "));
+        names = join(names,
+                     declarator(name_of(declared->key), declared->value.get()));
+      }
+    auto parts =
+        join(join(expr(declared_type(field)), {std::string(" ")}), names);
+    if (field.default_value)
+      parts =
+          join(join(parts, {std::string(" = ")}), expr(*field.default_value));
+    if (!field.fields.empty())
+      parts.push_back(std::string(":"));
+    statement(field, depth, parts, nodes(field.fields));
+  }
+  static ast::Name name_of(const ast::FieldKey &key) {
+    ast::Name name;
+    name.span = key.first.span;
+    name.text = key.first.text;
+    return name;
+  }
+  void declaration(const ast::Declaration &n, std::size_t depth) {
+    Parts parts{std::string(n.global ? "global " : "") + ast::dotted(n.type)};
+    auto inside = [](const std::optional<Span> &list, const ast::Node &entry) {
+      return list && list->start <= start(entry) && end(entry) <= list->end;
+    };
+    if (n.parameters) {
+      std::vector<Item> items;
+      if (n.parameter)
+        items.push_back(item_of(*n.parameter));
+      for (const auto &entry : ast::section_entries(n.sections, "params"))
+        if (inside(n.parameters, *entry)) {
+          const auto &argument = as<ast::Argument>(*entry);
+          items.push_back(
+              {join({argument.name.text + ": "}, expr(*argument.value)),
+               start(argument), end(argument)});
+        }
+      parts.push_back(seq("<", ">", n.parameters->start, n.parameters->end,
+                          std::move(items)));
+    }
+    parts.push_back(std::string(" "));
+    for (std::size_t i = 0; i < n.declarators.size(); ++i) {
+      if (i)
+        parts.push_back(std::string(", "));
+      parts.push_back(n.declarators[i].name.text);
+      for (const auto &index : n.declarators[i].dimensions)
+        parts = join(parts, expr(index));
+    }
+    // The body: connections and fields as written, then sections without the
+    // entries written inline.
+    std::vector<const ast::Node *> lines;
+    for (const auto &field : n.fields)
+      lines.push_back(&field);
+    if (n.arguments) {
+      std::vector<Item> items;
+      for (const auto &v : n.positional)
+        items.push_back(item_of(*v));
+      if (n.wildcard)
+        items.push_back(
+            {{std::string("*")}, n.wildcard->start, n.wildcard->end});
+      for (const auto &entry : ast::section_entries(n.sections, "connections"))
+        if (inside(n.arguments, *entry))
+          items.push_back(
+              {binding(as<ast::Binding>(*entry)), start(*entry), end(*entry)});
+      std::sort(items.begin(), items.end(),
+                [](const auto &a, const auto &b) { return a.start < b.start; });
+      parts.push_back(seq("(", ")", n.arguments->start, n.arguments->end,
+                          std::move(items)));
+    }
+    kept_sections[&n].clear();
+    for (const auto &section : n.sections) {
+      auto rest = section;
+      rest.entries.clear();
+      for (const auto &entry : section.entries)
+        if (!inside(n.arguments, *entry) && !inside(n.parameters, *entry))
+          rest.entries.push_back(entry);
+      if (rest.entries.empty())
+        continue;
+      if (section.name == "connections")
+        for (const auto &entry : rest.entries)
+          lines.push_back(entry.get());
+      else
+        kept_sections[&n].push_back(std::move(rest));
+    }
+    std::sort(lines.begin(), lines.end(), [](const auto *a, const auto *b) {
+      return start(*a) < start(*b);
+    });
+    Nodes body(lines.begin(), lines.end());
+    for (const auto &section : kept_sections[&n])
+      body.push_back(&section);
+    if (!body.empty())
+      parts.push_back(std::string(":"));
+    statement(n, depth, parts, body);
   }
 
 public:
@@ -570,9 +675,12 @@ Json shape(Json value) {
       v = shape(v);
   else if (value.is_object()) {
     value.erase("span");
-    // An instance's `*` is located by a bare span.
-    if (auto wildcard = value.find("wildcard"); wildcard != value.end())
-      *wildcard = !wildcard->is_null();
+    // An instance's `*`, `<...>`, and `(...)` are located by bare spans; a
+    // call's arguments are a list.
+    for (const auto *name : {"wildcard", "parameters", "arguments"})
+      if (auto found = value.find(name);
+          found != value.end() && !found->is_array())
+        *found = !found->is_null();
     for (auto &[k, v] : value.items())
       v = shape(v);
   }

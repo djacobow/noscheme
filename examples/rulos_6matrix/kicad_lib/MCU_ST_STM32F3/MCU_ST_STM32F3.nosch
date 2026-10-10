@@ -2,7 +2,7 @@ from noscheme import role
 
 component STM32F303K8Tx:
   params:
-    value: string = "STM32F303K8Tx"
+    string value = "STM32F303K8Tx"
   pins:
     "1":
       role: [role.ground, role.power_input]

@@ -1,6 +1,7 @@
 #include "noscheme/lsp_rename.hpp"
 #include "noscheme/circuit.hpp"
 #include "noscheme/lsp_completion.hpp"
+#include "noscheme/lsp_completion_scan.hpp"
 #include "noscheme/validation.hpp"
 #include <set>
 namespace noscheme {
@@ -136,10 +137,24 @@ void identity_edit(const ast::Instance &instance, const Sources &sources,
     finish = text.size();
   else if (finish && text[finish - 1] == '\r')
     --finish;
-  edits.push_back(object(
-      "span", source.span(finish, finish), "newText",
-      std::string(newline) + std::string(section_indent, ' ') + "metadata:" +
-          newline + std::string(section_indent * 2 - base, ' ') + identity));
+  auto section = std::string(newline) + std::string(section_indent, ' ') +
+                 "metadata:" + newline +
+                 std::string(section_indent * 2 - base, ' ') + identity;
+  // The declaration line ends past its bracketed lists; strings are masked.
+  auto code = code_mask(text);
+  auto header = completion_scan::header_end(code, instance.span.start);
+  while (header && std::isspace(static_cast<unsigned char>(masked[header - 1])))
+    --header;
+  if (masked[header - 1] != ':') {
+    // A body follows the declaration line's ':'; the line's comment stays
+    // after it.
+    edits.push_back(
+        object("span", source.span(header, finish), "newText",
+               ":" + text.substr(header, finish - header) + section));
+    return;
+  }
+  edits.push_back(
+      object("span", source.span(finish, finish), "newText", section));
 }
 void waiver_edits(const ast::Definition &owner, const std::string &old,
                   const std::string &name, Json &edits) {

@@ -1,28 +1,28 @@
 // Shared signal bundles used by the board and reusable subsystems.
 
-from noscheme import nettype, bias, std
+from noscheme import net, bias, std
 
 // Every I2C line needs pull-ups in the standard-mode range: 1.5 to 10 kOhm in parallel.
-nettype I2CLine extends nettype.open_drain:
+extend net.open_drain I2CLine:
   checks:
     pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=1.5k, max=10k)
 
 bundle I2C:
-  scl: I2CLine
-  sda: I2CLine
+  I2CLine scl
+  I2CLine sda
 
 bundle SPI:
-  sck: nettype.digital
-  mosi: nettype.digital
-  miso: nettype.digital
-  cs#: nettype.digital
+  net.digital sck
+  net.digital mosi
+  net.digital miso
+  net.digital cs#
 
 bundle USB2:
-  dp: nettype.bidirectional
-  dm: nettype.bidirectional
+  net.bidirectional dp
+  net.bidirectional dm
 
 bundle SWD:
-  swclk: nettype.digital
-  swdio: nettype.bidirectional
-  swo: nettype.digital
-  reset#: nettype.open_drain
+  net.digital swclk
+  net.bidirectional swdio
+  net.digital swo
+  net.open_drain reset#

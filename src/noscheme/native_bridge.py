@@ -51,7 +51,7 @@ def describe_registry(registry):
         },
         "enums": {
             "role": sorted(ROLES),
-            "nettype": sorted(NETTYPES),
+            "net": sorted(NETTYPES),
             "unused": sorted(UNUSED),
             "bias": sorted(BIAS_VALUES),
             "missing": list(MISSING),

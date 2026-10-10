@@ -58,6 +58,8 @@ namespace ast {
   X(Argument)                                                                  \
   X(ElementOverride)                                                           \
   X(Instance)                                                                  \
+  X(Declarator)                                                                \
+  X(Declaration)                                                               \
   X(ImportedName)                                                              \
   X(Import)                                                                    \
   X(Definition)                                                                \
@@ -206,6 +208,29 @@ struct Instance : Typed<Kind::Instance> {
   std::vector<Ptr> positional;
   // `*`: connect remaining pins and ports to same-name nets.
   std::optional<Span> wildcard;
+  // `R<4.7k>`: the value of the one parameter without a default.
+  Ptr parameter;
+};
+struct Declarator : Typed<Kind::Declarator> {
+  Name name;
+  std::vector<Index> dimensions;
+};
+// `Type<params> name(args):` in a block, board, or bundle, before its type
+// resolves; the project loader makes it Nets or an Instance by the kind of its
+// type. Sections are those of an instance, with `<...>` and `(...)` entries
+// merged in; body lines that cannot be connections are fields, which only a net
+// may have.
+struct Declaration : Typed<Kind::Declaration> {
+  bool global = false;
+  std::vector<Name> type;
+  std::vector<Declarator> declarators;
+  // `<...>` and `(...)`, when written.
+  std::optional<Span> parameters, arguments;
+  std::vector<Section> sections;
+  std::vector<Field> fields;
+  Ptr parameter;
+  std::vector<Ptr> positional;
+  std::optional<Span> wildcard;
 };
 struct ImportedName : Typed<Kind::ImportedName> {
   Name name;
@@ -217,13 +242,16 @@ struct Import : Typed<Kind::Import> {
   std::vector<ImportedName> names;
 };
 struct Definition : Typed<Kind::Definition> {
-  // component, block, board, bundle, or nettype.
+  // component, block, board, bundle, or nettype; "extend" until the project
+  // loader gives an extension its base's kind.
   std::string keyword;
   Name name;
   // Empty unless the definition extends another.
   std::vector<Name> base;
-  // Sections, Fields, Nets, and Instances.
+  // Sections, Fields, Declarations; after loading, Nets and Instances.
   std::vector<Ptr> body;
+  // `extend R<4.7k> Name`: the default of the one parameter without a default.
+  Ptr parameter;
 };
 struct Module : Typed<Kind::Module> {
   std::shared_ptr<const Source> source;

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from collections.abc import Mapping
 
 from .ast import Span
-from .diagnostics import Diagnostic
+from .diagnostics import Diagnostic, Related
 from .erc_rules import ALLOWED_ROLES
 from .erc_views import value as attribute
 
@@ -24,6 +24,23 @@ class Results:
                 path,
             )
         )
+
+    def connection(self, ctx, code, message, record, path):
+        """An omitted binding belongs at its instance, with the interface as context."""
+        related = ()
+        if not record.get("binding_span"):
+            declarations = ctx.shared(
+                ("std.instance_declarations",),
+                lambda: {
+                    tuple(item["path"]): item["source"]["declaration"]
+                    for kind in ("parts", "blocks")
+                    for item in ctx.circuit[kind]
+                },
+            )
+            if span := declarations.get(tuple(record["scope"])):
+                related = (Related("interface declared here", Span(**record["span"])),)
+                record = dict(record, span=span)
+        self.emit(code, message, record, path, related=related)
 
 
 @dataclass(frozen=True)

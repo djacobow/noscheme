@@ -1,17 +1,17 @@
 // Adapted from Jeremy Elson / rulos. See README.md.
-from noscheme import nettype, role, bias, std
+from noscheme import net, role, bias, std
 
 // PCA9600 SX/SY can source 1mA internally; reserve only 2mA of a
 // standard 3mA sink budget for external pull-ups. 3.6V / 2mA = 1.8k.
 // This checks nominal resistance, not rise time or resistor tolerance.
-nettype LocalI2C extends nettype.open_drain:
+extend net.open_drain LocalI2C:
   checks:
     capacitance: std.sum(capacitance, net=wiring_capacitance, max=400p)
     pull_up: std.parallel(pull_resistance, where=[role.passive, bias.pull_up], min=1.8k)
 
 // Buffered cable side: distinct from the 400pF local I2C limit.
 // Caller supplies wiring and per-port connector/cable/downstream allowances.
-nettype BufferedI2C extends nettype.open_drain:
+extend net.open_drain BufferedI2C:
   checks:
     capacitance: std.sum(capacitance, net=wiring_capacitance, max=4n)
 
@@ -19,19 +19,19 @@ nettype BufferedI2C extends nettype.open_drain:
 // These are multiplexed LED current paths, not ordinary digital signals.
 // Keep them passive until switched sources and constant-current sinks are modeled.
 bundle Rows:
-  row0: nettype.passive
-  row1: nettype.passive
-  row2: nettype.passive
-  row3: nettype.passive
-  row4: nettype.passive
-  row5: nettype.passive
+  net.passive row0
+  net.passive row1
+  net.passive row2
+  net.passive row3
+  net.passive row4
+  net.passive row5
 
 bundle Segments:
-  a: nettype.passive
-  b: nettype.passive
-  c: nettype.passive
-  d: nettype.passive
-  e: nettype.passive
-  f: nettype.passive
-  g: nettype.passive
-  dp: nettype.passive
+  net.passive a
+  net.passive b
+  net.passive c
+  net.passive d
+  net.passive e
+  net.passive f
+  net.passive g
+  net.passive dp

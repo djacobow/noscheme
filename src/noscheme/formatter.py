@@ -1,8 +1,8 @@
 """Canonical source layout: print the concrete syntax tree and reattach comments.
 
 Formatting changes only layout: indentation, spacing, line breaks, blank lines, the
-trailing comma of a list broken one item per line, and the parentheses of an empty
-argument list. Spellings, order, and the choice between instance arguments and sections
+trailing comma of a list broken one item per line, and an empty `<>` or `()`.
+Spellings, order, and the choice between `<...>` or `(...)` entries and body sections
 are the author's. Every result is checked to parse to the same tree with the same
 comments; a comment the formatter cannot place without moving it is reported instead.
 """
@@ -32,6 +32,17 @@ SECTIONS = {
     "instance_metadata": "metadata",
     "elements": "elements",
 }
+# The children of a declaration that its indented body holds.
+BODY = ("field", "body_entry", *SECTIONS)
+
+
+def is_tree(node, *kinds):
+    return isinstance(node, Tree) and node.data in kinds
+
+
+def arguments_of(node):
+    """The entries of a `<...>` or `(...)` list: inline_arguments wraps those of `(...)`."""
+    return node.children if is_tree(node, "inline_arguments") else (node,)
 
 
 @dataclass
@@ -200,22 +211,27 @@ class Formatter:
             parts += [f".{suffix}"] if isinstance(suffix, Token) else self.index(suffix)
         return parts
 
-    def arguments(self, node):
-        start = self.masked.rindex("(", 0, node.meta.start_pos)
-        end = self.masked.index(")", self.trim(node.meta.end_pos)) + 1
+    def arguments(self, node, open_, close):
+        """`<...>` parameters or `(...)` connections."""
         items = []
-        for argument in node.children:
+        for argument in (x for child in node.children for x in arguments_of(child)):
             c = argument.children
             if argument.data == "wildcard_argument":
                 parts = ["*"]
-            elif argument.data == "positional_argument":
+            elif argument.data in {"positional_argument", "positional_parameter"}:
                 parts = self.expr(c[0])
-            elif argument.data == "inline_binding":
-                parts = [f"{c[0]}: ", *self.expr(c[1])]
             else:
-                parts = [f"{c[0]}=", *self.expr(c[1])]
+                parts = [f"{c[0]}: ", *self.expr(c[1])]
             items.append((parts, *self.span(argument)))
-        return self.seq("(", ")", start, end, items)
+        return self.seq(open_, close, node.meta.start_pos, node.meta.end_pos, items)
+
+    def declarators(self, nodes):
+        parts = []
+        for i, node in enumerate(nodes):
+            parts += [", " if i else "", str(node.children[0])]
+            for index in node.children[1:]:
+                parts += self.index(index)
+        return parts
 
     # Layout: one line when it fits; otherwise break one bracketed list per line.
 
@@ -261,44 +277,52 @@ class Formatter:
                 text = f"from {path(c[0])} import {', '.join(names)}"
             self.statement(node, depth, [text])
         elif kind == "definition":
-            head, body = f"{c[0].data.removesuffix('_kind')} {c[1]}", c[2:]
-            if body and body[0].data == "extends":
-                head += f" extends {path(body[0].children[0])}"
-                body = body[1:]
-            self.statement(node, depth, [head + ":"], body, definition=True)
+            head = f"{c[0].data.removesuffix('_kind')} {c[1]}:"
+            self.statement(node, depth, [head], c[2:], definition=True)
+        elif kind == "extension":
+            parts, rest = ["extend " + path(c[0])], c[1:]
+            if is_tree(rest[0], "type_arguments"):
+                parts.append(self.arguments(rest[0], "<", ">"))
+                rest = rest[1:]
+            body = rest[1:]
+            parts.append(f" {rest[0]}" + (":" if body else ""))
+            self.statement(node, depth, parts, body, definition=True)
         elif kind == "section":
             self.statement(node, depth, [c[0].data.removesuffix("_name") + ":"], c[1:])
         elif kind in SECTIONS:
             self.statement(node, depth, [SECTIONS[kind] + ":"], c)
-        elif kind == "net_decl":
-            modifier = isinstance(c[0], Tree)
-            c = c[1:] if modifier else c
-            names = [x for x in c if isinstance(x, Token)]
-            head = f"{'global ' if modifier else ''}net {', '.join(names)}: "
-            self.statement(node, depth, [head, *self.expr(c[len(names)])], c[len(names) + 1 :])
+        elif kind in {"declaration", "typed_field"}:
+            global_ = isinstance(c[0], Token)
+            c = c[1:] if global_ else c
+            parts = [("global " if global_ else "") + path(c[0])]
+            declarators = [x for x in c if is_tree(x, "declarator")]
+            body = [x for x in c[1:] if is_tree(x, *BODY)]
+            for child in c[1:]:
+                if is_tree(child, "type_arguments"):
+                    parts.append(self.arguments(child, "<", ">"))
+                elif child is declarators[0]:
+                    parts += [" ", *self.declarators(declarators)]
+                elif is_tree(child, "argument_list"):
+                    parts.append(self.arguments(child, "(", ")"))
+                elif not is_tree(child, "declarator", "type_arguments", "argument_list", *BODY):
+                    parts += [" = ", *self.expr(child)]
+            self.statement(node, depth, [*parts, ":" if body else ""], body)
+        elif kind == "body_entry":
+            parts = [*self.endpoint(c[0]), ":"]
+            values = [x for x in c[1:] if not is_tree(x, "field")]
+            for value in values:
+                parts += [" ", *self.expr(value)]
+            self.statement(node, depth, parts, c[1 + len(values) :])
         elif kind == "field":
             parts = [self.key(c[0]) + ":"]
             values = [x for x in c[1:] if x.data != "field"]
             for separator, value in zip((" ", " = "), values):
                 parts += [separator, *self.expr(value)]
             self.statement(node, depth, parts, c[1 + len(values) :])
-        elif kind == "instance":
-            parts, i = [f"inst {c[0]}"], 1
-            while c[i].data == "index":
-                parts += self.index(c[i])
-                i += 1
-            parts.append(f": {path(c[i])}")
-            body = c[i + 1 :]
-            if body and body[0].data == "inline_arguments":
-                parts.append(self.arguments(body[0]))
-                body = body[1:]
-            self.statement(node, depth, parts, body)
         elif kind == "element_override":
             indices = [x for x in c if x.data == "index"]
             parts = [part for x in indices for part in self.index(x)]
             self.statement(node, depth, [*parts, ":"], c[len(indices) :])
-        elif kind == "binding":
-            self.statement(node, depth, [*self.endpoint(c[0]), ": ", *self.expr(c[1])])
         elif kind == "argument":
             self.statement(node, depth, [f"{c[0]}: ", *self.expr(c[1])])
         else:

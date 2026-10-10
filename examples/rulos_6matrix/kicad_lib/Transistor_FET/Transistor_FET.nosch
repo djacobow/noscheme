@@ -2,7 +2,7 @@ from noscheme import role
 
 component Q_PMOS_GSD:
   params:
-    value: string = "Q_PMOS_GSD"
+    string value = "Q_PMOS_GSD"
   pins:
     "1" (G):
       role: role.digital_input

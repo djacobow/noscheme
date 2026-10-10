@@ -92,7 +92,7 @@ def test_rule_failure_is_source_located(probe, tmp_path):
             "src/main.nosch": PRELUDE
             + """from example import broken
 board B:
-  net n: nettype.passive
+  net.passive n:
     checks:
       test: broken()
 """
@@ -114,7 +114,7 @@ def plugin_project(tmp_path, plugin=PLUGIN):
     (tmp_path / "rules.py").write_text(plugin)
     source = """from example import wide
 board B:
-  net n: nettype.passive
+  net.passive n:
     checks:
       test: wide(limit=0)
 """
@@ -133,9 +133,7 @@ def payload(path):
 
 
 def test_standard_rules_need_no_python(probe, tmp_path):
-    path = make_project(
-        tmp_path, {"src/main.nosch": PRELUDE + "board B:\n  net n: nettype.passive\n"}
-    )
+    path = make_project(tmp_path, {"src/main.nosch": PRELUDE + "board B:\n  net.passive n\n"})
     hang = fake_python(tmp_path, "import time\ntime.sleep(30)\n")
     result = probe(payload(path) | {"erc_python": hang, "erc_timeout_ms": 1000})
     assert result["circuit"]["erc"]["diagnostics"], result
@@ -158,21 +156,21 @@ def test_timeout_and_next_request(probe, tmp_path):
 @pytest.mark.parametrize("inherited", [False, True])
 def test_application_order(probe, tmp_path, inherited):
     source = """board B:
-  net n: nettype.passive
+  net.passive n:
     checks:
       z_first: std.count(role.passive, min=1)
       a_second: std.count(role.passive, min=2)
 """
     if inherited:
-        source = """nettype Base extends nettype.passive:
+        source = """extend net.passive Base:
   checks:
     z_first: std.count(role.passive, min=1)
     a_second: std.count(role.passive, min=2)
-nettype Child extends Base:
+extend Base Child:
   checks:
     z_first: std.count(role.passive, min=3)
 board B:
-  net n: Child
+  Child n:
     checks:
       b_last: std.count(role.passive, min=4)
 """
@@ -185,12 +183,12 @@ def test_targeted_waivers(probe, tmp_path, target):
   pins:
     1: role.power_input
 board B:
-  net gnd: nettype.ground
+  net.ground gnd:
     waivers:
       incompatible_role:
         reason: "Ground the disabled power domain; héllo."
         pins: [{target}]
-  inst p[2]: P(1: gnd)
+  P p[2](1: gnd)
 """
     compare(probe, make_project(tmp_path, {"src/main.nosch": PRELUDE + source}))
 
@@ -214,7 +212,7 @@ def register(r):
 """)
     source = """from example import once
 board B:
-  net n: nettype.passive
+  net.passive n:
     budget: 123456789012345678901234567890
     checks:
       one: once()
@@ -313,10 +311,10 @@ component P:
       role: role.passive
       capacitance: 10p
 board B:
-  net n: nettype.passive
+  net.passive n:
     checks:
       test: {check}
-  inst p[2]: P
+  P p[2]:
     [1, 2]: n
 """
     compare(
@@ -342,8 +340,8 @@ def register(r):
   pins:
     1: role.passive
 board B:
-  net n: nettype.passive
-  inst p: P(1: n)
+  net.passive n
+  P p(1: n)
 """
     path = make_project(
         tmp_path,
@@ -379,7 +377,7 @@ def register(r):
 """)
     path = make_project(
         tmp_path,
-        {"src/main.nosch": PRELUDE + "board B:\n  net n: nettype.passive\n"},
+        {"src/main.nosch": PRELUDE + "board B:\n  net.passive n\n"},
         erc_modules=["rules.py"],
         erc_rule_sets=rule_sets,
     )
@@ -408,8 +406,8 @@ def register(r):
     1: role.passive
       amount: {amount}
 board B:
-  net n: nettype.passive
-  inst p: P(1: n)
+  net.passive n
+  P p(1: n)
 """
     path = make_project(
         tmp_path,
@@ -476,3 +474,44 @@ def test_python_erc_test_projects(probe, tmp_path):
     assert not failures, f"{len(failures)} of {compared + len(failures)} differ:\n" + "\n".join(
         failures[:10]
     )
+
+
+@pytest.mark.parametrize(
+    "kind,section,field",
+    [
+        ("component", "pins", "1"),
+        ("block", "ports", "net.passive signal"),
+    ],
+)
+@pytest.mark.parametrize("unused", ["explicit", "never"])
+def test_missing_connections_point_to_instance(probe, tmp_path, kind, section, field, unused):
+    placeholder = "      placeholder: true\n" if kind == "block" else ""
+    path = make_project(
+        tmp_path,
+        {
+            "lib/parts.nosch": f"""from noscheme import net, unused
+{kind} P:
+  {section}:
+    {field}:
+      unused: unused.{unused}
+{placeholder}""",
+            "src/main.nosch": "from parts import P\nboard B:\n  P<> items[2]\n",
+        },
+    )
+    actual = compare(probe, path)
+    diagnostics = actual["circuit"]["erc"]["diagnostics"]
+    issues = [
+        d
+        for d in diagnostics
+        if d["code"]
+        in {
+            "erc.unused_pin",
+            "erc.required_connection",
+            "erc.unused_port",
+            "erc.required_port_connection",
+        }
+    ]
+    assert len(issues) == 2
+    for d in issues:
+        assert d["span"]["filename"].endswith("src/main.nosch")
+        assert d["related"][0]["span"]["filename"].endswith("lib/parts.nosch")

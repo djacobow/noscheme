@@ -60,7 +60,7 @@ CompletionResult scope_completion(const std::string &text, std::size_t offset,
         parents, [&](const Row &row) { return row.text == name; });
   };
   static const std::regex definition(
-      R"(^(component|block|board|bundle|nettype)\s+([A-Za-z_#][A-Za-z0-9_#]*)[^\n]*:)",
+      R"(^(?:(component|block|board|bundle)\s+([A-Za-z_#][A-Za-z0-9_#]*)|extend\s+([A-Za-z0-9_#.]+)(?:[ \t]*<[^\n]*>)?[ \t]+([A-Za-z_#][A-Za-z0-9_#]*))[^\n]*)",
       std::regex::multiline);
   std::smatch owner;
   std::size_t owner_end = 0;
@@ -82,10 +82,22 @@ CompletionResult scope_completion(const std::string &text, std::size_t offset,
       stop = following + next.position();
   }
   std::string mode = expression ? "expression" : "", scope;
-  bool in_instance = std::ranges::any_of(
-      parents, [](const Row &r) { return r.text.starts_with("inst "); });
+  auto declaration = parents.size() >= 2
+                         ? completion_scan::declaration_type(parents[1].text)
+                         : std::string();
+  bool is_net = false;
+  std::string owner_kind = owner[1].str();
+  for (const auto &entry : catalog) {
+    if (entry.name == declaration)
+      is_net |= entry.type_kind == "net" || entry.type_kind == "nettype" ||
+                entry.type_kind == "bundle";
+    if (owner_kind.empty() && entry.name == owner[4].str())
+      owner_kind = entry.type_kind;
+  }
+  bool in_instance = !declaration.empty() && !is_net;
   static const std::regex instance(
-      R"(\binst\s+[A-Za-z_#][A-Za-z0-9_#]*(?:\[[^\n]*?\])*\s*:\s*[A-Za-z0-9_#.]+\s*\()");
+      R"(^[ \t]+[A-Za-z_#][A-Za-z0-9_#.]*(?:[ \t]*<[^\n]*?>)?[ \t]+[A-Za-z_#][A-Za-z0-9_#]*(?:\[[^\n]*?\])*[ \t]*\()",
+      std::regex::multiline);
   auto body_before = mask.substr(owner_end, offset - owner_end);
   std::size_t args_start = std::string::npos;
   for (std::sregex_iterator
@@ -118,9 +130,18 @@ CompletionResult scope_completion(const std::string &text, std::size_t offset,
       // Connection targets already use the native instance/section catalogs.
     }
   }
+  for (const auto &list : completion_scan::parameter_lists(mask))
+    if (offset > list.opening && offset <= list.end) {
+      auto args = mask.substr(list.opening + 1, offset - list.opening - 1);
+      auto comma = args.rfind(',');
+      if (args.substr(comma == std::string::npos ? 0 : comma + 1).find(':') !=
+          std::string::npos)
+        mode = "expression";
+    }
   if (mode.empty() &&
       std::ranges::count(line, '[') > std::ranges::count(line, ']') &&
-      (line.starts_with("inst ") || line.find(':') != std::string::npos))
+      (!completion_scan::declaration_type(line).empty() ||
+       line.find(':') != std::string::npos))
     mode = "expression";
   if (mode.empty() && !parents.empty() &&
       (parents.back().text == "params:" ||
@@ -132,10 +153,9 @@ CompletionResult scope_completion(const std::string &text, std::size_t offset,
   }
   if (!has("custom:")) {
     if (!parents.empty() && parents.back().text == "metadata:")
-      scope = in_instance ? "instance" : owner[1].str();
-    else if (!parents.empty() &&
-             (parents.back().text.starts_with("net ") ||
-              parents.back().text.starts_with("global net ")))
+      scope = in_instance ? "instance" : owner_kind;
+    else if ((is_net && parents.size() == 2) ||
+             (owner_kind == "nettype" && parents.size() == 1))
       scope = "net";
     else if (parents.size() >= 2) {
       auto section = parents[parents.size() - 2].text;
@@ -197,7 +217,8 @@ CompletionResult scope_completion(const std::string &text, std::size_t offset,
     std::string section;
     std::size_t body_indent = std::string::npos,
                 field_indent = std::string::npos;
-    static const std::regex field(R"(^([A-Za-z_#][A-Za-z0-9_#]*)\s*:)");
+    static const std::regex field(
+        R"(^[A-Za-z0-9_#.]+[ \t]+([A-Za-z_#][A-Za-z0-9_#]*))");
     for (const auto &row : rows(mask.substr(owner_end, stop - owner_end))) {
       if (body_indent == std::string::npos)
         body_indent = row.indent;
@@ -213,7 +234,7 @@ CompletionResult scope_completion(const std::string &text, std::size_t offset,
           names.insert(match[1]);
       }
     }
-    static const std::regex base_pattern(R"(\bextends\s+([A-Za-z0-9_#.]+))");
+    static const std::regex base_pattern(R"(^extend\s+([A-Za-z0-9_#.]+))");
     std::smatch base;
     auto header = owner.str();
     bool inherited = std::regex_search(header, base, base_pattern);

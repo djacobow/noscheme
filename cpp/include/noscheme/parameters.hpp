@@ -1,6 +1,7 @@
 #pragma once
 #include "noscheme/evaluate.hpp"
 #include <optional>
+#include <set>
 
 namespace noscheme {
 using DefinitionKey = std::pair<std::string, std::string>;
@@ -21,7 +22,14 @@ struct ParameterDefinition {
   DefinitionKey key;
   std::vector<Parameter> parameters;
   std::optional<ScopedExpression> part_value;
+  // The parameter that an unnamed `<value>` sets: once a definition has one,
+  // its extensions keep it.
+  std::optional<std::string> unnamed;
 };
+// The parameter of target that an unnamed value sets, or a located error.
+std::string unnamed_target(const ParameterDefinition &target,
+                           const ast::Node &value,
+                           const std::set<std::string> &named);
 using ParameterDefinitions = std::map<DefinitionKey, ParameterDefinition>;
 DefinitionKey definition_symbol(const Project &project,
                                 const std::string &module,

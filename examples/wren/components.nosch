@@ -55,7 +55,7 @@ component Driver:
 
 component Resistor:
   params:
-    value: string
+    string value
   pins:
     1: role.passive
     2: role.passive

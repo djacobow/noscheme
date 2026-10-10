@@ -261,7 +261,8 @@ class BodyResolver {
     if (!nets.contains(name))
       fail("resolve.net", "'" + name + "' is not a declared caller net or port",
            head->span);
-    select(nets.at(name), selectors);
+    if (nets.at(name).expression)
+      select(nets.at(name), selectors);
   }
   void instance_metadata(const ast::Instance &node,
                          const std::vector<ast::Section> &sections,
@@ -490,7 +491,8 @@ public:
       fail("resolve.wildcard", "* matches no caller net or port", span);
     return result;
   }
-  // Turn positional nets and `*` into ordinary connections.
+  // Turn an unnamed parameter, positional nets, and `*` into ordinary entries.
+  // An unnamed parameter sets the target's one parameter without a default.
   void expand(Definition &definition) const {
     // Build transactionally: a failed expansion leaves this definition
     // unchanged.
@@ -505,7 +507,8 @@ public:
     std::vector<std::shared_ptr<const ast::Node>> owned;
     for (auto &node : body) {
       auto *instance = as<ast::Instance>(node);
-      if (!instance || (instance->positional.empty() && !instance->wildcard))
+      if (!instance || (instance->positional.empty() && !instance->wildcard &&
+                        !instance->parameter))
         continue;
       const auto &part = target(definition.body_module, instance->component,
                                 {"component", "block"});
@@ -525,9 +528,30 @@ public:
       for (const auto &section : instance->sections)
         if (section.name != "connections")
           copy->sections.push_back(section);
+      if (const auto &value = instance->parameter) {
+        auto found = std::ranges::find(copy->sections, std::string("params"),
+                                       &ast::Section::name);
+        ast::Section params;
+        params.span = value->span;
+        params.name = "params";
+        if (found != copy->sections.end()) {
+          params = *found;
+          copy->sections.erase(found);
+        }
+        std::set<std::string> named;
+        for (const auto &entry : params.entries)
+          named.insert(as<ast::Argument>(*entry).name.text);
+        auto argument = std::make_shared<ast::Argument>();
+        argument->span = argument->name.span = value->span;
+        argument->name.text = unnamed_target(part.parameters, *value, named);
+        argument->value = value;
+        params.entries.insert(params.entries.begin(), std::move(argument));
+        copy->sections.push_back(std::move(params));
+      }
       copy->sections.push_back(std::move(connections));
       copy->positional.clear();
       copy->wildcard.reset();
+      copy->parameter = nullptr;
       node = copy.get();
       owned.push_back(std::move(copy));
     }
@@ -563,6 +587,12 @@ public:
         metadata_expressions(reader.read(net->fields, "net"), params);
         nets[name.text] = value;
         types.push_back(value);
+      } else if (!project.modules.at(definition.body_module)
+                      .symbols.contains(
+                          ast::dotted(as<ast::Instance>(*node).component))) {
+        // An unknown type may have been meant as a net; its instance check
+        // reports it, and connections to it are not checked again.
+        nets[name.text] = ScopedExpression{};
       }
     }
     auto errors = Json::array();
@@ -649,17 +679,17 @@ const Definition *type_definition(const Project &project,
         definition_symbol(project, module, path, {"bundle", "nettype"}));
   if (auto *member = as<ast::Member>(expr)) {
     auto space = symbols.find(ast::expression_path(*member->base));
-    const auto &values = registry.data.at("enums").at("nettype");
+    const auto &values = registry.data.at("enums").at("net");
     if (space == symbols.end() || space->second.module != "noscheme" ||
-        space->second.name != "nettype" ||
+        space->second.name != "net" ||
         std::ranges::find(values, Json(member->name.text)) == values.end())
-      fail("metadata.enum", "expected an explicitly imported nettype value",
+      fail("metadata.enum", "expected an explicitly imported net value",
            expr->span);
     return nullptr;
   }
   if (expr->kind != Kind::Name)
-    fail("resolve.net-type", "expected a nettype value, net type, or bundle",
-         expr->span);
+    fail("resolve.net-type",
+         "expected a builtin net value, net type, or bundle", expr->span);
   return &definitions.at(
       definition_symbol(project, module, path, {"bundle", "nettype"}));
 }

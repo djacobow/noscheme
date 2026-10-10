@@ -6,13 +6,18 @@ import pytest
 from noscheme.lsp_rename import RenameSession
 from noscheme.project import load_project
 from noscheme.resolve import Resolver
-from test_lsp_references import LIBRARY, SOURCE
+from test_lsp_references import LIBRARY, SOURCE, declared
 from test_resolve import make_project
 
 
 def session(tmp_path, source=SOURCE, library=LIBRARY):
     make_project(tmp_path, source, {"library": library})
     return RenameSession(tmp_path, {})
+
+
+def position(source, needle):
+    """A `Type name` needle locates its name; any other needle, its own start."""
+    return declared(source, needle) if " " in needle.strip() else source.index(needle)
 
 
 def apply(edits, sources):
@@ -30,10 +35,10 @@ def test_definition_rename_preserves_explicit_alias_and_qualification(tmp_path):
     edits = s.rename(lib, LIBRARY.index("Unit:"), "Assembly")
     result = apply(edits, s.sources)
     assert "block Assembly:" in result[lib]
-    assert "extends Assembly:" in result[lib]
+    assert "extend Assembly Derived:" in result[lib]
     assert "from library import Assembly as Alias" in result[tmp_path / "main.nosch"]
-    assert "inst a: library.Assembly" in result[tmp_path / "main.nosch"]
-    assert "inst b: Alias" in result[tmp_path / "main.nosch"]
+    assert "library.Assembly<count: 3> a" in result[tmp_path / "main.nosch"]
+    assert "Alias b" in result[tmp_path / "main.nosch"]
     assert lib.read_text() == LIBRARY
 
 
@@ -42,50 +47,50 @@ def test_alias_rename_keeps_imported_symbol(tmp_path):
     path = tmp_path / "main.nosch"
     result = apply(s.rename(path, SOURCE.index("Alias\n"), "LocalUnit"), s.sources)
     assert "from library import Unit as LocalUnit" in result[path]
-    assert "inst b: LocalUnit" in result[path]
-    assert "inst a: library.Unit" in result[path]
+    assert "LocalUnit b" in result[path]
+    assert "library.Unit<count: 3> a" in result[path]
     assert result[tmp_path / "library.nosch"] == LIBRARY
 
 
 @pytest.mark.parametrize(
     ("file", "needle", "new", "count"),
     [
-        ("main", "wire:", "connection#", 4),
-        ("library", "count:", "size", 6),
-        ("library", "bus: Bus", "signals", 6),
-        ("library", "data:", "signal", 4),
+        ("main", "Bus wire", "connection#", 4),
+        ("library", "number count", "size", 6),
+        ("library", "Bus bus", "signals", 6),
+        ("library", "net.passive data", "signal", 4),
     ],
 )
 def test_scoped_symbols_and_inherited_ports(tmp_path, file, needle, new, count):
     s = session(tmp_path)
     path = tmp_path / (file + ".nosch")
     original = s.sources[path]
-    edits = s.rename(path, original.index(needle), new)
+    edits = s.rename(path, position(original, needle), new)
     assert len(edits) == count
     result = apply(edits, s.sources)
     Resolver(load_project(tmp_path, sources=result)).resolve_all()
     if file == "main":
-        assert "net wire: nettype.passive" in result[path]  # Other lexical scope.
+        assert "net.passive wire" in result[path]  # Other lexical scope.
     assert path.read_text() == original
 
 
 @pytest.mark.parametrize(
     ("file", "needle", "new"),
     [
-        ("main", "wire:", "a"),  # Instance in the same scope.
+        ("main", "Bus wire", "a"),  # Instance in the same scope.
         ("main", "Alias\n", "library"),  # Existing module namespace.
         ("library", "Unit:", "Part"),
-        ("library", "count:", "bus"),  # Existing port.
-        ("library", "data:", "a.b"),
-        ("library", "data:", "no_connect"),
-        ("library", "data:", "0abc"),
+        ("library", "number count", "bus"),  # Existing port.
+        ("library", "net.passive data", "a.b"),
+        ("library", "net.passive data", "no_connect"),
+        ("library", "net.passive data", "0abc"),
     ],
 )
 def test_invalid_names_and_collisions_are_rejected(tmp_path, file, needle, new):
     s = session(tmp_path)
     path = tmp_path / (file + ".nosch")
     with pytest.raises(ValueError):
-        s.rename(path, s.sources[path].index(needle), new)
+        s.rename(path, position(s.sources[path], needle), new)
     assert path.read_text() == s.sources[path]
 
 
@@ -112,8 +117,8 @@ def test_alias_reexport_chain(tmp_path):
         """from middle import Alias
 from library import Unit as Separate
 board B:
-  inst a: Alias()
-  inst b: Separate()
+  Alias a()
+  Separate b()
 """,
         {"library": LIBRARY, "middle": "from library import Unit as Alias\n"},
     )
@@ -122,8 +127,8 @@ board B:
     result = apply(s.rename(middle, s.sources[middle].index("Alias"), "Exported"), s.sources)
     assert result[middle] == "from library import Unit as Exported\n"
     assert "from middle import Exported" in result[tmp_path / "main.nosch"]
-    assert "inst a: Exported()" in result[tmp_path / "main.nosch"]
-    assert "inst b: Separate()" in result[tmp_path / "main.nosch"]
+    assert "Exported a()" in result[tmp_path / "main.nosch"]
+    assert "Separate b()" in result[tmp_path / "main.nosch"]
 
 
 def test_prepare_and_rename_use_unsaved_buffers_and_hash_names(tmp_path):
@@ -131,24 +136,24 @@ def test_prepare_and_rename_use_unsaved_buffers_and_hash_names(tmp_path):
     path = tmp_path / "main.nosch"
     text = SOURCE.replace("wire", "wire#")
     s = RenameSession(tmp_path, {path: text})
-    position = text.index("wire#:")
-    target = s.prepare(path, position)
+    offset = declared(text, "Bus wire#")
+    target = s.prepare(path, offset)
     assert target.name == "wire#"
     assert text[target.span.start_pos : target.span.end_pos] == "wire#"
-    assert s.rename(path, position, "wire#") == []
-    assert len(s.rename(path, position, "#reset")) == 4
+    assert s.rename(path, offset, "wire#") == []
+    assert len(s.rename(path, offset, "#reset")) == 4
     assert path.read_text() == SOURCE
 
 
 def test_port_metadata_overlay_is_renamed_with_the_port(tmp_path):
-    source = """from noscheme import nettype, role
+    source = """from noscheme import net, role
 block Unit:
   ports:
-    input: nettype.digital
+    net.digital input:
       role: role.digital_input
 board B:
-  net n: nettype.digital
-  inst p: Unit
+  net.digital n
+  Unit p:
     input: n
     metadata:
       pins:
@@ -164,29 +169,29 @@ board B:
 
 
 def test_bundle_rename_reaches_port_named_custom(tmp_path):
-    source = """from noscheme import nettype
+    source = """from noscheme import net
 bundle Bus:
-  x: nettype.passive
+  net.passive x
 block Unit:
   ports:
-    custom: Bus
+    Bus custom
 board B:
-  inst p: Unit()
+  Unit p()
 """
     make_project(tmp_path, source)
     s = RenameSession(tmp_path, {})
     path = tmp_path / "main.nosch"
     result = apply(s.rename(path, source.index("Bus:"), "Signals"), s.sources)
-    assert "custom: Signals" in result[path]
+    assert "Signals custom" in result[path]
     assert "bundle Signals:" in result[path]
 
 
 def test_global_net_rename_reaches_other_modules(tmp_path):
-    source = """from noscheme import nettype
+    source = """from noscheme import net
 import child
 board B:
-  global net supply: nettype.passive
-  inst block: child.Unit()
+  global net.passive supply
+  child.Unit block()
 """
     child = """from noscheme import role
 component Pin:
@@ -194,14 +199,14 @@ component Pin:
     1:
       role: role.passive
 block Unit:
-  inst p: Pin
+  Pin p:
     1: global.supply
 """
     make_project(tmp_path, source, {"child": child})
     s = RenameSession(tmp_path, {})
     path = tmp_path / "main.nosch"
-    result = apply(s.rename(path, source.index("supply:"), "rail"), s.sources)
-    assert "global net rail:" in result[path]
+    result = apply(s.rename(path, declared(source, "net.passive supply"), "rail"), s.sources)
+    assert "global net.passive rail" in result[path]
     assert "global.rail" in result[tmp_path / "child.nosch"]
 
 
@@ -217,7 +222,7 @@ def test_board_block_rename_preserves_descendants_and_array_identities(tmp_path,
     s = session(tmp_path)
     path = tmp_path / "main.nosch"
     _, before = compile_buffers(tmp_path, s.sources)
-    result = apply(s.rename(path, SOURCE.index(f"{name}: "), "assembly"), s.sources)
+    result = apply(s.rename(path, SOURCE.index(f" {name}:") + 1, "assembly"), s.sources)
     assert f'identity: "{name}"' in result[path]
     _, after = compile_buffers(tmp_path, result)
     assert {p["identity"] for p in before["parts"]} == {p["identity"] for p in after["parts"]}
@@ -228,17 +233,20 @@ def test_board_block_rename_preserves_descendants_and_array_identities(tmp_path,
 @pytest.mark.parametrize(
     "body",
     [
-        "  inst old: Part() // keep trailing ) comment\n",
-        "  inst old: Part\n",
-        '  inst old[2][3]: Part\n    params:\n      value: "keep ) string"\n',
-        '  inst old: Part\n    metadata:\n      // Keep this comment.\n      value: "keep me"\n',
-        '  inst old: Part\n    metadata:\n      identity: "already_stable"\n',
-        '  inst old[2]: Part\n    elements:\n      [1]:\n        params:\n          value: "2k"\n',
+        "  Part old() // keep trailing ) comment\n",
+        "  Part old\n",
+        "  Part<value: (1 << 3)> old\n",
+        "  Part<\n    value: (8 >> 1),\n  > old // keep\n",
+        '  Part<value: "keep > string"> old // keep: comment\n',
+        '  Part old[2][3]:\n    params:\n      value: "keep ) string"\n',
+        '  Part old:\n    metadata:\n      // Keep this comment.\n      value: "keep me"\n',
+        '  Part old:\n    metadata:\n      identity: "already_stable"\n',
+        '  Part old[2]:\n    elements:\n      [1]:\n        params:\n          value: "2k"\n',
     ],
 )
 def test_board_instance_identity_insertion_formats_and_existing_identity(tmp_path, body):
     source = "from library import Part\nboard B:\n" + body
-    s = session(tmp_path, source)
+    s = session(tmp_path, source, LIBRARY.replace("string value", "resistance value"))
     path = tmp_path / "main.nosch"
     result = apply(s.rename(path, source.index("old"), "new"), s.sources)
     _, before = compile_buffers(tmp_path, s.sources)
@@ -250,7 +258,9 @@ def test_board_instance_identity_insertion_formats_and_existing_identity(tmp_pat
     else:
         assert 'identity: "old"' in result[path]
     if "// keep trailing ) comment" in body:
-        assert ") // keep trailing ) comment" in result[path]
+        assert "): // keep trailing ) comment" in result[path]
+    if "keep > string" in body:
+        assert '<value: "keep > string"> new: // keep: comment' in result[path]
     if "keep ) string" in body:
         assert 'value: "keep ) string"' in result[path]
     # A second rename retains the original identity, rather than the previous name.
@@ -262,7 +272,9 @@ def test_board_instance_identity_insertion_formats_and_existing_identity(tmp_pat
 
 
 def test_board_rename_preserves_newlines_and_nonstandard_indentation(tmp_path):
-    source = 'from library import Part\r\nboard B:\r\n  inst old: Part\r\n    params:\r\n      value: "a"\r\n'
+    source = (
+        'from library import Part\r\nboard B:\r\n  Part old:\r\n    params:\r\n      value: "a"\r\n'
+    )
     session(tmp_path, source)
     path = tmp_path / "main.nosch"
     s = RenameSession(tmp_path, {path: source})
@@ -272,18 +284,18 @@ def test_board_rename_preserves_newlines_and_nonstandard_indentation(tmp_path):
 
 
 def test_board_rename_updates_waiver_targets(tmp_path):
-    source = """from noscheme import role, nettype
+    source = """from noscheme import role, net
 component Part:
   pins:
     1:
       role: role.power_input
 board B:
-  net gnd: nettype.ground
+  net.ground gnd:
     waivers:
       incompatible_role:
         reason: "old is intentionally grounded"
         pins: ["old[0].1", "old[1].1"]
-  inst old[2]: Part
+  Part old[2]:
     1: gnd
     metadata:
       custom:
@@ -307,7 +319,7 @@ def test_board_rename_keeps_export_uuid_and_reference_without_writing_state(tmp_
 
     source = """from library import Part
 board B:
-  inst old[2]: Part
+  Part old[2]:
     metadata:
       footprint: "Test:OnePad"
 """
@@ -335,14 +347,14 @@ board B:
         assert first[identity]["reference"] == second[identity]["reference"]
 
 
-def test_net_type_rename_updates_extends_and_uses(tmp_path):
+def test_net_type_rename_updates_extensions_and_uses(tmp_path):
     from test_nettypes import SOURCE as nettypes
 
-    source = "from noscheme import role, unused, nettype\n" + nettypes
+    source = "from noscheme import role, unused, net\n" + nettypes
     s = session(tmp_path, source)
     path = tmp_path / "main.nosch"
-    result = apply(s.rename(path, source.index("I2CLine extends"), "BusLine"), s.sources)[path]
-    assert "nettype BusLine extends nettype.open_drain:" in result
-    assert "nettype FastI2CLine extends BusLine:" in result
-    assert "scl: BusLine" in result and "net extra: BusLine" in result
+    result = apply(s.rename(path, source.index("I2CLine:"), "BusLine"), s.sources)[path]
+    assert "extend net.open_drain BusLine" in result
+    assert "extend BusLine FastI2CLine" in result
+    assert "BusLine scl" in result and "BusLine extra" in result
     assert "I2CLine" not in result.replace("FastI2CLine", "")

@@ -4,7 +4,7 @@ This layer binds imported names only. It does not resolve component bodies,
 inheritance, metadata, or expressions, and does not elaborate a circuit.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 import re
 import tomllib
@@ -12,12 +12,12 @@ from functools import cached_property
 
 from . import ast as a
 from .analysis_cache import cached_project, record_source, record_candidate, watch_config
-from .diagnostics import Diagnostic, DiagnosticError, Related
-from .parser import Builder, parse
+from .diagnostics import Diagnostic, DiagnosticError, Related, collect_errors
+from .parser import Builder, classify, kind_errors, parse
 
 IDENTIFIER = r"[A-Za-z_#][A-Za-z0-9_#]*"
 QUALIFIED = re.compile(rf"{IDENTIFIER}(?:\.{IDENTIFIER})*\Z")
-BUILTINS = frozenset({"role", "nettype", "unused", "num", "bias", "std"})
+BUILTINS = frozenset({"role", "net", "unused", "num", "bias", "std"})
 # Symbol.module for a rule or predicate imported from a project ERC namespace.
 ERC_MODULE = "<erc>"
 
@@ -82,6 +82,102 @@ def expression_path(expr):
         base = expression_path(expr.base)
         return base + "." + expr.name.text if base else None
     return None
+
+
+def builtin_net(symbols, spelling):
+    """Whether a dotted spelling is a builtin net value such as net.power."""
+    prefix = symbols.get(spelling.rpartition(".")[0])
+    return prefix is not None and prefix.declaration is None and prefix.name == "net"
+
+
+def net_type(symbols, spelling):
+    """Whether a declared type is a net type: a builtin net value, bundle, or net type."""
+    symbol = symbols.get(spelling)
+    if symbol is not None:
+        return symbol.declaration is not None and symbol.declaration.kind in {"bundle", "nettype"}
+    return "." in spelling and builtin_net(symbols, spelling)
+
+
+def extension_kinds(module, tree, symbols):
+    """Give each `extend` the kind of its base: a component, block, or net type.
+
+    An extension of an unknown base stays an "extend", whose resolution reports it.
+    """
+    kinds = {}
+
+    def kind(definition, chain):
+        name = definition.name.text
+        if name in kinds:
+            return kinds[name]
+        if name in chain:
+            cycle = [*chain[chain.index(name) :], name]
+            message = "inheritance cycle: " + " -> ".join(f"{module}.{n}" for n in cycle)
+            fail("resolve.inheritance-cycle", message, definition.span)
+        names = definition.base
+        spelling = ".".join(n.text for n in names)
+        symbol = symbols.get(spelling)
+        if symbol is None and builtin_net(symbols, spelling):
+            result = "nettype"
+        elif symbol is None or symbol.declaration is None:
+            result = "extend"
+        elif symbol.declaration.kind == "extend":
+            result = kind(symbol.declaration, [*chain, name])
+        else:
+            result = symbol.declaration.kind
+        kinds[name] = result
+        return result
+
+    items = []
+    for item in tree.items:
+        if isinstance(item, a.Definition) and item.kind == "extend":
+            item = replace(item, kind=kind(item, []))
+            errors = () if item.kind == "extend" else kind_errors(item)
+            if errors:
+                raise DiagnosticError(errors)
+        items.append(item)
+    return replace(tree, items=tuple(items))
+
+
+def classify_module(tree, symbols):
+    """Make each body declaration Nets or an Instance by the kind of its type.
+
+    A type that names nothing makes an instance, whose resolution reports it,
+    unless the declaration cannot be one. A declaration of an extension whose own
+    base is unknown is left out; that extension's resolution reports the base.
+    """
+    errors, items = [], []
+    for item in tree.items:
+        if isinstance(item, a.Definition):
+            body = []
+            for node in item.body:
+                if not isinstance(node, a.Declaration):
+                    body.append(node)
+                    continue
+                spelling = ".".join(n.text for n in node.type)
+                symbol = symbols.get(spelling)
+                net = net_type(symbols, spelling)
+                with collect_errors(errors):
+                    try:
+                        body.extend(classify(node, net))
+                    except DiagnosticError:
+                        declaration = symbol and symbol.declaration
+                        if declaration and declaration.kind == "extend":
+                            continue
+                        if net or symbol is not None:
+                            raise
+                        message = f"unknown definition {spelling!r}"
+                        fail("resolve.missing-definition", message, node.type[0].span)
+            item = replace(item, body=tuple(body))
+        items.append(item)
+    if errors:
+        raise DiagnosticError(tuple(errors))
+    return replace(tree, items=tuple(items))
+
+
+def bind_definitions(module, tree, symbols):
+    for item in tree.items:
+        if isinstance(item, a.Definition):
+            symbols[item.name.text] = Symbol(module, item.name.text, item)
 
 
 def fail(code, message, span, *, config=False, related=()):
@@ -349,6 +445,11 @@ def load_project(path: Path | str = ".", *, sources=None, parsed_sources=None) -
                             imported.name.span,
                         )
                     bind(key, symbol, (imported.alias or imported.name).span)
+        # Declarations name types by kind, so extensions take their kinds first.
+        tree = extension_kinds(name, tree, symbols)
+        bind_definitions(name, tree, symbols)
+        tree = classify_module(tree, symbols)
+        bind_definitions(name, tree, symbols)
         modules[name] = LoadedModule(name, file, tree, symbols)
     board = modules[config.board_module].symbols.get(config.board_name)
     if board is None or board.declaration is None or board.declaration.kind != "board":

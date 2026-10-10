@@ -7,15 +7,15 @@ from test_circuit import compile_source, make
 
 SOURCE = """component Cap:
   params:
-    capacitance: capacitance = 100n
+    capacitance capacitance = 100n
   pins:
     1..2:
       role: role.passive
   metadata:
     value: capacitance
 board B:
-  net rail: nettype.passive
-  inst caps[2]: Cap
+  net.passive rail
+  Cap caps[2]:
     1: rail
     2: no_connect
     metadata:
@@ -128,9 +128,7 @@ def test_lsp_navigates_element_parameter_name(tmp_path):
     offset = text.index("capacitance: 220n")
     reference = result.reference_at(path, offset)
     assert reference is not None
-    assert text[reference.target.start_pos : reference.target.end_pos].startswith(
-        "capacitance: capacitance"
-    )
+    assert text[reference.target.start_pos : reference.target.end_pos] == "capacitance"
 
 
 def test_overrides_apply_to_child_parts_of_block_arrays(tmp_path):
@@ -139,18 +137,16 @@ def test_overrides_apply_to_child_parts_of_block_arrays(tmp_path):
             "board B:\n",
             """block Unit:
   params:
-    capacitance: capacitance = 100n
+    capacitance capacitance = 100n
   ports:
-    signal: nettype.passive
-  inst cap: Cap
+    net.passive signal
+  Cap<capacitance: capacitance> cap:
     1: signal
     2: no_connect
-    params:
-      capacitance: capacitance
 board B:
 """,
         )
-        .replace("caps[2]: Cap", "caps[2]: Unit")
+        .replace("Cap caps[2]:", "Unit caps[2]:")
         .replace("    1: rail\n    2: no_connect", "    signal: rail")
     )
     source = source.replace(

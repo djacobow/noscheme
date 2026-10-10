@@ -25,6 +25,30 @@ from .units import QUANTITIES
 PARAMETER_TYPES = frozenset({"number", "string", *QUANTITIES})
 
 
+def unnamed_parameter(parameters):
+    """The parameter an unnamed `<value>` sets: the one without a default, or the only one."""
+    candidates = [p for p in parameters.values() if p.default is None] or list(parameters.values())
+    return candidates[0].name if len(candidates) == 1 else None
+
+
+def unnamed_target(target, value, named):
+    """The parameter of target that an unnamed value sets, or a located error."""
+    if target.unnamed is None:
+        candidates = [p for p in target.parameters.values() if p.default is None] or list(
+            target.parameters.values()
+        )
+        message = (
+            f"{target.name} has several parameters an unnamed value could set; "
+            f"name one of: {', '.join(p.name for p in candidates)}"
+            if candidates
+            else f"{target.name} has no parameters"
+        )
+        fail("resolve.parameter", message, value.span)
+    if target.unnamed in named:
+        fail("resolve.parameter", f"parameter {target.unnamed!r} is set twice", value.span)
+    return target.unnamed
+
+
 def binding(span, pin, target):
     """A connection from a pin or port name to a target, located at span."""
     key = a.FieldKey(span, a.PinKey(span, pin, pin))
@@ -64,7 +88,8 @@ class Definition:
     metadata: dict[str, Value]
     body: tuple[a.Net | a.Instance, ...]
     body_module: str
-    electrical: str | None = None  # A net type's builtin nettype kind.
+    electrical: str | None = None  # A net type's builtin net kind: net.power is "power".
+    unnamed: str | None = None  # The parameter that an unnamed `<value>` sets.
 
 
 class Resolver:
@@ -98,17 +123,17 @@ class Resolver:
         return (symbol.module, symbol.name)
 
     def builtin_base(self, module, source):
-        """Return the builtin nettype kind that a root net type extends, or None."""
+        """Return the builtin net kind (net.X) that a root net type extends, or None."""
         if source.kind != "nettype":
             return None
         prefix = ".".join(n.text for n in source.base[:-1])
         symbol = self.project.modules[module].symbols.get(prefix)
-        if symbol is None or symbol.module != "noscheme" or symbol.name != "nettype":
+        if symbol is None or symbol.module != "noscheme" or symbol.name != "net":
             return None
         if source.base[-1].text not in NETTYPES:
             fail(
                 "metadata.enum",
-                f"expected a nettype value from: {', '.join(sorted(NETTYPES))}",
+                f"expected a builtin net value from: {', '.join(sorted(NETTYPES))}",
                 source.base[-1].span,
             )
         return source.base[-1].text
@@ -181,7 +206,16 @@ class Resolver:
                 Value(f.default, f.default.span, module) if f.default else None,
                 f.span,
             )
-        for f in sections.get("defaults", a.Section(source.span, "", ())).entries:
+        defaults = sections.get("defaults", a.Section(source.span, "", ())).entries
+        if source.parameter is not None:
+            if parent is None:
+                spelling = ".".join(n.text for n in source.base)
+                fail("resolve.parameter", f"{spelling} has no parameters", source.parameter.span)
+            named = {f.key.first.text for f in defaults}
+            name = unnamed_target(parent, source.parameter, named)
+            value = Value(source.parameter, source.parameter.span, module)
+            params[name] = replace(params[name], default=value)
+        for f in defaults:
             name = f.key.first.text
             if name not in params or f.key.last or f.value is None or f.fields:
                 fail(
@@ -309,6 +343,8 @@ class Resolver:
             body,
             parent.body_module if parent else module,
             parent.electrical if parent else self.builtin_base(module, source),
+            # Once a definition has an unnamed parameter, its extensions keep it.
+            parent.unnamed if parent and parent.unnamed else unnamed_parameter(params),
         )
 
     @cached_resolution
@@ -347,8 +383,9 @@ class Resolver:
         return dict(sorted(self.definitions.items()))
 
     def expand_arguments(self, definition):
-        """Turn positional nets and `*` into ordinary connections.
+        """Turn an unnamed parameter, positional nets, and `*` into ordinary entries.
 
+        An unnamed parameter sets the target's one parameter without a default.
         Positional nets bind the target's interchangeable pins in order. `*` binds
         each remaining pin or port, by its name or an alias, to the caller's net or
         port of the same name; unmatched ones keep their unused-connection policy.
@@ -358,20 +395,34 @@ class Resolver:
             scope |= definition.interface.keys()
         body = []
         for node in definition.body:
-            if isinstance(node, a.Instance) and (node.positional or node.wildcard):
+            if isinstance(node, a.Instance) and (
+                node.positional or node.wildcard or node.parameter is not None
+            ):
                 key = self.symbol(definition.body_module, node.component, {"component", "block"})
                 target = self.definitions[key]
-                existing = next((s for s in node.sections if s.name == "connections"), None)
-                entries = (existing.entries if existing else ()) + self.positional_bindings(
-                    node, target
-                )
+                existing = {s.name: s for s in node.sections}
+                sections = [s for s in node.sections if s.name != "connections"]
+                if node.parameter is not None:
+                    params = existing.get("params", a.Section(node.parameter.span, "params", ()))
+                    argument = self.parameter_argument(node, target, params.entries)
+                    params = replace(params, entries=(argument, *params.entries))
+                    sections = [s for s in sections if s.name != "params"] + [params]
+                entries = existing["connections"].entries if "connections" in existing else ()
+                entries += self.positional_bindings(node, target)
                 if node.wildcard:
                     entries += self.wildcard_bindings(node, target, entries, scope)
-                sections = [s for s in node.sections if s.name != "connections"]
                 sections.append(a.Section(node.span, "connections", entries))
-                node = replace(node, sections=tuple(sections), positional=(), wildcard=None)
+                node = replace(
+                    node, sections=tuple(sections), positional=(), wildcard=None, parameter=None
+                )
             body.append(node)
         return replace(definition, body=tuple(body))
+
+    def parameter_argument(self, node, target, params):
+        """`R<4.7k>` sets the one parameter without a default, or the only parameter."""
+        value = node.parameter
+        name = unnamed_target(target, value, {p.name.text for p in params})
+        return a.Argument(value.span, a.Name(value.span, name), value)
 
     def positional_bindings(self, node, target):
         if not node.positional:
@@ -478,10 +529,10 @@ class Resolver:
             names.insert(0, current)
             return self.definitions[self.symbol(value.module, tuple(names), {"bundle", "nettype"})]
         if isinstance(expr, a.Member):
-            enum(expr, "nettype", NETTYPES, self.project, value.module)
+            enum(expr, "net", NETTYPES, self.project, value.module)
             return None
         if not isinstance(expr, a.Name):
-            fail("resolve.net-type", "expected a nettype value, net type, or bundle", expr.span)
+            fail("resolve.net-type", "expected a builtin net value, net type, or bundle", expr.span)
         return self.definitions[self.symbol(value.module, (expr,), {"bundle", "nettype"})]
 
     def select(self, value, selectors):
@@ -528,6 +579,15 @@ class Resolver:
                 for expression in metadata_expressions(net_metadata):
                     self.check_expression(expression, definition.parameters)
                 nets[node.name.text] = value
+            elif (
+                self.project.modules[definition.body_module].symbols.get(
+                    ".".join(n.text for n in node.component)
+                )
+                is None
+            ):
+                # An unknown type may have been meant as a net; its instance check
+                # reports it, and connections to it are not checked again.
+                nets[node.name.text] = None
         errors = []
         for parameter in definition.parameters.values():
             if parameter.default:
@@ -541,8 +601,9 @@ class Resolver:
                 with collect_errors(errors):
                     self.check_expression(value, definition.parameters)
         for value in nets.values():
-            with collect_errors(errors):
-                self.check_dimensions(value, definition.parameters)
+            if value is not None:
+                with collect_errors(errors):
+                    self.check_dimensions(value, definition.parameters)
         for node in definition.body:
             if isinstance(node, a.Instance):
                 with collect_errors(errors):
@@ -663,7 +724,8 @@ class Resolver:
                 f"{expr.text!r} is not a declared caller net or port",
                 expr.span,
             )
-        self.select(nets[expr.text], selectors)
+        if nets[expr.text] is not None:
+            self.select(nets[expr.text], selectors)
 
     def check_selection(self, selection, module, parameters):
         self.check_expression(Value(selection.start, selection.span, module), parameters)

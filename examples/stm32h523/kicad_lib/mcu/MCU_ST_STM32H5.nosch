@@ -2,7 +2,7 @@ from noscheme import role
 
 component STM32H523VCTx:
   params:
-    value: string = "STM32H523VCTx"
+    string value = "STM32H523VCTx"
   pins:
     "1" (PE2):
       role: role.digital_bidirectional

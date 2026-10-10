@@ -55,7 +55,7 @@ def compare(probe, text, env=None, symbols=None, **options):
         "environment": {k: encoded(v) for k, v in env.items()},
         **options,
     }
-    source = "component Eval:\n  params:\n    x: number = " + text + "\n"
+    source = "component Eval:\n  params:\n    number x = " + text + "\n"
     evaluator = Evaluator(
         SimpleNamespace(
             modules={

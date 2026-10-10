@@ -1,26 +1,24 @@
 // Common passives, LEDs, buttons, and small connectors.
 
-from noscheme import role, nettype, unused, bias, std
+from noscheme import role, net, unused, bias, std
 import Device
 
 // KiCad supplies pins, passive roles, reference prefix, and footprint hints.
 // Require connected pins; each instance or specialization supplies its value.
-component Resistor extends Device.R:
+extend Device.R Resistor:
   pins:
     1..2: unused.never
 
-component Resistor0603 extends Resistor:
+extend Resistor Resistor0603:
   metadata:
     footprint: "Resistor_SMD:R_0603_1608Metric"
 
 // Values are starting points for discussion, not selected from a power budget.
-component LedResistor extends Resistor0603:
-  defaults:
-    value: 1k
+extend Resistor0603<1k> LedResistor
 
 // Pin 1 reaches the supply and pin 2 pulls the signal up, so the pins are no
 // longer interchangeable.
-component Pullup0603 extends Resistor0603:
+extend Resistor0603 Pullup0603:
   pins:
     2:
       bias: bias.pull_up
@@ -30,29 +28,21 @@ component Pullup0603 extends Resistor0603:
   metadata:
     interchangeable: []
 
-component I2CPullup extends Pullup0603:
-  defaults:
-    value: 4.7k
+extend Pullup0603<4.7k> I2CPullup
 
 // Provisional values; verify input leakage and timing when selecting the MCU pins.
-component InputBias0603 extends Resistor0603:
-  defaults:
-    value: 10k
+extend Resistor0603<10k> InputBias0603
 
-component InputPullup0603 extends Pullup0603:
-  defaults:
-    value: 10k
+extend Pullup0603<10k> InputPullup0603
 
 // Pin 1 pulls the signal down and pin 2 reaches ground.
-component InputPulldown0603 extends Resistor0603:
+extend Resistor0603<10k> InputPulldown0603:
   pins:
     1:
       bias: bias.pull_down
       pull_resistance: value
       checks:
         reference: std.bias_reference("2")
-  defaults:
-    value: 10k
   metadata:
     interchangeable: []
 
@@ -80,7 +70,7 @@ component Header1x2:
 
 component Led:
   params:
-    value: string
+    string value
   pins:
     1 (cathode, K):
       role: role.passive
@@ -91,22 +81,20 @@ component Led:
   metadata:
     ref_prefix: "D"
 
-component GreenLed0603 extends Led:
-  defaults:
-    value: "Green"
+extend Led<"Green"> GreenLed0603:
   metadata:
     footprint: "LED_SMD:LED_0603_1608Metric"
     // Draft convention: 1 cathode, 2 anode; verify against selected part.
 
 block Indicator:
   params:
-    resistance: resistance = 1k
+    resistance resistance = 1k
   ports:
-    drive: nettype.digital
-  net anode: nettype.passive
+    net.digital drive
+  net.passive anode
 
-  inst resistor: LedResistor(drive, anode, value=resistance)
-  inst led: GreenLed0603(cathode: global.gnd, anode: anode)
+  LedResistor<resistance> resistor(drive, anode)
+  GreenLed0603 led(cathode: global.gnd, anode: anode)
   // Global ground must be declared by the containing board.
   // No signal propagation or current calculation through the resistor.
 
@@ -136,19 +124,17 @@ component UartHeaderJST3:
       connector_family: "JST"
     footprint: "Connector_JST:JST_XH_S3B-XH-SM4-TB_1x03-1MP_P2.50mm_Horizontal"
 
-component Capacitor extends Device.C:
+extend Device.C Capacitor:
   pins:
     1..2: unused.never
 
-component Capacitor0603 extends Capacitor:
-  defaults:
-    value: 100n
+extend Capacitor<100n> Capacitor0603:
   metadata:
     footprint: "Capacitor_SMD:C_0603_1608Metric"
 
 component CrystalHC49:
   params:
-    value: string = "8MHz CL18pF"
+    string value = "8MHz CL18pF"
   pins:
     1..2: [role.passive, unused.never]
   metadata:

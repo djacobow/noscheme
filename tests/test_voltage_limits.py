@@ -6,17 +6,17 @@ from test_circuit import compile_source
 
 SOURCE = """component Input:
   params:
-    maximum: number = 3.6
+    number maximum = 3.6
   pins:
     1:
       role: role.power_input
       min_voltage: -0.3
       max_voltage: maximum
 board B:
-  net supply: nettype.power
+  net.power supply:
     min_voltage: 3.3 * 0.95
     max_voltage: 3.3 * 1.05
-  inst input: Input
+  Input input:
     1: supply
 """
 
@@ -48,8 +48,9 @@ def test_unannotated_pins_are_not_required_to_supply_limits(tmp_path):
 
 
 def test_pin_limits_without_range_warn(tmp_path):
-    source = SOURCE.replace("    min_voltage: 3.3 * 0.95\n", "").replace(
-        "    max_voltage: 3.3 * 1.05\n", ""
+    source = SOURCE.replace(
+        "  net.power supply:\n    min_voltage: 3.3 * 0.95\n    max_voltage: 3.3 * 1.05\n",
+        "  net.power supply\n",
     )
     result = checks(tmp_path, source)
     assert len(result) == 1 and result[0].severity == "warning"

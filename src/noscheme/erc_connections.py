@@ -20,7 +20,8 @@ def net_results(ctx):
             and attribute(pin, "unused", "explicit") != "always"
             and attribute(pin, "role") != ("do_not_connect",)
         ):
-            emit(
+            results.connection(
+                ctx,
                 "required_connection",
                 f"{label} on {name!r} needs another physical endpoint",
                 pin,
@@ -50,14 +51,16 @@ def pin_results(ctx):
             emit("do_not_connect", f"{label} must not be assigned to any net", record, label)
         return tuple(results.diagnostics)
     if pin["binding"] == "omitted" and policy == "explicit":
-        emit(
+        results.connection(
+            ctx,
             "unused_pin",
             f"{label} must connect or explicitly bind to no_connect",
             record,
             label,
         )
     elif pin["net"] is None and policy == "never":
-        emit(
+        results.connection(
+            ctx,
             "required_connection",
             f"{label} must connect; no_connect cannot override unused.never",
             record,

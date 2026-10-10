@@ -24,14 +24,17 @@ def codes(circuit):
 
 @pytest.mark.parametrize("binding", ["", "    1: no_connect\n"])
 def test_forbidden_pin_allows_omission_or_explicit_disconnect(tmp_path, binding):
-    c = compile_source(tmp_path, component("do_not_connect") + f"board B:\n  inst p: P\n{binding}")
+    c = compile_source(
+        tmp_path,
+        component("do_not_connect") + f"board B:\n  P p{':' if binding else ''}\n{binding}",
+    )
     assert codes(c) == []
 
 
 def test_forbidden_pin_rejects_even_empty_net_and_unchecked_type(tmp_path):
     board = """board B:
-  net n: nettype.unchecked
-  inst p: P
+  net.unchecked n
+  P p:
     1: n
 """
     # An instance cannot relabel a forbidden pin as a passive contact.
@@ -60,7 +63,9 @@ def test_forbidden_pin_rejects_even_empty_net_and_unchecked_type(tmp_path):
 )
 def test_unused_policies(tmp_path, unused, binding, expected):
     clause = "    " + binding + "\n" if binding else ""
-    c = compile_source(tmp_path, component(unused=unused) + f"board B:\n  inst p: P\n{clause}")
+    c = compile_source(
+        tmp_path, component(unused=unused) + f"board B:\n  P p{':' if clause else ''}\n{clause}"
+    )
     assert codes(c) == expected
 
 
@@ -69,9 +74,9 @@ def test_placeholder_cannot_satisfy_required_pin(tmp_path):
         tmp_path,
         component(unused="never")
         + """board B:
-  net n: nettype.passive
+  net.passive n:
     placeholder: true
-  inst p: P
+  P p:
     1: n
 """,
     )
@@ -85,10 +90,10 @@ def pair(tmp_path, role1, role2, nettype="digital", metadata1="", metadata2=""):
         tmp_path,
         parts
         + f"""board B:
-  net n: nettype.{nettype}
-  inst a: A
+  net.{nettype} n
+  A a:
     1: n
-  inst z: Z
+  Z z:
     1: n
 """,
     )
@@ -127,8 +132,8 @@ def test_cli_reports_errors_but_compiles_and_exports(tmp_path, capsys):
         tmp_path,
         component("do_not_connect")
         + """board B:
-  net n: nettype.passive
-  inst p: P
+  net.passive n
+  P p:
     1: n
 """,
     )
@@ -156,7 +161,7 @@ def test_uart_and_button_draft_connectivity(tmp_path, stm32_libraries):
     )
     c = compile_source(
         tmp_path,
-        source.replace("from noscheme import role, nettype, bias", "from noscheme import bias"),
+        source.replace("from noscheme import role, net, bias", "from noscheme import bias"),
     )
     parts = {tuple(p["path"]): p for p in c["parts"]}
     for i in range(2):
@@ -177,10 +182,10 @@ def test_net_waiver_preserves_diagnostics_and_reason_in_reports(tmp_path):
         tmp_path,
         component("digital_input")
         + """board B:
-  net n: nettype.digital
+  net.digital n:
     waivers:
       missing_driver: "Driver is on the far side of a series resistor."
-  inst p[2]: P
+  P p[2]:
     1: n
 """,
     )
@@ -207,7 +212,7 @@ def test_invalid_or_nonwaivable_check_is_rejected(tmp_path, check):
         compile_source(
             tmp_path,
             f"""board B:
-  net n: nettype.passive
+  net.passive n:
     waivers:
       {check}: "reason"
 """,
@@ -221,7 +226,7 @@ def test_waiver_without_matching_application_is_reported(tmp_path):
     circuit = compile_source(
         tmp_path,
         """board B:
-  net n: nettype.passive
+  net.passive n:
     waivers:
       typo: "reason"
 """,
@@ -237,7 +242,7 @@ def test_waiver_requires_nonempty_string_reason(tmp_path, reason):
         compile_source(
             tmp_path,
             f"""board B:
-  net n: nettype.digital
+  net.digital n:
     waivers:
       missing_driver: {reason}
 """,
@@ -250,10 +255,10 @@ def test_waiver_never_suppresses_mandatory_pin_connection(tmp_path):
         tmp_path,
         component("digital_input", "never")
         + """board B:
-  net n: nettype.digital
+  net.digital n:
     waivers:
       missing_driver: "External driver pending."
-  inst p: P
+  P p:
     1: n
 """,
     )
@@ -279,12 +284,12 @@ def test_waivers_follow_outermost_net_through_hierarchy(tmp_path, placement):
         component("digital_input")
         + f"""block W:
   ports:
-    signal: nettype.digital
-{inner}  inst loads[2]: P
+    net.digital signal{":" if inner else ""}
+{inner}  P loads[2]:
     1: signal
 board B:
-  net shared: nettype.digital
-{outer}  inst w: W
+  net.digital shared{":" if outer else ""}
+{outer}  W w:
     signal: shared
 """,
     )
@@ -302,12 +307,12 @@ def test_private_net_waiver_is_local_to_each_array_element(tmp_path):
     c = compile_source(
         tmp_path,
         """block W:
-  net private: nettype.digital
+  net.digital private:
     waivers:
       missing_driver: "Private test point"
 board B:
-  inst w[2]: W()
-  net unrelated: nettype.digital
+  W w[2]()
+  net.digital unrelated
 """,
     )
     apply_erc(c)
@@ -316,3 +321,47 @@ board B:
     remaining = c["erc"]["diagnostics"]
     assert sum(d["code"] == "erc.missing_driver" for d in remaining) == 1
     assert sum(d["code"] == "erc.unconnected_net" for d in remaining) == 3
+
+
+@pytest.mark.parametrize("kind", ["component", "block"])
+@pytest.mark.parametrize("unused", ["explicit", "never"])
+@pytest.mark.parametrize("binding", ["", "(1: no_connect)"])
+def test_missing_connections_point_to_instance(tmp_path, kind, unused, binding):
+    section = "pins" if kind == "component" else "ports"
+    field = "1" if kind == "component" else "net.passive signal"
+    binding = binding.replace("1:", "signal:") if kind == "block" else binding
+    library = f"""from noscheme import role, unused, net
+{kind} P:
+  {section}:
+    {field}:
+      unused: unused.{unused}
+"""
+    if kind == "block":
+        library += "      placeholder: true\n"
+    (tmp_path / "parts.nosch").write_text(library)
+    circuit = compile_source(tmp_path, f"from parts import P\nboard B:\n  P<> items[2]{binding}\n")
+    diagnostics = [
+        d
+        for d in check_circuit(circuit)
+        if d.code
+        in {
+            "erc.unused_pin",
+            "erc.required_connection",
+            "erc.unused_port",
+            "erc.required_port_connection",
+        }
+    ]
+    if binding and unused == "explicit":
+        assert not diagnostics
+        return
+    assert len(diagnostics) == 2
+    for d in diagnostics:
+        assert d.span.filename == str(tmp_path / "main.nosch")
+        text = (tmp_path / "main.nosch").read_text()[d.span.start_pos : d.span.end_pos]
+        if binding:
+            assert "no_connect" in text
+            assert not d.related
+        else:
+            assert "P<> items[2]" in text
+            assert d.related[0].message == "interface declared here"
+            assert d.related[0].span.filename == str(tmp_path / "parts.nosch")

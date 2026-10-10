@@ -113,6 +113,34 @@ void visit_all(const ast::Node &node,
 std::vector<LspReference> reference_index(const Project &project,
                                           const Definitions &definitions,
                                           const RegistryDescription &registry) {
+  // Grouped fields share declaration spans, but navigation selects one name.
+  std::map<std::pair<SpanKey, std::string>, Span> declared_names,
+      typed_declared_names;
+  for (const auto &[name, module] : project.modules)
+    visit_all(*module.ast, [&](const ast::Node &node) {
+      if (auto *field = ast::as<ast::Field>(&node);
+          field && field->key.items.empty() && !field->key.last) {
+        if (field->value)
+          typed_declared_names[{span_key(field->value->span),
+                                field->key.first.text}] = field->key.first.span;
+        declared_names[{span_key(field->span), field->key.first.text}] =
+            field->key.first.span;
+      }
+    });
+  auto declared_name = [&](const Span &span, const std::string &name) {
+    auto found = declared_names.find({span_key(span), name});
+    return found == declared_names.end() ? span : found->second;
+  };
+  auto interface_name = [&](const Interface &field) {
+    // An inherited interface override keeps the original type declaration.
+    if (field.type.expression) {
+      auto found = typed_declared_names.find(
+          {span_key(field.type.expression->span), field.name});
+      if (found != typed_declared_names.end())
+        return found->second;
+    }
+    return declared_name(field.span, field.name);
+  };
   std::vector<LspReference> refs;
   auto add = [&](const Span &span, const Target &target) {
     refs.push_back({span, target.first, target.second});
@@ -208,7 +236,7 @@ std::vector<LspReference> reference_index(const Project &project,
       if (auto owner = definitions.find({module_name, name});
           owner != definitions.end()) {
         for (const auto &[pin, entry] : owner->second.interface) {
-          locals[pin] = {entry.span,
+          locals[pin] = {declared_name(entry.span, pin),
                          interface_description(
                              entry, owner->second.kind == "bundle"
                                         ? "bundle field " + pin
@@ -220,7 +248,8 @@ std::vector<LspReference> reference_index(const Project &project,
           local_types[alias] = local_types.at(pin);
         }
         for (const auto &param : owner->second.parameters.parameters)
-          locals[param.name] = {param.span, parameter_description(param)};
+          locals[param.name] = {declared_name(param.span, param.name),
+                                parameter_description(param)};
       }
       for (const auto &[key, target] : locals) {
         const auto &span = target.first;
@@ -265,7 +294,7 @@ std::vector<LspReference> reference_index(const Project &project,
                    field) {
             walk(*m->base);
             add(m->name.span,
-                {field->span,
+                {interface_name(*field),
                  interface_description(*field, "bundle field " + field->name)});
           } else if (text.find('.') != std::string::npos &&
                      locals.contains(text.substr(0, text.find('.'))))
@@ -316,7 +345,7 @@ std::vector<LspReference> reference_index(const Project &project,
                 if (found == def->second.interface.end())
                   return nullptr;
                 add(key.span,
-                    {found->second.span,
+                    {interface_name(found->second),
                      interface_description(found->second,
                                            "interface " + type + "." + name)});
                 refs.back().instance = instance->span;
@@ -351,7 +380,8 @@ std::vector<LspReference> reference_index(const Project &project,
                                  : as<ast::Field>(*entry).key.first.span;
                     for (const auto &param : def->second.parameters.parameters)
                       if (param.name == text)
-                        add(span, {param.span, parameter_description(param)});
+                        add(span, {declared_name(param.span, param.name),
+                                   parameter_description(param)});
                   }
                 }
                 if (section.name == "metadata")
@@ -390,7 +420,7 @@ std::vector<LspReference> reference_index(const Project &project,
                       if (!field)
                         break;
                       add(field_name.span,
-                          {field->span,
+                          {interface_name(*field),
                            interface_description(*field, "bundle field " +
                                                              field->name)});
                       value = field->type;
@@ -440,6 +470,11 @@ std::vector<LspReference> reference_index(const Project &project,
                   typed_names.find(span_key(field.type.expression->span));
               found != typed_names.end())
             targets[span_key(field.span)] = found->second;
+  for (const auto &[key, definition] : definitions)
+    if (definition.kind != "component")
+      for (const auto &[name, field] : definition.interface)
+        targets[span_key(declared_name(field.span, name))] =
+            interface_name(field);
   for (auto &reference : refs) {
     if (auto found = names.find(span_key(reference.span)); found != names.end())
       reference.span = found->second;

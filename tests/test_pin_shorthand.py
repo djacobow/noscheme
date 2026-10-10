@@ -17,14 +17,14 @@ component Chip:
       capacitance: 5p
 block Port:
   ports:
-    line: nettype.passive
-  inst contact: Contact
+    net.passive line
+  Contact contact:
     1: line
     2: no_connect
 board B:
-  net a: nettype.passive
-  net b: nettype.passive
-  inst contact: Contact
+  net.passive a
+  net.passive b
+  Contact contact:
     1: a
     2: b
     3: no_connect
@@ -32,13 +32,13 @@ board B:
       pins:
         1: [role.power_output, bias.none]
         2: role.ground
-  inst chip: Chip
+  Chip chip:
     1: b
     2: a
     metadata:
       pins:
         1: role.ground
-  inst port: Port
+  Port port:
     line: a
     metadata:
       pins:

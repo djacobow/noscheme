@@ -36,7 +36,7 @@ matches Python's AST data. Neither form is a frozen native compiler API.
 
 Like the Python builder, the parser keeps the source's shape where the language
 has a shorthand: an instance's body connections become its `connections` section,
-`net a, b: T` becomes one `Net` per name sharing the declaration's span, type, and
+`T a, b` becomes one `Net` per name sharing the declaration's span, type, and
 fields, and inline pin aliases stay on the `FieldKey`. A `voltage` value is a
 `Range` or `Tolerance` node; the parser also builds a tolerance's two bound
 expressions, which the node owns because metadata refers to AST expressions.
@@ -524,7 +524,7 @@ The queue is bounded to 128 requests. Cursor and target ranges use UTF-16.
 Navigation currently shares the full analysis lane, including ERC; separating
 interactive analysis from slow checks remains future work.
 
-Builtin role, nettype, and unused-policy hover shares its descriptions with the
+Builtin role, net, and unused-policy hover shares its descriptions with the
 Python server. Registered ERC rules show their signature, scope, and whether
 they permit waivers, including project plugins.
 
@@ -551,10 +551,10 @@ Keywords already supplied positionally or by name are excluded. Aliased rules
 and project plugin parameters use the same path. Unfinished calls can recover a
 completion catalog while retaining their original diagnostics.
 
-Empty and unfinished inline instance lists suggest named pins and parameter
-keywords. Components with interchangeable pins also suggest positional net
+Empty and unfinished connection lists suggest named pins. Angle-bracket
+parameter lists suggest parameter names followed by `: `. Components with interchangeable pins also suggest positional net
 targets. Supplied pins (including aliases) and parameters are excluded, and
-completion inserts the appropriate colon or equals sign. ERC rule-name
+completion inserts the appropriate colon. ERC rule-name
 suggestions are filtered to the pin or net scope of the checks section.
 Section-form connections also support empty rows, missing targets, and unfinished
 pin or bundle-member names. Suggestions remain within the owning instance and
@@ -572,7 +572,7 @@ lists, connection sections, and ERC check calls; arbitrary incomplete source
 remains unsupported.
 Keyword completion uses lexical context, including in new files without a
 project: declarations, valid definition/instance sections, element override
-sections, and common `import`, `as`, `extends`, and `global net` continuations.
+sections, and common `import`, `as`, `extend`, and `global` continuations.
 It inserts bare keywords and leaves punctuation to the author. Comments, strings,
 and open argument/index expressions do not receive keyword suggestions.
 Completion, navigation, references, and hover use a version-current snapshot

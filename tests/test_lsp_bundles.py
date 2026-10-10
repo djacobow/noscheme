@@ -6,29 +6,29 @@ from noscheme.lsp_analysis import analyze
 from noscheme.lsp_completion import completion_items
 from test_resolve import make_project
 
-LIBRARY = """from noscheme import nettype
+LIBRARY = """from noscheme import net
 bundle SPI:
-  sck: nettype.digital
-  mosi: nettype.digital
+  net.digital sck
+  net.digital mosi
 bundle Buses:
-  sd: SPI[2]
+  SPI sd[2]
 block Peripheral:
   ports:
-    bus: Buses
-  net secret: SPI
-block Specialized extends Peripheral:
+    Buses bus
+  SPI secret
+extend Peripheral Specialized:
   metadata:
     custom:
       note: "inherited"
 """
 
 PREFIX = """import interfaces
-from noscheme import nettype
+from noscheme import net
 board B:
-  global net shared: interfaces.Buses
-  net local: interfaces.Buses[2]
-  net scalar: nettype.digital
-  inst p[2]: interfaces.Specialized
+  global interfaces.Buses shared
+  interfaces.Buses local[2]
+  net.digital scalar
+  interfaces.Specialized p[2]:
 """
 
 
@@ -87,43 +87,53 @@ def test_unsaved_imported_bundle_and_later_definition(tmp_path):
     source = PREFIX + "    bus.sd[0]."
     offset = len(source)
     source += '\ncomponent Later:\n  metadata:\n    ref_prefix: "R"\n'
-    buffers = {path: source, tmp_path / "interfaces.nosch": LIBRARY.replace("mosi:", "data#:")}
+    buffers = {
+        path: source,
+        tmp_path / "interfaces.nosch": LIBRARY.replace("net.digital mosi", "net.digital data#"),
+    }
     assert {item.label for item in completion_items(path, tmp_path, buffers, offset)} == {
         "sck",
         "data#",
     }
 
 
-def test_navigation_and_hover_for_nested_members_on_both_sides(tmp_path):
+@pytest.mark.parametrize("grouped", [False, True])
+def test_navigation_and_hover_for_nested_members_on_both_sides(tmp_path, grouped):
     source = PREFIX + "    [0].bus.sd[0].sck: global.shared.sd[0].sck\n"
-    make_project(tmp_path, source, {"interfaces": LIBRARY})
+    library = (
+        LIBRARY.replace("net.digital sck\n  net.digital mosi", "net.digital sck, mosi")
+        if grouped
+        else LIBRARY
+    )
+    make_project(tmp_path, source, {"interfaces": library})
     path = tmp_path / "main.nosch"
     result = analyze(path, tmp_path, {path: source})
     for needle, target in [
-        ("bus.sd", "sd:"),
-        ("].sck", "sck:"),
-        ("shared.sd", "sd:"),
+        # Navigation selects the field name, after its type.
+        ("bus.sd", "sd[2]"),
+        ("].sck", "sck"),
+        ("shared.sd", "sd[2]"),
     ]:
         offset = source.index(needle) + needle.index(".") + 1
         ref = result.reference_at(path, offset)
         assert ref is not None, needle
         assert ref.target.filename == str(tmp_path / "interfaces.nosch")
-        assert ref.target.start_pos == LIBRARY.index(target)
+        assert ref.target.start_pos == library.index(target)
         assert "bundle field" in ref.description
     last = source.rindex("sck")
     ref = result.reference_at(path, last)
-    assert ref and ref.target.start_pos == LIBRARY.index("sck:")
+    assert ref and ref.target.start_pos == library.index("sck")
 
 
 def test_completion_on_block_public_bundle_port(tmp_path):
     source = """import interfaces
 block Local:
   ports:
-    signals: interfaces.Buses
-  inst p: interfaces.Peripheral
+    interfaces.Buses signals
+  interfaces.Peripheral p:
     bus.sd[0].sck: signals.sd[1].
 """
-    source += "board B:\n  inst b: Local()\n"
+    source += "board B:\n  Local b()\n"
     make_project(tmp_path, source, {"interfaces": LIBRARY})
     path = tmp_path / "main.nosch"
     offset = source.index("signals.sd[1].") + len("signals.sd[1].")
