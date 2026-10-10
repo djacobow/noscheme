@@ -1707,7 +1707,7 @@ board B:
         ("board B:\n  C r[2]:\n    elements:\n      [0]:\n        |", {"params", "metadata"}),
         ("board B:\n  |", {"metadata", "global"}),
         ("board B:\n  global n|", set()),
-        ("block B:\n  |", {"params", "ports", "metadata"}),
+        ("block B:\n  |", {"params", "ports", "metadata", "global"}),
         ("component C:\n  |", {"params", "pins", "metadata"}),
         ("extend Other C:\n  |", {"pins", "ports", "metadata"}),
         ("extend Other B:\n  |", {"pins", "ports", "metadata"}),

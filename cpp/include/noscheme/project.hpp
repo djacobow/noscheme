@@ -13,7 +13,8 @@ bool is_identifier(std::string_view text);
 using Sources = std::map<fs::path, std::string>;
 struct ProjectConfig {
   fs::path path, output_dir;
-  std::string language_version, board_module, board_name;
+  std::string language_version, board_module, board_name, target;
+  fs::path state_path() const;
   std::vector<fs::path> source_paths, library_paths, erc_modules;
   std::vector<std::string> erc_rule_sets;
   // The configuration text, which keeps span valid.
@@ -60,9 +61,11 @@ struct ParsedSource {
 using ParsedSources = std::map<fs::path, ParsedSource>;
 
 std::string source_text(const fs::path &path, const Sources &sources = {});
-ProjectConfig read_config(fs::path path = ".", const Sources &sources = {});
+ProjectConfig read_config(fs::path path = ".", const Sources &sources = {},
+                          const std::string &target = "");
 Project load_project(fs::path path = ".", const Sources &sources = {},
                      ParsedSources *cache = nullptr,
-                     const ErcExportLoader &erc_exports = {});
+                     const ErcExportLoader &erc_exports = {},
+                     const std::string &target = "");
 Json project_summary(const Project &project);
 } // namespace noscheme

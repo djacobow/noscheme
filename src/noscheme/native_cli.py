@@ -178,6 +178,7 @@ def run(args, parser):
             return 0
         request = {
             "project": str(args.project),
+            "target": args.target or "",
             "configurations": getattr(args, "erc_configuration", None),
         }
         if args.command == "export-kicad":
@@ -185,7 +186,9 @@ def run(args, parser):
             path = args.project.resolve()
             if path.is_dir():
                 path /= "noscheme.toml"
-            state_path = path.parent / "noscheme.state.json"
+            from .project import read_config
+
+            state_path = read_config(path, target=args.target).state_path
             request.update(
                 state=read_json(state_path)
                 if state_path.exists()

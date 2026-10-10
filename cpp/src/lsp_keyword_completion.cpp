@@ -92,7 +92,7 @@ CompletionResult keyword_completion(const std::string &text,
         if (kind == "block")
           words = {"params", "metadata"};
         if (kind == "block")
-          words.push_back("ports");
+          words.insert(words.end(), {"ports", "global"});
 
         if (kind == "board")
           words = {"metadata", "global"};

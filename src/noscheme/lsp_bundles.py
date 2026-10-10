@@ -41,14 +41,18 @@ class BundleLookup:
             return None
         if isinstance(expr, a.Member):
             if isinstance(expr.base, a.Name) and expr.base.text == "global" and not ports_only:
-                board = self.project.board
-                for node in board.declaration.body:
+                symbol = self.project.board
+                board = self.resolver.definitions.get((symbol.module, symbol.name))
+                body = board.body if board else symbol.declaration.body
+                for node in body:
                     if (
                         isinstance(node, a.Net)
                         and node.global_
                         and node.name.text == expr.name.text
                     ):
-                        return Value(node.type, node.type.span, board.module)
+                        return Value(
+                            node.type, node.type.span, board.body_module if board else symbol.module
+                        )
                 return None
             field = self.member(
                 self.reference_type(expr.base, owner, ports_only=ports_only), expr.name.text

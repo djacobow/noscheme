@@ -415,7 +415,7 @@ def change_lines(changes):
 
 def export_project(project, circuit, footprint_records, *, configurations=None, warnings=None):
     apply_erc(circuit, configurations, registry=project.config.erc_registry)
-    state_path = project.config.path.parent / "noscheme.state.json"
+    state_path = project.config.state_path
     state = (
         read_json(state_path)
         if state_path.exists()

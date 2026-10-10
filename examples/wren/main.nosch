@@ -13,7 +13,7 @@ block SurroundingWren:
     net.unchecked input[4][4][2]
     net.unchecked output[4][4][2]
 
-board WrenOutputs:
+block WrenOutputs:
   // Boundary nets represent power and signals provided by the rest of WREN.
   // Electrical policies are deliberately unchecked in this connectivity pilot.
   net.unchecked supply, logic_supply, ground, enable#

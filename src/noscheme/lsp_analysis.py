@@ -132,12 +132,14 @@ def reference_index(project, definitions, hover=None):
                 else f"{d.kind} {s.module}.{s.name}"
             )
 
+    root = definitions.get((project.board.module, project.board.name))
+    root_body = root.body if root else project.board.declaration.body
     globals_ = {
         item.name.text: (
             item.name.span,
             hover.net(item) if hover else f"global net {item.name.text}",
         )
-        for item in project.board.declaration.body
+        for item in root_body
         if isinstance(item, a.Net) and item.global_
     }
     for module in project.modules.values():

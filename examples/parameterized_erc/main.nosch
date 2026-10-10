@@ -32,7 +32,7 @@ component Endpoint:
     custom:
       description: "Abstract external source and open-drain endpoint"
 
-board Demo:
+block Demo:
   net.power supply:
     min_voltage: 3.3 * 0.95
     max_voltage: 3.3 * 1.05

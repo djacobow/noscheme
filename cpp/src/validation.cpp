@@ -253,7 +253,7 @@ public:
           error("syntax.declaration-context",
                 "internal circuit declarations require a base block or board",
                 declaration->span);
-        if (declaration->global && kind != "board")
+        if (declaration->global && kind != "board" && kind != "block")
           error("syntax.global-context", "only a board may declare globals",
                 declaration->span);
       }

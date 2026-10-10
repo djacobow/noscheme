@@ -210,7 +210,8 @@ Json rename_plan(const RenameContext &context, const Sources &sources,
   for (const auto &[module_name, module] : context.project.modules)
     for (const auto &entry : module.ast->items)
       if (auto *item = as<ast::Definition>(entry)) {
-        bool board = item->keyword == "board";
+        bool board = item->keyword == "board" ||
+                     item == context.project.board.declaration;
         if (!board && item->name.span == selected->target)
           allowed = named = true;
         auto field_allowed = [&](const ast::Field &field) {

@@ -21,7 +21,7 @@ from components import Header1x2, Header1x4, Header2x10, UartHeaderJST3
 import mcu
 import peripherals
 
-board STM32H523Reference:
+block STM32H523Reference:
   metadata:
     erc_choices:
       power_source: ["usb", "header5v"]

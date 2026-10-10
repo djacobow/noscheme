@@ -182,7 +182,7 @@ def test_choices(probe, tmp_path, old, new):
     source = (
         (ROOT / "examples/power_modes/main.nosch")
         .read_text()
-        .replace("board PowerModes:", "board B:")
+        .replace("block PowerModes:", "board B:")
     )
     assert old in source
     compare(

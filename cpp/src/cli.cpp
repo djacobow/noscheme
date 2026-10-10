@@ -24,11 +24,13 @@ Json run(const Json &request) {
   }
   std::optional<RegistryDescription> registry;
   const fs::path python = request.at("python").get<std::string>();
-  auto project = load_project(request.at("project").get<std::string>(), {},
-                              nullptr, [&](const ProjectConfig &config) {
-                                registry = load_registry(config, python);
-                                return registry->exports();
-                              });
+  auto project = load_project(
+      request.at("project").get<std::string>(), {}, nullptr,
+      [&](const ProjectConfig &config) {
+        registry = load_registry(config, python);
+        return registry->exports();
+      },
+      request.value("target", std::string{}));
   if (command == "load")
     return object("result", project_summary(project));
   if (!registry)

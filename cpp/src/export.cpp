@@ -463,7 +463,7 @@ ExportResult export_kicad(const Project &project, const Circuit &circuit,
                           const ErcResult &erc, Json state,
                           const Json &footprints, const fs::path &records,
                           const std::string &records_text) {
-  auto state_path = project.config.path.parent_path() / "noscheme.state.json";
+  auto state_path = project.config.state_path();
   validate_state(state, state_path);
   auto data = to_json(circuit);
   auto omitted = verify(data, footprints, records);

@@ -9447,7 +9447,7 @@ block Sheet_vme_interface_987aea2b0779be44:
     n_ffa38c8af8b50d05: n_2ed9916ec1639317
     n_ffb4d3e543f1793c: n_2ced3c5136a23fef
 
-board WrenFull:
+block WrenFull:
   net.unchecked n_0043d5c653baaf56
   net.unchecked n_004b8d3ce0698799
   net.unchecked n_008eb6edaf160258

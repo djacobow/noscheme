@@ -355,6 +355,13 @@ class BodyResolver {
                 const Definition &owner, const Nets &nets) const {
     const auto &part =
         target(owner.body_module, node.component, {"component", "block"});
+    if (part.metadata.contains("configurations"))
+      fail("project.root-only", "only the root block may define configurations",
+           node.span);
+    for (const auto *entry : part.body)
+      if (auto *net = as<ast::Net>(entry); net && net->global)
+        fail("project.root-only", "only the root block may declare globals",
+             node.span);
     auto locals = parameters(owner), permitted = parameters(part);
     auto errors = Json::array();
     for (const auto &dimension : node.dimensions)
@@ -737,6 +744,10 @@ void resolve_bodies(const Project &project, const RegistryDescription &registry,
     unique.add_all(errors);
     throw DiagnosticsFailure(unique.take());
   }
+  const auto &root = definitions.at({project.board.module, project.board.name});
+  if (!root.interface.empty())
+    fail("project.root-ports", "the root block must not have public ports",
+         root.source->span);
   resolver.bundle_cycles(order);
 }
 } // namespace noscheme

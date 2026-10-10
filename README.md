@@ -95,3 +95,20 @@ each of those directories.
 The [Rulos](examples/rulos_6matrix/README.md#attribution-and-sources) and
 [WREN](examples/wren/README.md#attribution-and-provenance) examples also record
 their upstream design attribution and source-license information.
+
+### Multiple boards and variants
+
+Define circuits with `block`; use `extend` to bind parameters for a variant.
+Named TOML targets select the root block. For a runnable example:
+
+```sh
+noscheme compile --project examples/targets --target single
+noscheme compile --project examples/targets --target double
+```
+
+These write to `build/single` and `build/double` under the example directory.
+`default_target` selects the target used by editors and commands without
+`--target`. Each target also has its own persistent `noscheme.<target>.state.json`
+for KiCad identities; keep these files under version control. Existing single-board
+configurations retain their original output and `noscheme.state.json` paths.
+See [project configuration](docs/LRM.md#11-project-configuration).

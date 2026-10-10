@@ -153,7 +153,7 @@ def test_duplicates_report_both_locations(source):
     "source,code",
     [
         ("component C:\n  T n\n", "syntax.declaration-context"),
-        ("block B:\n  global T n\n", "syntax.global-context"),
+        ("component B:\n  global T n\n", "syntax.declaration-context"),
         ("board B:\n  pins:\n    1:\n      role: r\n", "syntax.section-context"),
         ('component C:\n  metadata:\n    value: string = "x"\n', "syntax.default-context"),
         ("component C:\n  params:\n    value:\n      nested: 1\n", "syntax.parameter"),

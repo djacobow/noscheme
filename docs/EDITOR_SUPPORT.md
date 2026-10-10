@@ -711,3 +711,12 @@ are recorded in the native README. See the [native build instructions](../cpp/RE
 
 Selecting native without an available executable fails visibly and never falls
 back to Python. The launcher preserves stdio and process signals.
+
+### Projects with multiple targets
+
+Set `default_target` in `noscheme.toml` to choose the circuit analyzed by the
+language server. Both servers load that target's root and libraries when opening
+a `.nosch` file. Change the default and restart/reconnect the server to switch the
+editor's active target. Compiler commands can independently select another target
+with `--target NAME`. Files outside the selected target's import graph do not get
+that other target's full circuit/ERC context.

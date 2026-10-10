@@ -1,0 +1,11 @@
+language_version = "0.1"
+source_paths = ["."]
+library_paths = ["../blink/lib"]
+output_dir = "build"
+default_target = "single"
+
+[targets.single]
+root = "main.Indicators"
+
+[targets.double]
+root = "main.Double"

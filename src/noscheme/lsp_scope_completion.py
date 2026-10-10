@@ -215,7 +215,10 @@ def scope_completion(path, config, sources, offset, masked, *, expression=False)
                     if parent.kind == "block":
                         nets.update(parent.interface)
             if mode == "target":
-                for node in project.board.declaration.body:
+                root = Resolver(project).resolve_interfaces()[
+                    (project.board.module, project.board.name)
+                ]
+                for node in root.body:
                     if isinstance(node, a.Net) and node.global_:
                         nets.add("global." + node.name.text)
                 choices = [(n, n, "connection target", "variable") for n in nets]

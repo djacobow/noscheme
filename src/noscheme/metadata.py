@@ -57,7 +57,11 @@ SCHEMAS = {
         "custom": "custom",
     },
     "current_load": {"pins": "aliases", "max_load_current": "current"},
-    "block": {"custom": "custom", "erc_choices": "choice_declarations"},
+    "block": {
+        "custom": "custom",
+        "erc_choices": "choice_declarations",
+        "configurations": "configurations",
+    },
     "board": {
         "custom": "custom",
         "erc_choices": "choice_declarations",

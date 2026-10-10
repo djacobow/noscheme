@@ -159,7 +159,13 @@ def main(argv=None):
 
     for name in native_cli.COMMANDS:
         native_cli.add_arguments(sub.choices[name])
+    for name in ("load", "resolve", "lint", "evaluate", "check", "compile", "export-kicad"):
+        sub.choices[name].add_argument(
+            "--target", help="named project target (default: default_target or sole target)"
+        )
     args = cli.parse_args(argv)
+    if getattr(args, "target", None) == "":
+        cli.error("--target requires a nonempty name")
     if args.command == "lsp":
         return launch(args, lsp)
     if getattr(args, "native_tool", None) and args.implementation != "native":
@@ -177,7 +183,7 @@ def main(argv=None):
             )
             return 0
         if args.command == "export-kicad":
-            project, definitions = resolve_project(args.project)
+            project, definitions = resolve_project(args.project, target=args.target)
             circuit, warnings = elaborate_project(project, definitions)
             export_warnings = []
             report = export_project(
@@ -200,7 +206,7 @@ def main(argv=None):
             print(json.dumps(report, indent=2))
             return 0
         if args.command in {"check", "compile"}:
-            project, definitions = resolve_project(args.project)
+            project, definitions = resolve_project(args.project, target=args.target)
             circuit, warnings = elaborate_project(project, definitions)
             electrical = apply_erc(
                 circuit, args.erc_configuration, registry=project.config.erc_registry
@@ -233,23 +239,31 @@ def main(argv=None):
                 print(renderer((*warnings, *electrical)), file=sys.stderr)
             return int(args.command == "check" and circuit["erc"]["errors"] > 0)
         if args.command == "lint":
-            _, definitions = resolve_project(args.project)
+            _, definitions = resolve_project(args.project, target=args.target)
             warnings = unused_parameters(definitions)
             renderer = render_json if args.diagnostics == "json" else render_text
             print(renderer(warnings))
             return 0
         if args.command == "evaluate":
-            report, warnings = evaluate_project(*resolve_project(args.project))
+            report, warnings = evaluate_project(*resolve_project(args.project, target=args.target))
             print(json.dumps(report, indent=2))
             if warnings:
                 renderer = render_json if args.diagnostics == "json" else render_text
                 print(renderer(warnings), file=sys.stderr)
             return 0
         if args.command == "resolve":
-            print(json.dumps(resolution_summary(*resolve_project(args.project)), indent=2))
+            print(
+                json.dumps(
+                    resolution_summary(*resolve_project(args.project, target=args.target)), indent=2
+                )
+            )
             return 0
         if args.command == "load":
-            print(json.dumps(project_summary(load_project(args.project)), indent=2))
+            print(
+                json.dumps(
+                    project_summary(load_project(args.project, target=args.target)), indent=2
+                )
+            )
             return 0
         if args.output and args.output.resolve() == args.source.resolve():
             raise OSError("AST output must not overwrite the source file")

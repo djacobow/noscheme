@@ -483,6 +483,11 @@ class Resolver:
         if errors:
             # Specializations can share the same body and diagnostic locations.
             raise DiagnosticError(tuple(dict.fromkeys(errors)))
+        root = self.definitions[(self.project.board.module, self.project.board.name)]
+        if root.interface:
+            fail(
+                "project.root-ports", "the root block must not have public ports", root.source.span
+            )
         self.check_bundle_cycles()
         return dict(sorted(self.definitions.items()))
 
@@ -615,6 +620,10 @@ class Resolver:
         target = self.definitions[
             self.symbol(definition.body_module, node.component, {"component", "block"})
         ]
+        if "configurations" in target.metadata:
+            fail("project.root-only", "only the root block may define configurations", node.span)
+        if any(isinstance(n, a.Net) and n.global_ for n in target.body):
+            fail("project.root-only", "only the root block may declare globals", node.span)
         errors = []
         for selection in node.dimensions:
             with collect_errors(errors):
@@ -900,8 +909,8 @@ def instance_roles(definition, pin, values):
     return values
 
 
-def resolve_project(path="."):
-    project = load_project(path)
+def resolve_project(path=".", *, target=None):
+    project = load_project(path, target=target)
     definitions = Resolver(project).resolve_all()
     return project, definitions
 

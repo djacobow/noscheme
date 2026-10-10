@@ -38,8 +38,14 @@ class ProjectConfig:
     library_paths: tuple[Path, ...]
     output_dir: Path
     span: a.Span
+    target: str | None = None
     erc_modules: tuple[Path, ...] = ()
     erc_rule_sets: tuple[str, ...] = ("std.default",)
+
+    @property
+    def state_path(self):
+        name = f"noscheme.{self.target}.state.json" if self.target else "noscheme.state.json"
+        return self.path.parent / name
 
     @cached_property
     def erc_registry(self):
@@ -196,7 +202,7 @@ def source_text(path, sources=None):
     return text
 
 
-def read_config(path: Path | str = ".", *, sources=None) -> ProjectConfig:
+def read_config(path: Path | str = ".", *, sources=None, target=None) -> ProjectConfig:
     path = Path(path)
     if path.is_dir():
         path /= "noscheme.toml"
@@ -205,18 +211,71 @@ def read_config(path: Path | str = ".", *, sources=None) -> ProjectConfig:
     builder = Builder(source, str(path))
     file_span = builder.position_span(0, len(source))
 
-    def span(key):
+    def span(key, target_name=None):
         # TOML handles parsing. Locate ordinary/quoted top-level keys for diagnostics.
-        match = re.search(rf'(?m)^[ \t]*(?:{key}|"{key}"|\'{key}\')[ \t]*=', source)
-        return builder.position_span(match.start(), match.end()) if match else file_span
+        offset, text = 0, source
+        if target_name is not None:
+            name = re.escape(target_name)
+            header = re.search(
+                rf"(?m)^\s*\[\s*targets\s*\.\s*(?:{name}|\"{name}\"|'{name}')\s*\]", source
+            )
+            if header is None:
+                return file_span
+            offset = header.end()
+            text = re.split(r"(?m)^\s*\[", source[offset:], maxsplit=1)[0]
+        match = re.search(rf'(?m)^[ \t]*(?:{key}|"{key}"|\'{key}\')[ \t]*=', text)
+        return (
+            builder.position_span(offset + match.start(), offset + match.end())
+            if match
+            else file_span
+        )
 
-    def invalid(key, message):
-        fail("project.config", message, span(key), config=True)
+    def invalid(key, message, target_name=None):
+        fail("project.config", message, span(key, target_name), config=True)
 
     try:
         data = tomllib.loads(source)
     except tomllib.TOMLDecodeError as exc:
         fail("project.toml", str(exc), file_span, config=True)
+    selected = None
+    if "targets" in data:
+        if "board" in data:
+            invalid("board", "board and targets cannot be combined")
+        targets = data["targets"]
+        if not isinstance(targets, dict) or not targets:
+            invalid("targets", "targets must be a nonempty table")
+        for name, settings in targets.items():
+            if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_-]*", name):
+                invalid("targets", f"invalid target name {name!r}")
+            if not isinstance(settings, dict) or set(settings) - {"root", "output_dir"}:
+                invalid("targets", f"target {name!r} allows only root and output_dir")
+            root = settings.get("root")
+            if not isinstance(root, str) or not QUALIFIED.fullmatch(root) or "." not in root:
+                invalid("root", f"target {name!r} must name a qualified root block", name)
+            output = settings.get("output_dir")
+            if "output_dir" in settings and (
+                not isinstance(output, str) or not output or "\0" in output
+            ):
+                invalid("output_dir", "output_dir must be a nonempty path string", name)
+        default = data.get("default_target")
+        if "default_target" in data and (not isinstance(default, str) or default not in targets):
+            invalid("default_target", "default_target must name a configured target")
+        selected = target if target is not None else default
+        if selected is None:
+            if len(targets) != 1:
+                invalid("targets", "select a target with --target or default_target")
+            selected = next(iter(targets))
+        if selected not in targets:
+            invalid("targets", f"unknown target {selected!r}")
+        settings = targets[selected]
+        base_output = data.get("output_dir")
+        if not isinstance(base_output, str) or not base_output or "\0" in base_output:
+            invalid("output_dir", "output_dir must be a nonempty path string")
+        data = {k: v for k, v in data.items() if k not in {"targets", "default_target"}}
+        data["board"] = settings["root"]
+        data["output_dir"] = settings.get("output_dir", str(Path(base_output) / selected))
+    elif target is not None or "default_target" in data:
+        invalid("targets", "target selection requires a targets table")
     expected = {"language_version", "board", "source_paths", "library_paths", "output_dir"}
     unknown = sorted(data.keys() - expected - {"erc_modules", "erc_rule_sets"})
     if unknown:
@@ -283,7 +342,8 @@ def read_config(path: Path | str = ".", *, sources=None) -> ProjectConfig:
             sources,
             libraries,
             output,
-            span("board"),
+            span("root", selected) if selected else span("board"),
+            selected,
             modules,
             tuple(rule_sets),
         )
@@ -330,14 +390,16 @@ def erc_exports(config):
 
 
 @cached_project
-def load_project(path: Path | str = ".", *, sources=None, parsed_sources=None) -> Project:
+def load_project(
+    path: Path | str = ".", *, sources=None, parsed_sources=None, target=None
+) -> Project:
     """Load a project, optionally reusing ASTs from the same analysis.
 
     parsed_sources maps resolved paths to (source text, AST). Check the text
     before reuse so changed disk files or unsaved buffers never use stale ASTs.
     This mapping is caller-owned and is not a persistent cache.
     """
-    config = read_config(path, sources=sources)
+    config = read_config(path, sources=sources, target=target)
     extensions = erc_exports(config)
     parsed = {}
     dependencies = {}
@@ -452,10 +514,14 @@ def load_project(path: Path | str = ".", *, sources=None, parsed_sources=None) -
         bind_definitions(name, tree, symbols)
         modules[name] = LoadedModule(name, file, tree, symbols)
     board = modules[config.board_module].symbols.get(config.board_name)
-    if board is None or board.declaration is None or board.declaration.kind != "board":
+    if (
+        board is None
+        or board.declaration is None
+        or board.declaration.kind not in {"board", "block"}
+    ):
         fail(
             "project.board",
-            f"{config.board_module}.{config.board_name} must name a board definition",
+            f"{config.board_module}.{config.board_name} must name a block definition",
             config.span,
         )
     return Project(config, dict(sorted(modules.items())), board)

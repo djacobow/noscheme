@@ -501,11 +501,13 @@ void interface_completions(CompletionCatalog &catalog, const Project &project,
     }
   };
   std::map<std::string, ScopedExpression> globals;
-  if (project.board.declaration)
-    for (const auto &node : project.board.declaration->body)
+  const auto root =
+      definitions.find({project.board.module, project.board.name});
+  if (root != definitions.end())
+    for (const auto *node : root->second.body)
       if (auto *net = ast::as<ast::Net>(node); net && net->global)
         globals["global." + net->name.text] = {net->type.get(),
-                                               project.board.module};
+                                               root->second.body_module};
 
   for (const auto &[module_name, module] : project.modules) {
     auto &entries = catalog[module.path];

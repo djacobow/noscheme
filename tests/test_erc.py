@@ -157,7 +157,7 @@ def test_uart_and_button_draft_connectivity(tmp_path, stm32_libraries):
     source = (
         (ROOT / "examples/stm32h523/stm32h523.nosch")
         .read_text()
-        .replace("board STM32H523Reference:", "board B:")
+        .replace("block STM32H523Reference:", "board B:")
     )
     c = compile_source(
         tmp_path,

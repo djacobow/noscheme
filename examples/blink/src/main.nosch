@@ -3,7 +3,7 @@ from noscheme import net, role
 from parts import Header
 from indicator import Indicator
 
-board Blink:
+block Blink:
   global net.ground gnd
   global net.power v5
   Header input:

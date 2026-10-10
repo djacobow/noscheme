@@ -795,7 +795,7 @@ def kind_errors(d):
                     "internal circuit declarations require a base block or board",
                     n,
                 )
-            if n.global_ and d.kind != "board":
+            if n.global_ and d.kind not in {"board", "block"}:
                 v.error("syntax.global-context", "only a board may declare globals", n)
     return tuple(v.errors)
 

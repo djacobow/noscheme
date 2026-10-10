@@ -92,10 +92,11 @@ class RenameSession:
             for item in module.ast.items:
                 if not isinstance(item, a.Definition):
                     continue
-                if item.kind in {"component", "block", "bundle", "nettype"}:
+                root = item is self.project.board.declaration
+                if not root and item.kind in {"component", "block", "bundle", "nettype"}:
                     named.add(span_key(item.name.span))
                 for node in item.body:
-                    if isinstance(node, a.Instance) and item.kind == "board":
+                    if isinstance(node, a.Instance) and (root or item.kind == "board"):
                         key = span_key(node.name.span)
                         allowed.add(key)
                         instances[key] = (item, node)

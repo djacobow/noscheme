@@ -12,7 +12,7 @@ component Receiver:
   pins:
     data: [role.digital_input, unused.never]
 
-board SharedBus:
+block SharedBus:
   net.tristate data
   Transceiver devices[2](data: data)
   Receiver receiver(data: data)

@@ -373,3 +373,111 @@ def test_export_protects_footprint_input(project, capsys):
     assert expected[0] == 1
     assert json_output(invoke(capsys, args, True)) == expected
     assert artifacts(project) == before
+
+
+@pytest.mark.parametrize("command", ["load", "resolve", "lint", "evaluate", "check", "compile"])
+@pytest.mark.parametrize("target", ["single", "double", "missing"])
+def test_named_targets(tmp_path, capsys, command, target):
+    from tests.test_targets import make_targets
+
+    make_targets(tmp_path)
+    args = [command, "--project", str(tmp_path), "--target", target, "--diagnostics", "json"]
+    expected = json_output(invoke(capsys, args, False))
+    assert json_output(invoke(capsys, args, True)) == expected
+    if command == "compile" and target != "missing":
+        circuit = json.loads((tmp_path / "build" / target / "circuit.json").read_text())
+        assert len(circuit["parts"]) == (1 if target == "single" else 2)
+
+
+def test_named_target_export_state_isolation(project, capsys):
+    config = project / "noscheme.toml"
+    config.write_text(
+        config.read_text().replace('board = "main.Blink"', 'default_target = "one"')
+        + '\n[targets.one]\nroot = "main.Blink"\n[targets.two]\nroot = "main.Blink"\n'
+    )
+    footprints = project / "footprints.json"
+    for target in ("one", "two"):
+        state = project / f"noscheme.{target}.state.json"
+        state.write_bytes((project / "noscheme.state.json").read_bytes())
+        args = [
+            "export-kicad",
+            "--project",
+            str(project),
+            "--target",
+            target,
+            "--footprints",
+            str(footprints),
+            "--diagnostics",
+            "json",
+        ]
+        expected = json_output(invoke(capsys, args, False))
+        assert expected[0] == 0, expected
+        before = state.read_bytes()
+        native = json_output(invoke(capsys, args, True))
+        assert native[0] == 0, native
+        assert state.read_bytes() == before
+        assert native[1]["state"] == str(state)
+        assert native[1]["changes"] == {"added": [], "removed": [], "changed": []}
+        assert (project / "build" / target / "board.net").is_file()
+        if target == "one":
+            first_state = before
+        else:
+            assert (project / "noscheme.one.state.json").read_bytes() == first_state
+
+
+@pytest.mark.parametrize("case", ["required", "ports", "globals", "configurations"])
+def test_root_constraint_parity(tmp_path, capsys, case):
+    from tests.test_targets import CONFIG, SOURCE, make_targets
+
+    source, config = SOURCE, CONFIG
+    if case == "required":
+        source = source.replace("number count = 1", "number count")
+    elif case == "ports":
+        source = source.replace("  params:", "  ports:\n    net.passive external\n  params:")
+    else:
+        if case == "configurations":
+            source = source.replace(
+                "  global net.passive common",
+                """  metadata:
+    erc_choices:
+      mode: ["a", "b"]
+    configurations:
+      selected:
+        mode: "a"
+  global net.passive common""",
+            )
+        source += "block Outer:\n  Double child\n"
+        config = config.replace("main.Circuit", "main.Outer")
+    make_targets(tmp_path, source, config)
+    args = ["check", "--project", str(tmp_path), "--diagnostics", "json"]
+    expected = json_output(invoke(capsys, args, False))
+    assert expected[0] == 1
+    assert json_output(invoke(capsys, args, True)) == expected
+
+
+@pytest.mark.parametrize(
+    "replacement",
+    [
+        "root = 42",
+        'root = "main.Double"\nparams = {}',
+        'root = "main.Double"\noutput_dir = ""',
+    ],
+)
+def test_target_config_error_parity(tmp_path, capsys, replacement):
+    from tests.test_targets import CONFIG, make_targets
+
+    make_targets(tmp_path, config=CONFIG.replace('root = "main.Double"', replacement))
+    args = ["load", "--project", str(tmp_path), "--diagnostics", "json"]
+    expected = json_output(invoke(capsys, args, False))
+    assert expected[0] == 2
+    assert json_output(invoke(capsys, args, True)) == expected
+
+
+def test_selected_root_diagnostic_parity(tmp_path, capsys):
+    from tests.test_targets import CONFIG, make_targets
+
+    make_targets(tmp_path, config=CONFIG.replace('root = "main.Double"', 'root = "main.P"'))
+    args = ["load", "--project", str(tmp_path), "--target", "double", "--diagnostics", "json"]
+    expected = json_output(invoke(capsys, args, False))
+    assert expected[0] == 1
+    assert json_output(invoke(capsys, args, True)) == expected

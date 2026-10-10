@@ -121,13 +121,13 @@ def cached_parse(callback):
 
 def cached_project(callback):
     @wraps(callback)
-    def wrapped(path=".", *, sources=None, parsed_sources=None):
+    def wrapped(path=".", *, sources=None, parsed_sources=None, target=None):
         cache = _ACTIVE.get()
         if cache is None:
-            return callback(path, sources=sources, parsed_sources=parsed_sources)
-        key = ("project", Path(path).resolve(), tuple(sorted((sources or {}).items())))
+            return callback(path, sources=sources, parsed_sources=parsed_sources, target=target)
+        key = ("project", Path(path).resolve(), target, tuple(sorted((sources or {}).items())))
         if key not in cache.memo:
-            project = callback(path, sources=sources, parsed_sources=parsed_sources)
+            project = callback(path, sources=sources, parsed_sources=parsed_sources, target=target)
             cache.memo[key] = project
         return cache.memo[key]
 

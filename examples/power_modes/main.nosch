@@ -24,7 +24,7 @@ block Supply:
         1: choice(power_mode, source=role.power_output, load=role.power_input, absent=role.passive)
         2: role.ground
 
-board PowerModes:
+block PowerModes:
   metadata:
     erc_choices:
       power_source: ["usb", "header"]

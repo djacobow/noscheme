@@ -6,7 +6,7 @@ from interfaces import Rows, LocalI2C, BufferedI2C
 from display import TwoColumns
 from components import Buck, Cap0603, Cap0805, BuckOutputCap, CortexHeader, Header2, Header3, I2CBuffer, I2CPullup, BuckOutputInductor, MCU, PChannel, PowerJack, RJ45, LogicRegulator, BusRegulator, BusOutputCap, Resistor
 
-board SixLineMatrix:
+block SixLineMatrix:
   // ERC checks every combination of the two supply choices.
   metadata:
     erc_choices:

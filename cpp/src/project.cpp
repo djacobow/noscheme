@@ -257,7 +257,13 @@ std::vector<fs::path> ProjectConfig::search_paths() const {
   return paths;
 }
 
-ProjectConfig read_config(fs::path path, const Sources &sources) {
+fs::path ProjectConfig::state_path() const {
+  return path.parent_path() / (target.empty()
+                                   ? "noscheme.state.json"
+                                   : "noscheme." + target + ".state.json");
+}
+ProjectConfig read_config(fs::path path, const Sources &sources,
+                          const std::string &target) {
   if (fs::is_directory(path))
     path /= "noscheme.toml";
   path = resolved(path);
@@ -278,7 +284,8 @@ ProjectConfig read_config(fs::path path, const Sources &sources) {
   }();
   const auto &source = *shared_source;
   const auto file_span = source.span(0, text.size());
-  auto location = [&](const std::string &key) -> Span {
+  auto location = [&](const std::string &key,
+                      const std::string &target_name = "") -> Span {
     std::string escaped;
     for (char c : key) {
       if (std::string_view(R"(\.^$|()[]{}*+?)").find(c) !=
@@ -289,14 +296,31 @@ ProjectConfig read_config(fs::path path, const Sources &sources) {
     std::regex pattern("^[ \\t]*(?:" + escaped + "|\"" + escaped + "\"|'" +
                            escaped + "')[ \\t]*=",
                        std::regex::multiline);
+    std::string searched = text;
+    std::size_t offset = 0;
+    if (!target_name.empty()) {
+      std::regex header("^\\s*\\[\\s*targets\\s*\\.\\s*(?:" + target_name +
+                            "|\"" + target_name + "\"|'" + target_name +
+                            "')\\s*\\]",
+                        std::regex::multiline);
+      std::smatch found;
+      if (!std::regex_search(text, found, header))
+        return {&source, 0, text.size()};
+      offset = found.position() + found.length();
+      searched = text.substr(offset);
+      if (std::regex_search(searched, found,
+                            std::regex("^\\s*\\[", std::regex::multiline)))
+        searched.resize(found.position());
+    }
     std::smatch match;
-    if (!std::regex_search(text, match, pattern))
+    if (!std::regex_search(searched, match, pattern))
       return {&source, 0, text.size()};
-    auto start = static_cast<std::size_t>(match.position());
+    auto start = offset + static_cast<std::size_t>(match.position());
     return {&source, start, start + match.length()};
   };
-  auto invalid = [&](const std::string &key, const std::string &message) {
-    fail("project.config", message, location(key), true);
+  auto invalid = [&](const std::string &key, const std::string &message,
+                     const std::string &target_name = "") {
+    fail("project.config", message, location(key, target_name), true);
   };
   toml::table data;
   try {
@@ -306,6 +330,64 @@ ProjectConfig read_config(fs::path path, const Sources &sources) {
     data = toml::parse(text, path.string());
   } catch (const toml::parse_error &e) {
     fail("project.toml", std::string(e.description()), file_span, true);
+  }
+  std::string selected;
+  if (data.contains("targets")) {
+    if (data.contains("board"))
+      invalid("board", "board and targets cannot be combined");
+    const auto *targets = data["targets"].as_table();
+    if (!targets || targets->empty())
+      invalid("targets", "targets must be a nonempty table");
+    for (const auto &[key, value] : *targets) {
+      const std::string name(key.str());
+      if (!std::regex_match(name, std::regex("[A-Za-z_][A-Za-z0-9_-]*")))
+        invalid("targets", "invalid target name '" + name + "'");
+      auto *settings = value.as_table();
+      if (!settings)
+        invalid("targets",
+                "target '" + name + "' allows only root and output_dir");
+      for (const auto &[field, ignored] : *settings)
+        if (field != "root" && field != "output_dir")
+          invalid("targets",
+                  "target '" + name + "' allows only root and output_dir");
+      auto root = (*settings)["root"].value<std::string>();
+      if (!root || !std::regex_match(*root, qualified) ||
+          root->find('.') == std::string::npos)
+        invalid("root",
+                "target '" + name + "' must name a qualified root block", name);
+      auto output = (*settings)["output_dir"].value<std::string>();
+      if (settings->contains("output_dir") &&
+          (!output || output->empty() ||
+           output->find('\0') != std::string::npos))
+        invalid("output_dir", "output_dir must be a nonempty path string",
+                name);
+    }
+    auto default_target = data["default_target"].value<std::string>();
+    if (data.contains("default_target") &&
+        (!default_target || !targets->contains(*default_target)))
+      invalid("default_target", "default_target must name a configured target");
+    selected = target.empty() ? default_target.value_or("") : target;
+    if (selected.empty()) {
+      if (targets->size() != 1)
+        invalid("targets", "select a target with --target or default_target");
+      selected = std::string(targets->begin()->first.str());
+    }
+    if (!targets->contains(selected))
+      invalid("targets", "unknown target '" + selected + "'");
+    const auto &settings = *(*targets)[selected].as_table();
+    auto base_output = data["output_dir"].value<std::string>();
+    if (!base_output || base_output->empty() ||
+        base_output->find('\0') != std::string::npos)
+      invalid("output_dir", "output_dir must be a nonempty path string");
+    auto root = settings["root"].value<std::string>().value();
+    auto output = settings["output_dir"].value<std::string>().value_or(
+        (fs::path(*base_output) / selected).string());
+    data.erase("targets");
+    data.erase("default_target");
+    data.insert_or_assign("board", root);
+    data.insert_or_assign("output_dir", output);
+  } else if (!target.empty() || data.contains("default_target")) {
+    invalid("targets", "target selection requires a targets table");
   }
   const std::set<std::string> required{"language_version", "board",
                                        "source_paths", "library_paths",
@@ -356,6 +438,7 @@ ProjectConfig read_config(fs::path path, const Sources &sources) {
   };
   ProjectConfig config;
   config.path = path;
+  config.target = selected;
   config.language_version = "0.1";
   const auto dot = board->rfind('.');
   config.board_module = board->substr(0, dot);
@@ -396,15 +479,16 @@ ProjectConfig read_config(fs::path path, const Sources &sources) {
                             config.erc_rule_sets.end())
           .size() != config.erc_rule_sets.size())
     invalid("erc_rule_sets", rules_error);
-  config.span = location("board");
+  config.span = location(selected.empty() ? "board" : "root", selected);
   config.source = shared_source;
   return config;
 }
 
 Project load_project(fs::path path, const Sources &sources,
-                     ParsedSources *cache, const ErcExportLoader &erc_loader) {
+                     ParsedSources *cache, const ErcExportLoader &erc_loader,
+                     const std::string &target) {
   Project project;
-  project.config = read_config(path, sources);
+  project.config = read_config(path, sources, target);
   const auto &config = project.config;
   ErcExports extensions;
   if (erc_loader || !config.erc_modules.empty()) {
@@ -553,10 +637,11 @@ Project load_project(fs::path path, const Sources &sources,
   const auto &board_symbols = project.modules.at(config.board_module).symbols;
   auto board = board_symbols.find(config.board_name);
   if (board == board_symbols.end() || !board->second.declaration ||
-      board->second.declaration->keyword != "board")
+      (board->second.declaration->keyword != "board" &&
+       board->second.declaration->keyword != "block"))
     fail("project.board",
          config.board_module + "." + config.board_name +
-             " must name a board definition",
+             " must name a block definition",
          config.span);
   project.board = board->second;
   return project;

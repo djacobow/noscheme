@@ -21,7 +21,7 @@ component Device:
       bias: bias.none
       capacitance: 10p
 
-board B:
+block B:
   net.open_drain bus:
     checks:
       pin_count: demo.pin_count(max_pins=3)

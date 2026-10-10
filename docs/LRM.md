@@ -44,30 +44,34 @@ are not available merely because their syntax resembles another language.
 16. [Limits and unsupported features](#16-limits-and-unsupported-features)
 
 Examples described as fragments belong inside the indicated enclosing construct.
-A complete project requires a TOML configuration and a selected board definition.
+A complete project requires a TOML configuration and a selected root block.
 
 ## 1. Projects and modules
 
 ### 1.1 Project configuration
 
-A project describes one board. Its `noscheme.toml` contains these five required
-keys:
+A project can describe several boards or variants. Each named target selects a
+root block. A typical `noscheme.toml` is:
 
 ```toml
 language_version = "0.1"
-board = "main.Demo"
 source_paths = ["src"]
 library_paths = ["lib"]
 output_dir = "build"
+default_target = "demo"
+
+[targets.demo]
+root = "main.Demo"
 ```
 
 | Key | Meaning |
 |---|---|
 | `language_version` | The supported version string, currently `"0.1"` |
-| `board` | Dotted module path followed by the board name |
+| `targets` | Nonempty table of named targets; each requires a qualified `root` block |
+| `default_target` | Target used when `--target` is omitted; optional for a sole target |
 | `source_paths` | Source search directories |
 | `library_paths` | Additional module search directories; may be empty |
-| `output_dir` | Directory for generated artifacts |
+| `output_dir` | Base directory for generated artifacts; each target defaults to `<output_dir>/<target>` |
 | `erc_modules` | Optional list of Python ERC extension files |
 | `erc_rule_sets` | Optional list of automatic ERC rule sets; defaults to `["std.default"]`, or `[]` to disable automatic policies |
 
@@ -75,6 +79,19 @@ Paths resolve relative to the configuration file. Search directories must exist,
 be distinct, and collectively provide at least one search root. Both path lists
 participate in the same lookup: there is no first-match precedence. Unknown
 configuration keys are errors.
+
+Each target accepts `root` and an optional `output_dir`. An explicit target output
+path is relative to the TOML file, not the base output directory. Target names
+start with an ASCII letter or underscore and contain letters, digits, underscores,
+or hyphens. Select one with `--target NAME` on `load`, `resolve`, `lint`, `evaluate`,
+`check`, `compile`, or `export-kicad`. With multiple targets, an omitted selection
+requires `default_target`; editors use that default too. Only the selected root's
+module graph is loaded.
+
+For compatibility, the old top-level `board = "main.Demo"` selects a single root
+without a `targets` table and writes directly to `output_dir`. `board` and `targets`
+cannot be combined. The root may be a block, an extension of a block, or a legacy
+`board` definition. New designs should use blocks and named targets.
 
 ### 1.2 Modules and imports
 
@@ -357,10 +374,18 @@ implementations but do not create a connection between otherwise separate ports.
 
 ### 3.3 Boards and globals
 
-A board is the selected top-level circuit. It may declare local nets, instances,
-metadata, and global nets. Only a board may declare globals. Boards do not declare
-parameters or public ports in the implemented syntax; use a parameterized block
-inside the board when those interfaces are needed.
+A board is the circuit produced by a project target. Its root is an ordinary block,
+possibly specialized with `extend`. A root must have no public ports. Its parameters
+use their defaults, including values bound by `extend`; a remaining required
+parameter is an error. TOML and command-line parameter overrides are not supported.
+
+Blocks may declare global nets and named ERC configurations, but a block containing
+these declarations may only be expanded as a root. Instantiating one inside another
+block reports an error at the instance. Inherited globals and configurations obey
+the same rule. Ordinary blocks can serve as roots or be reused as instances.
+
+The legacy `board` keyword remains accepted with its original restrictions (no
+parameters, ports, inheritance, or instantiation); it is unnecessary in new code.
 
 Board-body fragment:
 
@@ -902,7 +927,7 @@ literal instead: `capacitance: 10p`, `max_load_current: 100m`.
 |---|---|
 | `component` | `current_loads`, `custom`, `footprint`, `interchangeable`, `ref_prefix`, `value` |
 | `current_load` | `max_load_current`, `pins` |
-| `block` | `custom`, `erc_choices` |
+| `block` | `configurations`, `custom`, `erc_choices` |
 | `board` | `configurations`, `custom`, `erc_choices` |
 | `bundle` | `custom` |
 | `pin` | `checks`, `custom`, `max_load_current`, `max_source_current`, `role`, `tristate_capable`, `unused` |
@@ -1537,7 +1562,7 @@ Each entry names one application and calls an imported rule:
 ```nosch
 from noscheme import net, std
 
-board B:
+block B:
   net.digital signal:
     checks:
       driver_present: std.any(std.active_digital_driver)
@@ -1752,7 +1777,7 @@ from a leading-`#` prefix and reused references from state. Export warnings appe
 on CLI stderr and in the `warnings` list in `export.json`, separately from ERC
 counts. A `#` elsewhere in a reference does not trigger this warning.
 
-`noscheme.state.json`, beside the configuration, stores identity UUIDs, reference
+`noscheme.<target>.state.json`, beside the configuration, stores identity UUIDs, reference
 assignments, reference reservations, and the previous exported design. Commit
 this file to version control. Export reads and rewrites it; ordinary compilation
 and editor analysis do not. Deleted reference assignments remain reserved.
@@ -1851,7 +1876,7 @@ This is not general syntax-error recovery.
 
 Compilation produces `circuit.json`, `erc.txt`, and `erc.json`. KiCad export
 produces ERC reports, `board.net`, `names.json`, `netclasses.json`, `nets.txt`, `nets.json`,
-`changes.txt`, and `export.json`, plus persistent `noscheme.state.json` outside the
+`changes.txt`, and `export.json`, plus persistent `noscheme.<target>.state.json` outside the
 output directory. Change reports compare against the last successful export.
 `changes.txt` lists before/after values, footprints, references, paths, and each
 changed pin connection. `export.json.probable_renames` lists unique pairs of
@@ -1923,7 +1948,7 @@ component Header:
     ref_prefix: "J"
     footprint: "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical_SMD_Pin1Left"
 
-board Demo:
+block Demo:
   global net.ground gnd
   net.digital signal
   Header connector:
@@ -1942,7 +1967,7 @@ Place this `noscheme.toml` beside it:
 
 ```toml
 language_version = "0.1"
-board = "main.Demo"
+block = "main.Demo"
 source_paths = ["."]
 library_paths = []
 output_dir = "build"

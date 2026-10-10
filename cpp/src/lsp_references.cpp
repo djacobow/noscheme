@@ -157,10 +157,13 @@ std::vector<LspReference> reference_index(const Project &project,
   };
   Targets globals;
   std::map<std::string, ScopedExpression> global_types;
-  if (project.board.declaration)
-    for (const auto &item : project.board.declaration->body)
+  const auto root =
+      definitions.find({project.board.module, project.board.name});
+  if (root != definitions.end())
+    for (const auto *item : root->second.body)
       if (auto *net = as<ast::Net>(item); net && net->global) {
-        global_types[net->name.text] = {net->type.get(), project.board.module};
+        global_types[net->name.text] = {net->type.get(),
+                                        root->second.body_module};
         globals[net->name.text] = {net->name.span,
                                    "global net " + net->name.text};
       }

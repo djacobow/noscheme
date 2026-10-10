@@ -13,7 +13,7 @@ from noscheme.resolve import resolve_project
 from test_circuit import ROOT, make
 
 SOURCE = (
-    (ROOT / "examples/power_modes/main.nosch").read_text().replace("board PowerModes:", "board B:")
+    (ROOT / "examples/power_modes/main.nosch").read_text().replace("block PowerModes:", "board B:")
 )
 
 
