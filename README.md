@@ -112,3 +112,15 @@ These write to `build/single` and `build/double` under the example directory.
 for KiCad identities; keep these files under version control. Existing single-board
 configurations retain their original output and `noscheme.state.json` paths.
 See [project configuration](docs/LRM.md#11-project-configuration).
+
+### Bill of materials
+
+```sh
+noscheme export-bom --project examples/targets --target double
+```
+
+This writes a grouped `bom.csv` with quantities, references, values, footprints,
+manufacturer/supplier part numbers, and DNP status. References share the target's
+persistent KiCad identity state; no footprint snapshot is required. Add purchasing
+information under `metadata.bom` on components or individual instances.
+See [BOM metadata and export](docs/LRM.md#134-bills-of-materials).

@@ -253,7 +253,9 @@ not need yet, and annotations leave room for it later.
 [LRM §4](LRM.md#4-parameters-and-expressions) defines evaluation and formatting.
 
 Recognized metadata is checked so a typo does not silently disable a constraint.
-User conventions such as purchasing notes and DNP belong under `custom`. ERC
+Purchasing fields and DNP status for CSV BOM export belong under validated `bom`
+metadata. Other user conventions and notes belong under `custom`. Neither changes
+electrical behavior. ERC
 extensions register net/pin rules, predicates, reducers, rule sets, and descriptive
 metadata through the same API as built-ins. Each named `checks` entry is a call
 to an imported rule, such as `std.sum(capacitance, max=400p)`; together with

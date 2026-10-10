@@ -47,8 +47,16 @@ UNUSED = frozenset({"always", "explicit", "never"})
 MISSING = ("warning", "error", "ignore")
 NUMERIC = frozenset({"number", "positive", "nonnegative"})
 PIN_SCOPES = ("pin", "instance_pin", "port")
+BOM_SCHEMA = {
+    "manufacturer": "string",
+    "mpn": "string",
+    "supplier": "string",
+    "supplier_part_number": "string",
+    "dnp": "bool",
+}
 SCHEMAS = {
     "component": {
+        "bom": BOM_SCHEMA,
         "footprint": "string",
         "ref_prefix": "string",
         "current_loads": "current_loads",
@@ -87,6 +95,7 @@ SCHEMAS = {
     },
     "net": {"placeholder": "bool", "net_class": "string", "waivers": "waivers", "custom": "custom"},
     "instance": {
+        "bom": BOM_SCHEMA,
         "footprint": "string",
         "ref": "string",
         "identity": "string",

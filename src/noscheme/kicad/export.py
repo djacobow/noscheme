@@ -33,6 +33,32 @@ def read_json(path):
         fail(path, "export.json", f"invalid JSON: {exc}")
 
 
+def read_state(path):
+    """Load shared reference reservations without changing the last CAD snapshot."""
+    return (
+        read_json(path)
+        if path.exists()
+        else {"schema_version": 1, "namespace": str(uuid4()), "entries": {}, "previous_parts": {}}
+    )
+
+
+def validate_export_paths(project, paths, inputs=()):
+    protected = {
+        project.config.path.resolve(),
+        *(Path(p).resolve() for p in inputs),
+        *(m.path.resolve() for m in project.modules.values()),
+    }
+    resolved = [Path(p).resolve() for p in paths]
+    if any(p in protected for p in resolved):
+        fail(
+            project.config.path,
+            "export.overwrite",
+            "export paths must not overwrite project inputs",
+        )
+    if len(set(resolved)) != len(resolved):
+        fail(project.config.path, "export.overwrite", "export output paths overlap")
+
+
 def attribute(part, name, default=None):
     return part["metadata"].get(name, {}).get("value", default)
 
@@ -416,11 +442,7 @@ def change_lines(changes):
 def export_project(project, circuit, footprint_records, *, configurations=None, warnings=None):
     apply_erc(circuit, configurations, registry=project.config.erc_registry)
     state_path = project.config.state_path
-    state = (
-        read_json(state_path)
-        if state_path.exists()
-        else {"schema_version": 1, "namespace": str(uuid4()), "entries": {}, "previous_parts": {}}
-    )
+    state = read_state(state_path)
     validate_state(state, state_path)
     snapshot = read_json(footprint_records)
     omitted = verify_footprints(circuit, snapshot, footprint_records)
@@ -517,18 +539,6 @@ def export_project(project, circuit, footprint_records, *, configurations=None, 
         + "\n",
         state_path: json.dumps(updated, indent=2, sort_keys=True) + "\n",
     }
-    protected = {
-        project.config.path.resolve(),
-        Path(footprint_records).resolve(),
-        *(m.path.resolve() for m in project.modules.values()),
-    }
-    if any(path.resolve() in protected for path in files):
-        fail(
-            project.config.path,
-            "export.overwrite",
-            "export paths must not overwrite project inputs",
-        )
-    if len({p.resolve() for p in files}) != len(files):
-        fail(project.config.path, "export.overwrite", "export output paths overlap")
+    validate_export_paths(project, files, (footprint_records,))
     publish(files)
     return {"output": str(out / "board.net"), "state": str(state_path), **report}

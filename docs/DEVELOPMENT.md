@@ -427,3 +427,16 @@ full diagnostics; see the [benchmark instructions](../cpp/README.md#editor-visib
 Run performance measurements separately from builds and tests. For local sanitizer
 runs on a busy or memory-constrained machine, use `meson test -C build/native-asan
 --num-processes 1 --timeout-multiplier 2 --print-errorlogs`.
+
+## BOM export
+
+`uv run --locked noscheme export-bom --project examples/targets --target double`
+writes `examples/targets/build/double/bom.csv` and updates
+`examples/targets/noscheme.double.state.json`. Retain that state file for stable
+references shared with KiCad export. No footprint conversion step is required.
+Use `--implementation native --native-tool build/native-release/noscheme-native`
+for the C++ exporter. The command does not run ERC; run `check` separately.
+
+`tests/test_bom.py` covers grouping, metadata, quoting, reference persistence,
+target isolation, and publication failure. The native CLI parity suite also checks
+CSV bytes and cross-implementation BOM/KiCad state reuse.

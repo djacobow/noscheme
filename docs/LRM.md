@@ -84,7 +84,7 @@ Each target accepts `root` and an optional `output_dir`. An explicit target outp
 path is relative to the TOML file, not the base output directory. Target names
 start with an ASCII letter or underscore and contain letters, digits, underscores,
 or hyphens. Select one with `--target NAME` on `load`, `resolve`, `lint`, `evaluate`,
-`check`, `compile`, or `export-kicad`. With multiple targets, an omitted selection
+`check`, `compile`, `export-bom`, or `export-kicad`. With multiple targets, an omitted selection
 requires `default_target`; editors use that default too. Only the selected root's
 module graph is loaded.
 
@@ -925,7 +925,7 @@ literal instead: `capacitance: 10p`, `max_load_current: 100m`.
 <!-- generated:core-fields -->
 | Scope | Fields |
 |---|---|
-| `component` | `current_loads`, `custom`, `footprint`, `interchangeable`, `ref_prefix`, `value` |
+| `component` | `bom`, `current_loads`, `custom`, `footprint`, `interchangeable`, `ref_prefix`, `value` |
 | `current_load` | `max_load_current`, `pins` |
 | `block` | `configurations`, `custom`, `erc_choices` |
 | `board` | `configurations`, `custom`, `erc_choices` |
@@ -934,7 +934,7 @@ literal instead: `capacitance: 10p`, `max_load_current: 100m`.
 | `aggregate_load` | `max_load_current` |
 | `port` | `aggregate_load`, `checks`, `custom`, `placeholder`, `role`, `unused`, `waivers` |
 | `net` | `checks`, `custom`, `net_class`, `placeholder`, `waivers` |
-| `instance` | `custom`, `erc_choices`, `footprint`, `identity`, `ref`, `value` |
+| `instance` | `bom`, `custom`, `erc_choices`, `footprint`, `identity`, `ref`, `value` |
 | `instance_pin` | `checks`, `custom`, `external_role`, `role`, `tristate_capable` |
 <!-- /generated:core-fields -->
 
@@ -969,7 +969,8 @@ names `role`.
 
 `custom` accepts nested mappings, lists, strings, finite numbers, and booleans.
 It has no built-in electrical meaning. For example, `custom.dnp` is a user
-convention and does not automatically omit a part or change ERC.
+convention and does not automatically omit a part or change ERC. BOM fields belong
+under the validated `bom` mapping (section 13.4), not under `custom`.
 
 ### 8.2 Built-in electrical extension fields
 
@@ -1779,7 +1780,7 @@ counts. A `#` elsewhere in a reference does not trigger this warning.
 
 `noscheme.<target>.state.json`, beside the configuration, stores identity UUIDs, reference
 assignments, reference reservations, and the previous exported design. Commit
-this file to version control. Export reads and rewrites it; ordinary compilation
+this file to version control. KiCad and BOM exports read and rewrite it; ordinary compilation
 and editor analysis do not. Deleted reference assignments remain reserved.
 There is no reservation-cleanup command yet.
 
@@ -1798,6 +1799,61 @@ and clearance. `update-kicad-classes` writes a new project copy preserving those
 settings and rejects undefined classes. Language-level differential-pair metadata
 is not implemented; it must not be inferred to work from source-name suffixes.
 
+### 13.4 Bills of materials
+
+`noscheme export-bom --project PATH [--target NAME]` writes `bom.csv` in the selected
+target's output directory. It elaborates all component arrays and nested blocks,
+but does not run ERC or require a footprint snapshot. Run `check` separately for
+electrical validation. Parts without assigned footprints remain in the BOM with
+an empty footprint cell and the usual compiler warning.
+
+Components, component extensions, and physical component instances may specify:
+
+```nosch
+metadata:
+  bom:
+    manufacturer: "Example Components"
+    mpn: "EXAMPLE-0603-10K"
+    supplier: "Example Supplier"
+    supplier_part_number: "001234"
+    dnp: false
+```
+
+The four purchasing fields are optional literal strings; `dnp` is an optional
+literal boolean, defaulting to `false`. Unknown keys and incorrect types are
+errors. Inheritance and instance/array-element overrides merge individual fields.
+BOM metadata cannot be applied to a block or block instance. `custom` purchasing
+notes and `custom.dnp` are not interpreted by this exporter.
+
+The UTF-8 CSV has these columns, in order:
+
+`Quantity`, `References`, `Value`, `Footprint`, `Manufacturer`, `MPN`, `Supplier`,
+`Supplier Part Number`, `DNP`.
+
+Rows group parts only when their definition, evaluated parameters, displayed value,
+footprint, purchasing fields, and DNP status all match. This conservative rule
+keeps differently parameterized parts separate even when their displayed values
+match. References are comma-separated within a quoted cell and sorted by prefix
+and trailing reference number (`R2` before `R10`); rows follow their first reference.
+Values use the same display formatting as KiCad export. Absent purchasing fields
+are empty. CSV quoting preserves commas, quotes, newlines, Unicode, and leading
+zeros in part-number strings; import part-number columns as text in spreadsheet
+software to retain those zeros.
+
+DNP parts appear as separate rows marked `yes` in the `DNP` column; fitted rows use
+`no`. Quantity is the number of physical instances in either case. DNP does not
+remove components from elaboration, ERC, or the KiCad netlist, and is not selected
+by ERC configurations. References beginning with `#` are included too.
+
+BOM export allocates and persists references through the same per-target identity
+state as KiCad export. Either export can run first, and subsequent exports agree
+on references. BOM export preserves the last KiCad design snapshot, so the next
+KiCad change report still compares against the last CAD export. CSV and state are
+published together with the existing rollback behavior; state is replaced last.
+The command prints a JSON summary containing output/state paths, grouped row count,
+total physical parts, fitted parts, and DNP parts. Empty designs produce a CSV with
+only the header. Both Python and native implementations support this command.
+
 ## 14. Commands and diagnostics
 
 The installed tools are `noscheme` and `noscheme-lsp`. With the development
@@ -1813,6 +1869,7 @@ environment, prefix commands with `uv run --locked`.
 | `noscheme evaluate --project PATH` | Evaluate parameterized declarations |
 | `noscheme check --project PATH` | Check structure and ERC |
 | `noscheme compile --project PATH` | Write circuit and ERC reports |
+| `noscheme export-bom --project PATH` | Write grouped CSV BOM and update reference reservations |
 | `noscheme export-kicad --project PATH --footprints FILE` | Validate footprints, export netlist, and update state |
 | `noscheme convert-library FILE --output NEW_DIRECTORY` | Convert a KiCad symbol library |
 | `noscheme update-kicad-classes INPUT --memberships FILE --output NEW_FILE` | Update class membership in a project copy |

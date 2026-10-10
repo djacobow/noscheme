@@ -481,3 +481,62 @@ def test_selected_root_diagnostic_parity(tmp_path, capsys):
     expected = json_output(invoke(capsys, args, False))
     assert expected[0] == 1
     assert json_output(invoke(capsys, args, True)) == expected
+
+
+@pytest.mark.parametrize("target", ["main", "variant"])
+@pytest.mark.parametrize("missing_footprint", [False, True])
+def test_bom_export_parity(tmp_path, capsys, target, missing_footprint):
+    from tests.test_bom import SOURCE, make_project
+    from noscheme.project import read_config
+
+    source = SOURCE.replace('"Example, Inc."', json.dumps('Ω "quoted", company\nSecond line'))
+    if missing_footprint:
+        source = source.replace('    footprint: "Test:R"\n', "")
+    make_project(tmp_path, source)
+    args = ["export-bom", "--project", str(tmp_path), "--target", target, "--diagnostics", "json"]
+    expected = json_output(invoke(capsys, args, False))
+    assert expected[0] == 0, expected
+    config = read_config(tmp_path, target=target)
+    bom, state = config.output_dir / "bom.csv", config.state_path
+    before = bom.read_bytes(), state.read_bytes()
+    assert json_output(invoke(capsys, args, True)) == expected
+    assert before == (bom.read_bytes(), state.read_bytes())
+
+
+@pytest.mark.parametrize("first_native", [False, True])
+def test_bom_references_are_shared_with_cad(project, capsys, first_native):
+    bom_args = ["export-bom", "--project", str(project), "--diagnostics", "json"]
+    result = json_output(invoke(capsys, bom_args, first_native))
+    assert result[0] == 0, result
+    state_path = project / "noscheme.state.json"
+    before = json.loads(state_path.read_text())
+    assert before["previous_parts"] == {}
+    cad_args = [
+        "export-kicad",
+        "--project",
+        str(project),
+        "--footprints",
+        str(project / "footprints.json"),
+        "--diagnostics",
+        "json",
+    ]
+    cad = json_output(invoke(capsys, cad_args, not first_native))
+    assert cad[0] == 0, cad
+    state = json.loads(state_path.read_text())
+    assert before["entries"] == state["entries"]
+    assert len(state["previous_parts"]) == 5
+    result = json_output(invoke(capsys, bom_args, first_native))
+    assert result[0] == 0, result
+    assert json.loads(state_path.read_text()) == state
+
+
+def test_empty_native_bom(tmp_path, capsys):
+    from tests.test_bom import make_project
+
+    make_project(tmp_path, 'block Circuit:\n  metadata:\n    custom:\n      note: "empty"\n')
+    args = ["export-bom", "--project", str(tmp_path), "--diagnostics", "json"]
+    expected = json_output(invoke(capsys, args, False))
+    assert expected[0] == 0, expected
+    before = (tmp_path / "build/main/bom.csv").read_bytes()
+    assert json_output(invoke(capsys, args, True)) == expected
+    assert (tmp_path / "build/main/bom.csv").read_bytes() == before

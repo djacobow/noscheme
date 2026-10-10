@@ -148,6 +148,9 @@ def main(argv=None):
         "--footprints", type=Path, required=True, help="explicit converted footprints.json"
     )
     exporter.add_argument("--diagnostics", choices=["text", "json"], default="text")
+    bom = sub.add_parser("export-bom", help="write a grouped CSV bill of materials")
+    bom.add_argument("--project", type=Path, default=Path("."))
+    bom.add_argument("--diagnostics", choices=["text", "json"], default="text")
     classes = sub.add_parser(
         "update-kicad-classes", help="merge memberships into a new KiCad project copy"
     )
@@ -159,7 +162,16 @@ def main(argv=None):
 
     for name in native_cli.COMMANDS:
         native_cli.add_arguments(sub.choices[name])
-    for name in ("load", "resolve", "lint", "evaluate", "check", "compile", "export-kicad"):
+    for name in (
+        "load",
+        "resolve",
+        "lint",
+        "evaluate",
+        "check",
+        "compile",
+        "export-kicad",
+        "export-bom",
+    ):
         sub.choices[name].add_argument(
             "--target", help="named project target (default: default_target or sole target)"
         )
@@ -181,6 +193,16 @@ def main(argv=None):
                     update_classes(args.project_file, args.memberships, args.output), indent=2
                 )
             )
+            return 0
+        if args.command == "export-bom":
+            from .bom import export_bom
+
+            project, definitions = resolve_project(args.project, target=args.target)
+            circuit, warnings = elaborate_project(project, definitions)
+            print(json.dumps(export_bom(project, circuit), indent=2))
+            if warnings:
+                renderer = render_json if args.diagnostics == "json" else render_text
+                print(renderer(warnings), file=sys.stderr)
             return 0
         if args.command == "export-kicad":
             project, definitions = resolve_project(args.project, target=args.target)

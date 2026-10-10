@@ -7,6 +7,7 @@
 #include <openssl/evp.h>
 #include <regex>
 #include <sstream>
+#include <tuple>
 
 namespace noscheme {
 namespace {
@@ -457,7 +458,127 @@ std::string display(Json value) {
     value = value["value"];
   return value.is_null() ? "unconnected" : display_json(value);
 }
+void validate_export_paths(const Project &project, const Json &files,
+                           const std::vector<fs::path> &inputs = {}) {
+  std::set<fs::path> protected_paths{fs::weakly_canonical(project.config.path)},
+      outputs;
+  for (const auto &path : inputs)
+    protected_paths.insert(fs::weakly_canonical(path));
+  for (const auto &[name, module] : project.modules)
+    protected_paths.insert(fs::weakly_canonical(module.path));
+  for (const auto &file : files) {
+    auto path = fs::weakly_canonical(fs::path(file[0].get<std::string>()));
+    if (protected_paths.contains(path))
+      fail(project.config.path, "export.overwrite",
+           "export paths must not overwrite project inputs");
+    if (!outputs.insert(path).second)
+      fail(project.config.path, "export.overwrite",
+           "export output paths overlap");
+  }
+}
+using ReferenceKey =
+    std::tuple<std::string, std::size_t, std::string, std::string>;
+ReferenceKey reference_key(const std::string &reference) {
+  auto split = reference.find_last_not_of("0123456789");
+  auto prefix = reference.substr(0, split == std::string::npos ? 0 : split + 1);
+  auto number = reference.substr(prefix.size());
+  auto nonzero = number.find_first_not_of('0');
+  number = nonzero == std::string::npos ? "" : number.substr(nonzero);
+  return {lower(prefix), number.size(), number, reference};
+}
+std::string csv_cell(const Json &value) {
+  auto text = value.is_string() ? value.get<std::string>() : value.dump();
+  if (text.find_first_of(",\"\r\n") == std::string::npos)
+    return text;
+  std::string quoted = "\"";
+  for (char c : text) {
+    quoted += c;
+    if (c == '"')
+      quoted += c;
+  }
+  return quoted + "\"";
+}
 } // namespace
+
+ExportResult export_bom(const Project &project, const Circuit &circuit,
+                        Json state) {
+  const auto state_path = project.config.state_path();
+  validate_state(state, state_path);
+  auto data = to_json(circuit);
+  auto updated = assign(data, std::move(state), state_path);
+  struct Group {
+    Json cells;
+    std::vector<std::string> references;
+  };
+  std::map<std::string, Group> groups;
+  std::size_t dnp_count = 0;
+  for (const auto &part : data["parts"]) {
+    auto bom = attribute(part, "bom", Json::object());
+    auto value = [&](const std::string &key, Json fallback = "") {
+      return bom.contains(key) ? bom.at(key).at("value") : fallback;
+    };
+    bool dnp = value("dnp", false).get<bool>();
+    if (dnp)
+      ++dnp_count;
+    Json cells =
+        Json::array({part_value(part), attribute(part, "footprint", ""),
+                     value("manufacturer"), value("mpn"), value("supplier"),
+                     value("supplier_part_number"), dnp ? "yes" : "no"});
+    // Keep different definitions/parameters separate even when display values
+    // match.
+    auto key =
+        Json::array({cells, part["definition"], part["parameters"]}).dump();
+    auto &group = groups[key];
+    group.cells = cells;
+    group.references.push_back(
+        updated["entries"][part["identity"].get<std::string>()]["reference"]);
+  }
+  std::vector<Group> ordered;
+  for (auto &[key, group] : groups) {
+    std::ranges::sort(group.references, {}, reference_key);
+    ordered.push_back(std::move(group));
+  }
+  std::ranges::sort(ordered, {}, [](const Group &group) {
+    return reference_key(group.references.front());
+  });
+  std::string csv;
+  auto append = [&](const Json &row) {
+    bool first = true;
+    for (const auto &cell : row) {
+      if (!first)
+        csv += ',';
+      first = false;
+      csv += csv_cell(cell);
+    }
+    csv += "\r\n";
+  };
+  append(Json::array({"Quantity", "References", "Value", "Footprint",
+                      "Manufacturer", "MPN", "Supplier", "Supplier Part Number",
+                      "DNP"}));
+  for (const auto &group : ordered) {
+    std::string refs;
+    for (const auto &reference : group.references) {
+      if (!refs.empty())
+        refs += ", ";
+      refs += reference;
+    }
+    auto row = Json::array({group.references.size(), refs});
+    for (const auto &cell : group.cells)
+      row.push_back(cell);
+    append(row);
+  }
+  const auto output = project.config.output_dir / "bom.csv";
+  ExportResult result{
+      object("output", output.string(), "state", state_path.string(), "groups",
+             groups.size(), "parts", circuit.parts.size(), "fitted",
+             circuit.parts.size() - dnp_count, "dnp", dnp_count),
+      Json::array(),
+      Json::array({Json::array({output.string(), csv}),
+                   Json::array({state_path.string(),
+                                updated.dump(2, ' ', true) + "\n"})})};
+  validate_export_paths(project, result.files);
+  return result;
+}
 
 ExportResult export_kicad(const Project &project, const Circuit &circuit,
                           const ErcResult &erc, Json state,
@@ -621,20 +742,7 @@ ExportResult export_kicad(const Project &project, const Circuit &circuit,
   add(out / "nets.txt", nets_text);
   add(out / "changes.txt", changes_text);
   add(state_path, updated.dump(2, ' ', true) + "\n");
-  std::set<fs::path> protected_paths{fs::weakly_canonical(project.config.path),
-                                     fs::weakly_canonical(records)},
-      outputs;
-  for (const auto &[name, module] : project.modules)
-    protected_paths.insert(fs::weakly_canonical(module.path));
-  for (const auto &file : result.files) {
-    auto path = fs::weakly_canonical(fs::path(file[0].get<std::string>()));
-    if (protected_paths.contains(path))
-      fail(project.config.path, "export.overwrite",
-           "export paths must not overwrite project inputs");
-    if (!outputs.insert(path).second)
-      fail(project.config.path, "export.overwrite",
-           "export output paths overlap");
-  }
+  validate_export_paths(project, result.files, {records});
   result.summary = report;
   result.summary["output"] = (out / "board.net").string();
   result.summary["state"] = state_path.string();

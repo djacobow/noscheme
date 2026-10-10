@@ -699,3 +699,7 @@ The full WREN project is now exercised by the native LSP regression suite.
 Validation for this checkpoint: all 13 native suites in a GCC release build and
 in a Clang address/undefined-behavior sanitizer build; all 1,076 Python tests;
 Ruff, clang-format on changed lines, Meson formatting, and whitespace checks.
+
+The native CLI also supports `export-bom`, including named targets and the shared
+KiCad reference state. It writes the same grouped CSV as the Python implementation;
+see [BOM export](../docs/LRM.md#134-bills-of-materials) for metadata and grouping rules.

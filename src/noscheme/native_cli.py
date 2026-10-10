@@ -10,11 +10,10 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
-from uuid import uuid4
 
 from . import ast as a
 from .diagnostics import Diagnostic, DiagnosticError, Related, render_json, render_text
-from .kicad.export import publish, read_json
+from .kicad.export import publish, read_json, read_state
 
 
 COMMANDS = {
@@ -27,6 +26,7 @@ COMMANDS = {
     "check",
     "compile",
     "export-kicad",
+    "export-bom",
 }
 
 
@@ -181,23 +181,13 @@ def run(args, parser):
             "target": args.target or "",
             "configurations": getattr(args, "erc_configuration", None),
         }
-        if args.command == "export-kicad":
-            # Resolve the config path without loading or parsing the design.
-            path = args.project.resolve()
-            if path.is_dir():
-                path /= "noscheme.toml"
+        if args.command in {"export-kicad", "export-bom"}:
             from .project import read_config
 
-            state_path = read_config(path, target=args.target).state_path
+            config = read_config(args.project, target=args.target)
+            request["state"] = read_state(config.state_path)
+        if args.command == "export-kicad":
             request.update(
-                state=read_json(state_path)
-                if state_path.exists()
-                else {
-                    "schema_version": 1,
-                    "namespace": str(uuid4()),
-                    "entries": {},
-                    "previous_parts": {},
-                },
                 footprints=read_json(args.footprints),
                 records=str(args.footprints),
                 records_text=args.footprints.read_bytes().decode("utf-8"),

@@ -60,6 +60,11 @@ Json run(const Json &request) {
     return object("result", nullptr, "diagnostics",
                   unused_parameters(definitions));
   auto circuit = elaborate_project(project, *registry, definitions);
+  if (command == "export-bom") {
+    auto exported = export_bom(project, circuit, request.at("state"));
+    return object("result", exported.summary, "diagnostics", circuit.warnings,
+                  "files", exported.files);
+  }
   auto erc = run_erc(project.config, *registry, circuit, python,
                      request.value("configurations", Json()));
   auto diagnostics = circuit.warnings;
