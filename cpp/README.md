@@ -77,7 +77,7 @@ For a separate Clang sanitizer build:
 CXX=clang++ meson setup build/native-asan --buildtype=debug \
   -Db_sanitize=address,undefined -Db_lundef=false
 meson compile -C build/native-asan -j 4
-meson test -C build/native-asan --print-errorlogs
+meson test -C build/native-asan --print-errorlogs --timeout-multiplier 3
 ```
 
 The comparison test exercises valid example files, source fragments drawn from

@@ -162,7 +162,7 @@ behavior. See [LRM §12](LRM.md#12-extending-erc) for the public API.
 
 ## CI
 
-GitHub Actions runs on pushes, pull requests, and manual dispatch. Both jobs use
+GitHub Actions runs on pushes, pull requests, and manual dispatch. All jobs use
 the explicit `ubuntu-26.04` runner label, which is
 [generally available](https://github.blog/changelog/2026-09-17-ubuntu-26-generally-available-and-latest-migration/):
 
@@ -171,6 +171,10 @@ the explicit `ubuntu-26.04` runner label, which is
   distribution builds, and installed-wheel parser/compiler smoke checks.
 - Python 3.12 with KiCad 10.0 library data: all tests, including conversion
   and saved-board fixtures that otherwise skip when KiCad data is unavailable.
+- Native GCC release and Clang address/undefined-behavior sanitizer builds:
+  all native suites, followed by Emacs integration tests. Sanitizer suites use
+  Meson's `--timeout-multiplier 3` to allow for instrumentation overhead; GCC
+  retains the default allowance. Individual LSP request deadlines are unchanged.
 
 CI does not replace PCBNew's manual import/update checks. The KiCad data job uses
 the official `ppa:kicad/kicad-10.0-releases` repository, following
@@ -319,7 +323,7 @@ Use `tools.benchmark_lsp` for actual stdio request timings, including edits and
 full diagnostics; see the [benchmark instructions](../cpp/README.md#editor-visible-benchmark).
 Run performance measurements separately from builds and tests. For local sanitizer
 runs on a busy or memory-constrained machine, use `meson test -C build/native-asan
---num-processes 1 --timeout-multiplier 2 --print-errorlogs`.
+--num-processes 1 --timeout-multiplier 3 --print-errorlogs`.
 
 ## BOM regression coverage
 

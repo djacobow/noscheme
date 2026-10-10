@@ -111,7 +111,16 @@ jobs:
             meson setup build/native --buildtype=release
           fi
           meson compile -C build/native -j 4
-      - run: meson test -C build/native --print-errorlogs
+      - name: Run native regression suites
+        env:
+          CXX: ${{ matrix.compiler }}
+        run: |
+          timeout_multiplier=1
+          if [ "$CXX" = clang++ ]; then
+            # Sanitizer overhead applies to the whole suite, not LSP request deadlines.
+            timeout_multiplier=3
+          fi
+          meson test -C build/native --print-errorlogs --timeout-multiplier "$timeout_multiplier"
       - name: Validate Emacs with Python and native servers
         env:
           NOSCHEME_NATIVE_LSP: ${{ github.workspace }}/build/native/noscheme-native-lsp
