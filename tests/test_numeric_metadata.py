@@ -122,3 +122,23 @@ def test_overridden_quantity_does_not_evaluate_shadowed_expression(tmp_path):
     circuit = compile_source(tmp_path, source)
     pull = next(p for p in circuit["parts"] if p["identity"] == "pull")
     assert pull["pins"]["1"]["metadata"]["pull_resistance"]["value"] == 2200
+
+
+@pytest.mark.parametrize("value", ["-9223372036854775808", "9223372036854775807"])
+def test_metadata_signed_integer_bounds(tmp_path, value):
+    source = SOURCE.replace(
+        "value: resistance", f"value: resistance\n    custom:\n      bound: {value}"
+    )
+    circuit = compile_source(tmp_path, source)
+    part = next(p for p in circuit["parts"] if p["identity"] == "pull")
+    assert part["metadata"]["custom"]["value"]["bound"]["value"] == int(value)
+
+
+@pytest.mark.parametrize("value", ["9223372036854775808", "-9223372036854775809", "10000P"])
+def test_metadata_rejects_integer_overflow(tmp_path, value):
+    source = SOURCE.replace(
+        "value: resistance", f"value: resistance\n    custom:\n      bound: {value}"
+    )
+    with pytest.raises(DiagnosticError) as error:
+        compile_source(tmp_path, source)
+    assert error.value.diagnostics[0].code == "metadata.value"

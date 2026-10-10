@@ -8,6 +8,7 @@ from . import ast as a
 from .project import ERC_MODULE, fail, IDENTIFIER, expression_path
 from .erc_rules import WAIVABLE, CHECKS
 from .units import constraint, number_value
+from .integers import MIN_INTEGER, MAX_INTEGER
 
 BIAS_VALUES = {"pull_up", "pull_down", "none"}
 
@@ -137,7 +138,7 @@ class NumericExpression:
 def valid_quantity(value, constraint):
     return (
         type(value) in {int, float}
-        and (not isinstance(value, float) or math.isfinite(value))
+        and (MIN_INTEGER <= value <= MAX_INTEGER if type(value) is int else math.isfinite(value))
         and (constraint == "number" or (value > 0 if constraint == "positive" else value >= 0))
     )
 
@@ -175,17 +176,21 @@ def enum(expr, namespace, choices, project, module, local_names=()):
 def literal(expr):
     if isinstance(expr, a.String):
         return expr.value
-    if isinstance(expr, a.Number):
+    if (
+        isinstance(expr, a.Number)
+        or isinstance(expr, a.Unary)
+        and isinstance(expr.operand, a.Number)
+    ):
+        number = expr if isinstance(expr, a.Number) else expr.operand
         try:
-            value = number_value(expr.spelling)
+            value = number_value(
+                number.spelling, negative=isinstance(expr, a.Unary) and expr.operator == "-"
+            )
         except ValueError:
-            fail("metadata.value", "metadata number exceeds the supported literal size", expr.span)
+            fail("metadata.value", "metadata numbers must be finite and valid", expr.span)
         if isinstance(value, float) and not math.isfinite(value):
-            fail("metadata.value", "metadata numbers must be finite", expr.span)
+            fail("metadata.value", "metadata numbers must be finite and valid", expr.span)
         return value
-    if isinstance(expr, a.Unary) and isinstance(expr.operand, a.Number):
-        value = literal(expr.operand)
-        return -value if expr.operator == "-" else value
     if isinstance(expr, a.Name) and expr.text in {"true", "false"}:
         return expr.text == "true"
     if isinstance(expr, a.ListExpr):

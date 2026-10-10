@@ -7,7 +7,7 @@ namespace noscheme {
 using Value = std::variant<Integer, double, std::string>;
 using Environment = std::map<std::string, Value>;
 struct Limits {
-  std::size_t integer_bits = 65536, string_length = 65536, format_width = 4096,
+  std::size_t integer_bits = 64, string_length = 65536, format_width = 4096,
               format_precision = 100, expression_depth = 128,
               dimension = 100000;
 };

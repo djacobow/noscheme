@@ -172,13 +172,49 @@ def test_arithmetic_and_explicit_formats_are_not_rounded(evaluator):
     assert run(evaluator, '"{0:.8f}Ohm".format(1.23456789)') == "1.23456789Ohm"
 
 
-def test_big_integers_and_output_limits(evaluator):
-    result = run(evaluator, "1 << 16000")
-    assert result.value.bit_length() == 16001
-    text = evaluator.display(result, expression("0").span)
-    assert len(text) > 4300
-    literal = run(evaluator, text)
-    assert literal == result
+@pytest.mark.parametrize(
+    "text,value",
+    [
+        ("9223372036854775807", (1 << 63) - 1),
+        ("-9223372036854775808", -(1 << 63)),
+        ("-1 << 63", -(1 << 63)),
+        ("-9223372036854775808 >> 63", -1),
+        ("num.int(-9223372036854775808.0)", -(1 << 63)),
+        ("num.int(9223372036854774784.0)", 9223372036854774784),
+        ("9000P", 9000000000000000000),
+    ],
+)
+def test_signed_integer_boundaries(evaluator, text, value):
+    assert run(evaluator, text).value == value
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "9223372036854775808",
+        "-9223372036854775809",
+        "9223372036854775807 + 1",
+        "-9223372036854775808 - 1",
+        "3037000500 * 3037000500",
+        "-(-9223372036854775808)",
+        "-9223372036854775808 * -1",
+        "1 << 63",
+        "1 << 64",
+        "-1 >> 64",
+        "num.int(9223372036854775808.0)",
+        "num.int(1e300)",
+        "num.floor(-9223372036854777856.0)",
+        "10000P",
+        "1" + "0" * 5000,
+    ],
+)
+def test_integer_overflow_is_diagnostic(evaluator, text):
+    with pytest.raises(DiagnosticError) as exc:
+        run(evaluator, text)
+    assert exc.value.diagnostics[0].code == "number.limit"
+
+
+def test_output_limits(evaluator):
     evaluator.limits = Limits(string_length=10)
     with pytest.raises(DiagnosticError, match="length limit"):
         run(evaluator, '"{0}{0}".format("123456")')

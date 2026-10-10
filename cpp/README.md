@@ -54,9 +54,9 @@ Ubuntu), and the project's Python development environment. OpenSSL supplies
 SHA-1 for compatible UUIDv5 identities and SHA-256 for export artifact hashes.
 The build uses pinned nlohmann JSON 3.11.3 sources for the internal test protocol,
 the AST comparison form, and the metadata and circuit representations, toml++
-3.4.0 for project configuration, and
-Boost.Multiprecision/Config 1.90.0 in standalone mode for arbitrary-precision
-integers. These are fetched by the same hash-checked dependency command.
+3.4.0 for project configuration. These are fetched by the same hash-checked
+dependency command. Numbers use checked signed 64-bit integers and IEEE-754 binary64 arithmetic.
+There is no Boost dependency.
 
 ```sh
 uv sync --locked
@@ -194,9 +194,10 @@ The native engine ([`erc.cpp`](src/erc.cpp), [`erc_standard.cpp`](src/erc_standa
 runs every standard rule, predicate, and rule set on the typed circuit. It
 schedules applications, deduplicates net-only rules, applies waivers, resolves
 configurations, and writes `erc.json`/`erc.txt`, following Python's
-`erc.check_circuit` and `apply_erc`. Exact sums and comparisons use rational
-numbers built from Python's shortest float spelling, as Python's
-`Fraction(str(x))` does.
+`erc.check_circuit` and `apply_erc`. Electrical sums, parallel-resistance
+calculations, and comparisons use ordinary binary64 arithmetic in circuit order,
+without exact fractions or an implicit comparison tolerance. Designs should
+allow practical margin rather than depend on equality at a computed limit.
 
 Python runs only what plugins add: plugin rules, rule sets, and predicates.
 When a circuit uses one of them, one `plugin_checks` request sends the circuit,

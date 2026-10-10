@@ -1,7 +1,6 @@
 """Reusable three-valued predicates, interval reductions, and bounds assertions."""
 
 from dataclasses import dataclass
-from fractions import Fraction
 from math import inf, isnan
 
 from .ast import Span
@@ -24,13 +23,21 @@ class Interval:
 def numeric(value):
     if type(value) not in (int, float):
         raise ValueError("reduction values must be numbers")
-    return Fraction(str(value))
+    return float(value)
+
+
+def floating_sum(values):
+    """Accumulate in circuit order, identically to the native ERC."""
+    result = 0.0
+    for value in values:
+        result += value
+    return result
 
 
 def total(values):
     return Interval(
-        sum(min(0, v.lower) if v.optional else v.lower for v in values),
-        sum(max(0, v.upper) if v.optional else v.upper for v in values),
+        floating_sum(min(0, v.lower) if v.optional else v.lower for v in values),
+        floating_sum(max(0, v.upper) if v.optional else v.upper for v in values),
         unknown=any(not v.complete for v in values),
     )
 
@@ -38,8 +45,8 @@ def total(values):
 def parallel(values):
     if any(v.lower < 0 or v.upper <= 0 for v in values):
         raise ValueError("parallel resistance requires positive values")
-    low_g = sum(0 if v.optional or v.upper == inf else 1 / v.upper for v in values)
-    high_g = sum(inf if v.lower == 0 else 1 / v.lower for v in values)
+    low_g = floating_sum(0 if v.optional or v.upper == inf else 1 / v.upper for v in values)
+    high_g = floating_sum(inf if v.lower == 0 else 1 / v.lower for v in values)
     return Interval(
         0 if high_g == inf else 1 / high_g if high_g else inf,
         1 / low_g if low_g else inf,

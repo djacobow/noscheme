@@ -1,5 +1,6 @@
 #include "noscheme/resolve.hpp"
 #include <algorithm>
+#include <charconv>
 #include <cmath>
 
 namespace noscheme {
@@ -147,15 +148,24 @@ std::vector<std::string> physical_keys(const ast::FieldKey &key,
   if (!ordinary(first) || !ordinary(last))
     fail("resolve.pin-range",
          "physical ranges require non-padded integer labels", key.span);
-  Integer lo(first), hi(last);
-  if ((hi < lo ? lo - hi : hi - lo) + 1 > max_pins)
+  auto bound = [&](const std::string &text) {
+    std::uint64_t result;
+    auto [end, error] =
+        std::from_chars(text.data(), text.data() + text.size(), result);
+    if (error != std::errc{} || end != text.data() + text.size())
+      fail("resolve.pin-range", "physical range bounds exceed supported size",
+           key.span);
+    return result;
+  };
+  auto lo = bound(first), hi = bound(last);
+  if ((hi < lo ? lo - hi : hi - lo) >= max_pins)
     fail("resolve.pin-range", "physical pin range exceeds the pin limit",
          key.span);
   // A descending range selects its pins in descending order.
   std::vector<std::string> result;
   int step = hi < lo ? -1 : 1;
   for (auto index = lo;; index += step) {
-    result.push_back(index.str());
+    result.push_back(std::to_string(index));
     if (index == hi)
       break;
   }

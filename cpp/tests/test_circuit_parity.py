@@ -601,7 +601,7 @@ def test_lossless_custom_metadata(probe, tmp_path):
         """component C:
   metadata:
     custom:
-      count: 123456789012345678901234567890
+      count: 9223372036854775807
       node: "Number"
       type: "number"
       constraint: "positive"

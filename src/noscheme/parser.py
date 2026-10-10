@@ -11,7 +11,7 @@ from lark import Token, Tree
 from . import ast as a
 from .diagnostics import Diagnostic, DiagnosticError, Related
 from .syntax import SyntaxDiagnostic, parse as syntax_parse
-from .units import scaled_value
+from .units import scaled_parts
 
 RESERVED_NAMES = frozenset({"no_connect", "global", "true", "false", "number", "string"})
 SECTION_KINDS = ("arguments", "instance_metadata", "elements")
@@ -277,7 +277,7 @@ class Builder:
         kind, c, span = str(node.data), node.children, self.span(node)
         if kind == "scaled":
             try:
-                value = scaled_value(str(c[0]))
+                _, exponent = scaled_parts(str(c[0]))
             except ValueError:
                 raise DiagnosticError(
                     [
@@ -289,7 +289,7 @@ class Builder:
                         )
                     ]
                 ) from None
-            return a.Number(span, str(c[0]), "integer" if type(value) is int else "double")
+            return a.Number(span, str(c[0]), "integer" if exponent >= 0 else "double")
         if kind in {"integer", "number"}:
             return a.Number(span, str(c[0]), "integer" if kind == "integer" else "double")
         if kind == "string":

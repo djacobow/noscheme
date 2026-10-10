@@ -20,8 +20,6 @@ toml_dep = subproject('tomlplusplus').get_variable('tomlplusplus_dep').as_system
     'system',
 )
 build_python = find_program('python3')
-boost_config_dep = subproject('boost-config').get_variable('boost_config_dep')
-boost_mp_dep = subproject('boost-multiprecision').get_variable('boost_mp_dep')
 antlr_options = cmake.subproject_options()
 antlr_options.add_cmake_defines(
     {
@@ -86,8 +84,6 @@ core = static_library(
         json_dep,
         antlr_dep,
         toml_dep,
-        boost_config_dep,
-        boost_mp_dep,
     ],
 )
 probe = executable(
@@ -95,7 +91,7 @@ probe = executable(
     'cpp/src/probe.cpp',
     link_with: core,
     include_directories: inc,
-    dependencies: [json_dep, antlr_dep, boost_config_dep, boost_mp_dep],
+    dependencies: [json_dep, antlr_dep],
 )
 native_cli = executable(
     'noscheme-native',
@@ -106,8 +102,6 @@ native_cli = executable(
     dependencies: [
         json_dep,
         antlr_dep,
-        boost_config_dep,
-        boost_mp_dep,
         dependency('openssl'),
     ],
 )
@@ -207,8 +201,6 @@ native_lsp = executable(
     dependencies: [
         json_dep,
         antlr_dep,
-        boost_config_dep,
-        boost_mp_dep,
         dependency('threads'),
     ],
 )

@@ -267,7 +267,7 @@ public:
                         "indices must be nonnegative and slices nonempty and "
                         "ascending",
                         selection->span);
-              // Keep arbitrary-precision integers tagged until the Python CLI
+              // Keep 64-bit integers tagged until the Python CLI
               // serializes its public JSON result.
               return object("start", encoded(Value(start)), "stop",
                             stop ? encoded(Value(*stop)) : Json(), "span",

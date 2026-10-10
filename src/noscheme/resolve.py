@@ -176,6 +176,8 @@ class Resolver:
                 key.span,
             )
         lo, hi = int(first), int(last)
+        if max(lo, hi) > (1 << 64) - 1:
+            fail("resolve.pin-range", "physical range bounds exceed supported size", key.span)
         if abs(hi - lo) + 1 > self.max_pins:
             fail("resolve.pin-range", "physical pin range exceeds the pin limit", key.span)
         # A descending range selects its pins in descending order.

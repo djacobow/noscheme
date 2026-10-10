@@ -464,15 +464,18 @@ A parameter named `value` supplies the conventional displayed part value.
 is a quantity parameter: the component's `value` parameter, or a bare parameter
 name in `metadata.value` or an instance override, looked up where the expression is
 written (the caller, for an override). It then renders with an engineering prefix,
-rounded to six significant digits (ties to even) without exponent notation or
+converted to binary64 and rounded to six significant digits (ties to even) without exponent notation or
 trailing zeros: `4700` as `4.7kOhm`, `1e-7` as `100nF`. Computed and literal numbers,
 such as `value / 1k` or `4.7k`, have no quantity and render plainly (`4.7`,
 `4700`). Strings are display values, not electrical quantities.
 
 ### 4.2 Operators and numeric tags
 
-Numbers carry either an integer tag or a double tag. Integers have arbitrary
-precision within resource limits; doubles are finite IEEE-754 binary64 values.
+Numbers carry either an integer tag or a double tag. Integers are signed 64-bit
+values, from -9223372036854775808 through 9223372036854775807. Doubles are finite
+IEEE-754 binary64 values. Integer literals, arithmetic, and conversions outside
+that range fail with `number.limit`; they never wrap. The minimum negative
+integer can be written directly as `-9223372036854775808`.
 
 Precedence, highest first:
 
@@ -485,11 +488,12 @@ Precedence, highest first:
 | 5 | `<<`, `>>` | Left |
 
 `+`, `-`, and `*` produce an integer for integer operands and a double if either
-operand is a double. `/` always produces a double. Division by zero, overflow to
+operand is a double. `/` converts both operands to doubles and produces a double. Division by zero, overflow to
 nonfinite values, and nonfinite results are errors. These operators are numeric;
 `+` does not concatenate strings.
 
-Shifts require integer-tagged operands and a nonnegative count. Right shift
+Shifts require integer-tagged operands and a count from 0 through 63. Left-shift
+overflow is an error, including for negative operands. Right shift
 preserves the sign. In integer contexts, a double is truncated toward zero with
 a warning, even if its value is integral. Resulting indices and dimensions must
 still satisfy their bounds.
@@ -819,7 +823,9 @@ A bare `drive` selects the port across the whole instance array. `[1].data[2]`
 selects port element 2 on instance element 1. Indexed bindings do not override
 broader bindings; overlap is an error.
 
-Physical pin ranges use inclusive bounds. Array slices use an exclusive stop.
+Physical pin ranges use inclusive, nonnegative bounds that fit unsigned 64 bits.
+Individual pin identifiers remain text and are not subject to that numeric bound.
+Array slices use an exclusive stop.
 Instance-body fragment:
 
 ```nosch
@@ -1694,6 +1700,11 @@ range from zero to infinity; general signed quantities are unbounded.
 `std.sum` and `std.parallel` propagate intervals and completeness. A custom
 reducer must return an ordered interval and retain uncertainty honestly. Infinities
 represent internal bounds/open circuits and are never serialized as JSON numbers.
+Electrical reductions and current budgets use binary64 arithmetic, with ordinary
+comparisons and no implicit tolerance. Roundoff near an exact limit is not
+compensated; choose limits with practical engineering margin. Contributions are
+accumulated in circuit order in both implementations.
+
 Each incomplete reduction warns by default, even when known contributions already
 prove an error. Explicit zero is complete. Assertions can report a definite
 violation and missing-data warning together.
@@ -2043,7 +2054,8 @@ a 1,507-component compilation/LSP benchmark with explicitly unchecked net polici
 ## 16. Limits and unsupported features
 
 The implementation has configurable Python-API resource limits to reject runaway
-expansion and oversized expressions. Defaults include 65,536 integer bits, 65,536
+expansion and oversized expressions. Integers always fit signed 64 bits; the API may
+reduce that limit for testing but cannot enlarge it. Other defaults include 65,536
 string characters, formatting width 4,096 and precision 100, expression depth
 128, individual array dimensions up to 100,000, 10,000 expanded instances, and
 100,000 expanded leaves. Hierarchy and bundle type expansion depths default to

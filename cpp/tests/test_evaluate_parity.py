@@ -180,15 +180,15 @@ def test_double_display(probe, number):
 def test_rounding_and_random_ratios(probe):
     rng = random.Random(29)
     for _ in range(80):
-        a = rng.getrandbits(rng.randrange(1, 2100)) * rng.choice([-1, 1])
-        b = rng.getrandbits(rng.randrange(1, 2100)) or 1
+        a = rng.getrandbits(rng.randrange(1, 64)) * rng.choice([-1, 1])
+        b = rng.getrandbits(rng.randrange(1, 64)) or 1
         compare(probe, "a / b", {"a": Number(a), "b": Number(b)})
-    for n in [2**53 + 1, 2**53 + 3, 2**1024 - 2**970 - 1, 2**1024 - 2**970]:
+    for n in [2**53 + 1, 2**53 + 3, 2**63 - 1, -(2**63)]:
         compare(probe, "x + 0.0", {"x": Number(n)})
 
 
 def test_limits_and_contexts(probe):
-    for text in ["3.0", "-2.9", "0", "100001", '"x"', "num.int(3.0)"]:
+    for text in ["3.0", "-2.9", "0", "100001", '"x"', "num.int(3.0)", "1e300", "-1e300"]:
         for context in ["integer", "dimension", "index"]:
             compare(probe, text, context=context, size=3, instance_path="board.r[1]")
     compare(probe, "3", context="index", size=3, stop=True)
@@ -250,13 +250,23 @@ def test_more_double_boundaries(probe):
     for _ in range(100):
         value = math.ldexp(rng.uniform(-1, 1), rng.randrange(-1074, 1024))
         compare(probe, "x", {"x": Number(value)}, display=True)
-    for value in [999.9995, 999999.5, 0.9999995, 9.999995e-19, 1e-300, 1 << 1000]:
+    for value in [999.9995, 999999.5, 0.9999995, 9.999995e-19, 1e-300, (1 << 63) - 1]:
         compare(probe, "x", {"x": Number(value)}, quantity="resistance")
 
 
 def test_long_literals_and_format_fields(probe):
-    literal = Evaluator.decimal(1 << 16000)
+    literal = "1" + "0" * 5000
     compare(probe, literal, display=True)
     compare(probe, literal + "R", display=True)
     compare(probe, json.dumps("{0:" + "9" * 10000 + "d}") + ".format(1)")
     compare(probe, json.dumps("{" + "9" * 10000 + "}") + ".format(1)")
+
+
+@pytest.mark.parametrize("text,value", cases("test_signed_integer_boundaries"))
+def test_signed_integer_boundaries(probe, text, value):
+    compare(probe, text, display=True)
+
+
+@pytest.mark.parametrize("text", cases("test_integer_overflow_is_diagnostic"))
+def test_integer_overflow(probe, text):
+    compare(probe, text)

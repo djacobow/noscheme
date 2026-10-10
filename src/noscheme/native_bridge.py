@@ -10,12 +10,13 @@ the protocol; ordinary plugin print() output is redirected to stderr.
 from collections.abc import Mapping
 from contextlib import redirect_stdout
 from copy import deepcopy
-from decimal import Decimal
 import math
 import re
+
 import json
 import sys
 
+from .integers import checked_integer
 from .ast import Span, to_data
 from .builtin_help import BUILTIN_HELP
 from .diagnostics import DiagnosticError
@@ -45,7 +46,6 @@ def fields(mapping):
 def describe_registry(registry):
     return {
         "help": deepcopy(BUILTIN_HELP),
-        "literal_integer_digits": sys.get_int_max_str_digits(),
         "schemas": {
             scope: fields(core | registry.schemas.get(scope, {})) for scope, core in SCHEMAS.items()
         },
@@ -97,15 +97,11 @@ def decode_metadata(value):
         if value["tag"] == "integer":
             if (
                 not isinstance(number, str)
-                or len(number) > 20000
+                or len(number) > 20
                 or not re.fullmatch(r"-?(0|[1-9][0-9]*)", number)
             ):
                 raise ValueError("invalid native metadata integer")
-            # Decimal avoids Python's process-global decimal digit limit without
-            # changing it. The native evaluator's default integer limit applies.
-            result = int(Decimal(number))
-            if result.bit_length() > 65536:
-                raise ValueError("native metadata integer exceeds 65536 bits")
+            result = checked_integer(int(number))
             return result
         if value["tag"] == "double" and type(number) in (int, float) and math.isfinite(number):
             return float(number)
@@ -140,8 +136,7 @@ def decode_circuit(source, paths):
 def encode_arguments(value):
     """JSON arguments with exact integers, including nested selector values."""
     if type(value) is int:
-        # Decimal bypasses Python's global integer-to-string digit limit.
-        return {"type": "number", "tag": "integer", "value": str(Decimal(value))}
+        return {"type": "number", "tag": "integer", "value": str(checked_integer(value))}
     if isinstance(value, Mapping):
         return {key: encode_arguments(item) for key, item in value.items()}
     if isinstance(value, (list, tuple)):

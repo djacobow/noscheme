@@ -302,7 +302,7 @@ behavior and execution isolation.
 ## Native C++ development
 
 The C++23 migration is under `cpp/`, using Meson/Ninja and ANTLR-generated
-lexing/parsing, toml++ project loading, Boost.Multiprecision value evaluation,
+lexing/parsing, toml++ project loading, checked 64-bit integer and binary64 value evaluation,
 definition resolution, circuit elaboration, and native standard ERC rules, with a
 subprocess bridge to Python for ERC plugins. See
 [native build and parity tests](../cpp/README.md). The default Python CLI and
@@ -312,7 +312,8 @@ currently supports project/compiler/ERC diagnostics, definition/hover, reference
 context-aware completion, whole-file formatting, and identity-aware rename.
 Interactive snapshots are available before ERC callbacks run. Python remains the
 default while native editor validation and performance work continue. Native tests
-are separate Meson targets and do not replace the Python suite.
+are separate Meson targets and do not replace the Python suite. No Boost or other
+multiprecision library is required.
 
 Use `tools.benchmark_lsp` for actual stdio request timings, including edits and
 full diagnostics; see the [benchmark instructions](../cpp/README.md#editor-visible-benchmark).

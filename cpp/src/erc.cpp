@@ -93,7 +93,7 @@ Json params_json(const Params &params) {
     result[name] = to_json(value);
   return result;
 }
-// Plugin arguments use tagged integers to retain precision beyond 64 bits.
+// Plugin arguments use tagged integers to preserve all 64 bits in JSON clients.
 // Selectors contain nested lists (Python tuples).
 MetaValue from_json(const Json &value) {
   if (value.is_null())
@@ -106,7 +106,7 @@ MetaValue from_json(const Json &value) {
        value.value("tag", "") == "double"))
     return to_meta(decoded(value));
   if (value.is_number_integer())
-    return Integer(value.dump());
+    return parse_integer(value.dump());
   if (value.is_number())
     return value.get<double>();
   if (value.is_string())
@@ -285,7 +285,7 @@ public:
         valid = number && !(std::holds_alternative<double>(*number) &&
                             !std::isfinite(std::get<double>(*number)));
         if (valid && constraint != "number") {
-          auto q = erc::decimal(*number);
+          auto q = erc::floating(*number);
           valid = constraint == "positive" ? q > 0 : q >= 0;
         }
       } else if (kind == "string")

@@ -1,6 +1,0 @@
-[wrap-file]
-directory = multiprecision-boost-1.90.0
-source_url = https://codeload.github.com/boostorg/multiprecision/tar.gz/refs/tags/boost-1.90.0
-source_filename = boost-multiprecision-1.90.0.tar.gz
-source_hash = b28a20f95712e596b3eb8aa4ae2264363016a609a63ebc3d84ee8cb49831de67
-patch_directory = boost-multiprecision

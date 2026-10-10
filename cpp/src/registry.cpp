@@ -65,9 +65,6 @@ RegistryDescription registry_description(const Json &response,
           require(description.is_string(), "invalid editor help text");
       }
     }
-    require(data.at("literal_integer_digits").is_number_integer() &&
-                data.at("literal_integer_digits") >= 0,
-            "invalid metadata integer conversion limit");
     require(data.at("schemas").is_object(), "invalid metadata schemas");
     for (const auto &[scope, schema] : data.at("schemas").items())
       fields(schema);

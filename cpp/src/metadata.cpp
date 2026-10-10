@@ -86,37 +86,14 @@ MetaValue MetadataReader::literal(const ast::Node &expr, unsigned depth) {
     return string->value;
   if (boolean_name(expr))
     return as<ast::Name>(expr).text == "true";
-  if (auto *number = as<ast::Number>(&expr)) {
-    const auto &spelling = number->spelling;
-    // Follow the Python provider's decimal conversion limit, including zero
-    // (unlimited), rather than imposing the evaluator's separate bit limit.
-    auto decimal_limit =
-        registry.data.at("literal_integer_digits").get<std::size_t>();
-    if (decimal_limit && spelling.size() > decimal_limit &&
-        std::ranges::all_of(spelling,
-                            [](char c) { return c >= '0' && c <= '9'; }))
-      error("metadata.value", "metadata number exceeds supported literal size",
-            expr.span);
-    Limits limits;
-    limits.integer_bits = std::numeric_limits<std::size_t>::max();
-    Evaluator evaluator(project.modules.at(module).symbols, limits);
+  if (expr.kind == ast::Kind::Number || negative_number(expr)) {
+    Evaluator evaluator(project.modules.at(module).symbols);
     try {
       return to_meta(evaluator.evaluate(expr));
     } catch (const DiagnosticsFailure &) {
       error("metadata.value", "metadata numbers must be finite and valid",
             expr.span);
     }
-  }
-  if (negative_number(expr)) {
-    const auto &unary = as<ast::Unary>(expr);
-    auto value = literal(*unary.operand, depth + 1);
-    if (unary.op == "-") {
-      if (auto number = value.get_if<Integer>())
-        *number = -*number;
-      else
-        *value.get_if<double>() = -*value.get_if<double>();
-    }
-    return value;
   }
   if (auto *list = as<ast::ListExpr>(&expr)) {
     MetaList result;

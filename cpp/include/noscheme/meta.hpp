@@ -1,6 +1,6 @@
 #pragma once
 #include "noscheme/ast.hpp"
-#include <boost/multiprecision/cpp_int.hpp>
+#include "noscheme/integer.hpp"
 #include <map>
 #include <optional>
 #include <string>
@@ -8,7 +8,6 @@
 #include <vector>
 
 namespace noscheme {
-using Integer = boost::multiprecision::cpp_int;
 struct Meta;
 struct MetaValue;
 // Field names to values, in name order like the comparison form. Its special

@@ -542,3 +542,17 @@ def test_example_metadata(probe, example):
     assert len(actual["metadata"]) == len(expected)
     for options, value, reference in zip(requests, actual["metadata"], expected, strict=True):
         assert normalize(value) == reference, options
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "-9223372036854775808",
+        "9223372036854775807",
+        "9223372036854775808",
+        "-9223372036854775809",
+        "10000P",
+    ],
+)
+def test_signed_metadata_integer_bounds(probe, tmp_path, value):
+    compare(probe, tmp_path, "custom:\n  bound: " + value)

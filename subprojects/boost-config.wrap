@@ -1,6 +1,0 @@
-[wrap-file]
-directory = config-boost-1.90.0
-source_url = https://codeload.github.com/boostorg/config/tar.gz/refs/tags/boost-1.90.0
-source_filename = boost-config-1.90.0.tar.gz
-source_hash = 1390bd79fbf270e40cfe5ac6b899f4a9c4e47139b6e17b4c1f7f78822adaa9fc
-patch_directory = boost-config

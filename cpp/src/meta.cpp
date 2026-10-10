@@ -87,7 +87,9 @@ bool equivalent(const MetaValue &left, const MetaValue &right) {
                               : std::get<Integer>(*b);
     double floating = std::holds_alternative<double>(*a) ? std::get<double>(*a)
                                                          : std::get<double>(*b);
-    return floating == std::trunc(floating) && integer == Integer(floating);
+    return floating >= -0x1p63 && floating < 0x1p63 &&
+           floating == std::trunc(floating) &&
+           integer == static_cast<Integer>(floating);
   }
   if (left.data.index() != right.data.index())
     return false;

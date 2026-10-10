@@ -10,87 +10,44 @@
 
 namespace noscheme {
 namespace {
-std::size_t bits(const Integer &value) {
-  return value == 0
-             ? 0
-             : boost::multiprecision::msb(Integer(value < 0 ? -value : value)) +
-                   1;
-}
 std::size_t characters(std::string_view text) {
   std::size_t count = 0;
   for (unsigned char c : text)
     count += (c & 0xc0) != 0x80;
   return count;
 }
-Integer decimal(std::string_view text) {
-  bool negative = !text.empty() && text.front() == '-';
-  if (negative || (!text.empty() && text.front() == '+'))
-    text.remove_prefix(1);
-  Integer result = 0;
-  for (char c : text) {
-    if (c < '0' || c > '9')
-      throw std::invalid_argument("invalid decimal integer");
-    result *= 10;
-    result += c - '0';
+// Parse a signed literal together so -9223372036854775808 is representable.
+Value literal(const ast::Number &number, bool negative = false) {
+  auto text = number.spelling;
+  const auto prefix = text.find_first_of(numeric_prefixes);
+  if (prefix != std::string::npos) {
+    int exponent = prefix_exponent(text[prefix]);
+    auto dot = text.find('.');
+    auto fraction = dot == std::string::npos
+                        ? text.substr(prefix + 1)
+                        : text.substr(dot + 1, prefix - dot - 1);
+    auto digits = text.substr(0, std::min(dot, prefix)) + fraction;
+    exponent -= static_cast<int>(fraction.size());
+    auto first = digits.find_first_not_of('0');
+    if (first == std::string::npos)
+      return Integer(0);
+    digits.erase(0, first);
+    while (exponent < 0 && digits.back() == '0') {
+      digits.pop_back();
+      ++exponent;
+    }
+    if (exponent >= 0) {
+      if (digits.size() + exponent > 19)
+        throw IntegerOverflow();
+      digits.append(exponent, '0');
+      return parse_integer((negative ? "-" : "") + digits);
+    }
+    text = digits + "e" + std::to_string(exponent);
+  } else if (number.integer) {
+    return parse_integer((negative ? "-" : "") + text);
   }
-  return negative ? Integer(-result) : result;
-}
-Integer power10(unsigned count) {
-  Integer result = 1, base = 10;
-  while (count) {
-    if (count & 1)
-      result *= base;
-    count >>= 1;
-    if (count)
-      base *= base;
-  }
-  return result;
-}
-Integer round_ratio(const Integer &n, const Integer &d) {
-  Integer q = n / d, remainder = n % d;
-  if (2 * remainder > d || (2 * remainder == d && bit_test(q, 0)))
-    ++q;
-  return q;
-}
-// Round the exact ratio once to IEEE binary64, including subnormal values.
-double ratio_double(Integer n, Integer d) {
-  bool negative = (n < 0) != (d < 0);
-  if (n < 0)
-    n = -n;
-  if (d < 0)
-    d = -d;
-  if (!n)
-    return negative ? -0.0 : 0.0;
-  int exponent = static_cast<int>(bits(n)) - static_cast<int>(bits(d));
-  if ((exponent >= 0 && n < (d << exponent)) ||
-      (exponent < 0 && (n << -exponent) < d))
-    --exponent;
-  if (exponent > 1023)
-    throw std::overflow_error("double overflow");
-  const int quantum = std::max(exponent - 52, -1074);
-  if (quantum < 0)
-    n <<= -quantum;
-  else
-    d <<= quantum;
-  Integer mantissa = round_ratio(n, d);
-  auto result = std::ldexp(mantissa.convert_to<double>(), quantum);
-  if (!std::isfinite(result))
-    throw std::overflow_error("double overflow");
+  double result = std::strtod(text.c_str(), nullptr);
   return negative ? -result : result;
-}
-std::pair<Integer, Integer> ratio(const Value &value) {
-  if (auto p = std::get_if<Integer>(&value))
-    return {*p, 1};
-  double number = std::get<double>(value);
-  int exponent;
-  auto mantissa = std::frexp(number, &exponent);
-  Integer n(std::ldexp(mantissa, 53)), d = 1;
-  exponent -= 53;
-  if (exponent < 0)
-    d <<= -exponent;
-  else
-    n <<= exponent;
-  return {n, d};
 }
 std::string float_display(double value) {
   char buffer[64];
@@ -128,7 +85,7 @@ std::string float_display(double value) {
       instance_path, "configuration", nullptr, "application", nullptr)}));
 }
 Value Evaluator::number(Integer value, const Span &span) {
-  if (bits(value) > limits.integer_bits)
+  if (!integer_fits(value, limits.integer_bits))
     error("number.limit", "integer exceeds configured bit limit", span);
   return value;
 }
@@ -141,7 +98,7 @@ double Evaluator::floating(const Value &value, const Span &span) {
   if (auto p = std::get_if<double>(&value))
     return *p;
   if (auto p = std::get_if<Integer>(&value))
-    return ratio_double(*p, 1);
+    return static_cast<double>(*p);
   error("expression.type", "expected a number", span);
 }
 std::string Evaluator::bounded(std::string text, const Span &span) {
@@ -151,8 +108,10 @@ std::string Evaluator::bounded(std::string text, const Span &span) {
 }
 Integer Evaluator::integer(const Value &value, const Span &span,
                            bool explicit_conversion) {
-  if (auto p = std::get_if<Integer>(&value))
+  if (auto p = std::get_if<Integer>(&value)) {
+    number(*p, span);
     return *p;
+  }
   if (auto p = std::get_if<double>(&value)) {
     if (!explicit_conversion)
       warnings.push_back(object(
@@ -161,30 +120,37 @@ Integer Evaluator::integer(const Value &value, const Span &span,
           "to make this explicit",
           "span", span.json(), "related", Json::array(), "instance_path",
           instance_path, "configuration", nullptr, "application", nullptr));
-    return Integer(*p);
+    try {
+      auto converted = integer_from_double(*p);
+      number(converted, span);
+      return converted;
+    } catch (const IntegerOverflow &) {
+      error("number.limit", "integer exceeds configured bit limit", span);
+    }
   }
   error("expression.type", "expected a number", span);
 }
 std::size_t Evaluator::dimension(const Value &value, const Span &span) {
   auto n = integer(value, span);
-  if (n < 1 || n > limits.dimension)
+  if (n < 1 || static_cast<std::uint64_t>(n) > limits.dimension)
     error("array.dimension",
           "dimension must be between 1 and " + std::to_string(limits.dimension),
           span);
-  return n.convert_to<std::size_t>();
+  return static_cast<std::size_t>(n);
 }
 std::size_t Evaluator::index(const Value &value, const Span &span,
                              std::size_t size, bool stop) {
   auto n = integer(value, span);
-  if (n < 0 || (stop ? n > size : n >= size))
+  if (n < 0 || (stop ? static_cast<std::uint64_t>(n) > size
+                     : static_cast<std::uint64_t>(n) >= size))
     error("array.index", "index is outside the array bounds", span);
-  return n.convert_to<std::size_t>();
+  return static_cast<std::size_t>(n);
 }
 std::string Evaluator::display(const Value &value, const Span &) {
   if (auto p = std::get_if<std::string>(&value))
     return *p;
   if (auto p = std::get_if<Integer>(&value))
-    return p->str();
+    return std::to_string(*p);
   return float_display(std::get<double>(value));
 }
 Value Evaluator::evaluate(const ast::Node &expr, const Environment &env,
@@ -206,43 +172,10 @@ Value Evaluator::evaluate(const ast::Node &expr, const Environment &env,
   try {
     switch (expr.kind) {
     case Kind::Number: {
-      const auto &n = as<ast::Number>(expr);
-      const auto &text = n.spelling;
-      const auto prefix = text.find_first_of(numeric_prefixes);
-      if (prefix != std::string::npos) {
-        int exponent = prefix_exponent(text[prefix]);
-        auto dot = text.find('.');
-        auto fraction = dot == std::string::npos
-                            ? text.substr(prefix + 1)
-                            : text.substr(dot + 1, prefix - dot - 1);
-        auto digits = text.substr(0, std::min(dot, prefix)) + fraction;
-        exponent -= static_cast<int>(fraction.size());
-        while (exponent < 0 && !digits.empty() && digits.back() == '0') {
-          digits.pop_back();
-          ++exponent;
-        }
-        if (digits.empty())
-          return number(Integer(0), span);
-        if (exponent >= 0) {
-          const auto first = digits.find_first_not_of('0');
-          if (first != std::string::npos &&
-              digits.size() - first > limits.integer_bits)
-            error("number.limit", "integer literal exceeds configured limit",
-                  span);
-          return number(Integer(decimal(digits) * power10(exponent)), span);
-        }
-        auto literal = digits + "e" + std::to_string(exponent);
-        return number(std::strtod(literal.c_str(), nullptr), span);
-      }
-      if (n.integer) {
-        auto first = text.find_first_not_of('0');
-        if (first != std::string::npos &&
-            text.size() - first > limits.integer_bits)
-          error("number.limit", "integer literal exceeds configured limit",
-                span);
-        return number(decimal(text), span);
-      }
-      return number(std::strtod(text.c_str(), nullptr), span);
+      auto value = literal(as<ast::Number>(expr));
+      if (auto p = std::get_if<Integer>(&value))
+        return number(*p, span);
+      return number(std::get<double>(value), span);
     }
     case Kind::String:
       return bounded(as<ast::String>(expr).value, span);
@@ -258,9 +191,15 @@ Value Evaluator::evaluate(const ast::Node &expr, const Environment &env,
       return run(*as<ast::Group>(expr).expression);
     case Kind::Unary: {
       const auto &n = as<ast::Unary>(expr);
+      if (auto direct = as<ast::Number>(n.operand); direct && n.op == "-") {
+        auto value = literal(*direct, true);
+        if (auto p = std::get_if<Integer>(&value))
+          return number(*p, span);
+        return number(std::get<double>(value), span);
+      }
       auto value = numeric(run(*n.operand), span);
       if (auto p = std::get_if<Integer>(&value))
-        return number(n.op == "-" ? Integer(-*p) : *p, span);
+        return number(n.op == "-" ? integer_subtract(0, *p) : *p, span);
       auto d = std::get<double>(value);
       return number(n.op == "-" ? -d : d, span);
     }
@@ -276,22 +215,19 @@ Value Evaluator::evaluate(const ast::Node &expr, const Environment &env,
               "number.shift",
               "shifts require integer-tagged operands and a nonnegative count",
               span);
-        if (*b > limits.integer_bits)
+        if (*b >= static_cast<Integer>(
+                      std::min(limits.integer_bits, std::size_t(64))))
           error("number.limit", "shift count exceeds configured limit", span);
-        auto shift = b->convert_to<unsigned>();
-        if (op == "<<")
-          return number(Integer(*a << shift), span);
-        if (*a >= 0)
-          return number(Integer(*a >> shift), span);
-        return number(Integer(-(((-*a) + (Integer(1) << shift) - 1) >> shift)),
-                      span);
+        auto shift = static_cast<unsigned>(*b);
+        if (op == "<<") {
+          auto result = *a;
+          for (unsigned i = 0; i < shift; ++i)
+            result = integer_multiply(result, 2);
+          return number(result, span);
+        }
+        return number(Integer(*a >> shift), span);
       }
       if (op == "/") {
-        if (a && b) {
-          if (*b == 0)
-            error("number.divide-by-zero", "division by zero", span);
-          return number(ratio_double(*a, *b), span);
-        }
         auto x = floating(left, span), y = floating(right, span);
         if (y == 0)
           error("number.divide-by-zero", "division by zero", span);
@@ -299,10 +235,10 @@ Value Evaluator::evaluate(const ast::Node &expr, const Environment &env,
       }
       if (a && b) {
         if (op == "+")
-          return number(Integer(*a + *b), span);
+          return number(integer_add(*a, *b), span);
         if (op == "-")
-          return number(Integer(*a - *b), span);
-        return number(Integer(*a * *b), span);
+          return number(integer_subtract(*a, *b), span);
+        return number(integer_multiply(*a, *b), span);
       }
       auto x = floating(left, span), y = floating(right, span);
       return number(op == "+" ? x + y : op == "-" ? x - y : x * y, span);
@@ -346,16 +282,18 @@ Value Evaluator::evaluate(const ast::Node &expr, const Environment &env,
       if (auto p = std::get_if<Integer>(&value))
         return number(*p, span);
       double d = std::get<double>(value);
-      return number(Integer(helper == "ceil"    ? std::ceil(d)
-                            : helper == "floor" ? std::floor(d)
-                            : helper == "round" ? std::round(d)
-                                                : std::trunc(d)),
+      return number(integer_from_double(helper == "ceil"    ? std::ceil(d)
+                                        : helper == "floor" ? std::floor(d)
+                                        : helper == "round" ? std::round(d)
+                                                            : std::trunc(d)),
                     span);
     }
     default:
       break;
     }
     error("expression.unsupported", "unsupported expression", span);
+  } catch (const IntegerOverflow &) {
+    error("number.limit", "integer exceeds configured bit limit", span);
   } catch (const std::overflow_error &) {
     error("number.overflow", "number cannot be represented as a finite double",
           span);
@@ -476,7 +414,7 @@ std::string Evaluator::format(const std::string &text,
       if (!std::holds_alternative<Integer>(*value) || has_precision)
         error("format.type",
               "d format requires an integer tag and no precision", span);
-      rendered = std::get<Integer>(*value).str();
+      rendered = std::to_string(std::get<Integer>(*value));
       if (rendered.size() < width) {
         auto zero = width_text.starts_with('0');
         rendered.insert(zero && rendered.starts_with('-') ? 1 : 0,
@@ -512,7 +450,8 @@ std::string Evaluator::format(const std::string &text,
 
 Json encoded(const Value &value) {
   if (auto p = std::get_if<Integer>(&value))
-    return object("type", "number", "tag", "integer", "value", p->str());
+    return object("type", "number", "tag", "integer", "value",
+                  std::to_string(*p));
   if (auto p = std::get_if<double>(&value))
     return object("type", "number", "tag", "double", "value", *p);
   return object("type", "string", "value", std::get<std::string>(value));
@@ -533,40 +472,32 @@ Value decoded(const Json &value) {
   if (value.at("type") == "string")
     return value.at("value").get<std::string>();
   if (value.at("tag") == "integer")
-    return decimal(value.at("value").get<std::string>());
+    return parse_integer(value.at("value").get<std::string>());
   double result = value.at("value");
   if (!std::isfinite(result))
     throw std::invalid_argument("nonfinite input value");
   return result;
 }
 std::string format_quantity(const Value &value, const std::string &quantity) {
-  auto [n, d] = ratio(value);
   const auto &unit = quantity_units.at(quantity);
-  if (!n)
+  double number = std::holds_alternative<Integer>(value)
+                      ? static_cast<double>(std::get<Integer>(value))
+                      : std::get<double>(value);
+  if (number == 0)
     return "0" + unit;
-  bool negative = n < 0;
-  if (negative)
-    n = -n;
-  int exponent =
-      static_cast<int>(n.str().size()) - static_cast<int>(d.str().size());
-  if ((exponent >= 0 && n < d * power10(exponent)) ||
-      (exponent < 0 && n * power10(-exponent) < d))
-    --exponent;
+  bool negative = number < 0;
+  char buffer[64];
+  auto converted =
+      std::to_chars(buffer, buffer + sizeof(buffer), std::abs(number),
+                    std::chars_format::scientific, 5);
+  std::string scientific(buffer, converted.ptr);
+  auto e = scientific.find('e');
+  int exponent = std::stoi(scientific.substr(e + 1));
   int engineering =
       std::clamp(static_cast<int>(std::floor(exponent / 3.0)) * 3, -18, 15);
-  int scale = 5 - exponent;
-  Integer rounded = scale >= 0 ? round_ratio(Integer(n * power10(scale)), d)
-                               : round_ratio(n, Integer(d * power10(-scale)));
-  // A six-digit rounding carry promotes an engineering prefix when possible.
-  if (rounded >= 1000000) {
-    rounded /= 10;
-    --scale;
-    ++exponent;
-  }
-  if (exponent >= engineering + 3 && engineering < 15)
-    engineering += 3;
-  auto digits = rounded.str();
-  int places = scale + engineering;
+  auto digits = scientific.substr(0, e);
+  digits.erase(digits.find('.'), 1);
+  int places = 5 - exponent + engineering;
   if (places <= 0)
     digits += std::string(-places, '0');
   else {

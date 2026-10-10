@@ -256,7 +256,7 @@ resulting definition. See [LRM §3](LRM.md#3-declarations) and
 
 Parameters are `number`, `string`, or a physical quantity such as `resistance`,
 with explicit defaults and arguments. Restricting their use keeps expansion
-predictable. Integer/double tags support ordinary arithmetic while making
+predictable. Checked signed 64-bit integer/double tags support ordinary arithmetic while making
 conversion in integer contexts visible. Literals take SI prefixes (`4.7k`, `4k7`,
 `100n`), and a quantity-typed part value displays with its unit (`4.7kOhm`), so one
 parameter can drive both the displayed value and an ERC field. Quantities name

@@ -3,17 +3,15 @@
 // standard rule families. The scheduler in erc.cpp owns applications and
 // waivers; Python plugins run through the bridge.
 #include "noscheme/circuit.hpp"
-#include <boost/multiprecision/cpp_int.hpp>
 #include <functional>
 
 namespace noscheme::erc {
-using Rational = boost::multiprecision::cpp_rational;
 
 // Python's str() of a number, and repr() of a string.
 std::string python_str(const Value &number);
 std::string python_repr(const std::string &text);
-// Python's Fraction(str(number)): floats use their shortest decimal spelling.
-Rational decimal(const Value &number);
+// Electrical quantities use ordinary binary64 arithmetic.
+double floating(const Value &number);
 std::optional<Value> number(const MetaValue *value);
 
 struct Diagnostic {

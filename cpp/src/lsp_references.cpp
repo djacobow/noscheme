@@ -36,7 +36,7 @@ std::string value_text(const MetaValue &value) {
   if (auto *expression = value.expression())
     return expression_text(*expression);
   if (auto *integer = value.get_if<Integer>())
-    return integer->str();
+    return std::to_string(*integer);
   if (auto *floating = value.get_if<double>())
     return Json(*floating).dump();
   if (value.is<bool>() || value.is<MetaList>())

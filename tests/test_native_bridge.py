@@ -180,8 +180,8 @@ def test_plugin_checks_run_only_plugin_work(tmp_path):
     "number,expected",
     [
         (
-            {"type": "number", "tag": "integer", "value": "-123456789012345678901234567890"},
-            -123456789012345678901234567890,
+            {"type": "number", "tag": "integer", "value": "-9223372036854775808"},
+            -9223372036854775808,
         ),
         ({"type": "number", "tag": "double", "value": 4.7e-12}, 4.7e-12),
     ],
@@ -196,8 +196,8 @@ def test_large_native_metadata_integer_without_global_settings():
     from noscheme.native_bridge import decode_metadata
 
     before = sys.get_int_max_str_digits()
-    value = decode_metadata({"type": "number", "tag": "integer", "value": "1" + "0" * 5000})
-    assert value == 10**5000
+    with pytest.raises(ValueError):
+        decode_metadata({"type": "number", "tag": "integer", "value": "1" + "0" * 5000})
     assert sys.get_int_max_str_digits() == before
 
 
@@ -270,7 +270,7 @@ def test_editor_help_is_shared_but_snapshot_owned():
 
 
 @pytest.mark.parametrize(
-    "value", [10**20 + 1, -(10**20 + 1), 10**5000], ids=["positive", "negative", "5001-digits"]
+    "value", [(1 << 63) - 1, -(1 << 63), 0], ids=["maximum", "minimum", "zero"]
 )
 def test_plugin_argument_integer_transport(value):
     from noscheme.native_bridge import decode_metadata, encode_arguments
@@ -287,3 +287,13 @@ def test_plugin_argument_integer_transport(value):
     }
     assert type(encoded["flag"]) is bool
     assert sys.get_int_max_str_digits() == before
+
+
+@pytest.mark.parametrize("value", [1 << 63, -(1 << 63) - 1])
+def test_plugin_argument_integer_overflow(value):
+    from noscheme.native_bridge import decode_metadata, encode_arguments
+
+    with pytest.raises(ValueError):
+        encode_arguments(value)
+    with pytest.raises(ValueError):
+        decode_metadata({"type": "number", "tag": "integer", "value": str(value)})

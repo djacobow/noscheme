@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <charconv>
 #include <cmath>
-#include <numeric>
 
 namespace noscheme::erc {
 namespace {
@@ -54,7 +53,7 @@ std::string float_repr(double value) {
 } // namespace
 std::string python_str(const Value &number) {
   if (auto integer = std::get_if<Integer>(&number))
-    return integer->str();
+    return std::to_string(*integer);
   if (auto floating = std::get_if<double>(&number))
     return float_repr(*floating);
   return std::get<std::string>(number);
@@ -85,28 +84,10 @@ std::string python_repr(const std::string &text) {
   }
   return result + quote;
 }
-Rational decimal(const Value &number) {
+double floating(const Value &number) {
   if (auto integer = std::get_if<Integer>(&number))
-    return Rational(*integer);
-  auto text = python_str(number);
-  bool negative = text.starts_with('-');
-  if (negative)
-    text.erase(0, 1);
-  int exponent = 0;
-  if (auto e = text.find('e'); e != std::string::npos) {
-    exponent = std::stoi(text.substr(e + 1));
-    text.erase(e);
-  }
-  if (auto dot = text.find('.'); dot != std::string::npos) {
-    exponent -= static_cast<int>(text.size() - dot - 1);
-    text.erase(dot, 1);
-  }
-  // A leading zero would make Boost read the digits as octal.
-  text.erase(0, std::min(text.find_first_not_of('0'), text.size() - 1));
-  Rational result{Integer(text)};
-  Integer scale = boost::multiprecision::pow(Integer(10), std::abs(exponent));
-  result = exponent < 0 ? result / Rational(scale) : result * Rational(scale);
-  return negative ? Rational(-result) : result;
+    return static_cast<double>(*integer);
+  return std::get<double>(number);
 }
 std::optional<Value> number(const MetaValue *value) {
   if (!value || !value->number())
@@ -895,11 +876,11 @@ aggregate_current_loads(const View &view,
                    "aggregate load " + label +
                        " has incomplete internal load information",
                    annotation.span.json(), label, "warning", related);
-    Rational total = 0;
+    double total = 0;
     for (const auto &demand : local)
       if (demand.second)
-        total += decimal(*demand.second);
-    if (total > decimal(amount))
+        total += floating(*demand.second);
+    if (total > floating(amount))
       results.emit("aggregate_current_overload",
                    "known internal loads exceed aggregate " + label + " (" +
                        format_quantity(amount, "current") + ")",
@@ -975,13 +956,12 @@ std::vector<Diagnostic> current_results(const Context &ctx) {
                      "information",
                  origin_span, {}, "warning");
   if (sources.size() == 1 && capacities[0]) {
-    // Decimal spelling preserves finite metadata without floating sum
-    // overflow.
-    Rational total = 0;
+    // Accumulate electrical loads in circuit order using binary64.
+    double total = 0;
     for (const auto &demand : demands)
       if (demand.second)
-        total += decimal(*demand.second);
-    if (total > decimal(*capacities[0]))
+        total += floating(*demand.second);
+    if (total > floating(*capacities[0]))
       results.emit("current_overload",
                    "known maximum loads on " + python_repr(name) +
                        " exceed source capacity (" +
@@ -1001,7 +981,7 @@ std::vector<Diagnostic> voltage_limits(const Context &ctx, const Params &) {
   };
   std::vector<Range> ranges;
   auto below = [](const Value &a, const Value &b) {
-    return decimal(a) < decimal(b);
+    return floating(a) < floating(b);
   };
   for (auto declaration : view.circuit.nets[*ctx.net].declarations) {
     auto low = number(view.attribute(declaration, "min_voltage"));
@@ -1016,9 +996,9 @@ std::vector<Diagnostic> voltage_limits(const Context &ctx, const Params &) {
     else
       ranges.push_back({*low, *high, declaration});
   }
-  std::set<std::pair<Rational, Rational>> distinct;
+  std::set<std::pair<double, double>> distinct;
   for (const auto &range : ranges)
-    distinct.emplace(decimal(range.low), decimal(range.high));
+    distinct.emplace(floating(range.low), floating(range.high));
   if (distinct.size() > 1) {
     Related related;
     for (const auto &range : ranges)
@@ -1124,11 +1104,15 @@ std::vector<Diagnostic> bias_reference(const Context &ctx,
   return {d};
 }
 
-// erc_primitives: exact intervals with infinite bounds.
+// erc_primitives: floating-point intervals with infinite bounds.
 struct Bound {
   int infinite = 0;
-  Rational value = 0;
-  static Bound of(Rational q) { return {0, std::move(q)}; }
+  double value = 0;
+  static Bound of(double q) {
+    if (std::isnan(q))
+      throw Failure("reducer must return an ordered Interval");
+    return std::isinf(q) ? inf(q < 0 ? -1 : 1) : Bound{0, q};
+  }
   static Bound inf(int sign = 1) { return {sign, 0}; }
   bool operator==(const Bound &o) const {
     return infinite == o.infinite && (infinite || value == o.value);
@@ -1140,14 +1124,14 @@ struct Bound {
   }
   bool operator<=(const Bound &o) const { return !(o < *this); }
   Bound operator+(const Bound &o) const {
+    if (infinite && o.infinite && infinite != o.infinite)
+      throw Failure("reducer must return an ordered Interval");
     if (infinite || o.infinite)
       return inf(infinite ? infinite : o.infinite);
     return of(value + o.value);
   }
   bool zero() const { return !infinite && value == 0; }
-  Bound reciprocal() const {
-    return infinite ? of(0) : of(Rational(1) / value);
-  }
+  Bound reciprocal() const { return infinite ? of(0) : of(double(1) / value); }
 };
 struct Interval {
   Bound lower, upper;
@@ -1158,7 +1142,7 @@ Bound numeric(const MetaValue &value) {
   auto n = number(&value);
   if (!n)
     throw Failure("reduction values must be numbers");
-  return Bound::of(decimal(*n));
+  return Bound::of(floating(*n));
 }
 Interval total(const std::vector<Interval> &values) {
   Bound low = Bound::of(0), high = Bound::of(0);
@@ -1252,15 +1236,15 @@ std::vector<Diagnostic> compare(const Context &ctx, const Interval &result,
     throw Failure("reducer must return an ordered Interval");
   if (!minimum && !maximum)
     throw Failure("a bounds assertion requires min and/or max");
-  if (minimum && maximum && decimal(*maximum) < decimal(*minimum))
+  if (minimum && maximum && floating(*maximum) < floating(*minimum))
     throw Failure("min exceeds max");
   std::vector<Diagnostic> diagnostics;
   auto related = pin_spans(ctx.view, pins);
   std::optional<Bound> low, high;
   if (minimum)
-    low = Bound::of(decimal(*minimum));
+    low = Bound::of(floating(*minimum));
   if (maximum)
-    high = Bound::of(decimal(*maximum));
+    high = Bound::of(floating(*maximum));
   if (low && result.upper < *low)
     diagnostics.push_back(ctx.error(
         "reduction is below minimum " + shown(*minimum, quantity), related));
@@ -1330,8 +1314,8 @@ std::vector<Diagnostic> count_rule(const Context &ctx, const Params &params) {
     if (state == true)
       ++matched;
   }
-  Interval result{Bound::of(Rational(matched)),
-                  Bound::of(Rational(Integer(pins.size())))};
+  Interval result{Bound::of(double(matched)),
+                  Bound::of(double(Integer(pins.size())))};
   return compare(ctx, result, bound(params, "min"), bound(params, "max"), pins,
                  {});
 }

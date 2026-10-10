@@ -1,6 +1,6 @@
 """Grouped loads, public supply budgets, and source capacity checks."""
 
-from fractions import Fraction
+from .erc_primitives import floating_sum
 from .ast import Span
 from .circuit import path_text
 from .diagnostics import Related
@@ -104,8 +104,8 @@ def aggregate_current_loads(declarations, endpoints, demands, emit):
                 severity="warning",
                 related=related,
             )
-        total = sum((Fraction(str(value)) for _, value in local if value is not None), Fraction())
-        if total > Fraction(str(amount)):
+        total = floating_sum(float(value) for _, value in local if value is not None)
+        if total > float(amount):
             emit(
                 "aggregate_current_overload",
                 f"known internal loads exceed aggregate {label} ({format_quantity(amount, 'current')})",
@@ -176,9 +176,9 @@ def net_results(ctx):
             severity="warning",
         )
     if len(sources) == 1 and capacities[0] is not None:
-        # Decimal spelling preserves finite metadata without floating sum overflow.
-        total = sum((Fraction(str(x)) for x in amounts if x is not None), Fraction())
-        if total > Fraction(str(capacities[0])):
+        # Electrical budgets use ordinary floating-point accumulation.
+        total = floating_sum(float(x) for x in amounts if x is not None)
+        if total > float(capacities[0]):
             emit(
                 "current_overload",
                 f"known maximum loads on {name!r} exceed source capacity "

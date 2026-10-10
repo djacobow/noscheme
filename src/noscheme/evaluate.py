@@ -11,7 +11,8 @@ from .metadata import Value
 from .instances import arguments as instance_arguments, element_overrides
 from .project import IDENTIFIER, expression_path
 from .resolve import Resolver
-from .units import QUANTITIES, format_quantity, is_scaled, scaled_value
+from .units import QUANTITIES, format_quantity, number_value
+from .integers import checked_integer
 
 
 @dataclass(frozen=True)
@@ -25,7 +26,7 @@ class Number:
 
 @dataclass(frozen=True)
 class Limits:
-    integer_bits: int = 65536
+    integer_bits: int = 64
     string_length: int = 65536
     format_width: int = 4096
     format_precision: int = 100
@@ -49,8 +50,11 @@ class Evaluator:
     def number(self, value, span):
         if isinstance(value, float) and not math.isfinite(value):
             self.error("number.nonfinite", "numeric result must be finite", span)
-        if type(value) is int and value.bit_length() > self.limits.integer_bits:
-            self.error("number.limit", "integer exceeds configured bit limit", span)
+        if type(value) is int:
+            try:
+                checked_integer(value, self.limits.integer_bits)
+            except ValueError:
+                self.error("number.limit", "integer exceeds configured bit limit", span)
         return Number(value)
 
     def numeric(self, value, span):
@@ -70,7 +74,7 @@ class Evaluator:
                     instance_path=self.instance_path,
                 )
             )
-        return int(number)
+        return self.number(int(number), span).value
 
     def dimension(self, value, span):
         number = self.integer(value, span)
@@ -104,20 +108,11 @@ class Evaluator:
 
         try:
             if isinstance(expr, a.Number):
-                if is_scaled(expr.spelling):
-                    return self.number(scaled_value(expr.spelling), expr.span)
-                if expr.tag == "integer":
-                    # Parse in chunks to avoid Python's process-global decimal conversion limit.
-                    if len(expr.spelling.lstrip("0")) > self.limits.integer_bits:
-                        self.error(
-                            "number.limit", "integer literal exceeds configured limit", expr.span
-                        )
-                    value = 0
-                    for i in range(0, len(expr.spelling), 1000):
-                        chunk = expr.spelling[i : i + 1000]
-                        value = value * (10 ** len(chunk)) + int(chunk)
-                    return self.number(value, expr.span)
-                return self.number(float(expr.spelling), expr.span)
+                try:
+                    value = number_value(expr.spelling)
+                except ValueError:
+                    self.error("number.limit", "integer exceeds configured bit limit", expr.span)
+                return self.number(value, expr.span)
             if isinstance(expr, a.String):
                 return self.bounded_string(expr.value, expr.span)
             if isinstance(expr, a.Name):
@@ -129,6 +124,14 @@ class Evaluator:
             if isinstance(expr, a.Group):
                 return run(expr.expression)
             if isinstance(expr, a.Unary):
+                if expr.operator == "-" and isinstance(expr.operand, a.Number):
+                    try:
+                        value = number_value(expr.operand.spelling, negative=True)
+                    except ValueError:
+                        self.error(
+                            "number.limit", "integer exceeds configured bit limit", expr.span
+                        )
+                    return self.number(value, expr.span)
                 value = self.numeric(run(expr.operand), expr.span)
                 return self.number(-value if expr.operator == "-" else value, expr.span)
             if isinstance(expr, a.Binary):
@@ -144,13 +147,13 @@ class Evaluator:
                             "shifts require integer-tagged operands and a nonnegative count",
                             expr.span,
                         )
-                    if right > self.limits.integer_bits:
+                    if right >= min(self.limits.integer_bits, 64):
                         self.error(
                             "number.limit", "shift count exceeds configured limit", expr.span
                         )
                     value = left << right if op == "<<" else left >> right
                 elif op == "/":
-                    value = left / right
+                    value = float(left) / float(right)
                 else:
                     if type(left) is float or type(right) is float:
                         left, right = float(left), float(right)
@@ -197,10 +200,9 @@ class Evaluator:
                         if type(value) is int:
                             rounded = value
                         else:
-                            numerator, denominator = value.as_integer_ratio()
-                            magnitude, remainder = divmod(abs(numerator), denominator)
-                            rounded = (magnitude + (2 * remainder >= denominator)) * (
-                                -1 if numerator < 0 else 1
+                            fraction, magnitude = math.modf(abs(value))
+                            rounded = (int(magnitude) + (fraction >= 0.5)) * (
+                                -1 if value < 0 else 1
                             )
                     else:
                         rounded = {"int": int, "ceil": math.ceil, "floor": math.floor}[helper](
@@ -216,24 +218,12 @@ class Evaluator:
                 "number.overflow", "number cannot be represented as a finite double", expr.span
             )
 
-    @staticmethod
-    def decimal(value):
-        sign = "-" if value < 0 else ""
-        value = abs(value)
-        chunks = []
-        while value:
-            value, remainder = divmod(value, 10**9)
-            chunks.append(remainder)
-        return sign + (
-            str(chunks[-1]) + "".join(f"{x:09d}" for x in reversed(chunks[:-1])) if chunks else "0"
-        )
-
     def display(self, value, span):
         if isinstance(value, str):
             return value
         number = self.numeric(value, span)
         if type(number) is int:
-            return self.decimal(number)
+            return str(number)
         text = repr(number)
         return text[:-2] if text.endswith(".0") else text
 
@@ -324,7 +314,7 @@ class Evaluator:
                                     "d format requires an integer tag and no precision",
                                     span,
                                 )
-                            rendered = self.decimal(number)
+                            rendered = str(number)
                             if width_text.startswith("0") and width:
                                 rendered = rendered.zfill(width)
                             else:
@@ -422,11 +412,11 @@ class Evaluator:
 
 def encoded(value):
     if isinstance(value, Number):
-        # Decimal strings preserve arbitrarily large integers in JSON consumers.
+        # Decimal strings preserve all 64 integer bits in JSON consumers.
         return {
             "type": "number",
             "tag": value.tag,
-            "value": Evaluator.decimal(value.value) if value.tag == "integer" else value.value,
+            "value": str(value.value) if value.tag == "integer" else value.value,
         }
     return {"type": "string", "value": value}
 

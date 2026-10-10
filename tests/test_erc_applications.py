@@ -1,6 +1,5 @@
 """Applications, default replacement, plugin contracts, and conservative reductions."""
 
-from fractions import Fraction
 from math import inf
 
 import pytest
@@ -77,8 +76,8 @@ def test_reductions_optional_members_and_empty_sets():
     assert parallel(()).lower == parallel(()).upper == inf
     result = parallel(
         (
-            Interval(Fraction(4700), Fraction(4700)),
-            Interval(Fraction(4700), Fraction(4700), optional=True),
+            Interval(4700.0, 4700.0),
+            Interval(4700.0, 4700.0, optional=True),
         )
     )
     assert (result.lower, result.upper) == (2350, 4700)
@@ -430,3 +429,17 @@ def test_waiver_names_applications_anywhere_on_its_net(tmp_path):
             tmp_path,
             INNER.replace('contention: "Reviewed', '"net:inner.bus:contention": "Reviewed'),
         )
+
+
+def test_reductions_use_floating_point():
+    from noscheme.erc_primitives import numeric
+
+    assert type(numeric(100)) is float
+    values = (Interval(numeric(0.1), numeric(0.1)), Interval(numeric(0.2), numeric(0.2)))
+    result = total(values)
+    assert type(result.lower) is float
+    assert result.complete
+    assert result.lower == pytest.approx(0.3)
+    # Overflow remains an infinite bound, rather than an integer/fraction fallback.
+    huge = total((Interval(1e308, 1e308), Interval(1e308, 1e308)))
+    assert huge.lower == huge.upper == inf
