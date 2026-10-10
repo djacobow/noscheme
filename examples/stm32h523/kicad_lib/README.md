@@ -41,7 +41,7 @@ unused policies retain that default.
 
 The passive module also includes converter-generated `interchangeable: ["1", "2"]`
 groups for `R` and `C`. They let instances pass positional nets in their argument
-lists, such as `C0603(supply, ground, value=100n)`. `I2CPullup`
+lists, such as `C0603<100n> capacitor(supply, ground)`. `I2CPullup`
 clears the inherited group because its signal terminal carries different ERC metadata.
 
 ## Regenerate and review

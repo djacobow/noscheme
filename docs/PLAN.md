@@ -1,19 +1,28 @@
-# NoScheme implementation plan
+# NoScheme implementation history
 
 ## Current status
 
-As of October 7, 2026, the compiler, extensible ERC, KiCad export, a source
-formatter, and Vim/Neovim/VS Code integrations are implemented, including compact
-instances for interchangeable pins. Persistent Python LSP workers now separate
-interactive semantic requests from background ERC and cache unchanged ASTs across edits.
-Changed files still parse in full; incremental parsing and a Rust port remain
-future options. The [deferred review list](#deferred-work) records the remaining
-review proposals.
+**Historical record, reviewed October 10, 2026.** This file is retained for
+milestone history and design context, not as the current implementation task list.
+Unchecked boxes below include deferred, superseded, and subsequently completed
+ideas. Old commands, syntax, counts, and timings describe their checkpoints.
+Consult the [LRM](LRM.md) for supported behavior and limitations, the
+[workflow HOWTO](../HOWTO.md) for circuit development, and
+[Development](DEVELOPMENT.md) for compiler validation. Native status is maintained
+in [cpp/README.md](../cpp/README.md); editor support in
+[EDITOR_SUPPORT.md](EDITOR_SUPPORT.md).
 
-This file retains milestone history. Old test counts, benchmark timings, and
-implementation-stage plans describe those checkpoints. Use the
-[LRM](LRM.md) for current behavior and [Development](DEVELOPMENT.md) for current
-commands; recent work and measurements are listed first.
+The October 10 checkpoint includes Python and optional C++ compiler/LSP backends,
+source formatting, Emacs/Eglot integration, root blocks with named project targets,
+and CSV BOM export sharing KiCad reference state. Root parameters can be bound
+with defaults or `extend`; there are no TOML or `-D` parameter overrides.
+Quantity parameters and persistent LSP AST caches are implemented. Older proposals
+below that call those features future work have been superseded. Incremental
+parsing, conditional topology, and CAD-to-source synchronization remain unsupported.
+
+New work should be agreed against current code and documentation, rather than
+inferred from an unchecked box in this archive. The
+[deferred review list](#deferred-work) preserves the original discussion.
 
 ## C++23 migration in progress
 

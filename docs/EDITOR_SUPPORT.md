@@ -3,7 +3,7 @@
 NoScheme provides Vim/Neovim and Emacs integrations, a local VS Code extension, and
 an independent language server for diagnostics, navigation, references, rename,
 hover, completion, and formatting. Follow
-[Development setup](DEVELOPMENT.md#environment-and-checks) to install the tools.
+[HOWTO installation](../HOWTO.md#1-install-and-select-an-implementation) to install the tools.
 
 ## Vim and Neovim
 

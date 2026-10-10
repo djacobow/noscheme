@@ -62,17 +62,16 @@ Placement, routing, and hardware validation remain separate steps.
 
 ## Documentation
 
+- [Workflow HOWTO](HOWTO.md) — install the tool, develop a circuit, check it,
+  export a BOM, and carry changes into KiCad.
 - [Language reference](docs/LRM.md) — normative syntax, scope, metadata, electrical rules,
   and a complete example.
-- [Development](docs/DEVELOPMENT.md) — installation, tests, example projects,
-  KiCad export, CI, and repository search.
+- [Development](docs/DEVELOPMENT.md) — compiler development, tests, CI, and performance measurements.
 - [Editor support](docs/EDITOR_SUPPORT.md) — Vim, Neovim, Emacs, and VS Code setup and LSP capabilities.
 - [Project design](docs/PROJECT.md) — goals, design decisions, and reference-board details.
-- [Implementation plan](docs/PLAN.md) — completed milestones and remaining work.
+- [Implementation history](docs/PLAN.md) — milestone records and deferred proposals.
 - [KiCad experiments](docs/experiments/README.md) and
   [findings](docs/experiments/FINDINGS.md) — manual import/update checks and results.
-- [Archived design review](docs/claude_review.md) — review of the design before
-  implementation; includes proposals that were not adopted.
 
 Runnable designs are in [examples/](examples/), including the
 [STM32 board](examples/stm32h523/stm32h523.nosch) and the
@@ -95,32 +94,3 @@ each of those directories.
 The [Rulos](examples/rulos_6matrix/README.md#attribution-and-sources) and
 [WREN](examples/wren/README.md#attribution-and-provenance) examples also record
 their upstream design attribution and source-license information.
-
-### Multiple boards and variants
-
-Define circuits with `block`; use `extend` to bind parameters for a variant.
-Named TOML targets select the root block. For a runnable example:
-
-```sh
-noscheme compile --project examples/targets --target single
-noscheme compile --project examples/targets --target double
-```
-
-These write to `build/single` and `build/double` under the example directory.
-`default_target` selects the target used by editors and commands without
-`--target`. Each target also has its own persistent `noscheme.<target>.state.json`
-for KiCad identities; keep these files under version control. Existing single-board
-configurations retain their original output and `noscheme.state.json` paths.
-See [project configuration](docs/LRM.md#11-project-configuration).
-
-### Bill of materials
-
-```sh
-noscheme export-bom --project examples/targets --target double
-```
-
-This writes a grouped `bom.csv` with quantities, references, values, footprints,
-manufacturer/supplier part numbers, and DNP status. References share the target's
-persistent KiCad identity state; no footprint snapshot is required. Add purchasing
-information under `metadata.bom` on components or individual instances.
-See [BOM metadata and export](docs/LRM.md#134-bills-of-materials).

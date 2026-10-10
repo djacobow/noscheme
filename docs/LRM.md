@@ -18,10 +18,10 @@ electrical constraints, and exports a netlist for KiCad. Placement and routing
 belong to the CAD tool.
 
 This manual is the normative reference for the implemented source language and
-compiler behavior. [DEVELOPMENT.md](DEVELOPMENT.md)
-covers installation and commands; [EDITOR_SUPPORT.md](EDITOR_SUPPORT.md) covers
-editor setup; [PROJECT.md](PROJECT.md) records design decisions;
-[PLAN.md](PLAN.md) tracks implementation work. Features identified as unsupported
+compiler behavior. The [workflow HOWTO](../HOWTO.md) covers installation and
+circuit development; [DEVELOPMENT.md](DEVELOPMENT.md) covers compiler development;
+[EDITOR_SUPPORT.md](EDITOR_SUPPORT.md) covers editor setup; [PROJECT.md](PROJECT.md) records design decisions;
+[PLAN.md](PLAN.md) retains implementation history. Features identified as unsupported
 are not available merely because their syntax resembles another language.
 
 ## Contents

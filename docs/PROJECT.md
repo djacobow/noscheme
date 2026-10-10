@@ -12,10 +12,11 @@ while the author remains responsible for selecting parts and defining the circui
 KiCad handles physical placement and routing.
 
 The Python compiler implements parsing, project loading, resolution, parameter
-evaluation, circuit expansion, ERC, library conversion, and KiCad netlist export.
+evaluation, circuit expansion, ERC, library conversion, CSV BOM export, and
+KiCad netlist export.
 It remains the default. An optional [C++23 backend](../cpp/README.md) shares its
-compiler core between the CLI and LSP, including native standard ERC and KiCad
-export, while retaining Python support for project ERC plugins.
+compiler core between the CLI and LSP, including native standard ERC, CSV BOM,
+and KiCad export, while retaining Python support for project ERC plugins.
 The STM32 reference board's exported netlist has populated PCB Editor successfully;
 it has not been routed or hardware-qualified. The Rulos example reconstructs an
 existing design and verifies its connectivity against Eagle source data.
@@ -25,15 +26,16 @@ performance, rather than establishing electrical correctness.
 
 This document records goals, design rationale, and reference-hardware decisions.
 The [Language Reference Manual](LRM.md) is the normative description of the
-implemented language and compiler behavior. Use [DEVELOPMENT.md](DEVELOPMENT.md)
-for commands and validation, [EDITOR_SUPPORT.md](EDITOR_SUPPORT.md) for editor
-setup and supported LSP operations, and [PLAN.md](PLAN.md) for work status.
+implemented language and compiler behavior. Use the [workflow HOWTO](../HOWTO.md)
+for circuit development, [DEVELOPMENT.md](DEVELOPMENT.md) for compiler development,
+[EDITOR_SUPPORT.md](EDITOR_SUPPORT.md) for editor setup and supported LSP operations,
+and [PLAN.md](PLAN.md) for historical milestones and deferred proposals.
 Historical [experiment findings](experiments/FINDINGS.md) record the parser and
 KiCad feasibility results; they do not supersede the production reference.
 
 ## V1 scope and workflow
 
-- Use `.nosch` source files, a grammar-driven parser, and one board per project.
+- Use `.nosch` source files, a grammar-driven parser, and one or more named build targets per project.
 - Explicitly instantiate physical components and reusable circuit blocks.
 - Convert KiCad libraries in a separate step and review the resulting snapshots.
 - Check declared connectivity and electrical constraints, then export a netlist
@@ -49,8 +51,8 @@ Unspecified footprints permit a partial export with explicit reporting. See
 
 ### Deferred features
 
-Algorithmic generation, conditional topology, quantity parameter types, assembly
-variants, differential-pair declarations, and CAD-to-source circuit synchronization
+Algorithmic generation, conditional topology, differential-pair declarations,
+and CAD-to-source circuit synchronization
 remain outside the implemented language. A future generation API, potentially
 Python, could create the same nets and instances as native source; its execution
 model has not been chosen.
@@ -59,8 +61,12 @@ The design uses package-specific physical pins. Wrapper blocks provide logical
 interfaces without a separate logical-pin/package abstraction. Named pin groups
 and component-wide pin defaults remain deferred pending a stronger use case.
 
-Vim/Neovim highlighting, the local VS Code extension, and the LSP are implemented.
-Canonical source formatting and incremental compiler analysis remain future work.
+Vim/Neovim, Emacs/Eglot, the local VS Code extension, and both LSP implementations
+are available. Canonical source formatting and exact-text AST caching are implemented;
+changed files still parse in full. Incremental parsing remains future work.
+Named targets and parameter-bound block extensions provide circuit variants.
+BOM DNP annotations label unfitted parts without removing them from the circuit
+or changing ERC; there is no separate assembly-variant selection mechanism.
 The complete supported and
 unsupported feature lists belong in [LRM §16](LRM.md#16-limits-and-unsupported-features)
 and [Editor support](EDITOR_SUPPORT.md).
@@ -200,10 +206,10 @@ for a PCB handoff. Current performance measurements are recorded in its README.
 ### Explicit names and connection syntax
 
 Named connections prevent silent rewiring when declarations move. `:` indicates
-a connection or binding; `=` is used for parameter defaults and call
+a connection or binding; `=` is used for parameter defaults and ERC rule-call
 arguments. An instance's parentheses hold arguments, and its indented body
 follows its line, as fields follow a net declaration: connections first, one per
-line, then `params`, `metadata`, and `elements` sections. The two can be
+line, then `metadata` and `elements` sections. The two can be
 combined, and no newline changes the meaning. `*` connects the remaining pins and
 ports to nets of the same name, which removes the `supply: supply` lines of
 pass-through wiring without creating nets or hiding a missing connection: an
@@ -228,6 +234,12 @@ instance bindings are in [LRM §5](LRM.md#5-instances-and-connections).
 `component` describes a physical part; `block` describes a circuit with private
 internals and a public interface. Keeping distinct keywords makes that distinction
 explicit even when a part has no selected footprint yet.
+
+A root is an ordinary block selected by a TOML target, with no public ports.
+It may declare global nets and ERC configurations. Root parameters need defaults
+or bindings through `extend`; TOML and command-line parameter overrides are not
+implemented. The legacy `board` declaration and top-level TOML `board` key remain
+accepted for compatibility. Each named target has separate output and identity state.
 
 Physical pin identifiers retain exact text because package pad names need not be
 integers. Unambiguous aliases improve readability without hiding the underlying
@@ -354,14 +366,15 @@ limitations are documented in [EDITOR_SUPPORT.md](EDITOR_SUPPORT.md).
 
 ## Unresolved design and implementation work
 
-The [current plan status](PLAN.md#current-status) summarizes recent work and
-proposed next steps. The original review backlog is retained in the
-[review TODO section](PLAN.md#todo-remaining-implementation-review-follow-up).
-Larger-design performance work was subsequently resumed; other review proposals
-remain in the [deferred work list](PLAN.md#deferred-work).
-Board-level instance rename preserves
-identities through existing metadata. Deferred proposals are not language
-features or approval to change existing behavior.
+Current language limits are maintained in [LRM §16](LRM.md#16-limits-and-unsupported-features).
+Native implementation limitations are in [cpp/README.md](../cpp/README.md), and
+editor limitations are in [EDITOR_SUPPORT.md](EDITOR_SUPPORT.md). The
+[implementation history](PLAN.md) retains milestone checklists and deferred
+proposals; unchecked historical items are not a current task queue.
+
+Board-level instance rename preserves identities through existing metadata.
+Renames and moves inside reusable blocks still require identity planning.
+Deferred proposals are not language features or approval to change behavior.
 
 ## Research and review references
 
@@ -373,6 +386,6 @@ Prior ERC research informed the decision to keep checks local to each net:
 Atopile and Flux.ai are prior-art references for further investigation. We may
 borrow concepts, but will not use code wholesale.
 
-The [archived design review](claude_review.md) predates the implementation. It
-records alternatives and concerns, including syntax that was never adopted.
-Adopted behavior is specified in the LRM; remaining review work belongs in PLAN.md.
+Earlier design reviews informed the milestone history in [PLAN.md](PLAN.md).
+Adopted behavior is specified in the LRM; historical proposals are not a second
+language specification.
