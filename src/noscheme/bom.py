@@ -11,6 +11,7 @@ from .kicad.export import (
     part_value,
     publish,
     read_state,
+    state_warnings,
     validate_export_paths,
     validate_state,
 )
@@ -26,6 +27,15 @@ COLUMNS = (
     "Supplier Part Number",
     "DNP",
 )
+
+
+# A spreadsheet evaluates text cells beginning with these as formulas.
+FORMULA_STARTS = ("=", "+", "-", "@", "\t", "\r")
+
+
+def spreadsheet_text(cell):
+    """Keep a text cell text: a leading quote stops formula evaluation."""
+    return "'" + cell if isinstance(cell, str) and cell.startswith(FORMULA_STARTS) else cell
 
 
 def reference_key(reference):
@@ -63,9 +73,11 @@ def bom_rows(circuit, state):
     return [row for _, row in sorted(rows, key=lambda item: reference_key(item[0]))]
 
 
-def export_bom(project, circuit):
+def export_bom(project, circuit, *, warnings=None):
     """Publish CSV and reference reservations atomically; preserve the CAD baseline."""
     state_path = project.config.state_path
+    if warnings is not None:
+        warnings.extend(state_warnings(project.config))
     state = read_state(state_path)
     validate_state(state, state_path)
     updated = assign(circuit, state, state_path)
@@ -73,7 +85,7 @@ def export_bom(project, circuit):
     stream = StringIO(newline="")
     writer = csv.writer(stream)
     writer.writerow(COLUMNS)
-    writer.writerows(rows)
+    writer.writerows([spreadsheet_text(cell) for cell in row] for row in rows)
     output = project.config.output_dir / "bom.csv"
     files = {
         output: stream.getvalue(),

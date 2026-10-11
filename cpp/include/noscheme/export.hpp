@@ -6,10 +6,12 @@ namespace noscheme {
 struct ExportResult {
   Json summary, warnings, files;
 };
+// Warnings are the caller's identity-state warnings; exports add their own.
 ExportResult export_bom(const Project &project, const Circuit &circuit,
-                        Json state);
+                        Json state, Json warnings = Json::array());
 ExportResult export_kicad(const Project &project, const Circuit &circuit,
                           const ErcResult &erc, Json state,
                           const Json &footprints, const fs::path &records,
-                          const std::string &records_text);
+                          const std::string &records_text,
+                          Json warnings = Json::array());
 } // namespace noscheme

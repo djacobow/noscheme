@@ -143,14 +143,10 @@ CompletionResult scope_completion(const std::string &text, std::size_t offset,
       (!completion_scan::declaration_type(line).empty() ||
        line.find(':') != std::string::npos))
     mode = "expression";
-  if (mode.empty() && !parents.empty() &&
-      (parents.back().text == "params:" ||
-       parents.back().text == "defaults:")) {
-    if (line.find('=') != std::string::npos ||
-        ((in_instance || parents.back().text == "defaults:") &&
-         line.find(':') != std::string::npos))
-      mode = "expression";
-  }
+  if (mode.empty() && !parents.empty() && parents.back().text == "params:" &&
+      (line.find('=') != std::string::npos ||
+       (in_instance && line.find(':') != std::string::npos)))
+    mode = "expression";
   if (!has("custom:")) {
     if (!parents.empty() && parents.back().text == "metadata:")
       scope = in_instance ? "instance" : owner_kind;

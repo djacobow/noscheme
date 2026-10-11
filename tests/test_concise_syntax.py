@@ -189,6 +189,11 @@ block B:
     "extend_cycle": "extend B2 A2\nextend A2 B2\n" + BOARD,
     "declaration_form": "block U:\n  ports:\n    supply: net.power\n" + BOARD,
     "typed_metadata": "component C:\n  metadata:\n    net.power x\n" + BOARD,
+    "pin_key_hex": "component C:\n  pins:\n    0x1: role.passive\n" + BOARD,
+    "pin_key_separated": PART + BOARD + "  P p:\n    1_0: n\n",
+    "pin_list_hex": "component C:\n  pins:\n    [0x1, 2]: role.passive\n" + BOARD,
+    "pin_singleton_hex": "component C:\n  pins:\n    [0b1]: role.passive\n" + BOARD,
+    "pin_key_quoted": 'component C:\n  pins:\n    "0x1": role.passive\n' + BOARD,
 }
 
 
@@ -240,6 +245,10 @@ def error_code(tmp_path, name):
         ("extend_cycle", "resolve.inheritance-cycle"),
         ("declaration_form", "syntax.declaration-form"),
         ("typed_metadata", "syntax.declaration-form"),
+        ("pin_key_hex", "syntax.pin-key"),
+        ("pin_key_separated", "syntax.pin-key"),
+        ("pin_list_hex", "syntax.pin-key"),
+        ("pin_singleton_hex", "syntax.pin-key"),
     ],
 )
 def test_errors(tmp_path, name, code):
@@ -265,6 +274,10 @@ def test_net_types_extend_builtin_values_and_each_other(tmp_path):
     assert declarations["pair.a"]["nettype"] == "main.Rail"
     assert declarations["pair.b[1]"]["nettype"] == "main.Rail3"
     assert declarations["r"]["type"] == "power"
+
+
+def test_unusual_pin_names_are_quoted(tmp_path):
+    compile_source(tmp_path, SOURCES["pin_key_quoted"])
 
 
 def test_bindings_lead_the_instance_body(tmp_path):

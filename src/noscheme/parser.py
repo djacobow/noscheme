@@ -7,6 +7,7 @@ from bisect import bisect_right
 from dataclasses import replace
 from .analysis_cache import cached_parse
 import json
+import re
 from lark import Token, Tree
 from . import ast as a
 from .diagnostics import Diagnostic, DiagnosticError, Related
@@ -218,8 +219,20 @@ class Builder:
         return value
 
     def pin_key(self, token):
+        if token.type == "INT":
+            self.plain_pin_number(str(token), self.span(token))
         text = self.string(token) if token.type == "STRING" else str(token)
         return a.PinKey(self.span(token), text, str(token))
+
+    @staticmethod
+    def plain_pin_number(spelling, span):
+        """A pin number is written in plain digits; other spellings are quoted."""
+        if not re.fullmatch(r"[0-9]+", spelling):
+            fail(
+                "syntax.pin-key",
+                f'write pin numbers as plain digits, or quote the name: "{spelling}"',
+                span,
+            )
 
     def key(self, node):
         if isinstance(node, Tree):
@@ -244,6 +257,8 @@ class Builder:
                             )
                         ]
                     )
+                if isinstance(expr, a.Number):
+                    self.plain_pin_number(expr.spelling, expr.span)
                 text = (
                     expr.text
                     if isinstance(expr, a.Name)

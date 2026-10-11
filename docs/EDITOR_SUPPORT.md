@@ -568,10 +568,10 @@ Rename adds `identity` to the instance's `metadata:` section, or appends one aft
 the instance; its arguments, sections, and comments are left as written.
 
 Physical pin IDs and aliases, internal instance names in reusable blocks,
-module/file names, and the board entry point remain unsupported. Moving instances
+module/file names, and the root block remain unsupported. Moving instances
 between scopes and identity-preserving internal renames need a broader model;
 no `local_identity` field is introduced. Only modules reachable from the selected
-board are included; outside consumers of a reusable library require separate updates.
+target's root block are included; outside consumers of a reusable library require separate updates.
 
 ### Formatting
 

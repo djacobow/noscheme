@@ -13,7 +13,7 @@ import sys
 
 from . import ast as a
 from .diagnostics import Diagnostic, DiagnosticError, Related, render_json, render_text
-from .kicad.export import publish, read_json, read_state
+from .kicad.export import publish, read_json, read_state, state_warnings
 
 
 COMMANDS = {
@@ -185,6 +185,7 @@ def run(args, parser):
             from .project import read_config
 
             config = read_config(args.project, target=args.target)
+            request["state_warnings"] = [a.to_data(w) for w in state_warnings(config)]
             request["state"] = read_state(config.state_path)
         if args.command == "export-kicad":
             request.update(

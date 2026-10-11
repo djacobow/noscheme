@@ -199,10 +199,11 @@ def main(argv=None):
 
             project, definitions = resolve_project(args.project, target=args.target)
             circuit, warnings = elaborate_project(project, definitions)
-            print(json.dumps(export_bom(project, circuit), indent=2))
-            if warnings:
+            export_warnings = []
+            print(json.dumps(export_bom(project, circuit, warnings=export_warnings), indent=2))
+            if warnings or export_warnings:
                 renderer = render_json if args.diagnostics == "json" else render_text
-                print(renderer(warnings), file=sys.stderr)
+                print(renderer((*warnings, *export_warnings)), file=sys.stderr)
             return 0
         if args.command == "export-kicad":
             project, definitions = resolve_project(args.project, target=args.target)

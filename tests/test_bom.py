@@ -229,3 +229,27 @@ def test_array_element_bom_override_merges_purchasing_fields(tmp_path):
     assert dnp["MPN"] == "00123" and dnp["Manufacturer"] == "Example, Inc."
     state = json.loads(project.config.state_path.read_text())
     assert state["entries"]["common[1]"]["reference"] in dnp["References"].split(", ")
+
+
+def test_formula_like_text_stays_text(tmp_path):
+    source = SOURCE.replace('"A shop"', '"=HYPERLINK(1)"').replace('"00123"', '"-5"')
+    make_project(tmp_path, source)
+    common = next(r for r in read_rows(export_bom(*build(tmp_path))) if r["Quantity"] == "12")
+    assert common["Supplier"] == "'=HYPERLINK(1)"
+    assert common["MPN"] == "'-5"
+
+
+def test_renamed_target_warns_about_its_abandoned_state(tmp_path, capsys):
+    make_project(tmp_path)
+    args = ["export-bom", "--project", str(tmp_path)]
+    assert main(args) == 0
+    assert "export.state" not in capsys.readouterr().err
+    # A second configured target starts its own state without a warning.
+    assert main([*args, "--target", "variant"]) == 0
+    assert "export.state" not in capsys.readouterr().err
+    renamed = CONFIG.replace('main"', 'primary"').replace("[targets.main]", "[targets.primary]")
+    (tmp_path / "noscheme.toml").write_text(renamed)
+    assert main(args) == 0
+    err = capsys.readouterr().err
+    assert "export.state" in err and "noscheme.main.state.json" in err
+    assert "noscheme.variant.state.json" not in err

@@ -488,6 +488,11 @@ ReferenceKey reference_key(const std::string &reference) {
 }
 std::string csv_cell(const Json &value) {
   auto text = value.is_string() ? value.get<std::string>() : value.dump();
+  // A spreadsheet evaluates text cells beginning with these as formulas; a
+  // leading quote keeps them text.
+  if (value.is_string() && !text.empty() &&
+      std::string_view("=+-@\t\r").find(text.front()) != std::string_view::npos)
+    text = "'" + text;
   if (text.find_first_of(",\"\r\n") == std::string::npos)
     return text;
   std::string quoted = "\"";
@@ -501,7 +506,7 @@ std::string csv_cell(const Json &value) {
 } // namespace
 
 ExportResult export_bom(const Project &project, const Circuit &circuit,
-                        Json state) {
+                        Json state, Json warnings) {
   const auto state_path = project.config.state_path();
   validate_state(state, state_path);
   auto data = to_json(circuit);
@@ -572,7 +577,7 @@ ExportResult export_bom(const Project &project, const Circuit &circuit,
       object("output", output.string(), "state", state_path.string(), "groups",
              groups.size(), "parts", circuit.parts.size(), "fitted",
              circuit.parts.size() - dnp_count, "dnp", dnp_count),
-      Json::array(),
+      std::move(warnings),
       Json::array({Json::array({output.string(), csv}),
                    Json::array({state_path.string(),
                                 updated.dump(2, ' ', true) + "\n"})})};
@@ -583,13 +588,13 @@ ExportResult export_bom(const Project &project, const Circuit &circuit,
 ExportResult export_kicad(const Project &project, const Circuit &circuit,
                           const ErcResult &erc, Json state,
                           const Json &footprints, const fs::path &records,
-                          const std::string &records_text) {
+                          const std::string &records_text, Json warnings) {
   auto state_path = project.config.state_path();
   validate_state(state, state_path);
   auto data = to_json(circuit);
   auto omitted = verify(data, footprints, records);
   auto updated = assign(data, state, state_path);
-  ExportResult result{Json::object(), Json::array(), Json::array()};
+  ExportResult result{Json::object(), std::move(warnings), Json::array()};
   for (const auto &part : data["parts"]) {
     std::string reference =
         updated["entries"][part["identity"].get<std::string>()]["reference"];

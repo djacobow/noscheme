@@ -250,8 +250,10 @@ In a physical pin key, integer spelling is preserved as text:
 | `A1`, `TAB` | Bare identifier pin names |
 | `"EP-1"` | A quoted pin name containing punctuation |
 
-Physical pin identifiers are not evaluated as numbers. Numeric expressions and
-array indices use the numeric rules in section 4.
+Physical pin identifiers are not evaluated as numbers. An unquoted numeric pin
+key is plain decimal digits: base prefixes and digit separators, as in `0x1` or
+`1_0`, are errors there, so quote such a pin name. Numeric expressions and array
+indices use the numeric rules in section 4.
 
 ### 2.5 Canonical layout
 
@@ -1132,7 +1134,7 @@ passive pull produces `erc.opposing_pull`: these net types do not model resistor
 dividers. Opposing directional drive and push-pull outputs are incompatible.
 Resistance and capacitance budgets remain separate opt-in checks.
 
-`do_not_connect` always retains its disconnection rule. Every checked declaration
+`use.disallowed` always retains its disconnection rule. Every checked declaration
 on a flattened net contributes constraints; a caller does not erase an inner
 port's constraints. An explicit digital-input port may connect to power/ground
 as a fixed logic level while retaining its internal input contract.
@@ -1847,6 +1849,9 @@ counts. A `#` elsewhere in a reference does not trigger this warning.
 assignments, reference reservations, and the previous exported design. Commit
 this file to version control. KiCad and BOM exports read and rewrite it; ordinary compilation
 and editor analysis do not. Deleted reference assignments remain reserved.
+Renaming a target renames its state file: rename `noscheme.<old>.state.json` too, or
+the next export assigns new references and UUIDs. An export for a target without state
+warns (`export.state`) when a state file for an unconfigured target remains.
 There is no reservation-cleanup command yet.
 
 The exporter stages output and atomically replaces state last. Ordinary
@@ -1903,7 +1908,9 @@ and trailing reference number (`R2` before `R10`); rows follow their first refer
 Values use the same display formatting as KiCad export. Absent purchasing fields
 are empty. CSV quoting preserves commas, quotes, newlines, Unicode, and leading
 zeros in part-number strings; import part-number columns as text in spreadsheet
-software to retain those zeros.
+software to retain those zeros. A text cell beginning with `=`, `+`, `-`, `@`, a tab,
+or a carriage return gets a leading `'`, so spreadsheet software shows it as text
+rather than evaluating it as a formula.
 
 DNP parts appear as separate rows marked `yes` in the `DNP` column; fitted rows use
 `no`. Quantity is the number of physical instances in either case. DNP does not

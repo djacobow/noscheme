@@ -61,8 +61,12 @@ Json run(const Json &request) {
                   unused_parameters(definitions));
   auto circuit = elaborate_project(project, *registry, definitions);
   if (command == "export-bom") {
-    auto exported = export_bom(project, circuit, request.at("state"));
-    return object("result", exported.summary, "diagnostics", circuit.warnings,
+    auto exported = export_bom(project, circuit, request.at("state"),
+                               request.value("state_warnings", Json::array()));
+    auto diagnostics = circuit.warnings;
+    for (const auto &warning : exported.warnings)
+      diagnostics.push_back(warning);
+    return object("result", exported.summary, "diagnostics", diagnostics,
                   "files", exported.files);
   }
   auto erc = run_erc(project.config, *registry, circuit, python,
@@ -73,7 +77,8 @@ Json run(const Json &request) {
   if (command == "export-kicad") {
     auto exported = export_kicad(
         project, circuit, erc, request.at("state"), request.at("footprints"),
-        request.at("records").get<std::string>(), request.at("records_text"));
+        request.at("records").get<std::string>(), request.at("records_text"),
+        request.value("state_warnings", Json::array()));
     for (const auto &warning : exported.warnings)
       diagnostics.push_back(warning);
     return object("result", exported.summary, "diagnostics", diagnostics,

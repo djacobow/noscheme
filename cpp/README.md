@@ -381,7 +381,7 @@ Python plugin bridge.
 Numeric metadata evaluates in its component or caller environment as appropriate;
 overrides suppress replaced expressions. Named net-type metadata, conditional
 roles, choice scopes, and configurations are carried into the circuit for ERC; a
-board without named configurations gets one per combination of its choices, after
+root block without named configurations gets one per combination of its choices, after
 expansion, as in Python. `flat(net)` targets bind the array's scalar elements in
 row-major order.
 The parity tests decode the tagged numbers when comparing against Python's
@@ -680,7 +680,7 @@ for Python and 2 ms for native).
 Both servers reported zero diagnostics for STM32 and rulos, and the same 1,309
 unchecked-net warnings for WREN at the time of measurement (these are now
 reported as a count rather than diagnostics). The edit appends an unsaved comment to the
-board file; these numbers do not represent every editing operation or
+root block's file; these numbers do not represent every editing operation or
 plugin-heavy workload. Hover after an edit includes the 200 ms typing debounce.
 
 Projects with ERC plugins start Python twice per analysis: once to describe the

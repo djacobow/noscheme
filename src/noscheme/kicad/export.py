@@ -44,6 +44,34 @@ def read_state(path):
     )
 
 
+def state_warnings(config):
+    """Warn when this target has no identity state but an unconfigured target's does.
+
+    State is named for its target, so renaming a target would otherwise silently
+    start new KiCad references and UUIDs, leaving the old state behind.
+    """
+    path = config.state_path
+    if path.exists():
+        return []
+    orphans = []
+    for other in sorted(path.parent.glob("noscheme*.state.json")):
+        match = re.fullmatch(r"noscheme(?:\.([A-Za-z0-9_-]+))?\.state\.json", other.name)
+        if match and match[1] not in config.targets:
+            orphans.append(other.name)
+    if not orphans:
+        return []
+    return [
+        Diagnostic(
+            "export.state",
+            "warning",
+            f"no identity state {path.name} for this target, but {', '.join(orphans)} "
+            "belongs to no configured target; if the target was renamed, rename its state "
+            "file to keep KiCad references and UUIDs",
+            config.span,
+        )
+    ]
+
+
 def validate_export_paths(project, paths, inputs=()):
     protected = {
         project.config.path.resolve(),
@@ -443,12 +471,12 @@ def change_lines(changes):
 def export_project(project, circuit, footprint_records, *, configurations=None, warnings=None):
     apply_erc(circuit, configurations, registry=project.config.erc_registry)
     state_path = project.config.state_path
+    export_warnings = state_warnings(project.config)
     state = read_state(state_path)
     validate_state(state, state_path)
     snapshot = read_json(footprint_records)
     omitted = verify_footprints(circuit, snapshot, footprint_records)
     updated = assign(circuit, state, state_path)
-    export_warnings = []
     for part in circuit["parts"]:
         reference = updated["entries"][part["identity"]]["reference"]
         if reference.startswith("#"):

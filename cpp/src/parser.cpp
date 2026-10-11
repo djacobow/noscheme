@@ -382,7 +382,18 @@ class Builder {
       throw std::logic_error("unhandled generated expression rule");
     }
   }
+  // A pin number is written in plain digits; other spellings are quoted.
+  void plain_pin_number(Tree *t) {
+    auto spelling = t->getText();
+    if (spelling.find_first_not_of("0123456789") != std::string::npos)
+      throw Failure("syntax.pin-key",
+                    "write pin numbers as plain digits, or quote the name: \"" +
+                        spelling + "\"",
+                    begin(t), end(t));
+  }
   ast::PinKey pin_key(P::PinKeyContext *x) {
+    if (x->INT())
+      plain_pin_number(x);
     auto result = at<ast::PinKey>(x);
     result.spelling = x->getText();
     result.text =
@@ -483,6 +494,8 @@ class Builder {
       auto result = at<ast::FieldKey>(x);
       auto pins = x->bindingPin();
       auto pin = [&](P::BindingPinContext *p) {
+        if (p->INT())
+          plain_pin_number(p);
         auto key = at<ast::PinKey>(p);
         key.spelling = p->getText();
         key.text = p->STRING() ? string(p) : key.spelling;

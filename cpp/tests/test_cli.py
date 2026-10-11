@@ -491,6 +491,7 @@ def test_bom_export_parity(tmp_path, capsys, target, missing_footprint):
     from noscheme.project import read_config
 
     source = SOURCE.replace('"Example, Inc."', json.dumps('Ω "quoted", company\nSecond line'))
+    source = source.replace('"A shop"', '"=HYPERLINK(1)"').replace('"00123"', '"-5"')
     if missing_footprint:
         source = source.replace('    footprint: "Test:R"\n', "")
     make_project(tmp_path, source)
@@ -502,6 +503,20 @@ def test_bom_export_parity(tmp_path, capsys, target, missing_footprint):
     before = bom.read_bytes(), state.read_bytes()
     assert json_output(invoke(capsys, args, True)) == expected
     assert before == (bom.read_bytes(), state.read_bytes())
+
+
+@pytest.mark.parametrize("native", [False, True])
+def test_renamed_target_state_warning_parity(tmp_path, capsys, native):
+    from tests.test_bom import CONFIG, make_project
+
+    make_project(tmp_path)
+    args = ["export-bom", "--project", str(tmp_path), "--diagnostics", "json"]
+    assert invoke(capsys, args, native)[0] == 0
+    renamed = CONFIG.replace('main"', 'primary"').replace("[targets.main]", "[targets.primary]")
+    (tmp_path / "noscheme.toml").write_text(renamed)
+    code, _, diagnostics = json_output(invoke(capsys, args, native))
+    assert code == 0
+    assert [d["code"] for d in diagnostics["diagnostics"]] == ["export.state"]
 
 
 @pytest.mark.parametrize("first_native", [False, True])

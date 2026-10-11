@@ -41,6 +41,8 @@ class ProjectConfig:
     target: str
     erc_modules: tuple[Path, ...] = ()
     erc_rule_sets: tuple[str, ...] = ("std.default",)
+    # Every configured target name, for recognizing other targets' state files.
+    targets: tuple[str, ...] = ()
 
     @property
     def state_path(self):
@@ -331,6 +333,7 @@ def read_config(path: Path | str = ".", *, sources=None, target=None) -> Project
             selected,
             modules,
             tuple(rule_sets),
+            tuple(targets),
         )
     )
 

@@ -46,7 +46,7 @@ separated by their individual 4.7-ohm resistors.
 
 This pilot has **189 parts and 164 nets**. Of those, 68 cross its boundary:
 32 inputs, 32 outputs, enable, two supply rails, and ground. It is not a
-standalone board. All nets explicitly use `nettype.unchecked`: the power sources,
+standalone board. All nets explicitly use `net.unchecked`: the power sources,
 FPGA drive, loads, and electrical operating configurations are outside this
 slice. A `SurroundingWren` block supplies modeled external endpoints without
 adding physical parts. Compilation reports zero errors and 164 unchecked-net
