@@ -138,8 +138,8 @@ def test_lifecycle_and_capabilities(launcher):
 
 def test_document_lifecycle():
     result, replies = session(
-        opening("board B:\n  net\n"),
-        change("board B:\n  Signal ok\n"),
+        opening("block B:\n  net\n"),
+        change("block B:\n  Signal ok\n"),
         message("textDocument/didClose", {"textDocument": {"uri": URI}}),
     )
     assert result.returncode == 0, result.stderr
@@ -153,12 +153,12 @@ def test_document_lifecycle():
 
 def test_stale_versions_and_reopen():
     result, replies = session(
-        opening("board B:\n  Signal a\n", 10),
+        opening("block B:\n  Signal a\n", 10),
         change("bad", 9),
         change("bad", 10),
         message("textDocument/didClose", {"textDocument": {"uri": URI}}),
         change("bad", 11),
-        opening("board B:\n  Signal a\n", 1),
+        opening("block B:\n  Signal a\n", 1),
     )
     assert result.returncode == 0
     diagnostics = [r["params"] for r in replies if "params" in r]
@@ -182,7 +182,7 @@ def test_bad_notification_does_not_destroy_document():
     bad = change("", 2)
     bad["params"]["contentChanges"][0]["range"] = {}
     result, replies = session(
-        opening("board B:\n  Signal a\n"), bad, change("board B:\n  Signal b\n", 2)
+        opening("block B:\n  Signal a\n"), bad, change("block B:\n  Signal b\n", 2)
     )
     assert result.returncode == 0
     assert replies[2]["method"] == "window/logMessage"
@@ -281,11 +281,11 @@ def project_files(tmp_path):
     root = tmp_path / "project with spaces"
     root.mkdir()
     (root / "noscheme.toml").write_text(
-        'language_version = "0.1"\nboard = "main.B"\nsource_paths = ["."]\nlibrary_paths = []\noutput_dir = "build"\n'
+        'language_version = "0.1"\ntargets.default.root = "main.B"\ntargets.default.output_dir = "build"\nsource_paths = ["."]\nlibrary_paths = []\noutput_dir = "build"\n'
     )
     source = root / "main.nosch"
     source.write_text(
-        "from noscheme import net\nfrom parts import C\nboard B:\n  net.passive wire\n  C c(1: wire)\n"
+        "from noscheme import net\nfrom parts import C\nblock B:\n  net.passive wire\n  C c(1: wire)\n"
     )
     parts = root / "parts.nosch"
     parts.write_text(
@@ -435,7 +435,7 @@ def test_rapid_edits_publish_latest_only():
         updates = (
             [opening("bad", 1)]
             + [change("bad", i) for i in range(2, 100)]
-            + [change("board B:\n  Signal a\n", 100)]
+            + [change("block B:\n  Signal a\n", 100)]
         )
         client.process.stdin.write(b"".join(frame(m) for m in updates))
         client.process.stdin.flush()
@@ -464,7 +464,7 @@ def register(registry):
 """)
     config = source.parent / "noscheme.toml"
     config.write_text(config.read_text() + 'erc_modules = ["rules.py"]\n')
-    base = "from noscheme import net\nfrom demo import slow\nboard B:\n  net.passive a:\n"
+    base = "from noscheme import net\nfrom demo import slow\nblock B:\n  net.passive a:\n"
     slow = base + "    checks:\n      slow_check: slow()\n"
     with Client() as client:
         client.send(message("initialize", id=1))
@@ -657,7 +657,7 @@ extend C D:
     ref_prefix: "R"\n""")
     text = """from noscheme import net
 from parts import D
-board B:
+block B:
   global net.ground gnd
   D<value: 2> c(signal: global.gnd)
 """
@@ -717,7 +717,7 @@ def test_nested_bundle_navigation(tmp_path, selection, target, grouped):
     parts.write_text(library)
     text = f"""import parts
 from noscheme import net
-board B:
+block B:
   global parts.Buses shared
   parts.Buses local[2]
   parts.Specialized p[2]:
@@ -763,7 +763,7 @@ def test_bundle_field_declaration_and_unsaved_type(tmp_path):
     parts.write_text(BUNDLE_LIBRARY)
     modified = BUNDLE_LIBRARY.replace("sck", "clock#")
     text = """import parts
-board B:
+block B:
   parts.Buses signals
   parts.Specialized p:
     bus.sd[0].clock#: signals.sd[1].clock#
@@ -788,7 +788,7 @@ def test_bundle_navigation_does_not_guess(tmp_path, rhs):
     source, parts = project_files(tmp_path)
     parts.write_text(BUNDLE_LIBRARY)
     text = f"""import parts
-board B:
+block B:
   global parts.Buses shared
   parts.Buses signals
   parts.Specialized p:
@@ -805,14 +805,14 @@ board B:
 
 def test_hover_metadata_and_parameter_defaults(tmp_path):
     source, parts = project_files(tmp_path)
-    parts.write_text("""from noscheme import role, unused
+    parts.write_text("""from noscheme import role, use
 component C:
   params:
     number value = 10
   pins:
     1 (signal):
       role: role.passive
-      unused: unused.always
+      use: use.optional
   metadata:
     footprint: "Test:Footprint"\n""")
     text = source.read_text().replace("C c(1: wire)", "C<value: 20> c(signal: wire)")
@@ -822,7 +822,7 @@ component C:
         client.send(at_path(opening(text), source))
         for rid, needle, snippets in [
             (2, "C<value", ["footprint: Test:Footprint", "from parts"]),
-            (3, "signal:", ["role: passive", "aliases:", "unused: always"]),
+            (3, "signal:", ["role: passive", "aliases:", "use: optional"]),
             (4, "value: 20", ["Default: 10", "parameter value: number"]),
         ]:
             client.send(navigation("hover", source, text, needle, rid))
@@ -934,7 +934,7 @@ def test_completion_ignores_comments_and_strings(tmp_path, suffix):
 def test_standard_rule_hover_and_completion(tmp_path):
     source, parts = project_files(tmp_path)
     text = """from noscheme import net, std as rules
-board B:
+block B:
   net.passive n:
     checks:
       empty: rules.unconnected_net()
@@ -972,7 +972,7 @@ def test_plugin_rule_hover_and_completion(tmp_path):
     config.write_text(config.read_text() + 'erc_modules = ["rules.py"]\n')
     text = """from noscheme import net
 import custom
-board B:
+block B:
   net.passive n:
     checks:
       budget: custom.limit(10)
@@ -1054,7 +1054,7 @@ def test_public_interface_completion(tmp_path, endpoint, target, needle, expecte
     source, parts = project_files(tmp_path)
     parts.write_text(BUNDLE_LIBRARY)
     text = f"""import parts
-board B:
+block B:
   global parts.Buses shared
   parts.Buses local
   parts.Specialized p:
@@ -1089,7 +1089,7 @@ component C:
 """
     text = f"""from parts import C
 from noscheme import net
-board B:
+block B:
   net.passive n
   C c({prefix}: n)
 """
@@ -1136,7 +1136,7 @@ def test_footprint_completion(tmp_path, raw, location):
         path = source
         text = f"""from parts import C
 from noscheme import net
-board B:
+block B:
   net.passive n
   C c(1: n):
     metadata:
@@ -1206,7 +1206,7 @@ board B:
 def test_footprint_completion_excludes_other_contexts(tmp_path, suffix):
     source, parts = project_files(tmp_path)
     parts.write_text(FOOTPRINT_LIBRARY)
-    text = "from parts import C\nboard B:\n  C c:\n    metadata:\n" + suffix + "\n"
+    text = "from parts import C\nblock B:\n  C c:\n    metadata:\n" + suffix + "\n"
     with Client() as client:
         client.send(message("initialize", id=1))
         client.until(lambda r: r.get("id") == 1)
@@ -1238,7 +1238,7 @@ def test_local_connection_target_completion(tmp_path, reference, expected):
 from parts import C
 block Other:
   net.passive private
-board B:
+block B:
   global net.ground gnd
   net.passive wire
   net.passive pad
@@ -1293,7 +1293,7 @@ board B:
 def test_erc_argument_completion(tmp_path, call, expected, absent):
     source, parts = project_files(tmp_path)
     marked = f"""from noscheme import net, std as rules
-board B:
+block B:
   net.passive n:
     checks:
       budget: {call}
@@ -1333,7 +1333,7 @@ def test_plugin_erc_argument_completion(tmp_path):
     config.write_text(config.read_text() + 'erc_modules = ["rules.py"]\n')
     text = """from noscheme import net
 from custom import limit as budget
-board B:
+block B:
   net.passive n:
     checks:
       budget: budget(am)
@@ -1369,7 +1369,7 @@ board B:
 )
 def test_erc_completion_excludes_other_contexts(tmp_path, body):
     source, parts = project_files(tmp_path)
-    marked = "from noscheme import net, std\nboard B:\n" + body + "\n"
+    marked = "from noscheme import net, std\nblock B:\n" + body + "\n"
     before = marked[: marked.index("|")]
     text = marked.replace("|", "")
     with Client() as client:
@@ -1424,7 +1424,7 @@ def test_inline_instance_completion(tmp_path, arguments, expected, absent):
     parts.write_text(INLINE_LIBRARY)
     marked = f"""from parts import D
 from noscheme import net
-board B:
+block B:
   net.passive wire
   net.passive other
   D r({arguments}
@@ -1481,7 +1481,7 @@ component C:
     else:
         path = source
         text = f"""from noscheme import net, std
-board B:
+block B:
   net.passive n:
     checks:
       test: {prefix}
@@ -1513,7 +1513,7 @@ def test_noninterchangeable_instance_offers_only_named_bindings(tmp_path):
     parts.write_text(INLINE_LIBRARY.replace("    interchangeable: [1, 2]", '    ref_prefix: "R"'))
     text = """from parts import C
 from noscheme import net
-board B:
+block B:
   net.passive wire
   C r()
 """
@@ -1538,7 +1538,7 @@ board B:
 def test_inline_completion_excludes_comments_and_strings(tmp_path, raw):
     source, parts = project_files(tmp_path)
     parts.write_text(INLINE_LIBRARY)
-    text = "from parts import C\nboard B:\n  C r(" + raw + "\n"
+    text = "from parts import C\nblock B:\n  C r(" + raw + "\n"
     with Client() as client:
         client.send(message("initialize", id=1))
         client.until(lambda r: r.get("id") == 1)
@@ -1571,7 +1571,7 @@ def test_section_binding_completion(tmp_path, binding, expected, absent):
     parts.write_text(INLINE_LIBRARY)
     marked = f"""from parts import D
 from noscheme import net
-board B:
+block B:
   net.passive wire
   net.passive other
   D r:
@@ -1628,7 +1628,7 @@ def test_section_partial_bundle_without_colon(tmp_path, binding):
     source, parts = project_files(tmp_path)
     parts.write_text(BUNDLE_LIBRARY)
     marked = f"""import parts
-board B:
+block B:
   parts.Specialized p[2]:
     {binding}
 """
@@ -1670,7 +1670,7 @@ def test_section_completion_boundaries(tmp_path, section):
     parts.write_text(INLINE_LIBRARY)
     marked = f"""from parts import D
 from noscheme import net
-board B:
+block B:
   net.passive wire
   D r:
     {section}
@@ -1700,25 +1700,24 @@ board B:
     "marked, expected",
     [
         ("comp|onent", {"component"}),
-        ("|", {"from", "import", "component", "block", "board", "bundle", "extend"}),
+        ("|", {"from", "import", "component", "block", "bundle", "extend"}),
         ("ex|", {"extend"}),
         ("from Device imp|", {"import"}),
         ("from Device import R a|", {"as"}),
-        ("board B:\n  C r[2]:\n    elements:\n      [0]:\n        |", {"params", "metadata"}),
-        ("board B:\n  |", {"metadata", "global"}),
-        ("board B:\n  global n|", set()),
+        ("block B:\n  C r[2]:\n    elements:\n      [0]:\n        |", {"params", "metadata"}),
+        ("block B:\n  global n|", set()),
         ("block B:\n  |", {"params", "ports", "metadata", "global"}),
         ("component C:\n  |", {"params", "pins", "metadata"}),
         ("extend Other C:\n  |", {"pins", "ports", "metadata"}),
         ("extend Other B:\n  |", {"pins", "ports", "metadata"}),
         ("bundle B:\n  |", {"metadata"}),
-        ("board B:\n  C c:\n    |", {"params", "metadata", "elements"}),
-        ("board B:\n  C c():\n    met|", {"metadata"}),
+        ("block B:\n  C c:\n    |", {"params", "metadata", "elements"}),
+        ("block B:\n  C c():\n    met|", {"metadata"}),
         ("// comp|", set()),
         ("/* comp|", set()),
-        ('board B:\n  metadata:\n    value: "comp|', set()),
-        ("board B:\n  metadata:\n    comp|", set()),
-        ("board B:\n  C c(\n    comp|", set()),
+        ('block B:\n  metadata:\n    value: "comp|', set()),
+        ("block B:\n  metadata:\n    comp|", set()),
+        ("block B:\n  C c(\n    comp|", set()),
         ("component C:\n  params:\n    comp|", set()),
     ],
 )
@@ -1795,7 +1794,7 @@ def test_grouped_pin_completion(tmp_path, binding, expected):
     )
     marked = f"""from parts import D
 from noscheme import net
-board B:
+block B:
   net.passive wire
   D r:
     {binding}
@@ -1843,7 +1842,7 @@ def test_grouped_pin_navigation_and_references(tmp_path, pin, broken):
     key = pin if pin == "[1..2]" else f"[{pin}]"
     text = f"""from parts import D
 from noscheme import net
-board B:
+block B:
   net.passive wire
   D r:
     {key}: wire
@@ -1891,7 +1890,7 @@ def test_elaborated_instance_hover(tmp_path):
     parts.write_text(INLINE_LIBRARY)
     text = """from parts import D
 from noscheme import net
-board B:
+block B:
   net.passive wire
   D<value: 2200> resistors[6](wire, wire)
 """
@@ -2218,7 +2217,7 @@ from noscheme import role, net
 component Local:
   pins:
     1: role.passive
-board B:
+block B:
   """
         + header
     )
@@ -2250,10 +2249,13 @@ board B:
 @pytest.mark.parametrize(
     ("header", "expected"),
     [
-        ("extend ", {"parts.C", "Alias", "parts.Group", "parts.Signal"}),
-        ("board B:\n  global ", {"parts.Signal", "parts.Bus"}),
+        ("extend ", {"B", "parts.C", "Alias", "parts.Group", "parts.Signal"}),
+        ("block B:\n  global ", {"parts.Signal", "parts.Bus"}),
         ("extend parts.", {"C", "Group", "Signal"}),
-        ("block LocalGroup:\n  ", {"Alias", "parts.C", "parts.Group", "parts.Signal", "parts.Bus"}),
+        (
+            "block LocalGroup:\n  ",
+            {"B", "Alias", "parts.C", "parts.Group", "parts.Signal", "parts.Bus"},
+        ),
     ],
 )
 def test_empty_type_contexts_filter_visible_namespace(tmp_path, header, expected):
@@ -2271,8 +2273,8 @@ bundle Bus:
 """
     )
     prelude = "import parts\nfrom parts import C as Alias\n"
-    if not header.startswith("board"):
-        prelude += "board B:\n  metadata:\n    custom:\n      demo: true\n"
+    if not header.startswith("block B:"):
+        prelude += "block B:\n  metadata:\n    custom:\n      demo: true\n"
     text = prelude + header
     with Client() as client:
         client.send(message("initialize", id=1))
@@ -2294,12 +2296,12 @@ bundle Bus:
         } == expected
 
 
-@pytest.mark.parametrize("header", ["board B:\n  global ", "extend "])
+@pytest.mark.parametrize("header", ["block B:\n  global ", "extend "])
 def test_type_completion_with_builtin_alias(tmp_path, header):
     source, _ = project_files(tmp_path)
     text = "from noscheme import net as nt\n"
     if header.startswith("extend"):
-        text += "board B:\n  metadata:\n    custom:\n      demo: true\n"
+        text += "block B:\n  metadata:\n    custom:\n      demo: true\n"
     text += header
     with Client() as client:
         client.send(message("initialize", id=1))
@@ -2316,7 +2318,9 @@ def test_type_completion_with_builtin_alias(tmp_path, header):
         items = client.until(lambda r: r.get("id") == 2)["result"]["items"]
         labels = {i["label"] for i in items}
         assert {"nt.digital", "nt.unchecked"} <= labels
-        assert all(label.startswith("nt.") for label in labels)
+        assert all(
+            label.startswith("nt.") or (header == "extend " and label == "B") for label in labels
+        )
 
 
 @pytest.mark.parametrize(
@@ -2381,7 +2385,7 @@ def test_instance_code_actions_parity(tmp_path, case):
 
     source, _ = project_files(tmp_path)
     text = case["source"]
-    offset = text.index(" p", text.index("board B:")) + 1
+    offset = text.index(" p", text.index("block B:")) + 1
 
     def position_at(at):
         prefix = text[:at]

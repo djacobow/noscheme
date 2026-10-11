@@ -73,7 +73,6 @@ PORT_ALLOWED = {
     "open_drain": PASSIVE | {"digital_input", "open_drain"},
     "open_source": PASSIVE | {"digital_input", "open_source"},
     "unchecked": ALLOWED_ROLES["passive"],
-    "do_not_connect": set(),
 }
 PORT_EVIDENCE = {
     "digital_input": {"digital_input"},

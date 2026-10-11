@@ -23,7 +23,7 @@ PART = """component P:
 def design(key="[VDD, 2..3, 7]", rhs="n", extra="", dimensions=""):
     return (
         PART
-        + f"""board B:
+        + f"""block B:
   net.passive n
   P p{dimensions}:
     {key}: {rhs}
@@ -79,19 +79,19 @@ def test_component_specialization_lists_override_existing_pins(tmp_path, selecti
     source = (
         design()
         .replace(
-            "board B:",
+            "block B:",
             """extend P Specialized:
   pins:
     [1, 2..3, 7]:
-      unused: unused.never
-board B:""",
+      use: use.required
+block B:""",
         )
         .replace("P p", "Specialized p")
     )
     source = source.replace("[1, 2..3, 7]:", selection + ":")
     circuit = compile_source(tmp_path, source)
     assert all(
-        p["metadata"]["unused"]["value"] == "never" for p in circuit["parts"][0]["pins"].values()
+        p["metadata"]["use"]["value"] == "required" for p in circuit["parts"][0]["pins"].values()
     )
 
 
@@ -199,7 +199,7 @@ def test_singleton_exact_physical_names(tmp_path, pin):
   pins:
     [{pin}]:
       role: role.passive
-board B:
+block B:
   net.passive n
   P p:
     [{pin}]: n

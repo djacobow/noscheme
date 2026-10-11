@@ -23,7 +23,7 @@ component Device:
     1:
       role: role.open_drain
       bias: bias.none
-board B:
+block B:
   net.open_drain bus:
     checks:
       pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=1k + 1k)
@@ -66,7 +66,7 @@ def test_metadata_expression_names_are_resolved_even_for_uninstantiated_parts(tm
 
 def test_instance_quantities_use_caller_environment(tmp_path):
     source = SOURCE.replace(
-        "board B:\n", "block Circuit:\n  params:\n    number resistance = 2200\n"
+        "block B:\n", "block Circuit:\n  params:\n    number resistance = 2200\n"
     )
     source = source.replace(
         "    1: bus\n  Device",
@@ -77,7 +77,7 @@ def test_instance_quantities_use_caller_environment(tmp_path):
           pull_resistance: resistance
   Device""",
     )
-    source += "board B:\n  Circuit circuit()\n"
+    source += "block B:\n  Circuit circuit()\n"
     circuit = compile_source(tmp_path, source)
     pull = next(p for p in circuit["parts"] if p["identity"] == "circuit.pull")
     assert pull["value"]["value"] == "3.3kOhm"
@@ -96,7 +96,7 @@ def test_nested_current_load_expression(tmp_path):
       supply:
         pins: ["1"]
         max_load_current: current * 2
-board B:
+block B:
   net.power rail
   Load load:
     1: rail

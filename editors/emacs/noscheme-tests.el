@@ -26,10 +26,22 @@
                (expand-file-name (concat "editors/emacs/" name)
                                  noscheme-eglot--checkout))))))
 
+(ert-deftest noscheme-numeric-literal-highlighting ()
+  (with-temp-buffer
+    (let ((noscheme-mode-hook nil)) (noscheme-mode))
+    (dolist (literal '("0xFF_FF" "0b1010_0011" "1_000" ".5" ".5µ" "1µ5"))
+      (erase-buffer)
+      (insert "number value = " literal "\n")
+      (font-lock-ensure)
+      (goto-char (point-min))
+      (search-forward literal)
+      (should (eq (get-text-property (- (point) (length literal)) 'face)
+                  'font-lock-constant-face)))))
+
 (ert-deftest noscheme-syntax-and-indentation ()
   (with-temp-buffer
     (let ((noscheme-mode-hook nil)) (noscheme-mode))
-    (insert "board B:\nnet.digital #reset // comment\n/* outer /* inner */ global\n")
+    (insert "block B:\nnet.digital #reset // comment\n/* outer /* inner */ global\n")
     (goto-char (point-min))
     (forward-line)
     (indent-according-to-mode)

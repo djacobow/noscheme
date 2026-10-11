@@ -150,8 +150,7 @@ def instance_actions(path, config, sources, offset):
                 pins = []
                 for name, pin in sorted(target.interface.items()):
                     if name in bound or (
-                        pin.metadata.get("role")
-                        and pin.metadata["role"].value == ("do_not_connect",)
+                        pin.metadata.get("use") and pin.metadata["use"].value == "disallowed"
                     ):
                         continue
                     spelling = (
@@ -159,8 +158,8 @@ def instance_actions(path, config, sources, offset):
                         if re.fullmatch(r"[A-Za-z_#][A-Za-z0-9_#]*|[0-9]+", name)
                         else json.dumps(name)
                     )
-                    unused = pin.metadata.get("unused")
-                    pins.append((spelling, unused is None or unused.value != "always"))
+                    unused = pin.metadata.get("use")
+                    pins.append((spelling, unused is None or unused.value != "optional"))
                 parameters = [
                     (name, param.default is None)
                     for name, param in sorted(target.parameters.items())

@@ -20,7 +20,6 @@ using ast::Kind;
 const std::map<std::string, std::set<std::string>> allowed_sections = {
     {"component", {"params", "pins", "metadata"}},
     {"block", {"params", "ports", "metadata"}},
-    {"board", {"metadata"}},
     {"bundle", {"metadata"}},
     {"nettype", {}}};
 class Validator {
@@ -249,12 +248,12 @@ public:
                 "definitions",
                 field->span);
       } else if (auto *declaration = as<ast::Declaration>(n)) {
-        if ((kind != "block" && kind != "board") || base)
+        if ((kind != "block") || base)
           error("syntax.declaration-context",
-                "internal circuit declarations require a base block or board",
+                "internal circuit declarations require a base block",
                 declaration->span);
-        if (declaration->global && kind != "board" && kind != "block")
-          error("syntax.global-context", "only a board may declare globals",
+        if (declaration->global && kind != "block")
+          error("syntax.global-context", "only a block may declare globals",
                 declaration->span);
       }
     }

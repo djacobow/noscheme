@@ -37,7 +37,7 @@ def setup(tmp_path):
 
 
 def state(project):
-    return json.loads((project.config.path.parent / "noscheme.state.json").read_text())
+    return json.loads((project.config.path.parent / "noscheme.default.state.json").read_text())
 
 
 def test_export_and_repeatability(setup):
@@ -178,10 +178,10 @@ def test_deleted_references_reserved_and_explicit_conflicts_block(setup):
     export_project(project, added, records)
     assert state(project)["entries"]["new"]["reference"] == "R3"
     extra["metadata"]["ref"] = {"value": "R1"}
-    before = (project.config.path.parent / "noscheme.state.json").read_bytes()
+    before = (project.config.path.parent / "noscheme.default.state.json").read_bytes()
     with pytest.raises(DiagnosticError, match="reserved"):
         export_project(project, added, records)
-    assert (project.config.path.parent / "noscheme.state.json").read_bytes() == before
+    assert (project.config.path.parent / "noscheme.default.state.json").read_bytes() == before
 
 
 @pytest.mark.parametrize("failure", ["unknown", "pad", "bad-state"])
@@ -191,7 +191,7 @@ def test_validation_failure_preserves_outputs(setup, failure):
     net = project.config.output_dir / "board.net"
     before = net.read_bytes()
     if failure == "bad-state":
-        (project.config.path.parent / "noscheme.state.json").write_text("{bad")
+        (project.config.path.parent / "noscheme.default.state.json").write_text("{bad")
     else:
         snapshots = json.loads(records.read_text())
         record = next(iter(snapshots["footprints"].values()))
@@ -200,11 +200,11 @@ def test_validation_failure_preserves_outputs(setup, failure):
         else:
             record["pads"].append("99")
         records.write_text(json.dumps(snapshots))
-    state_before = (project.config.path.parent / "noscheme.state.json").read_bytes()
+    state_before = (project.config.path.parent / "noscheme.default.state.json").read_bytes()
     with pytest.raises(DiagnosticError):
         export_project(*setup)
     assert net.read_bytes() == before
-    assert (project.config.path.parent / "noscheme.state.json").read_bytes() == state_before
+    assert (project.config.path.parent / "noscheme.default.state.json").read_bytes() == state_before
 
 
 def test_missing_footprint_retained_in_state_but_omitted_from_netlist(setup):
@@ -224,7 +224,7 @@ def test_publication_io_failure_rolls_back(setup, monkeypatch):
     project, circuit, records = setup
     export_project(*setup)
     files = {p: p.read_bytes() for p in project.config.output_dir.iterdir() if p.is_file()}
-    statefile = project.config.path.parent / "noscheme.state.json"
+    statefile = project.config.path.parent / "noscheme.default.state.json"
     files[statefile] = statefile.read_bytes()
     real_replace = exporter.os.replace
     calls = 0
@@ -378,7 +378,7 @@ def test_no_connect_nodes_are_isolated_stable_and_collision_safe(setup):
         part["pins"][pin]["net"] = None
     part["pins"][pins[0]]["binding"] = "no_connect"
     part["pins"][pins[1]]["binding"] = "omitted"
-    part["pins"][pins[1]]["metadata"]["role"] = {"value": ["do_not_connect"]}
+    part["pins"][pins[1]]["metadata"]["use"] = {"value": "disallowed"}
     original = deepcopy(circuit)
 
     def exported_nets():

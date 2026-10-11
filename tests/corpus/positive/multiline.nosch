@@ -9,7 +9,7 @@ component Part:
             2
         )
 
-board Board:
+block Board:
     // Whole-line comments should not introduce indentation.
     Part item:
         /* another comment */

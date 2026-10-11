@@ -60,7 +60,7 @@ CompletionResult scope_completion(const std::string &text, std::size_t offset,
         parents, [&](const Row &row) { return row.text == name; });
   };
   static const std::regex definition(
-      R"(^(?:(component|block|board|bundle)\s+([A-Za-z_#][A-Za-z0-9_#]*)|extend\s+([A-Za-z0-9_#.]+)(?:[ \t]*<[^\n]*>)?[ \t]+([A-Za-z_#][A-Za-z0-9_#]*))[^\n]*)",
+      R"(^(?:(component|block|bundle)\s+([A-Za-z_#][A-Za-z0-9_#]*)|extend\s+([A-Za-z0-9_#.]+)(?:[ \t]*<[^\n]*>)?[ \t]+([A-Za-z_#][A-Za-z0-9_#]*))[^\n]*)",
       std::regex::multiline);
   std::smatch owner;
   std::size_t owner_end = 0;
@@ -194,7 +194,7 @@ CompletionResult scope_completion(const std::string &text, std::size_t offset,
       auto space = kind == "enum"    ? enum_namespace
                    : kind == "roles" ? "role"
                                      : kind;
-      if (space == "role" || space == "unused" || space == "bias") {
+      if (space == "role" || space == "use" || space == "bias") {
         for (const auto &entry : catalog)
           if (entry.kind == 20 && entry.type_kind == space &&
               !entry.shadowed(offset))

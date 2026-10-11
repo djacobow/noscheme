@@ -308,7 +308,6 @@ std::string pin_kind(const Json &pin) {
       {"power_output", "power_out"},
       {"open_drain", "open_collector"},
       {"open_source", "open_emitter"},
-      {"do_not_connect", "no_connect"},
       {"unchecked", "unspecified"}};
   auto roles = attribute(pin, "role", Json::array());
   std::string kind = "unspecified";
@@ -403,10 +402,8 @@ Rendered render(const Json &circuit, const Json &state) {
       if (!data["net"].is_null())
         nets[net_names.at(data["net"])].push_back(form("node", node));
       else {
-        auto roles = attribute(data, "role", Json::array());
         if (data["binding"] != "no_connect" &&
-            std::find(roles.begin(), roles.end(), "do_not_connect") ==
-                roles.end())
+            attribute(data, "use", Json()) != "disallowed")
           continue;
         std::string base = "unconnected-(" + entry["uuid"].get<std::string>() +
                            "-Pad" + pin + ")",

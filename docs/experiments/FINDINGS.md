@@ -10,7 +10,7 @@ root. Generated evidence is local and is not included in a fresh clone.
 The original netlists used generic custom properties, which the tested editor
 did not copy into footprint fields. Production export now also emits KiCad
 `fields`; the user verified `noscheme_path` and `noscheme_identity` after import.
-See [current export behavior](../LRM.md#142-output-files).
+See [current export behavior](../../USAGE.md#92-output-files).
 
 Recorded 2026-10-03. The feasibility experiments are complete: the grammar parses
 the reference draft, and manual KiCad import/update trials have been checked

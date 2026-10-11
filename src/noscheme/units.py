@@ -11,6 +11,7 @@ PREFIXES = {
     "p": -12,
     "n": -9,
     "u": -6,
+    "µ": -6,
     "m": -3,
     "R": 0,
     "k": 3,
@@ -19,7 +20,7 @@ PREFIXES = {
     "T": 12,
     "P": 15,
 }
-SCALED = re.compile(r"([0-9]+)(?:\.([0-9]+))?([afpnumkMGTPR])([0-9]+)?\Z")
+SCALED = re.compile(r"([0-9]*)(?:\.([0-9]+))?([afpnuµmkMGTPR])([0-9]+)?\Z")
 
 # Quantity name -> (unit symbol, sign constraint for metadata fields).
 QUANTITIES = {
@@ -33,15 +34,20 @@ QUANTITIES = {
     "power": ("W", "nonnegative"),
 }
 # Display prefixes, smallest first; R is input-only.
-DISPLAY = [(e, p) for p, e in sorted(PREFIXES.items(), key=lambda item: item[1]) if p != "R"]
+DISPLAY = [
+    (e, p) for p, e in sorted(PREFIXES.items(), key=lambda item: item[1]) if p not in {"R", "µ"}
+]
 
 
 def is_scaled(spelling):
-    return SCALED.match(spelling) is not None
+    return SCALED.match(spelling.replace("_", "")) is not None
 
 
 def number_value(spelling, *, negative=False):
     """Parse a signed literal, preserving integral SI-prefixed values as integers."""
+    spelling = spelling.replace("_", "")
+    if spelling.lower().startswith(("0x", "0b")):
+        return parse_integer(("-" if negative else "") + spelling)
     if is_scaled(spelling):
         return scaled_value(spelling, negative=negative)
     text = ("-" if negative else "") + spelling
@@ -50,7 +56,7 @@ def number_value(spelling, *, negative=False):
 
 def scaled_parts(spelling):
     """Normalize decimal digits and exponent without evaluating the number."""
-    match = SCALED.match(spelling)
+    match = SCALED.match(spelling.replace("_", ""))
     if match is None or match[2] is not None and match[4] is not None:
         raise ValueError(f"invalid scaled number {spelling!r}")
     whole, fraction, prefix, rkm = match.groups()

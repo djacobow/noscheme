@@ -3,7 +3,7 @@
 NoScheme provides Vim/Neovim and Emacs integrations, a local VS Code extension, and
 an independent language server for diagnostics, navigation, references, rename,
 hover, completion, and formatting. Follow
-[HOWTO installation](../HOWTO.md#1-install-and-select-an-implementation) to install the tools.
+[Usage guide installation](../USAGE.md#1-install-and-select-an-implementation) to install the tools.
 
 ## Vim and Neovim
 
@@ -294,7 +294,7 @@ Pin and alias completion also works inside unfinished connection lists such as
 `[1..3, VD`. Navigation, references, and hover distinguish individual list
 entries; a range represents all of its physical pins, as in an unbracketed range.
 Qualified instance names such as `Device.R` and imported aliases are supported.
-Requesting completion at the start of a board or block body line lists visible
+Requesting completion at the start of a block body line lists visible
 components, blocks, bundles, and net types. `global `, bundle members, and ports
 restrict choices to net types and bundles. `extend ` offers components, blocks,
 and net types as bases. Qualified imports and builtin aliases are supported.
@@ -332,7 +332,7 @@ Select an action to apply ordinary text edits; normal undo works. Replace the
 stay commented so defaults continue to apply. There is no snippet Tab navigation.
 
 Existing bindings, aliases, positional arguments, parameter values, and comments
-are preserved. Pins marked `role.do_not_connect` are excluded. Arrays are supported;
+are preserved. Pins marked `use.disallowed` are excluded. Arrays are supported;
 instances with `elements:` overrides are currently excluded. A partially bound
 bundle or pin array is left alone rather than filling its remaining members.
 Actions require parseable source and a resolved component/block type, but work
@@ -601,10 +601,10 @@ Use `:LspHover` on a declaration or use. Hover includes:
 - Instance names: elaborated identities and, for physical parts, actual values,
   footprints, and parameters after instance overrides. Arrays and reusable blocks
   may produce several values; the display lists a bounded set of instances.
-- Pins and ports: types, aliases, roles, unused-pin policy, and electrical
+- Pins and ports: types, aliases, roles, connection policy, and electrical
   metadata. Physical pin connection bindings also show effective roles and nets.
 - Nets and bundle fields: declared types, field metadata, and net endpoint counts.
-- Builtin `role`, `net`, and `unused` members: explanations of their electrical
+- Builtin `role`, `net`, and `use` members: explanations of their electrical
   meaning and ERC behavior. This also works with import aliases and qualified
   names such as `noscheme.role.open_drain`.
 
@@ -656,7 +656,7 @@ It provides syntax, project, semantic, and ERC diagnostics using full-document
 updates, plus initial go-to-definition and hover support for project types,
 lexical names, parameters, globals, public pin bindings, and nested bundle fields
 through array indices/slices. Hover includes types, simple parameter defaults, and
-common resolved metadata. Builtin role/net/unused descriptions and registered
+common resolved metadata. Builtin role/net/use descriptions and registered
 ERC rule signatures are available. Initial completion covers imported types,
 qualified names, enum members, and ERC rules; an unfinished member such as
 `role.` can receive suggestions while retaining its syntax diagnostic.

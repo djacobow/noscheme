@@ -6,7 +6,6 @@ imported_name: NAME ["as" NAME]
 definition: definition_kind NAME ":" _NL _INDENT definition_item+ _DEDENT
 definition_kind: "component" -> component_kind
                | "block" -> block_kind
-               | "board" -> board_kind
                | "bundle" -> bundle_kind
 // `extend Base<params> Name:` specializes a component, block, or net type, and
 // is of the base's kind; `<...>` gives parameter defaults. The body is optional.
@@ -42,7 +41,7 @@ pin_selection: pin_key [".." pin_key]
 // In params and ports: `number gain = 2`, `net.power supply:`.
 typed_field: name_path declarator ("," declarator)* ["=" expr] (_NL | ":" _NL _INDENT field+ _DEDENT)
 declarator: NAME index*
-// In a block, board, or bundle: a net or an instance, told apart once the type
+// In a block or bundle: a net or an instance, told apart once the type
 // resolves. `<...>` holds parameters, `(...)` connections: positional nets for
 // interchangeable pins, pin: net, and `*` for same-name connections. The body
 // holds net fields, or connections then params, metadata, and elements sections.
@@ -109,9 +108,9 @@ PARAMS: "params"
 ADD: "+" | "-"
 MUL: "*" | "/"
 // SI-prefixed literals: 4.7k, 4k7, 100n, 4R7. A following name character is not a suffix.
-SCALED.3: /[0-9]+(?:\.[0-9]+)?[afpnumkMGTPR](?:[0-9]+)?(?![A-Za-z0-9_#])/
-NUMBER.2: /(?:[0-9]+\.[0-9]+(?:[eE][+-]?[0-9]+)?|[0-9]+[eE][+-]?[0-9]+)/
-INT: /[0-9]+/
+SCALED.3: /(?:[0-9](?:_?[0-9])*(?:\.[0-9](?:_?[0-9])*)?|\.[0-9](?:_?[0-9])*)[afpnuµmkMGTPR](?:[0-9](?:_?[0-9])*)?(?![A-Za-z0-9_#])/
+NUMBER.2: /(?:[0-9](?:_?[0-9])*)?\.[0-9](?:_?[0-9])*(?:[eE][+-]?[0-9](?:_?[0-9])*)?|[0-9](?:_?[0-9])*[eE][+-]?[0-9](?:_?[0-9])*/
+INT: /0[xX][0-9a-fA-F](?:_?[0-9a-fA-F])*|0[bB][01](?:_?[01])*|[0-9](?:_?[0-9])*/
 NAME: /[A-Za-z_#][A-Za-z0-9_#]*/
 STRING: /"(?:[^"\\\r\n]|\\[^\r\n])*"/
 _LPAR: "("

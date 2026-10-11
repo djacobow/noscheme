@@ -15,7 +15,7 @@ component Endpoint:
   pins:
     1:
       role: role.digital_output
-board B:
+block B:
   net.digital bus:
     checks:
       contention: std.count(std.active_digital_driver, max=1)
@@ -97,7 +97,7 @@ extend Pull Maybe:
   pins:
     1:
       bias: bias.none
-board B:
+block B:
   net.passive bus:
     checks:
       strength: std.parallel(pull_resistance, where=bias.pull_up, min=2000)
@@ -217,7 +217,7 @@ extend Base Child:
     1:
       checks:
         limit: test.limit(maximum=10)
-board B:
+block B:
   net.passive bus
   Child load:
     1: bus
@@ -373,7 +373,7 @@ component Part:
       role: role.passive
       checks:
         limit: bounded(maximum=5)
-board B:
+block B:
   net.passive bus
   Part load:
     1: bus
@@ -411,7 +411,7 @@ block Inner:
         contention: std.count(std.active_digital_driver, max=0)
   Endpoint endpoint:
     1: bus
-board B:
+block B:
   net.digital bus:
     waivers:
       contention: "Reviewed: the inner limit is a test fixture."

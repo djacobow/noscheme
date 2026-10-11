@@ -215,7 +215,7 @@ struct Declarator : Typed<Kind::Declarator> {
   Name name;
   std::vector<Index> dimensions;
 };
-// `Type<params> name(args):` in a block, board, or bundle, before its type
+// `Type<params> name(args):` in a block or bundle, before its type
 // resolves; the project loader makes it Nets or an Instance by the kind of its
 // type. Sections are those of an instance, with `<...>` and `(...)` entries
 // merged in; body lines that cannot be connections are fields, which only a net
@@ -242,7 +242,7 @@ struct Import : Typed<Kind::Import> {
   std::vector<ImportedName> names;
 };
 struct Definition : Typed<Kind::Definition> {
-  // component, block, board, bundle, or nettype; "extend" until the project
+  // component, block, bundle, or nettype; "extend" until the project
   // loader gives an extension its base's kind.
   std::string keyword;
   Name name;

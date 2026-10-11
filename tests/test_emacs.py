@@ -35,16 +35,16 @@ def test_emacs_eglot(tmp_path, implementation):
         project = root / name
         project.mkdir(parents=True)
         (project / "noscheme.toml").write_text(
-            'language_version = "0.1"\nboard = "main.B"\nsource_paths = ["."]\n'
+            'language_version = "0.1"\ntargets.default.root = "main.B"\ntargets.default.output_dir = "build"\nsource_paths = ["."]\n'
             'library_paths = []\noutput_dir = "build"\n'
         )
         (project / "parts.nosch").write_text(
-            """from noscheme import role, unused
+            """from noscheme import role, use
 component Capacitor:
   params:
     capacitance value = 100n
   pins:
-    1..2: [role.passive, unused.never]
+    1..2: [role.passive, use.required]
   metadata:
     interchangeable: [1, 2]
 """
@@ -52,7 +52,7 @@ component Capacitor:
         (project / "main.nosch").write_text(
             """from noscheme import net
 from parts import Capacitor as C
-board B:
+block B:
   net.passive wire
   C cap(1: wire, 2: wire)
   C spare

@@ -63,7 +63,7 @@ CompletionResult keyword_completion(const std::string &text,
     ancestors.pop_back();
   std::vector<std::string> words;
   static const std::regex definition(
-      R"(^(component|block|board|bundle|extend)\s+.+:$)");
+      R"(^(component|block|bundle|extend)\s+.+:$)");
   static const std::regex import_head(
       R"(^from\s+[A-Za-z_#][A-Za-z_0-9#]*(\.[A-Za-z_#][A-Za-z_0-9#]*)*$)");
   static const std::regex alias_head(
@@ -72,8 +72,7 @@ CompletionResult keyword_completion(const std::string &text,
   std::smatch match;
   if (indent == 0 && ancestors.empty()) {
     if (head.empty())
-      words = {"from",  "import", "component", "block",
-               "board", "bundle", "extend"};
+      words = {"from", "import", "component", "block", "bundle", "extend"};
     else if (std::regex_match(head, import_head))
       words = {"import"};
     else if (std::regex_match(head, alias_head))
@@ -94,8 +93,6 @@ CompletionResult keyword_completion(const std::string &text,
         if (kind == "block")
           words.insert(words.end(), {"ports", "global"});
 
-        if (kind == "board")
-          words = {"metadata", "global"};
         if (inherited)
           words = {"pins", "ports", "metadata"};
         if (kind == "bundle")

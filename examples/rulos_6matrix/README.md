@@ -61,7 +61,7 @@ indicators arranged as six rows by eight columns.
 
 NoScheme assigns new reference designators. Use the instance map to compare with
 Eagle, rather than assuming that a generated `U1` is the original `U1`.
-Keep `noscheme.state.json` when updating a board to retain NoScheme identities.
+Keep `noscheme.default.state.json` when updating a board to retain NoScheme identities.
 
 ## KiCad library alternatives
 

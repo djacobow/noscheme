@@ -15,13 +15,13 @@ from noscheme.kicad.export import export_project
 from noscheme.project import read_config
 from noscheme.resolve import resolve_project
 
-SOURCE = """from noscheme import role, unused
+SOURCE = """from noscheme import role, use
 component Resistor:
   params:
     resistance value = 10k
     number tolerance = 1
   pins:
-    1..2: [role.passive, unused.always]
+    1..2: [role.passive, use.optional]
   metadata:
     ref_prefix: "R"
     footprint: "Test:R"

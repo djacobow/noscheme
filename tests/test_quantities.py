@@ -20,7 +20,7 @@ SOURCE = """component Resistor:
       pull_resistance: value
   metadata:
     footprint: "Resistor_SMD:R_0603_1608Metric"
-board B:
+block B:
   net.passive a
   Resistor default:
     1: a
@@ -106,7 +106,7 @@ DISPLAY = """component Part:
   pins:
     1:
       role: role.passive
-      unused: unused.always
+      use: use.optional
   metadata:
     value: value / 1k
 block Holder:
@@ -123,7 +123,7 @@ block Holder:
   Part literal:
     metadata:
       value: 4.7k
-board B:
+block B:
   Holder holder()
 """
 

@@ -12,8 +12,8 @@ local_ast(std::shared_ptr<const Source> shared_source) {
   auto masked = code_mask(source.text);
   std::vector<std::size_t> starts;
   for (std::size_t line = 0; line < masked.size();) {
-    for (auto word : {"from", "import", "component", "block", "board", "bundle",
-                      "extend"}) {
+    for (auto word :
+         {"from", "import", "component", "block", "bundle", "extend"}) {
       auto length = std::char_traits<char>::length(word);
       if (masked.compare(line, length, word) == 0 &&
           line + length < masked.size() &&
@@ -66,7 +66,7 @@ void local_index(LspAnalysis &result, const Sources &sources,
       else
         module.symbols.emplace(std::move(name), std::move(symbol));
     };
-    const std::set<std::string> builtins{"role", "net",  "unused",
+    const std::set<std::string> builtins{"role", "net",  "use",
                                          "num",  "bias", "std"};
     for (const auto &item : ast->items) {
       if (auto *definition = ast::as<ast::Definition>(item)) {

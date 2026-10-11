@@ -9,7 +9,7 @@ from test_erc import component
 def design(pins='["p[0].1"]'):
     return (
         component("power_input")
-        + f"""board B:
+        + f"""block B:
   net.ground gnd:
     waivers:
       incompatible_role:
@@ -51,8 +51,8 @@ def test_malformed_target_lists_fail_validation(tmp_path, pins):
 
 
 def test_targeted_waiver_is_relative_to_each_block_instance(tmp_path):
-    source = design('["p[0].1", "p[1].1"]').replace("board B:", "block W:")
-    source += "board B:\n  W w[2]()\n"
+    source = design('["p[0].1", "p[1].1"]').replace("block B:", "block W:")
+    source += "block B:\n  W w[2]()\n"
     circuit = compile_source(tmp_path, source)
     assert apply_erc(circuit) == ()
     assert [w["pins"] for w in circuit["erc"]["waivers"]] == [
@@ -111,7 +111,7 @@ def test_targeted_waiver_on_inner_port_still_has_invalid_scope(tmp_path):
           pins: ["p.1"]
   P p:
     1: supply
-board B:
+block B:
   net.ground gnd
   W w[2]:
     supply: gnd

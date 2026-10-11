@@ -35,7 +35,7 @@ def copy_project(tmp_path, example="blink"):
         tmp_path,
         dirs_exist_ok=True,
         ignore=shutil.ignore_patterns(
-            "build", ".history", "__pycache__", "*.kicad_*", "noscheme.state.json"
+            "build", ".history", "__pycache__", "*.kicad_*", "noscheme.default.state.json"
         ),
     )
     loaded, definitions = resolve_project(tmp_path)
@@ -51,7 +51,7 @@ def copy_project(tmp_path, example="blink"):
             }
         )
     )
-    (tmp_path / "noscheme.state.json").write_text(
+    (tmp_path / "noscheme.default.state.json").write_text(
         json.dumps(
             {
                 "schema_version": 1,
@@ -84,10 +84,10 @@ def test_project_commands(project, capsys, command):
 @pytest.mark.parametrize(
     "source",
     [
-        "board B:\n  T n\n",
+        "block B:\n  T n\n",
         "component P:\n  pins:\n    1: role.passive\n",
-        "board B\n",
-        "// Ω\nboard B:\n  T n\n",
+        "block B\n",
+        "// Ω\nblock B:\n  T n\n",
     ],
 )
 def test_parse(tmp_path, capsys, source):
@@ -96,7 +96,7 @@ def test_parse(tmp_path, capsys, source):
     args = ["parse", str(path), "--diagnostics", "json"]
     actual = json_output(invoke(capsys, args, True))
     expected = json_output(invoke(capsys, args, False))
-    if source == "board B\n":
+    if source == "block B\n":
         # ANTLR and Lark report syntax failures differently; neither may accept it.
         assert actual[0] == expected[0] == 1
         assert actual[2]["diagnostics"][0]["code"] == expected[2]["diagnostics"][0]["code"]
@@ -106,17 +106,17 @@ def test_parse(tmp_path, capsys, source):
 
 def test_format(tmp_path, capsys):
     path = tmp_path / "a.nosch"
-    path.write_text("board B:\n    T a\n")
+    path.write_text("block B:\n    T a\n")
     for flags in (["--check"], ["--diff"]):
         args = ["format", str(path), *flags]
         assert invoke(capsys, args, True) == invoke(capsys, args, False)
     assert invoke(capsys, ["format", str(path)], True)[0] == 0
-    assert path.read_text() == "board B:\n  T a\n"
+    assert path.read_text() == "block B:\n  T a\n"
 
 
 def artifacts(project):
     result = {}
-    for path in [*sorted((project / "build").glob("*")), project / "noscheme.state.json"]:
+    for path in [*sorted((project / "build").glob("*")), project / "noscheme.default.state.json"]:
         if path.is_file():
             result[path.name] = (
                 json.loads(path.read_text()) if path.suffix == ".json" else path.read_text()
@@ -134,10 +134,10 @@ def export_compare(project, capsys):
         "--diagnostics",
         "json",
     ]
-    state = (project / "noscheme.state.json").read_text()
+    state = (project / "noscheme.default.state.json").read_text()
     expected = json_output(invoke(capsys, args, False))
     outputs = artifacts(project)
-    (project / "noscheme.state.json").write_text(state)
+    (project / "noscheme.default.state.json").write_text(state)
     assert json_output(invoke(capsys, args, True)) == expected
     assert artifacts(project) == outputs
     return outputs
@@ -156,8 +156,8 @@ def test_export_repeat_rename_and_reservations(project, capsys):
     )
     renamed = export_compare(project, capsys)
     assert (
-        renamed["noscheme.state.json"]["entries"]["input"]["uuid"]
-        == first["noscheme.state.json"]["entries"]["input"]["uuid"]
+        renamed["noscheme.default.state.json"]["entries"]["input"]["uuid"]
+        == first["noscheme.default.state.json"]["entries"]["input"]["uuid"]
     )
     source.write_text(source.read_text().replace("indicators[2]", "indicators[1]"))
     removed = export_compare(project, capsys)
@@ -170,9 +170,9 @@ def test_export_repeat_rename_and_reservations(project, capsys):
 def test_export_failure_preserves_files(project, capsys, failure):
     export_compare(project, capsys)
     if failure == "state":
-        state = json.loads((project / "noscheme.state.json").read_text())
+        state = json.loads((project / "noscheme.default.state.json").read_text())
         state["schema_version"] = 99
-        (project / "noscheme.state.json").write_text(json.dumps(state))
+        (project / "noscheme.default.state.json").write_text(json.dumps(state))
     else:
         records = json.loads((project / "footprints.json").read_text())
         record = next(iter(records["footprints"].values()))
@@ -285,7 +285,7 @@ block G:
           value: 4.7k
         metadata:
           value: r
-board Blink:
+block Blink:
   net.passive p[2]
   G g(p: p)
 """)
@@ -296,7 +296,7 @@ board Blink:
 
 @pytest.mark.parametrize("command", ["check", "compile", "resolve", "evaluate", "lint"])
 def test_structural_errors(project, capsys, command):
-    (project / "src/main.nosch").write_text("board Blink:\n  Unknown x\n")
+    (project / "src/main.nosch").write_text("block Blink:\n  Unknown x\n")
     args = [command, "--project", str(project), "--diagnostics", "json"]
     expected = json_output(invoke(capsys, args, False))
     assert expected[0] == 1
@@ -392,13 +392,14 @@ def test_named_targets(tmp_path, capsys, command, target):
 def test_named_target_export_state_isolation(project, capsys):
     config = project / "noscheme.toml"
     config.write_text(
-        config.read_text().replace('board = "main.Blink"', 'default_target = "one"')
+        config.read_text().split("[targets.default]")[0]
+        + 'default_target = "one"\n'
         + '\n[targets.one]\nroot = "main.Blink"\n[targets.two]\nroot = "main.Blink"\n'
     )
     footprints = project / "footprints.json"
     for target in ("one", "two"):
         state = project / f"noscheme.{target}.state.json"
-        state.write_bytes((project / "noscheme.state.json").read_bytes())
+        state.write_bytes((project / "noscheme.default.state.json").read_bytes())
         args = [
             "export-kicad",
             "--project",
@@ -508,7 +509,7 @@ def test_bom_references_are_shared_with_cad(project, capsys, first_native):
     bom_args = ["export-bom", "--project", str(project), "--diagnostics", "json"]
     result = json_output(invoke(capsys, bom_args, first_native))
     assert result[0] == 0, result
-    state_path = project / "noscheme.state.json"
+    state_path = project / "noscheme.default.state.json"
     before = json.loads(state_path.read_text())
     assert before["previous_parts"] == {}
     cad_args = [

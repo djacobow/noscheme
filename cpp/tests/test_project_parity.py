@@ -21,15 +21,16 @@ def make_project(root, modules=None, **overrides):
     (root / "lib").mkdir(exist_ok=True)
     values = dict(
         language_version="0.1",
-        board="main.B",
+        **{"targets.default.root": "main.B"},
         source_paths=["src"],
         library_paths=["lib"],
         output_dir="build",
     )
     values.update(overrides)
+    values["targets.default.output_dir"] = values["output_dir"]
     config = root / "noscheme.toml"
     config.write_text("\n".join(f"{k} = {json.dumps(v)}" for k, v in values.items()))
-    for filename, text in (modules or {"src/main.nosch": "board B:\n  T a\n"}).items():
+    for filename, text in (modules or {"src/main.nosch": "block B:\n  T a\n"}).items():
         path = root / filename
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text)
@@ -111,9 +112,9 @@ def test_examples(probe, example):
     [
         {"language_version": 0.1},
         {"language_version": "9"},
-        {"board": "B"},
-        {"board": "../main.B"},
-        {"board": "noscheme.B"},
+        {"targets.default.root": "B"},
+        {"targets.default.root": "../main.B"},
+        {"targets.default.root": "noscheme.B"},
         {"source_paths": "src"},
         {"source_paths": ["absent"]},
         {"source_paths": [], "library_paths": []},
@@ -140,10 +141,10 @@ def test_invalid_config(probe, tmp_path, overrides):
 @pytest.mark.parametrize(
     "text",
     [
-        'board = "main.B"\n',
+        'targets.default.root = "main.B"\ntargets.default.output_dir = "build"\n',
         "board = [",
-        '\ufeffboard = "main.B"',
-        '"language_version" = 2\nboard="main.B"\nsource_paths=["src"]\nlibrary_paths=[]\noutput_dir="build"',
+        '\ufefftargets.default.root = "main.B"\ntargets.default.output_dir = "build"',
+        '"language_version" = 2\ntargets.default.root = "main.B"\ntargets.default.output_dir = "build"\nsource_paths=["src"]\nlibrary_paths=[]\noutput_dir="build"',
     ],
 )
 def test_bad_toml(probe, tmp_path, text):
@@ -156,11 +157,11 @@ def test_bad_toml(probe, tmp_path, text):
     "prefix,library",
     [
         ("from missing import R", {}),
-        ("", {"lib/main.nosch": "board B:\n  T n\n"}),
+        ("", {"lib/main.nosch": "block B:\n  T n\n"}),
         ("from noscheme import typo", {}),
         ("from parts import X", {"lib/parts.nosch": "component R:\n  pins:\n    1:\n"}),
         ("from noscheme import num, num", {}),
-        ("from parts import B", {"lib/parts.nosch": "board B:\n  T n\n"}),
+        ("from parts import B", {"lib/parts.nosch": "block B:\n  T n\n"}),
         ("from main import B", {}),
         ("import other", {"lib/other.nosch": "import main\n"}),
         ("import noscheme.extra", {}),
@@ -175,13 +176,13 @@ def test_bad_toml(probe, tmp_path, text):
 def test_import_errors(probe, tmp_path, prefix, library):
     compare(
         probe,
-        make_project(tmp_path, {"src/main.nosch": prefix + "\nboard B:\n  T n\n", **library}),
+        make_project(tmp_path, {"src/main.nosch": prefix + "\nblock B:\n  T n\n", **library}),
     )
 
 
 @pytest.mark.parametrize(
     "body",
-    ["component B:\n  pins:\n    1:\n", "board Other:\n  T n\n", "board B:\n  net n = T\n"],
+    ["component B:\n  pins:\n    1:\n", "block Other:\n  T n\n", "block B:\n  net n = T\n"],
 )
 def test_board_errors(probe, tmp_path, body):
     compare(probe, make_project(tmp_path, {"src/main.nosch": body}))
@@ -191,7 +192,7 @@ def test_diamond_and_qualified_reexports(probe, tmp_path):
     config = make_project(
         tmp_path,
         {
-            "src/main.nosch": "import vendor.parts\nfrom left import R as Left\nfrom right import R as Right\nboard B:\n  T n\n",
+            "src/main.nosch": "import vendor.parts\nfrom left import R as Left\nfrom right import R as Right\nblock B:\n  T n\n",
             "lib/vendor/parts.nosch": "from shared import R\n",
             "src/left.nosch": "from shared import R\n",
             "src/right.nosch": "from shared import R\n",
@@ -205,13 +206,13 @@ def test_diamond_and_qualified_reexports(probe, tmp_path):
 
 def test_deep_import_graph(probe, tmp_path):
     modules = {f"src/m{i}.nosch": f"from m{i + 1} import B\n" for i in range(180)}
-    modules["src/m180.nosch"] = "board B:\n  T n\n"
-    compare(probe, make_project(tmp_path, modules, board="m0.B"))
+    modules["src/m180.nosch"] = "block B:\n  T n\n"
+    compare(probe, make_project(tmp_path, modules, **{"targets.default.root": "m0.B"}))
 
 
 def test_symlink_escape(probe, tmp_path):
     config = make_project(tmp_path)
-    (tmp_path / "external.nosch").write_text("board B:\n  T n\n")
+    (tmp_path / "external.nosch").write_text("block B:\n  T n\n")
     (tmp_path / "src/main.nosch").unlink()
     (tmp_path / "src/main.nosch").symlink_to(tmp_path / "external.nosch")
     compare(probe, config)
@@ -222,20 +223,20 @@ def test_snapshot_and_cache_invalidation(probe, tmp_path):
     main = tmp_path / "src/main.nosch"
     compare(probe, config, include_asts=True)
     compare(probe, config, include_asts=True)
-    main.write_text("board B:\n  T changed_on_disk\n")
+    main.write_text("block B:\n  T changed_on_disk\n")
     compare(probe, config, include_asts=True)
-    compare(probe, config, {main: "board B:\n  T unsaved\n"}, include_asts=True)
-    compare(probe, config, {main: "board B:\n  net invalid = T\n"})
+    compare(probe, config, {main: "block B:\n  T unsaved\n"}, include_asts=True)
+    compare(probe, config, {main: "block B:\n  net invalid = T\n"})
     compare(probe, config, include_asts=True)
     main.unlink()
     compare(probe, config)
-    compare(probe, config, {main: "board B:\n  T only_in_editor\n"}, include_asts=True)
+    compare(probe, config, {main: "block B:\n  T only_in_editor\n"}, include_asts=True)
     compare(
         probe,
         config,
         {
             config: config.read_text().replace("main.B", "fresh.Fresh"),
-            tmp_path / "src/fresh.nosch": "board Fresh:\n  T n\n",
+            tmp_path / "src/fresh.nosch": "block Fresh:\n  T n\n",
         },
         include_asts=True,
     )
@@ -243,7 +244,7 @@ def test_snapshot_and_cache_invalidation(probe, tmp_path):
 
 def test_unicode_error_span(probe, tmp_path):
     config = make_project(
-        tmp_path, {"src/main.nosch": "// ☃\nfrom noscheme import nope\nboard B:\n  T n\n"}
+        tmp_path, {"src/main.nosch": "// ☃\nfrom noscheme import nope\nblock B:\n  T n\n"}
     )
     compare(probe, config)
 
@@ -273,11 +274,14 @@ def test_output_directory_is_file(probe, tmp_path):
 def test_quoted_config_keys_and_crlf(probe, tmp_path):
     config = make_project(tmp_path)
     config.write_bytes(
-        config.read_text().replace("board =", "'board' =").replace("\n", "\r\n").encode()
+        config.read_text()
+        .replace("targets.default.root =", "targets.default.'root' =")
+        .replace("\n", "\r\n")
+        .encode()
     )
     compare(probe, config)
     main = tmp_path / "src/main.nosch"
-    main.write_bytes(b"board B:\r\n  T n\r\n")
+    main.write_bytes(b"block B:\r\n  T n\r\n")
     compare(probe, config, include_asts=True)
 
 
@@ -289,7 +293,7 @@ def test_plugin_namespace_collision(probe, tmp_path):
     config = read_config(tmp_path)
     exports = erc_exports(config)
     namespace = next(iter(exports))
-    (tmp_path / "main.nosch").write_text(f"import {namespace}\nboard B:\n  T n\n")
+    (tmp_path / "main.nosch").write_text(f"import {namespace}\nblock B:\n  T n\n")
     module = tmp_path / (namespace.replace(".", "/") + ".nosch")
     module.parent.mkdir(parents=True, exist_ok=True)
     module.write_text("component R:\n  pins:\n    1:\n")

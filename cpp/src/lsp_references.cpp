@@ -50,7 +50,7 @@ Span path_span(const std::vector<ast::Name> &names) {
 std::string metadata_description(const MetaFields &metadata) {
   std::string result;
   for (const auto *key :
-       {"role", "unused", "aliases", "footprint", "value", "ref_prefix"}) {
+       {"role", "use", "aliases", "footprint", "value", "ref_prefix"}) {
     auto found = metadata.find(key);
     if (found == metadata.end())
       continue;

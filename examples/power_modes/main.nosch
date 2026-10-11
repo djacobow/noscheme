@@ -1,10 +1,10 @@
 // Three connectors demonstrate alternative external power sources.
 // Each configuration checks the same physical board and pin connections.
-from noscheme import role, net, unused
+from noscheme import role, net, use
 
 component Header:
   pins:
-    1..2: [role.passive, unused.never]
+    1..2: [role.passive, use.required]
   metadata:
     ref_prefix: "J"
     footprint: "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical"
@@ -12,7 +12,7 @@ component Header:
 block Supply:
   ports:
     net.power supply:
-      unused: unused.never
+      use: use.required
   metadata:
     erc_choices:
       power_mode: ["source", "load", "absent"]

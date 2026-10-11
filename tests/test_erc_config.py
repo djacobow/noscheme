@@ -13,7 +13,7 @@ from noscheme.resolve import resolve_project
 from test_circuit import ROOT, make
 
 SOURCE = (
-    (ROOT / "examples/power_modes/main.nosch").read_text().replace("block PowerModes:", "board B:")
+    (ROOT / "examples/power_modes/main.nosch").read_text().replace("block PowerModes:", "block B:")
 )
 
 
@@ -129,8 +129,8 @@ def test_conditional_role_cannot_override_component_allowed_roles(tmp_path):
         project(
             tmp_path,
             SOURCE.replace(
-                "1..2: [role.passive, unused.never]",
-                "1..2: [role.ground, role.passive, unused.never]",
+                "1..2: [role.passive, use.required]",
+                "1..2: [role.ground, role.passive, use.required]",
             ),
         )
     assert exc.value.diagnostics[0].code == "metadata.constraint"
@@ -150,7 +150,7 @@ def test_nested_public_choice_forwarding(tmp_path):
         power_mode: choice(power_mode, source="source", load="load", absent="absent")
 
 """
-    source = SOURCE.replace("board B:", wrapper + "board B:").replace("Supply usb", "Wrapper usb")
+    source = SOURCE.replace("block B:", wrapper + "block B:").replace("Supply usb", "Wrapper usb")
     _, circuit = project(tmp_path, source)
     assert apply_erc(circuit) == ()
     scopes = circuit["erc"]["configurations"][0]["choices"]
@@ -165,10 +165,10 @@ def test_export_preserves_netlist_and_state_across_configurations(tmp_path):
     records = snapshot(tmp_path)
     export_project(loaded, circuit, records, configurations=["usb_powered"])
     netlist = (tmp_path / "build/board.net").read_bytes()
-    state = (tmp_path / "noscheme.state.json").read_bytes()
+    state = (tmp_path / "noscheme.default.state.json").read_bytes()
     report = export_project(loaded, circuit, records, configurations=["header_powered"])
     assert (tmp_path / "build/board.net").read_bytes() == netlist
-    assert (tmp_path / "noscheme.state.json").read_bytes() == state
+    assert (tmp_path / "noscheme.default.state.json").read_bytes() == state
     assert report["changes"] == {"added": [], "removed": [], "changed": []}
     assert [c["name"] for c in report["erc_configurations"]] == ["header_powered"]
 
@@ -215,7 +215,7 @@ def test_unnamed_configurations_check_every_combination(tmp_path):
 
 
 def test_no_choices_run_one_unconfigured_check(tmp_path):
-    start = SOURCE.index("board B:")
+    start = SOURCE.index("block B:")
     board = SOURCE[start:]
     board = (
         board[: board.index("    erc_choices:")] + board[board.index("  global net.ground gnd") :]
@@ -252,13 +252,13 @@ def test_named_configuration_can_leave_choices_unselected(tmp_path):
 
 
 def test_conditional_pin_role_selects_only_definition_permitted_roles(tmp_path):
-    source = """from noscheme import role, net, unused
+    source = """from noscheme import role, net, use
 component Pin:
   pins:
     1:
       role: [role.digital_input, role.digital_output]
-      unused: unused.never
-board B:
+      use: use.required
+block B:
   metadata:
     erc_choices:
       direction: ["input", "output"]
@@ -333,13 +333,13 @@ def test_configuration_selects_public_port_contract_as_well_as_private_roles(tmp
 
 def test_specialized_blocks_preserve_choice_bindings_in_inherited_body(tmp_path):
     source = SOURCE.replace(
-        "board B:",
+        "block B:",
         """extend Supply SpecializedSupply:
   metadata:
     custom:
       note: "Same choice contract and private implementation"
 
-board B:""",
+block B:""",
     ).replace("Supply usb", "SpecializedSupply usb")
     _, circuit = project(tmp_path, source)
     assert apply_erc(circuit) == ()

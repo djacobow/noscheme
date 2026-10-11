@@ -24,8 +24,8 @@ PYTHON_TESTS = runpy.run_path(str(ROOT / "tests/test_resolve.py"))
 CASES = next(
     m.args[1] for m in PYTHON_TESTS["test_definition_errors"].pytestmark if m.name == "parametrize"
 )
-PRELUDE = "from noscheme import role, unused, net, num, std\n"
-BOARD = "board B:\n  net.passive n\n"
+PRELUDE = "from noscheme import role, use, net, num, std\n"
+BOARD = "block B:\n  net.passive n\n"
 
 
 def normalize(value):
@@ -162,7 +162,7 @@ def test_pin_ranges_and_limits(probe, tmp_path, pins, limit):
     [
         "pins:\n    3: role.passive",
         "pins:\n    A (new):",
-        "pins:\n    A:\n      unused: unused.never\n    1:\n      unused: unused.always",
+        "pins:\n    A:\n      use: use.required\n    1:\n      use: use.optional",
         'pins:\n    1 ("2"):',
         'metadata:\n    custom:\n      note: "héllo"',
     ],
@@ -313,7 +313,7 @@ bundle Bus:
 def test_board_configuration(probe, tmp_path, selection):
     source = (
         PRELUDE
-        + f"""board B:
+        + f"""block B:
   metadata:
     erc_choices:
       supply: ["usb", "external"]

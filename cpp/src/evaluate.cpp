@@ -18,7 +18,10 @@ std::size_t characters(std::string_view text) {
 }
 // Parse a signed literal together so -9223372036854775808 is representable.
 Value literal(const ast::Number &number, bool negative = false) {
-  auto text = number.spelling;
+  auto text = normalized_number(number.spelling);
+  if (text.starts_with("0x") || text.starts_with("0X") ||
+      text.starts_with("0b") || text.starts_with("0B"))
+    return parse_integer((negative ? "-" : "") + text);
   const auto prefix = text.find_first_of(numeric_prefixes);
   if (prefix != std::string::npos) {
     int exponent = prefix_exponent(text[prefix]);

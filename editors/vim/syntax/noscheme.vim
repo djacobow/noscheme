@@ -6,7 +6,7 @@ endif
 syntax case match
 syntax iskeyword 65-90,97-122,48-57,_,35
 
-syntax keyword noschemeDeclaration component block board bundle nextgroup=noschemeDefinition skipwhite
+syntax keyword noschemeDeclaration component block bundle nextgroup=noschemeDefinition skipwhite
 syntax match noschemeDefinition /[A-Za-z_#][A-Za-z0-9_#]*/ contained
 " extend Base<params> Name: the base is a type, as at the start of a declaration.
 syntax keyword noschemeDeclaration extend nextgroup=noschemeTypeName skipwhite
@@ -17,15 +17,16 @@ syntax keyword noschemeType number string
 syntax keyword noschemeConstant true false no_connect
 syntax match noschemeField /^\s*\zs[A-Za-z_#][A-Za-z0-9_#]*\ze\s*:/
 syntax match noschemeSection /^\s*\zs\%(pins\|ports\|params\|metadata\|elements\|checks\)\ze\s*:/
-syntax match noschemeBuiltin /\<\%(role\|net\|unused\|bias\|std\)\.[A-Za-z_#][A-Za-z0-9_#]*\>/
+syntax match noschemeBuiltin /\<\%(role\|net\|use\|bias\|std\)\.[A-Za-z_#][A-Za-z0-9_#]*\>/
 syntax match noschemeFunction /\<num\.[A-Za-z_#][A-Za-z0-9_#]*\>/
 syntax match noschemeFunction /\.\zsformat\ze\s*(/
-syntax match noschemeNumber /\<[0-9]\+\%([.][0-9]\+\)\?\%([eE][+-]\?[0-9]\+\)\?\>/
-" SI-prefixed literals: 4.7k, 4k7, 100n, 4R7.
-syntax match noschemeNumber /\<[0-9]\+\%([.][0-9]\+\)\?[afpnumkMGTPR]\%([0-9]\+\)\?\>/
 " `<` and `>` hold parameters; `<<` and `>>` are shifts.
 syntax match noschemeDelimiter /[][()<>:,.]/
 syntax match noschemeOperator /<<\|>>\|+\/-\|\%u00b1\|[=+*\/%-]/
+" Decimal, hexadecimal, binary, and SI literals; separators occur between digits.
+syntax match noschemeNumber /\v<0[xX][0-9a-fA-F]%(_?[0-9a-fA-F])*>/
+syntax match noschemeNumber /\v<0[bB][01]%(_?[01])*>/
+syntax match noschemeNumber /\v%([[:alnum:]_#])@<!%([0-9]%(_?[0-9])*%(\.[0-9]%(_?[0-9])*)?|\.[0-9]%(_?[0-9])*)%([eE][+-]?[0-9]%(_?[0-9])*|[afpnuµmkMGTPR]%([0-9]%(_?[0-9])*)?)?>/
 
 syntax region noschemeString start=/"/ skip=/\\./ end=/"/ oneline contains=noschemeEscape
 syntax match noschemeEscape /\\\%(["\\\/bfnrt]\|u[0-9A-Fa-f]\{4}\)/ contained

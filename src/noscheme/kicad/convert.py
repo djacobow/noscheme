@@ -27,7 +27,6 @@ ROLE_MAP = {
     "power_out": "power_output",
     "open_collector": "open_drain",
     "open_emitter": "open_source",
-    "no_connect": "do_not_connect",
 }
 
 PASSIVE_QUANTITIES = {"R": "resistance", "C": "capacitance", "L": "inductance"}
@@ -296,6 +295,8 @@ def convert_library(source, output, symbols=(), footprint_roots=(), extra_footpr
                 if all(t in ROLE_MAP for t in types)
                 else []
             )
+            if "no_connect" in types:
+                lines.append("            use: use.disallowed")
             if len(roles) == 1:
                 lines.append(f"            role: role.{roles[0]}")
             elif roles:
@@ -305,7 +306,7 @@ def convert_library(source, output, symbols=(), footprint_roots=(), extra_footpr
             lines.extend(
                 ["            custom:", f"                kicad_pin_types: {json.dumps(types)}"]
             )
-            for unknown in set(types) - ROLE_MAP.keys():
+            for unknown in set(types) - ROLE_MAP.keys() - {"no_connect"}:
                 report.append(
                     {
                         "symbol": original,
@@ -388,7 +389,7 @@ def convert_library(source, output, symbols=(), footprint_roots=(), extra_footpr
                             "identifiers": sorted(identifiers),
                         }
                     )
-    text = "from noscheme import role\n\n" + "\n\n".join(generated) + "\n"
+    text = "from noscheme import role, use\n\n" + "\n\n".join(generated) + "\n"
     module = identifier(source.stem)
     filename = str(output / (module + ".nosch"))
     parse(text, filename)

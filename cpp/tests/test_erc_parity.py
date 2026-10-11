@@ -91,7 +91,7 @@ def test_rule_failure_is_source_located(probe, tmp_path):
         {
             "src/main.nosch": PRELUDE
             + """from example import broken
-board B:
+block B:
   net.passive n:
     checks:
       test: broken()
@@ -113,7 +113,7 @@ PLUGIN = """def register(r):
 def plugin_project(tmp_path, plugin=PLUGIN):
     (tmp_path / "rules.py").write_text(plugin)
     source = """from example import wide
-board B:
+block B:
   net.passive n:
     checks:
       test: wide(limit=0)
@@ -133,7 +133,7 @@ def payload(path):
 
 
 def test_standard_rules_need_no_python(probe, tmp_path):
-    path = make_project(tmp_path, {"src/main.nosch": PRELUDE + "board B:\n  net.passive n\n"})
+    path = make_project(tmp_path, {"src/main.nosch": PRELUDE + "block B:\n  net.passive n\n"})
     hang = fake_python(tmp_path, "import time\ntime.sleep(30)\n")
     result = probe(payload(path) | {"erc_python": hang, "erc_timeout_ms": 1000})
     assert result["circuit"]["erc"]["diagnostics"], result
@@ -155,7 +155,7 @@ def test_timeout_and_next_request(probe, tmp_path):
 
 @pytest.mark.parametrize("inherited", [False, True])
 def test_application_order(probe, tmp_path, inherited):
-    source = """board B:
+    source = """block B:
   net.passive n:
     checks:
       z_first: std.count(role.passive, min=1)
@@ -169,7 +169,7 @@ def test_application_order(probe, tmp_path, inherited):
 extend Base Child:
   checks:
     z_first: std.count(role.passive, min=3)
-board B:
+block B:
   Child n:
     checks:
       b_last: std.count(role.passive, min=4)
@@ -182,7 +182,7 @@ def test_targeted_waivers(probe, tmp_path, target):
     source = f"""component P:
   pins:
     1: role.power_input
-board B:
+block B:
   net.ground gnd:
     waivers:
       incompatible_role:
@@ -211,7 +211,7 @@ def register(r):
     r.net_rule("example.once", once, parameters={{"token": "literal"}}, defaults={{"token": TOKEN}})
 """)
     source = """from example import once
-board B:
+block B:
   net.passive n:
     budget: 9223372036854775807
     checks:
@@ -310,7 +310,7 @@ component P:
     [1..2]:
       role: role.passive
       capacitance: 10p
-board B:
+block B:
   net.passive n:
     checks:
       test: {check}
@@ -339,7 +339,7 @@ def register(r):
     source = """component P:
   pins:
     1: role.passive
-board B:
+block B:
   net.passive n
   P p(1: n)
 """
@@ -377,7 +377,7 @@ def register(r):
 """)
     path = make_project(
         tmp_path,
-        {"src/main.nosch": PRELUDE + "board B:\n  net.passive n\n"},
+        {"src/main.nosch": PRELUDE + "block B:\n  net.passive n\n"},
         erc_modules=["rules.py"],
         erc_rule_sets=rule_sets,
     )
@@ -405,7 +405,7 @@ def register(r):
   pins:
     1: role.passive
       amount: {amount}
-board B:
+block B:
   net.passive n
   P p(1: n)
 """
@@ -483,19 +483,19 @@ def test_python_erc_test_projects(probe, tmp_path):
         ("block", "ports", "net.passive signal"),
     ],
 )
-@pytest.mark.parametrize("unused", ["explicit", "never"])
-def test_missing_connections_point_to_instance(probe, tmp_path, kind, section, field, unused):
+@pytest.mark.parametrize("use", ["explicit", "required"])
+def test_missing_connections_point_to_instance(probe, tmp_path, kind, section, field, use):
     placeholder = "      placeholder: true\n" if kind == "block" else ""
     path = make_project(
         tmp_path,
         {
-            "lib/parts.nosch": f"""from noscheme import net, unused
+            "lib/parts.nosch": f"""from noscheme import net, use
 {kind} P:
   {section}:
     {field}:
-      unused: unused.{unused}
+      use: use.{use}
 {placeholder}""",
-            "src/main.nosch": "from parts import P\nboard B:\n  P<> items[2]\n",
+            "src/main.nosch": "from parts import P\nblock B:\n  P<> items[2]\n",
         },
     )
     actual = compare(probe, path)

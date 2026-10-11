@@ -16,8 +16,8 @@ ROOT = Path(__file__).resolve().parents[1]
     "source",
     [
         'component NAME:\n  metadata:\n    ref_prefix: "U"\n',
-        "board B:\n  net.passive NAME\n",
-        "board B:\n  Part NAME()\n",
+        "block B:\n  net.passive NAME\n",
+        "block B:\n  Part NAME()\n",
         "component P:\n  params:\n    number NAME = 1\n",
         "block B:\n  ports:\n    net.passive NAME\n",
         "bundle B:\n  net.passive NAME\n",
@@ -48,7 +48,7 @@ def test_quoted_physical_pins_and_metadata_keys_are_not_reserved():
   metadata:
     custom:
       true: false
-board B:
+block B:
   net.passive inst
   P net:
     "global": inst
@@ -117,7 +117,7 @@ def test_expression_associativity_and_postfix():
 
 
 def test_endpoint_indices_ranges_and_caller_scope():
-    m = parse("board B:\n  R r[2]:\n    [1].bus[2].data: global.n[0:4]\n    11..20: pins\n")
+    m = parse("block B:\n  R r[2]:\n    [1].bus[2].data: global.n[0:4]\n    11..20: pins\n")
     inst = m.items[0].body[0]
     first, second = inst.sections[0].entries
     assert first.endpoint.instance_indices[0].start.spelling == "1"
@@ -135,7 +135,7 @@ def test_endpoint_indices_ranges_and_caller_scope():
         'component C:\n  pins:\n    1 (a):\n    "1" (b):\n',
         "component C:\n  metadata:\n    custom:\n      item: 1\n      item: 2\n",
         "component C:\n  pins:\n    1:\n      role: r\n  pins:\n    2:\n      role: r\n",
-        'board B:\n  R r:\n    params:\n      value: "a"\n      value: "b"\n',
+        'block B:\n  R r:\n    params:\n      value: "a"\n      value: "b"\n',
     ],
 )
 def test_duplicates_report_both_locations(source):
@@ -154,10 +154,10 @@ def test_duplicates_report_both_locations(source):
     [
         ("component C:\n  T n\n", "syntax.declaration-context"),
         ("component B:\n  global T n\n", "syntax.declaration-context"),
-        ("board B:\n  pins:\n    1:\n      role: r\n", "syntax.section-context"),
+        ("block B:\n  pins:\n    1:\n      role: r\n", "syntax.section-context"),
         ('component C:\n  metadata:\n    value: string = "x"\n', "syntax.default-context"),
         ("component C:\n  params:\n    value:\n      nested: 1\n", "syntax.parameter"),
-        ("board B:\n\tT n\n", "syntax.indentation"),
+        ("block B:\n\tT n\n", "syntax.indentation"),
         ('component C:\n  metadata:\n    value: "\\q"\n', "syntax.string"),
         ("component C:\n  params:\n    nested:\n      x: 1\n", "syntax.parameter"),
         ("component C:\n  params:\n    value: number\n", "syntax.declaration-form"),
@@ -165,8 +165,8 @@ def test_duplicates_report_both_locations(source):
         ("bundle B:\n  scl: net.passive\n", "syntax.declaration-form"),
         ("component C:\n  metadata:\n    number gain\n", "syntax.declaration-form"),
         ("component C:\n  defaults:\n    value: 1\n", "syntax.declaration-context"),
-        ("board B:\n  R<1, 2> r\n", "syntax.parameter-order"),
-        ("board B:\n  R<x: 1, 2> r\n", "syntax.parameter-order"),
+        ("block B:\n  R<1, 2> r\n", "syntax.parameter-order"),
+        ("block B:\n  R<x: 1, 2> r\n", "syntax.parameter-order"),
     ],
 )
 def test_invalid_structure(source, code):
@@ -189,21 +189,21 @@ def test_negative_corpus_locations(name, expected):
 
 def test_empty_and_crlf_sources_and_comment_offsets():
     assert parse("").items == ()
-    source = "/* a\r\n b */\r\nboard B:\r\n  T n"
+    source = "/* a\r\n b */\r\nblock B:\r\n  T n"
     m = parse(source)
     assert m.items[0].name.span.line == 3
     assert m.items[0].span.end_pos == len(source)
-    assert parse("//\tcomment\nboard B:\n  T n\n")
+    assert parse("//\tcomment\nblock B:\n  T n\n")
 
 
 def test_cli_atomic_artifact_and_diagnostics(tmp_path, capsys):
     source = tmp_path / "main.nosch"
     output = tmp_path / "out" / "ast.json"
-    source.write_text("board B:\n  T n\n")
+    source.write_text("block B:\n  T n\n")
     assert main(["parse", str(source), "--output", str(output)]) == 0
     before = output.read_bytes()
     assert json.loads(before)["module"]["node"] == "Module"
-    source.write_text("board B:\n  net n = bad\n")
+    source.write_text("block B:\n  net n = bad\n")
     assert main(["parse", str(source), "--output", str(output), "--diagnostics", "json"]) == 1
     assert output.read_bytes() == before
     error = json.loads(capsys.readouterr().err)["diagnostics"][0]
@@ -222,7 +222,7 @@ def test_syntax_diagnostics_use_source_spellings():
         "end of line",
     ]
     with pytest.raises(SyntaxDiagnostic) as error:
-        parse("board B\n", "broken.nosch")
+        parse("block B\n", "broken.nosch")
     assert "expected ':'" in str(error.value)
     assert "COLON" not in str(error.value)
     assert error.value.filename == "broken.nosch"
@@ -252,3 +252,8 @@ def test_unterminated_comment_after_multiline_chunk_has_original_position():
     with pytest.raises(SyntaxDiagnostic) as error:
         mask_comments("ordinary text\r\nmore text\n  /* unfinished", "comments.nosch")
     assert (error.value.line, error.value.column) == (3, 3)
+
+
+def test_removed_board_declaration_is_rejected():
+    with pytest.raises(DiagnosticError):
+        parse("board Legacy:\n  net.passive n\n")

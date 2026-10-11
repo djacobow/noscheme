@@ -31,7 +31,7 @@ extend Unit Derived:
 SOURCE = """import library
 from library import Unit as Alias
 from noscheme import net
-board B:
+block B:
   library.Bus wire
   library.Unit<count: 3> a:
     bus: wire
@@ -140,7 +140,7 @@ component Part:
   pins:
     1..2:
       role: role.passive
-board B:
+block B:
   net.passive n
   Part p:
     1..2: n

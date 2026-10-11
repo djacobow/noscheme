@@ -651,15 +651,15 @@ void interface_completions(CompletionCatalog &catalog, const Project &project,
         }
         for (const auto &[name, pin] : target->interface)
           if (!bound.contains(name)) {
-            if (auto *role = meta_value(pin.metadata, "role");
-                role && meta_strings(*role) ==
-                            std::vector<std::string>{"do_not_connect"})
+            if (auto *policy = meta_value(pin.metadata, "use");
+                policy && policy->is<std::string>() &&
+                policy->string() == "disallowed")
               continue;
-            auto *unused = meta_value(pin.metadata, "unused");
+            auto *unused = meta_value(pin.metadata, "use");
             action_pins.push_back(object("name", name, "required",
                                          !unused ||
                                              !unused->is<std::string>() ||
-                                             unused->string() != "always"));
+                                             unused->string() != "optional"));
           }
         if (node->parameter && target->parameters.unnamed)
           supplied.insert(*target->parameters.unnamed);
@@ -810,8 +810,7 @@ CompletionResult complete(const std::string &text, std::size_t offset,
         return keywords;
       const auto &parent = parents.back().second;
       nets_only |= parent == "ports:" || parent.starts_with("bundle ");
-      if (!(parent.starts_with("board ") || parent.starts_with("block ") ||
-            nets_only))
+      if (!(parent.starts_with("block ") || nets_only))
         return keywords;
     }
     auto dot = prefix.rfind('.');
@@ -824,7 +823,7 @@ CompletionResult complete(const std::string &text, std::size_t offset,
     std::string owner_name;
     if (!base_type && !parents.empty()) {
       static const std::regex owner(
-          R"(^(?:component|block|board|bundle)\s+([A-Za-z_#][A-Za-z0-9_#]*))");
+          R"(^(?:component|block|bundle)\s+([A-Za-z_#][A-Za-z0-9_#]*))");
       std::smatch match;
       if (std::regex_search(parents.front().second, match, owner))
         owner_name = match[1];

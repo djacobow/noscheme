@@ -1,13 +1,13 @@
 // Common passives, LEDs, buttons, and small connectors.
 
-from noscheme import role, net, unused, bias, std
+from noscheme import role, net, use, bias, std
 import Device
 
 // KiCad supplies pins, passive roles, reference prefix, and footprint hints.
 // Require connected pins; each instance or specialization supplies its value.
 extend Device.R Resistor:
   pins:
-    1..2: unused.never
+    1..2: use.required
 
 extend Resistor Resistor0603:
   metadata:
@@ -50,10 +50,10 @@ component PushButton:
   pins:
     1 (signal):
       role: role.passive
-      unused: unused.never
+      use: use.required
     2 (ground):
       role: role.passive
-      unused: unused.never
+      use: use.required
   metadata:
     ref_prefix: "SW"
     interchangeable: [1, 2]
@@ -63,7 +63,7 @@ component PushButton:
 
 component Header1x2:
   pins:
-    1..2: [role.passive, unused.never]
+    1..2: [role.passive, use.required]
   metadata:
     ref_prefix: "J"
     footprint: "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical_SMD_Pin1Left"
@@ -74,10 +74,10 @@ component Led:
   pins:
     1 (cathode, K):
       role: role.passive
-      unused: unused.never
+      use: use.required
     2 (anode, A):
       role: role.passive
-      unused: unused.never
+      use: use.required
   metadata:
     ref_prefix: "D"
 
@@ -114,7 +114,7 @@ component Header2x10:
 
 component UartHeaderJST3:
   pins:
-    MP: [role.do_not_connect, unused.always]
+    MP: use.disallowed
     1 (gnd):
     2 (tx):
     3 (rx):
@@ -126,7 +126,7 @@ component UartHeaderJST3:
 
 extend Device.C Capacitor:
   pins:
-    1..2: unused.never
+    1..2: use.required
 
 extend Capacitor<100n> Capacitor0603:
   metadata:
@@ -136,7 +136,7 @@ component CrystalHC49:
   params:
     string value = "8MHz CL18pF"
   pins:
-    1..2: [role.passive, unused.never]
+    1..2: [role.passive, use.required]
   metadata:
     ref_prefix: "Y"
     interchangeable: [1, 2]

@@ -24,7 +24,7 @@ from .erc import Scheduler
 from .erc_config import configuration_views
 from .erc_registry import exported_names, load_registry, signature
 from .erc_rules import CHECKS, WAIVABLE
-from .metadata import BIAS_VALUES, MISSING, NETTYPES, ROLES, SCHEMAS, UNUSED
+from .metadata import BIAS_VALUES, MISSING, NETTYPES, ROLES, SCHEMAS, USE_POLICIES
 from .units import QUANTITIES
 
 VERSION = 1
@@ -52,7 +52,7 @@ def describe_registry(registry):
         "enums": {
             "role": sorted(ROLES),
             "net": sorted(NETTYPES),
-            "unused": sorted(UNUSED),
+            "use": sorted(USE_POLICIES),
             "bias": sorted(BIAS_VALUES),
             "missing": list(MISSING),
         },

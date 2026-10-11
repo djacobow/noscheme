@@ -1,5 +1,5 @@
 // Adapted from Jeremy Elson / rulos. See README.md.
-from noscheme import net, unused, role
+from noscheme import net, use, role
 from components import Display, SinkDriver, Resistor, Cap0603
 from interfaces import Rows, Segments
 
@@ -36,7 +36,7 @@ block TwoColumns:
       role: role.digital_input
     net.digital sdo:
       role: role.digital_output
-      unused: unused.always
+      use: use.optional
     net.digital clock:
       role: role.digital_input
     net.digital latch:

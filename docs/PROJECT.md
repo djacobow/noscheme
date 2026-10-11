@@ -26,7 +26,7 @@ performance, rather than establishing electrical correctness.
 
 This document records goals, design rationale, and reference-hardware decisions.
 The [Language Reference Manual](LRM.md) is the normative description of the
-implemented language and compiler behavior. Use the [workflow HOWTO](../HOWTO.md)
+implemented language and compiler behavior. Use the [usage guide](../USAGE.md)
 for circuit development, [DEVELOPMENT.md](DEVELOPMENT.md) for compiler development,
 [EDITOR_SUPPORT.md](EDITOR_SUPPORT.md) for editor setup and supported LSP operations,
 and [PLAN.md](PLAN.md) for historical milestones and deferred proposals.
@@ -47,7 +47,7 @@ KiCad feasibility results; they do not supersede the production reference.
 The compiler must produce a definite circuit without guessing. Structural errors
 block publication; electrical errors permit inspection of the circuit in KiCad.
 Unspecified footprints permit a partial export with explicit reporting. See
-[LRM §14](LRM.md#14-commands-and-diagnostics) for commands and failure behavior.
+[command reference](../USAGE.md#9-command-reference) for commands and failure behavior.
 
 ### Deferred features
 
@@ -68,8 +68,27 @@ Named targets and parameter-bound block extensions provide circuit variants.
 BOM DNP annotations label unfitted parts without removing them from the circuit
 or changing ERC; there is no separate assembly-variant selection mechanism.
 The complete supported and
-unsupported feature lists belong in [LRM §16](LRM.md#16-limits-and-unsupported-features)
+unsupported feature lists belong in [LRM §15](LRM.md#15-limits-and-unsupported-features)
 and [Editor support](EDITOR_SUPPORT.md).
+
+## Language revision from the documentation review
+
+The October 11, 2026 revision removes the `board` declaration and the top-level
+TOML `board` key. Root circuits are blocks selected through named targets.
+Examples use a `default` target with an explicit output directory to retain
+existing artifact locations. Their identity-state files have been renamed to
+`noscheme.default.state.json` without changing their contents.
+
+Numeric literals now support hexadecimal, binary, single underscores between
+digits, leading-dot decimals, and `µ` as an alias for the micro prefix `u`.
+Integers remain signed 64-bit values; other numbers use binary64. Octal syntax
+is not supported.
+
+Connection policies are `use.required`, `use.optional`, `use.explicit` (the
+default), and `use.disallowed`. The metadata field is `use`; electrical roles
+remain separate. These replace the old `unused` namespace and
+`role.do_not_connect`, without compatibility aliases. See the
+[connection policy reference](LRM.md#53-connection-policies).
 
 ## Reference board
 
@@ -238,8 +257,7 @@ explicit even when a part has no selected footprint yet.
 A root is an ordinary block selected by a TOML target, with no public ports.
 It may declare global nets and ERC configurations. Root parameters need defaults
 or bindings through `extend`; TOML and command-line parameter overrides are not
-implemented. The legacy `board` declaration and top-level TOML `board` key remain
-accepted for compatibility. Each named target has separate output and identity state.
+implemented. Each named target has separate output and identity state.
 
 Physical pin identifiers retain exact text because package pad names need not be
 integers. Unambiguous aliases improve readability without hiding the underlying
@@ -356,7 +374,7 @@ Source spans, stable check identifiers, instance paths, and configuration names
 make errors actionable in reused blocks and arrays. Text reports serve people;
 JSON reports serve automation. Independent resolution errors are collected where
 continuing is safe, while invalid structure still blocks expansion/publication.
-The reporting contract is in [LRM §14](LRM.md#14-commands-and-diagnostics).
+The reporting contract is in [command reference](../USAGE.md#9-command-reference).
 
 The independent stdio language server reuses the compiler with unsaved-document
 overlays. It provides diagnostics, completion, definition navigation, references,
@@ -366,7 +384,7 @@ limitations are documented in [EDITOR_SUPPORT.md](EDITOR_SUPPORT.md).
 
 ## Unresolved design and implementation work
 
-Current language limits are maintained in [LRM §16](LRM.md#16-limits-and-unsupported-features).
+Current language limits are maintained in [LRM §15](LRM.md#15-limits-and-unsupported-features).
 Native implementation limitations are in [cpp/README.md](../cpp/README.md), and
 editor limitations are in [EDITOR_SUPPORT.md](EDITOR_SUPPORT.md). The
 [implementation history](PLAN.md) retains milestone checklists and deferred

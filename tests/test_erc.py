@@ -7,12 +7,12 @@ from noscheme.cli import main
 from test_circuit import compile_source, make, ROOT
 
 
-def component(role="passive", unused="explicit", extra=""):
+def component(role="passive", use="explicit", extra=""):
     return f"""component P:
   pins:
     1:
       role: role.{role}
-      unused: unused.{unused}
+      use: use.{use}
 {extra}  metadata:
     footprint: "Test:P"
 """
@@ -26,13 +26,13 @@ def codes(circuit):
 def test_forbidden_pin_allows_omission_or_explicit_disconnect(tmp_path, binding):
     c = compile_source(
         tmp_path,
-        component("do_not_connect") + f"board B:\n  P p{':' if binding else ''}\n{binding}",
+        component(use="disallowed") + f"block B:\n  P p{':' if binding else ''}\n{binding}",
     )
     assert codes(c) == []
 
 
 def test_forbidden_pin_rejects_even_empty_net_and_unchecked_type(tmp_path):
-    board = """board B:
+    board = """block B:
   net.unchecked n
   P p:
     1: n
@@ -42,9 +42,10 @@ def test_forbidden_pin_rejects_even_empty_net_and_unchecked_type(tmp_path):
         "    1: n\n",
         "    1: n\n    metadata:\n      pins:\n        1: role.passive\n",
     )
-    with pytest.raises(DiagnosticError, match="permitted roles"):
-        compile_source(tmp_path, component("do_not_connect") + overlay)
-    c = compile_source(tmp_path, component("do_not_connect") + board)
+    assert "do_not_connect" in codes(
+        compile_source(tmp_path, component(use="disallowed") + overlay)
+    )
+    c = compile_source(tmp_path, component(use="disallowed") + board)
     diagnostics = check_circuit(c)
     d = next(d for d in diagnostics if d.code == "erc.do_not_connect")
     assert d.instance_path == "p.1"
@@ -52,19 +53,19 @@ def test_forbidden_pin_rejects_even_empty_net_and_unchecked_type(tmp_path):
 
 
 @pytest.mark.parametrize(
-    "unused,binding,expected",
+    "use,binding,expected",
     [
-        ("always", "", []),
+        ("optional", "", []),
         ("explicit", "", ["unused_pin"]),
-        ("never", "", ["required_connection"]),
+        ("required", "", ["required_connection"]),
         ("explicit", "1: no_connect", []),
-        ("never", "1: no_connect", ["required_connection"]),
+        ("required", "1: no_connect", ["required_connection"]),
     ],
 )
-def test_unused_policies(tmp_path, unused, binding, expected):
+def test_unused_policies(tmp_path, use, binding, expected):
     clause = "    " + binding + "\n" if binding else ""
     c = compile_source(
-        tmp_path, component(unused=unused) + f"board B:\n  P p{':' if clause else ''}\n{clause}"
+        tmp_path, component(use=use) + f"block B:\n  P p{':' if clause else ''}\n{clause}"
     )
     assert codes(c) == expected
 
@@ -72,8 +73,8 @@ def test_unused_policies(tmp_path, unused, binding, expected):
 def test_placeholder_cannot_satisfy_required_pin(tmp_path):
     c = compile_source(
         tmp_path,
-        component(unused="never")
-        + """board B:
+        component(use="required")
+        + """block B:
   net.passive n:
     placeholder: true
   P p:
@@ -89,7 +90,7 @@ def pair(tmp_path, role1, role2, nettype="digital", metadata1="", metadata2=""):
     return compile_source(
         tmp_path,
         parts
-        + f"""board B:
+        + f"""block B:
   net.{nettype} n
   A a:
     1: n
@@ -130,8 +131,8 @@ def test_current_budget_known_overload_and_missing_load(tmp_path):
 def test_cli_reports_errors_but_compiles_and_exports(tmp_path, capsys):
     make(
         tmp_path,
-        component("do_not_connect")
-        + """board B:
+        component(use="disallowed")
+        + """block B:
   net.passive n
   P p:
     1: n
@@ -157,7 +158,7 @@ def test_uart_and_button_draft_connectivity(tmp_path, stm32_libraries):
     source = (
         (ROOT / "examples/stm32h523/stm32h523.nosch")
         .read_text()
-        .replace("block STM32H523Reference:", "board B:")
+        .replace("block STM32H523Reference:", "block B:")
     )
     c = compile_source(
         tmp_path,
@@ -181,7 +182,7 @@ def test_net_waiver_preserves_diagnostics_and_reason_in_reports(tmp_path):
     c = compile_source(
         tmp_path,
         component("digital_input")
-        + """board B:
+        + """block B:
   net.digital n:
     waivers:
       missing_driver: "Driver is on the far side of a series resistor."
@@ -206,12 +207,10 @@ def test_net_waiver_preserves_diagnostics_and_reason_in_reports(tmp_path):
     "check", ["required_connection", "do_not_connect", "unused_pin", "waiver_scope", '"net:n:x"']
 )
 def test_invalid_or_nonwaivable_check_is_rejected(tmp_path, check):
-    from noscheme.diagnostics import DiagnosticError
-
     with pytest.raises(DiagnosticError) as exc:
         compile_source(
             tmp_path,
-            f"""board B:
+            f"""block B:
   net.passive n:
     waivers:
       {check}: "reason"
@@ -225,7 +224,7 @@ def test_waiver_without_matching_application_is_reported(tmp_path):
 
     circuit = compile_source(
         tmp_path,
-        """board B:
+        """block B:
   net.passive n:
     waivers:
       typo: "reason"
@@ -236,12 +235,10 @@ def test_waiver_without_matching_application_is_reported(tmp_path):
 
 @pytest.mark.parametrize("reason", ['""', '"  "', "123", "true"])
 def test_waiver_requires_nonempty_string_reason(tmp_path, reason):
-    from noscheme.diagnostics import DiagnosticError
-
     with pytest.raises(DiagnosticError) as exc:
         compile_source(
             tmp_path,
-            f"""board B:
+            f"""block B:
   net.digital n:
     waivers:
       missing_driver: {reason}
@@ -253,8 +250,8 @@ def test_waiver_requires_nonempty_string_reason(tmp_path, reason):
 def test_waiver_never_suppresses_mandatory_pin_connection(tmp_path):
     c = compile_source(
         tmp_path,
-        component("digital_input", "never")
-        + """board B:
+        component("digital_input", "required")
+        + """block B:
   net.digital n:
     waivers:
       missing_driver: "External driver pending."
@@ -287,7 +284,7 @@ def test_waivers_follow_outermost_net_through_hierarchy(tmp_path, placement):
     net.digital signal{":" if inner else ""}
 {inner}  P loads[2]:
     1: signal
-board B:
+block B:
   net.digital shared{":" if outer else ""}
 {outer}  W w:
     signal: shared
@@ -310,7 +307,7 @@ def test_private_net_waiver_is_local_to_each_array_element(tmp_path):
   net.digital private:
     waivers:
       missing_driver: "Private test point"
-board B:
+block B:
   W w[2]()
   net.digital unrelated
 """,
@@ -324,22 +321,22 @@ board B:
 
 
 @pytest.mark.parametrize("kind", ["component", "block"])
-@pytest.mark.parametrize("unused", ["explicit", "never"])
+@pytest.mark.parametrize("use", ["explicit", "required"])
 @pytest.mark.parametrize("binding", ["", "(1: no_connect)"])
-def test_missing_connections_point_to_instance(tmp_path, kind, unused, binding):
+def test_missing_connections_point_to_instance(tmp_path, kind, use, binding):
     section = "pins" if kind == "component" else "ports"
     field = "1" if kind == "component" else "net.passive signal"
     binding = binding.replace("1:", "signal:") if kind == "block" else binding
-    library = f"""from noscheme import role, unused, net
+    library = f"""from noscheme import role, use, net
 {kind} P:
   {section}:
     {field}:
-      unused: unused.{unused}
+      use: use.{use}
 """
     if kind == "block":
         library += "      placeholder: true\n"
     (tmp_path / "parts.nosch").write_text(library)
-    circuit = compile_source(tmp_path, f"from parts import P\nboard B:\n  P<> items[2]{binding}\n")
+    circuit = compile_source(tmp_path, f"from parts import P\nblock B:\n  P<> items[2]{binding}\n")
     diagnostics = [
         d
         for d in check_circuit(circuit)
@@ -351,7 +348,7 @@ def test_missing_connections_point_to_instance(tmp_path, kind, unused, binding):
             "erc.required_port_connection",
         }
     ]
-    if binding and unused == "explicit":
+    if binding and use == "explicit":
         assert not diagnostics
         return
     assert len(diagnostics) == 2

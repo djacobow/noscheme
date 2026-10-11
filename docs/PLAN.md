@@ -7,7 +7,7 @@ milestone history and design context, not as the current implementation task lis
 Unchecked boxes below include deferred, superseded, and subsequently completed
 ideas. Old commands, syntax, counts, and timings describe their checkpoints.
 Consult the [LRM](LRM.md) for supported behavior and limitations, the
-[workflow HOWTO](../HOWTO.md) for circuit development, and
+[usage guide](../USAGE.md) for circuit development, and
 [Development](DEVELOPMENT.md) for compiler validation. Native status is maintained
 in [cpp/README.md](../cpp/README.md); editor support in
 [EDITOR_SUPPORT.md](EDITOR_SUPPORT.md).

@@ -13,7 +13,7 @@ SOURCE = """component Cap:
       role: role.passive
   metadata:
     value: capacitance
-board B:
+block B:
   net.passive rail
   Cap caps[2]:
     1: rail
@@ -134,7 +134,7 @@ def test_lsp_navigates_element_parameter_name(tmp_path):
 def test_overrides_apply_to_child_parts_of_block_arrays(tmp_path):
     source = (
         SOURCE.replace(
-            "board B:\n",
+            "block B:\n",
             """block Unit:
   params:
     capacitance capacitance = 100n
@@ -143,7 +143,7 @@ def test_overrides_apply_to_child_parts_of_block_arrays(tmp_path):
   Cap<capacitance: capacitance> cap:
     1: signal
     2: no_connect
-board B:
+block B:
 """,
         )
         .replace("Cap caps[2]:", "Unit caps[2]:")

@@ -50,8 +50,8 @@ SOURCE = """component Contact:
   pins:
     1:
       role: role.passive
-      unused: unused.never
-board B:
+      use: use.required
+block B:
   net.tristate bus
   Contact connectors[2]:
     1: bus
@@ -89,7 +89,7 @@ block Device:
     net.tristate bus
   Driver output:
     1: bus
-board B:
+block B:
   net.tristate bus
   Device devices[2]:
     bus: bus
@@ -112,12 +112,12 @@ def test_unknown_roles_warn_instead_of_becoming_passive(tmp_path):
 def test_capability_inheritance_and_override(tmp_path):
     source = (
         SOURCE.replace(
-            "board B:",
+            "block B:",
             """extend Contact TriContact:
   pins:
     1:
       tristate_capable: true
-board B:""",
+block B:""",
         )
         .replace("Contact connectors[2]:", "TriContact connectors[2]:")
         .replace("          tristate_capable: true\n", "")
@@ -148,8 +148,8 @@ def test_named_configurations_use_selected_roles(tmp_path):
 
     source = (
         SOURCE.replace(
-            "board B:",
-            '''board B:
+            "block B:",
+            '''block B:
   metadata:
     erc_choices:
       mode: ["input", "output"]

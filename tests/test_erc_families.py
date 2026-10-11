@@ -9,7 +9,7 @@ SOURCE = """component Output:
   pins:
     1:
       role: role.digital_output
-board B:
+block B:
   net.digital bus
   Output outputs[2]:
     1: bus

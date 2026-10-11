@@ -14,7 +14,12 @@ def checked_integer(value, bits=64):
 
 def parse_integer(text):
     negative = text.startswith("-")
-    digits = text.lstrip("+-").lstrip("0") or "0"
-    if len(digits) > 19:
+    digits = text.lstrip("+-").replace("_", "")
+    base = 16 if digits.lower().startswith("0x") else 2 if digits.lower().startswith("0b") else 10
+    if base != 10:
+        digits = digits[2:]
+    digits = digits.lstrip("0") or "0"
+    if len(digits) > {10: 19, 16: 16, 2: 64}[base]:
         raise ValueError("integer exceeds configured bit limit")
-    return checked_integer(-int(digits) if negative else int(digits))
+    value = int(digits, base)
+    return checked_integer(-value if negative else value)

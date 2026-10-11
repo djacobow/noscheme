@@ -96,7 +96,7 @@ class RenameSession:
                 if not root and item.kind in {"component", "block", "bundle", "nettype"}:
                     named.add(span_key(item.name.span))
                 for node in item.body:
-                    if isinstance(node, a.Instance) and (root or item.kind == "board"):
+                    if isinstance(node, a.Instance) and root:
                         key = span_key(node.name.span)
                         allowed.add(key)
                         instances[key] = (item, node)
@@ -115,7 +115,7 @@ class RenameSession:
             allowed.add(ref.identity)
         if ref.identity not in allowed | named:
             raise ValueError(
-                "Rename supports nets, parameters, components, blocks, bundles, ports, bundle fields, and board-level instances; board names, internal instances, and module names are not supported."
+                "Rename supports nets, parameters, components, blocks, bundles, ports, bundle fields, and board-level instances; internal instances and module names are not supported."
             )
         occurrences = [r for r in self.index.references if r.identity == ref.identity]
         if ref.identity in named:

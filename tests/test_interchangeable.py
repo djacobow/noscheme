@@ -22,7 +22,7 @@ component Tvs:
       role: role.ground
   metadata:
     interchangeable: [1, 2]
-board B:
+block B:
   net.passive a
   net.passive b
   net.ground g
@@ -66,13 +66,13 @@ def test_positional_nets_bind_the_group_in_declared_order(tmp_path):
             "metadata.interchangeable",
         ),
         (
-            "    interchangeable: [1, 2]\nboard",
-            "    interchangeable: [1]\nboard",
+            "    interchangeable: [1, 2]\nblock",
+            "    interchangeable: [1]\nblock",
             "metadata.interchangeable",
         ),
         (
-            "    interchangeable: [1, 2]\nboard",
-            "    interchangeable: [1, 9]\nboard",
+            "    interchangeable: [1, 2]\nblock",
+            "    interchangeable: [1, 9]\nblock",
             "metadata.interchangeable",
         ),
         ("esd(a, no_connect, gnd: g)", "esd(a, no_connect, 1: g, gnd: g)", "connection"),
@@ -90,8 +90,8 @@ def test_specialization_can_clear_an_inherited_group(tmp_path):
   pins:
     2:
       bias: bias.pull_up
-board B:"""
-    source = "from noscheme import bias\n" + SOURCE.replace("board B:", pull)
+block B:"""
+    source = "from noscheme import bias\n" + SOURCE.replace("block B:", pull)
     with pytest.raises(DiagnosticError, match="interchangeable: \\[\\]"):
         compile_source(tmp_path, source)
     cleared = source.replace(
@@ -117,7 +117,7 @@ def test_group_aliases_order_and_inherited_instances(tmp_path):
     )
     source = source.replace("interchangeable: [1, 2]", "interchangeable: [right, left]", 1)
     source = source.replace(
-        "board B:",
+        "block B:",
         """block Base:
   ports:
     net.passive input
@@ -127,7 +127,7 @@ extend Base Derived:
   metadata:
     custom:
       note: "Inherited compact instance"
-board B:""",
+block B:""",
     )
     source += "  Derived block(input: a, output: b)\n"
     bound = nets(compile_source(tmp_path, source))
@@ -153,11 +153,11 @@ def test_compact_instance_errors(tmp_path, old, new, code):
 
 def test_positional_array_slices_globals_and_bundle_fields(tmp_path):
     source = (
-        SOURCE[: SOURCE.index("board B:")]
+        SOURCE[: SOURCE.index("block B:")]
         + """bundle Pair:
   net.passive a
   net.passive b
-board B:
+block B:
   global net.ground gnd
   net.passive signals[4]
   Pair pair

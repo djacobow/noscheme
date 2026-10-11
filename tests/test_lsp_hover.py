@@ -5,17 +5,17 @@ import pytest
 
 from noscheme.lsp_analysis import analyze
 from noscheme.lsp_hover import BUILTIN_HELP, format_hover
-from noscheme.metadata import ROLES, NETTYPES, UNUSED
+from noscheme.metadata import ROLES, NETTYPES, USE_POLICIES
 from test_resolve import make_project
 
-LIBRARY = """from noscheme import role, unused
+LIBRARY = """from noscheme import role, use
 component Resistor:
   params:
     resistance value
   pins:
     1 (terminal):
       role: role.passive
-      unused: unused.never
+      use: use.required
   metadata:
     ref_prefix: "R"
     footprint: "Test:0603"
@@ -26,7 +26,7 @@ extend Resistor<value: 4.7k> Pullup
 
 SOURCE = """import parts
 from noscheme import net, role
-board B:
+block B:
   net.passive power
   parts.Pullup<value: "10kOhm"> resistors[2]:
     terminal: power
@@ -77,7 +77,7 @@ def test_pin_alias_roles_unused_and_net_details(tmp_path):
     text = hover(result, path, SOURCE, "terminal:")
     assert "component Pullup: 1" in text
     assert "role: passive (from parts," in text
-    assert "unused: never" in text
+    assert "use: required" in text
     assert "aliases: terminal" in text
     assert "Effective role: passive; net: power" in text
     net = hover(result, path, SOURCE, "power\n")
@@ -142,7 +142,7 @@ def test_custom_hint_convention_is_not_required_to_be_a_list(tmp_path):
 
 
 def test_builtin_help_covers_enum_registries():
-    for namespace, members in (("role", ROLES), ("net", NETTYPES), ("unused", UNUSED)):
+    for namespace, members in (("role", ROLES), ("net", NETTYPES), ("use", USE_POLICIES)):
         assert set(BUILTIN_HELP[namespace]) == members
 
 
@@ -156,7 +156,7 @@ def test_builtin_help_covers_enum_registries():
 )
 def test_builtin_hover_respects_imports_without_navigation(tmp_path, import_line, prefix):
     library = LIBRARY.replace(
-        "from noscheme import role, unused", import_line + "\nfrom noscheme import unused"
+        "from noscheme import role, use", import_line + "\nfrom noscheme import use"
     ).replace("role.passive", prefix + ".passive")
     _, result = setup(tmp_path, library=library)
     path = tmp_path / "parts.nosch"
@@ -164,7 +164,7 @@ def test_builtin_hover_respects_imports_without_navigation(tmp_path, import_line
     assert "role.passive\nPassive contact" in result.hover_at(path, offset).description
     assert result.reference_at(path, offset) is None
     assert result.references_at(path, offset) == []
-    unused_offset = library.index("unused.never")
+    unused_offset = library.index("use.required")
     assert "Must be connected" in result.hover_at(path, unused_offset).description
 
 

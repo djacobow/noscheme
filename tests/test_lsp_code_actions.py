@@ -9,7 +9,7 @@ from noscheme.lsp_code_actions import instance_actions
 from noscheme.parser import parse
 from test_circuit import make
 
-SOURCE = """from noscheme import role, unused, net
+SOURCE = """from noscheme import role, use, net
 component Part:
   params:
     number required
@@ -17,11 +17,11 @@ component Part:
   pins:
     1 (signal):
       role: role.passive
-      unused: unused.never
+      use: use.required
     2:
       role: role.passive
-      unused: unused.always
-board B:
+      use: use.optional
+block B:
   net.passive wire
   Part p
 """
@@ -29,7 +29,7 @@ board B:
 
 def instance_offset(source):
     """The offset of the instance named p, whatever its type and parameters."""
-    return source.index(" p", source.index("board B:")) + 1
+    return source.index(" p", source.index("block B:")) + 1
 
 
 def actions(tmp_path, source=SOURCE):
@@ -104,8 +104,8 @@ def test_existing_section_required_parameter_and_idempotence(tmp_path):
 
 def test_forbidden_pin_is_not_scaffolded(tmp_path):
     source = SOURCE.replace(
-        "role: role.passive\n      unused: unused.always",
-        "role: role.do_not_connect\n      unused: unused.always",
+        "role: role.passive\n      use: use.optional",
+        "use: use.disallowed",
     )
     result = actions(tmp_path, source)
     expanded = apply(source, result["Add all connections and parameters"])

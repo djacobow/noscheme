@@ -19,7 +19,7 @@ TYPE_PATH = rf"{IDENTIFIER}(?:\.{IDENTIFIER})*"
 TYPE_PREFIX = r"[A-Za-z0-9_#.]*"
 # A definition header: `component Name:`, or `extend Base<params> Name`, on one line.
 HEADER = re.compile(
-    rf"^(?:(component|block|board|bundle)[ \t]+({IDENTIFIER})"
+    rf"^(?:(component|block|bundle)[ \t]+({IDENTIFIER})"
     rf"|extend[ \t]+({TYPE_PATH})(?:[ \t]*<[^\n]*>)?[ \t]+({IDENTIFIER}))"
     r"(?=[ \t]*(?::|$))[^\n]*",
     re.M,
@@ -51,7 +51,7 @@ class Suggestion:
 class Owner:
     """A definition header in a masked buffer; an extension's kind is its base's."""
 
-    kind: str  # component, block, board, bundle, or extend
+    kind: str  # component, block, bundle, or extend
     name: str
     base: str | None
     start: int
@@ -252,7 +252,7 @@ def bundle_completion(path, config, sources, offset, masked):
     source = sources[path]
     line_start = source.rfind("\n", 0, offset) + 1
     owner, stop = owner_before(masked, line_start)
-    if owner is None or owner.kind not in {"board", "block"}:
+    if owner is None or owner.kind not in {"block"}:
         return []
     active = connection_instance(masked, owner, line_start)
     if active is None:
@@ -489,7 +489,7 @@ def target_definition(project, module, spelling):
 def inline_completion(path, config, sources, offset, masked):
     """Offer pins and bundle members inside a declaration's connection list."""
     owner, _ = owner_before(masked, offset)
-    if owner is None or owner.kind not in {"board", "block"}:
+    if owner is None or owner.kind not in {"block"}:
         return []
     instances = list(ARGUMENTS.finditer(masked, owner.end, offset))
     if not instances:
@@ -663,7 +663,7 @@ def completion_items(path, config, sources, offset):
     # A type starts an extension header, a body line, a bundle member, or a port.
     base_type = re.fullmatch(rf"extend[ \t]+{TYPE_PREFIX}", before)
     declared_type = re.fullmatch(rf"[ \t]+(global[ \t]+)?{TYPE_PREFIX}", before)
-    body_line = owner is not None and len(parents) == 1 and owner.kind in {"board", "block"}
+    body_line = owner is not None and len(parents) == 1 and owner.kind in {"block"}
     net_line = owner is not None and (
         len(parents) == 1 and owner.kind == "bundle" or parents[1:] == ["ports:"]
     )

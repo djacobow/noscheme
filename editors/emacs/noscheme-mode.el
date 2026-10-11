@@ -26,7 +26,7 @@
   "Syntax table for NoScheme, including non-nesting C-style comments.")
 
 (defconst noscheme-font-lock-keywords
-  `((,(concat "\\_<" (regexp-opt '("component" "block" "board" "bundle"))
+  `((,(concat "\\_<" (regexp-opt '("component" "block" "bundle"))
               "\\_>[ \t]+\\([[:alnum:]_#]+\\)")
      (0 font-lock-keyword-face) (1 font-lock-type-face))
     (,(regexp-opt '("from" "import" "as" "extend" "global") 'symbols)
@@ -36,8 +36,10 @@
     (,(regexp-opt '("number" "string" "resistance" "capacitance" "inductance"
                     "voltage" "current" "frequency" "power" "time") 'symbols)
      . font-lock-type-face)
-    ("\\_<\\(?:role\\|net\\|bias\\|unused\\|num\\)\\.[[:alnum:]_#]+"
+    ("\\_<\\(?:role\\|net\\|bias\\|use\\|num\\)\\.[[:alnum:]_#]+"
      . font-lock-builtin-face)
+    ("\\(?:^\\|[^[:alnum:]_#]\\)\\(\\(?:0[xX][0-9a-fA-F]\\(?:_?[0-9a-fA-F]\\)*\\|0[bB][01]\\(?:_?[01]\\)*\\|\\(?:[0-9]\\(?:_?[0-9]\\)*\\(?:\\.[0-9]\\(?:_?[0-9]\\)*\\)?\\|\\.[0-9]\\(?:_?[0-9]\\)*\\)\\(?:[eE][+-]?[0-9]\\(?:_?[0-9]\\)*\\|[afpnuµmkMGTPR]\\(?:[0-9]\\(?:_?[0-9]\\)*\\)?\\)?\\)\\)\\_>"
+     (1 font-lock-constant-face))
     ("^[ \t]*\\([[:alpha:]_#][[:alnum:]_#]*\\)[ \t]*:"
      (1 font-lock-variable-name-face)))
   "Highlighting shared by all NoScheme buffers.")

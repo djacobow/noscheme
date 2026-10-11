@@ -17,7 +17,7 @@ from .parser import Builder, classify, kind_errors, parse
 
 IDENTIFIER = r"[A-Za-z_#][A-Za-z0-9_#]*"
 QUALIFIED = re.compile(rf"{IDENTIFIER}(?:\.{IDENTIFIER})*\Z")
-BUILTINS = frozenset({"role", "net", "unused", "num", "bias", "std"})
+BUILTINS = frozenset({"role", "net", "use", "num", "bias", "std"})
 # Symbol.module for a rule or predicate imported from a project ERC namespace.
 ERC_MODULE = "<erc>"
 
@@ -38,14 +38,13 @@ class ProjectConfig:
     library_paths: tuple[Path, ...]
     output_dir: Path
     span: a.Span
-    target: str | None = None
+    target: str
     erc_modules: tuple[Path, ...] = ()
     erc_rule_sets: tuple[str, ...] = ("std.default",)
 
     @property
     def state_path(self):
-        name = f"noscheme.{self.target}.state.json" if self.target else "noscheme.state.json"
-        return self.path.parent / name
+        return self.path.parent / f"noscheme.{self.target}.state.json"
 
     @cached_property
     def erc_registry(self):
@@ -237,47 +236,8 @@ def read_config(path: Path | str = ".", *, sources=None, target=None) -> Project
         data = tomllib.loads(source)
     except tomllib.TOMLDecodeError as exc:
         fail("project.toml", str(exc), file_span, config=True)
-    selected = None
-    if "targets" in data:
-        if "board" in data:
-            invalid("board", "board and targets cannot be combined")
-        targets = data["targets"]
-        if not isinstance(targets, dict) or not targets:
-            invalid("targets", "targets must be a nonempty table")
-        for name, settings in targets.items():
-            if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_-]*", name):
-                invalid("targets", f"invalid target name {name!r}")
-            if not isinstance(settings, dict) or set(settings) - {"root", "output_dir"}:
-                invalid("targets", f"target {name!r} allows only root and output_dir")
-            root = settings.get("root")
-            if not isinstance(root, str) or not QUALIFIED.fullmatch(root) or "." not in root:
-                invalid("root", f"target {name!r} must name a qualified root block", name)
-            output = settings.get("output_dir")
-            if "output_dir" in settings and (
-                not isinstance(output, str) or not output or "\0" in output
-            ):
-                invalid("output_dir", "output_dir must be a nonempty path string", name)
-        default = data.get("default_target")
-        if "default_target" in data and (not isinstance(default, str) or default not in targets):
-            invalid("default_target", "default_target must name a configured target")
-        selected = target if target is not None else default
-        if selected is None:
-            if len(targets) != 1:
-                invalid("targets", "select a target with --target or default_target")
-            selected = next(iter(targets))
-        if selected not in targets:
-            invalid("targets", f"unknown target {selected!r}")
-        settings = targets[selected]
-        base_output = data.get("output_dir")
-        if not isinstance(base_output, str) or not base_output or "\0" in base_output:
-            invalid("output_dir", "output_dir must be a nonempty path string")
-        data = {k: v for k, v in data.items() if k not in {"targets", "default_target"}}
-        data["board"] = settings["root"]
-        data["output_dir"] = settings.get("output_dir", str(Path(base_output) / selected))
-    elif target is not None or "default_target" in data:
-        invalid("targets", "target selection requires a targets table")
-    expected = {"language_version", "board", "source_paths", "library_paths", "output_dir"}
-    unknown = sorted(data.keys() - expected - {"erc_modules", "erc_rule_sets"})
+    expected = {"language_version", "targets", "source_paths", "library_paths", "output_dir"}
+    unknown = sorted(data.keys() - expected - {"erc_modules", "erc_rule_sets", "default_target"})
     if unknown:
         invalid(re.escape(unknown[0]), f"unknown configuration key {unknown[0]!r}")
     missing = sorted(expected - data.keys())
@@ -285,12 +245,40 @@ def read_config(path: Path | str = ".", *, sources=None, target=None) -> Project
         invalid(missing[0], f"missing required configuration key {missing[0]!r}")
     if data["language_version"] != "0.1":
         invalid("language_version", 'language_version must be the string "0.1"')
-    board = data["board"]
-    if not isinstance(board, str) or not QUALIFIED.fullmatch(board) or "." not in board:
-        invalid("board", 'board must name a module and definition, such as "main.Blink"')
-    module, name = board.rsplit(".", 1)
+    targets = data["targets"]
+    if not isinstance(targets, dict) or not targets:
+        invalid("targets", "targets must be a nonempty table")
+    for name, settings in targets.items():
+        if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_-]*", name):
+            invalid("targets", f"invalid target name {name!r}")
+        if not isinstance(settings, dict) or set(settings) - {"root", "output_dir"}:
+            invalid("targets", f"target {name!r} allows only root and output_dir")
+        root = settings.get("root")
+        if not isinstance(root, str) or not QUALIFIED.fullmatch(root) or "." not in root:
+            invalid("root", f"target {name!r} must name a qualified root block", name)
+        output = settings.get("output_dir")
+        if "output_dir" in settings and (
+            not isinstance(output, str) or not output or "\0" in output
+        ):
+            invalid("output_dir", "output_dir must be a nonempty path string", name)
+    default = data.get("default_target")
+    if "default_target" in data and (not isinstance(default, str) or default not in targets):
+        invalid("default_target", "default_target must name a configured target")
+    selected = target if target is not None else default
+    if selected is None:
+        if len(targets) != 1:
+            invalid("targets", "select a target with --target or default_target")
+        selected = next(iter(targets))
+    if selected not in targets:
+        invalid("targets", f"unknown target {selected!r}")
+    settings = targets[selected]
+    base_output = data.get("output_dir")
+    if not isinstance(base_output, str) or not base_output or "\0" in base_output:
+        invalid("output_dir", "output_dir must be a nonempty path string")
+    target_output = settings.get("output_dir", str(Path(base_output) / selected))
+    module, name = settings["root"].rsplit(".", 1)
     if module.split(".")[0] == "noscheme":
-        invalid("board", "noscheme is reserved for builtins and cannot contain the board")
+        invalid("root", "noscheme is reserved for builtins and cannot contain the root", selected)
 
     def directories(key):
         values = data[key]
@@ -310,10 +298,7 @@ def read_config(path: Path | str = ".", *, sources=None, target=None) -> Project
         invalid("source_paths", "at least one source or library search path is required")
     if len(set(roots)) != len(roots):
         invalid("source_paths", "search paths contain duplicate directories")
-    output = data["output_dir"]
-    if not isinstance(output, str) or not output or "\0" in output:
-        invalid("output_dir", "output_dir must be a nonempty path string")
-    output = (path.parent / output).resolve()
+    output = (path.parent / target_output).resolve()
     if output.exists() and not output.is_dir():
         invalid("output_dir", "output_dir is not a directory")
     modules = data.get("erc_modules", [])
@@ -342,7 +327,7 @@ def read_config(path: Path | str = ".", *, sources=None, target=None) -> Project
             sources,
             libraries,
             output,
-            span("root", selected) if selected else span("board"),
+            span("root", selected),
             selected,
             modules,
             tuple(rule_sets),
@@ -514,11 +499,7 @@ def load_project(
         bind_definitions(name, tree, symbols)
         modules[name] = LoadedModule(name, file, tree, symbols)
     board = modules[config.board_module].symbols.get(config.board_name)
-    if (
-        board is None
-        or board.declaration is None
-        or board.declaration.kind not in {"board", "block"}
-    ):
+    if board is None or board.declaration is None or board.declaration.kind != "block":
         fail(
             "project.board",
             f"{config.board_module}.{config.board_name} must name a block definition",

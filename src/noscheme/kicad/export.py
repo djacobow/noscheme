@@ -222,7 +222,6 @@ KICAD_PIN_TYPES = {
     "power_output": "power_out",
     "open_drain": "open_collector",
     "open_source": "open_emitter",
-    "do_not_connect": "no_connect",
     "unchecked": "unspecified",
 }
 
@@ -318,7 +317,7 @@ def render(circuit, state):
             if data["net"] is not None:
                 net = net_names[data["net"]]
                 nets.setdefault(net, []).append(form("node", form("ref", ref), form("pin", pin)))
-            elif data["binding"] == "no_connect" or "do_not_connect" in attribute(data, "role", []):
+            elif data["binding"] == "no_connect" or attribute(data, "use") == "disallowed":
                 # KiCad discovers component pins from net nodes, not libparts.
                 # Give each deliberate NC its own net and mark the node so even
                 # duplicate-number footprint pads stay isolated in PCB Editor.

@@ -36,7 +36,7 @@ the reports do not record a KiCad package version. Current CI tests KiCad 10.0.
 The MCU module was subsequently regenerated to preserve KiCad `power_in`
 ambiguity as `[role.ground, role.power_input]`. The handwritten MCU specialization
 selects the supply and return roles for this board explicitly. Both modules have
-also been regenerated to omit redundant `unused.explicit` annotations; omitted
+also been regenerated to omit redundant `use.explicit` annotations; omitted
 unused policies retain that default.
 
 The passive module also includes converter-generated `interchangeable: ["1", "2"]`
@@ -115,5 +115,5 @@ uv run --locked noscheme check --project examples/stm32h523
 uv run --locked pytest -q tests/test_convert.py tests/test_stm32_reference.py
 ```
 
-Retain `../noscheme.state.json`: it stores persistent board identities and
+Retain `../noscheme.default.state.json`: it stores persistent board identities and
 reference designators, and is not a generated library snapshot.

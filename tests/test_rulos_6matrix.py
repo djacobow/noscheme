@@ -108,7 +108,7 @@ def test_source_connectivity_values_and_export(tmp_path):
     components = children(children(exported, "components")[0], "comp")
     assert len(components) == 93
     # Resolve export references back to original Eagle instances using saved state.
-    state = json.loads((tmp_path / "noscheme.state.json").read_text())
+    state = json.loads((tmp_path / "noscheme.default.state.json").read_text())
     refs = {
         p["reference"]: mapping[identity]
         for identity, p in state["entries"].items()

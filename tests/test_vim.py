@@ -32,6 +32,7 @@ def test_noscheme_runtime(tmp_path, editor):
         "component Resistor:",
         "  value: num.round(4.7k) + 4k7",
         "extend Resistor<4.7k> Pullup",
+        "0xFF_FF 0b1010_0011 1_000 .5 .5µ 1µ5 use.disallowed",
     ]
     design = tmp_path / "sample.nosch"
     design.write_text("\n".join(source) + "\n")
@@ -73,8 +74,13 @@ def test_noscheme_runtime(tmp_path, editor):
         (9, "<", "noschemeDelimiter"),
         (16, "extend", "noschemeDeclaration"),
         (16, "Resistor", "noschemeTypeName"),
+        *[
+            (17, token, "noschemeNumber")
+            for token in ["0xFF_FF", "0b1010_0011", "1_000", ".5", ".5µ", "1µ5"]
+        ],
+        (17, "use.disallowed", "noschemeBuiltin"),
     ]:
-        column = source[line - 1].index(token) + 1
+        column = len(source[line - 1][: source[line - 1].index(token)].encode("utf-8")) + 1
         commands.append(
             f"call assert_equal('{group}', synIDattr(synID({line}, {column}, 1), 'name'), 'line {line}: {token}')"
         )

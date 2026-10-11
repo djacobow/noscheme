@@ -1,5 +1,8 @@
 language_version = "0.1"
-board = "main.Blink"
 source_paths = ["src"]
 library_paths = ["lib"]
+output_dir = "build"
+
+[targets.default]
+root = "main.Blink"
 output_dir = "build"

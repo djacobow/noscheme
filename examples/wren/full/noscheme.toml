@@ -1,5 +1,8 @@
 language_version = "0.1"
-board = "main.WrenFull"
 source_paths = ["."]
 library_paths = []
+output_dir = "build"
+
+[targets.default]
+root = "main.WrenFull"
 output_dir = "build"

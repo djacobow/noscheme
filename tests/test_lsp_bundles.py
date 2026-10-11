@@ -24,7 +24,7 @@ extend Peripheral Specialized:
 
 PREFIX = """import interfaces
 from noscheme import net
-board B:
+block B:
   global interfaces.Buses shared
   interfaces.Buses local[2]
   net.digital scalar
@@ -133,7 +133,7 @@ block Local:
   interfaces.Peripheral p:
     bus.sd[0].sck: signals.sd[1].
 """
-    source += "board B:\n  Local b()\n"
+    source += "block B:\n  Local b()\n"
     make_project(tmp_path, source, {"interfaces": LIBRARY})
     path = tmp_path / "main.nosch"
     offset = source.index("signals.sd[1].") + len("signals.sd[1].")

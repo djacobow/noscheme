@@ -23,7 +23,7 @@ component Device:
       role: role.open_drain
       bias: bias.none
       capacitance: 10p
-board B:
+block B:
   net.open_drain bus:
     checks:
       pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=2500, max=5000)
@@ -73,14 +73,14 @@ def test_missing_pull_resistance_does_not_invent_maximum_violation(tmp_path):
 
 def test_known_minimum_violation_with_unknown_additional_pull(tmp_path):
     source = SOURCE.replace(
-        "board B:",
+        "block B:",
         """component Unknown:
   pins:
     1:
       role: role.passive
       bias: bias.pull_up
       capacitance: 0p
-board B:
+block B:
   Unknown unknown:
     1: bus
 """,
@@ -261,8 +261,8 @@ def test_registered_checks_receive_configuration_context(tmp_path):
   annotation = value(ctx.origin, "demo")""",
     )
     source = SOURCE.replace(
-        "board B:",
-        '''board B:
+        "block B:",
+        '''block B:
   metadata:
     erc_choices:
       mode: ["one", "two"]
@@ -280,7 +280,7 @@ def test_registered_checks_receive_configuration_context(tmp_path):
 
 def test_inner_port_capacitance_limit_counts_physical_pins_once(tmp_path):
     source = SOURCE.replace(
-        "board B:",
+        "block B:",
         """block Receiver:
   ports:
     net.open_drain bus:
@@ -288,7 +288,7 @@ def test_inner_port_capacitance_limit_counts_physical_pins_once(tmp_path):
         capacitance: std.sum(capacitance, net=wiring_capacitance, max=20p)
   Device inner:
     1: bus
-board B:""",
+block B:""",
     ).replace("Device device", "Receiver device")
     source = source.replace(
         "  Receiver device:\n    1: bus",

@@ -21,7 +21,7 @@ component MCU:
       core:
         pins: [vdd, "2"]
         max_load_current: 100m
-board B:
+block B:
   net.power rail
   Supply supply:
     1: rail
@@ -88,13 +88,13 @@ def test_invalid_group_metadata(tmp_path, old, new):
 
 def test_group_and_individual_loads_sum(tmp_path):
     source = SOURCE.replace(
-        "board B:",
+        "block B:",
         """component Extra:
   pins:
     1:
       role: role.power_input
       max_load_current: 60m
-board B:
+block B:
   Extra extra:
     1: rail
 """,
@@ -104,13 +104,13 @@ board B:
 
 def test_inherited_group_amount_override(tmp_path):
     source = SOURCE.replace(
-        "board B:",
+        "block B:",
         """extend MCU Bigger:
   metadata:
     current_loads:
       core:
         max_load_current: 160m
-board B:""",
+block B:""",
     ).replace("MCU mcu", "Bigger mcu")
     assert [d.code for d in diagnostics(tmp_path, source)] == ["erc.current_overload"]
 
@@ -166,8 +166,8 @@ def test_configurations_check_effective_group_roles(tmp_path):
 
     source = SOURCE.replace("role: role.power_input", "role: [role.power_input, role.passive]")
     source = source.replace(
-        "board B:",
-        '''board B:
+        "block B:",
+        '''block B:
   metadata:
     erc_choices:
       mode: ["powered", "absent"]

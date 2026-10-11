@@ -17,7 +17,7 @@ component Driver:
   pins:
     1:
       role: role.open_drain
-board B:
+block B:
   net.power supply
   net.open_drain bus
   Pull pull:

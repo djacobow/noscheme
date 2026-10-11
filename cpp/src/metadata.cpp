@@ -128,8 +128,8 @@ MetaValue MetadataReader::read_value(const Json &schema, const ast::Node &expr,
     return roles(kind == "roles" ? items(expr)
                                  : std::vector<const ast::Node *>{&expr},
                  expr.span);
-  if (kind == "unused")
-    return enumeration(expr, "unused", registry.data.at("enums").at("unused"));
+  if (kind == "use")
+    return enumeration(expr, "use", registry.data.at("enums").at("use"));
   if (kind == "aliases") {
     auto *list = as<ast::ListExpr>(&expr);
     if (!list)
@@ -168,7 +168,7 @@ MetaValue MetadataReader::read_value(const Json &schema, const ast::Node &expr,
   if (auto *member = as<ast::Member>(&expr); scope == "attributes" && member) {
     const auto *symbol = namespace_symbol(*member->base, false);
     if (!symbol ||
-        !std::set<std::string>{"bias", "role", "net", "unused"}.contains(
+        !std::set<std::string>{"bias", "role", "net", "use"}.contains(
             symbol->name))
       error("metadata.value", "expected a literal or imported enum value",
             expr.span);
@@ -653,9 +653,9 @@ MetaFields MetadataReader::pin(const ast::Field &field,
     auto *member = as<ast::Member>(item);
     auto symbol = member ? namespace_symbol(*member->base) : nullptr;
     if (!symbol || symbol->module != "noscheme" ||
-        !std::set<std::string>{"role", "bias", "unused"}.contains(symbol->name))
-      error("metadata.shorthand",
-            "expected builtin role, bias, or unused value", item->span);
+        !std::set<std::string>{"role", "bias", "use"}.contains(symbol->name))
+      error("metadata.shorthand", "expected builtin role, bias, or use value",
+            item->span);
     auto found = std::ranges::find(groups, symbol->name,
                                    [](const auto &g) { return g.first; });
     if (found == groups.end())

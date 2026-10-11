@@ -139,7 +139,7 @@ def test_bind(probe, tmp_path, params, args, metadata):
     source = f"from noscheme import num\ncomponent Part:\n  params:\n    {params}\n"
     if metadata:
         source += f"  metadata:\n    {metadata}\n"
-    source += f"board B:\n  Part p({args})\n"
+    source += f"block B:\n  Part p({args})\n"
     path = make_project(tmp_path, {"src/main.nosch": source})
     compare(
         probe,
@@ -172,7 +172,7 @@ extend base.Base<value: other.floor(3.4) * 1u> Derived
 """,
             "src/main.nosch": """from derived import Derived as Part
 from noscheme import num as caller
-board B:
+block B:
   Part<x: caller.ceil(6.2)> p()
 """,
         },
@@ -196,8 +196,8 @@ board B:
 def test_resolution_errors(probe, tmp_path, body):
     path = make_project(
         tmp_path,
-        {"src/main.nosch": "from noscheme import net\n" + body + "board B0:\n  net.passive n\n"},
-        board="main.B0",
+        {"src/main.nosch": "from noscheme import net\n" + body + "block B0:\n  net.passive n\n"},
+        **{"targets.default.root": "main.B0"},
     )
     compare(probe, path)
 
@@ -213,7 +213,7 @@ def test_default_order_and_redeclaration(probe, tmp_path):
 extend Base<value: 47k> Part:
   params:
     string a = "hello"
-board B:
+block B:
   Part p
 """
         },
@@ -239,7 +239,7 @@ def test_quantity_defaults(probe, tmp_path, kind):
             "src/main.nosch": f"""component Part:
   params:
     {kind} value = 4.7u
-board B:
+block B:
   Part p
 """
         },
@@ -251,7 +251,7 @@ def test_long_inheritance_chain(probe, tmp_path):
     text = "component P0:\n  params:\n    resistance value = 1k\n"
     for i in range(1, 180):
         text += f"extend P{i - 1}<value: {i}k> P{i}\n"
-    text += "board B:\n  P179 p\n"
+    text += "block B:\n  P179 p\n"
     path = make_project(tmp_path, {"src/main.nosch": text})
     compare(probe, path, {"module": "main", "definition": "B", "instance": "p"})
 
@@ -261,7 +261,7 @@ def test_long_default_dependencies(probe, tmp_path):
     for i in range(150):
         expr = f"p{i + 1} + 1" if i < 149 else "1"
         text += f"    p{i}: number = {expr}\n"
-    text += "board B:\n  Part p\n"
+    text += "block B:\n  Part p\n"
     path = make_project(tmp_path, {"src/main.nosch": text})
     compare(probe, path, {"module": "main", "definition": "B", "instance": "p"})
 
@@ -282,7 +282,7 @@ component helper:
   params:
     number x = 1
 extend Base<value: 3.3k> Part
-board B:
+block B:
   Part p
 """,
         },
@@ -297,7 +297,7 @@ def test_probe_observes_changed_defaults(probe, tmp_path):
             "src/main.nosch": """component Part:
   params:
     resistance value = 1k
-board B:
+block B:
   Part p
 """
         },
@@ -327,7 +327,7 @@ extend Base Part:
   metadata:
     custom:
       description: "specialized"
-board B:
+block B:
   Part p
 """,
         },

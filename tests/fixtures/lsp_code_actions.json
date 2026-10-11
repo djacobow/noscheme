@@ -1,66 +1,66 @@
 [
   {
     "name": "bare",
-    "source": "from noscheme import role, unused, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      unused: unused.never\n    2:\n      role: role.passive\n      unused: unused.always\nboard B:\n  net.passive wire\n  Part p\n"
+    "source": "from noscheme import role, use, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      use: use.required\n    2:\n      role: role.passive\n      use: use.optional\nblock B:\n  net.passive wire\n  Part p\n"
   },
   {
     "name": "inline",
-    "source": "from noscheme import role, unused, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      unused: unused.never\n    2:\n      role: role.passive\n      unused: unused.always\nboard B:\n  net.passive wire\n  Part<required: 4> p(signal: wire):  // keep\n    metadata:\n      value: \"keep\"\n"
+    "source": "from noscheme import role, use, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      use: use.required\n    2:\n      role: role.passive\n      use: use.optional\nblock B:\n  net.passive wire\n  Part<required: 4> p(signal: wire):  // keep\n    metadata:\n      value: \"keep\"\n"
   },
   {
     "name": "sections",
-    "source": "from noscheme import role, unused, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      unused: unused.never\n    2:\n      role: role.passive\n      unused: unused.always\nboard B:\n  net.passive wire\n  Part p:\n    1: wire\n    params:\n      required: 4\n  Part next\n"
+    "source": "from noscheme import role, use, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      use: use.required\n    2:\n      role: role.passive\n      use: use.optional\nblock B:\n  net.passive wire\n  Part p:\n    1: wire\n    params:\n      required: 4\n  Part next\n"
   },
   {
     "name": "array",
-    "source": "from noscheme import role, unused, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      unused: unused.never\n    2:\n      role: role.passive\n      unused: unused.always\nboard B:\n  net.passive wire\n  Part p[2]\n"
+    "source": "from noscheme import role, use, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      use: use.required\n    2:\n      role: role.passive\n      use: use.optional\nblock B:\n  net.passive wire\n  Part p[2]\n"
   },
   {
     "name": "grouped",
-    "source": "from noscheme import role, unused, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      unused: unused.never\n    2:\n      role: role.passive\n      unused: unused.always\nboard B:\n  net.passive wire\n  Part p:\n    [1, 2]: wire\n"
+    "source": "from noscheme import role, use, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      use: use.required\n    2:\n      role: role.passive\n      use: use.optional\nblock B:\n  net.passive wire\n  Part p:\n    [1, 2]: wire\n"
   },
   {
     "name": "crlf",
-    "source": "from noscheme import role, unused, net\r\ncomponent Part:\r\n  params:\r\n    number required\r\n    number optional = 10\r\n  pins:\r\n    1 (signal):\r\n      role: role.passive\r\n      unused: unused.never\r\n    2:\r\n      role: role.passive\r\n      unused: unused.always\r\nboard B:\r\n  net.passive wire\r\n  Part p\r\n"
+    "source": "from noscheme import role, use, net\r\ncomponent Part:\r\n  params:\r\n    number required\r\n    number optional = 10\r\n  pins:\r\n    1 (signal):\r\n      role: role.passive\r\n      use: use.required\r\n    2:\r\n      role: role.passive\r\n      use: use.optional\r\nblock B:\r\n  net.passive wire\r\n  Part p\r\n"
   },
   {
     "name": "eof",
-    "source": "from noscheme import role, unused, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      unused: unused.never\n    2:\n      role: role.passive\n      unused: unused.always\nboard B:\n  net.passive wire\n  Part p"
+    "source": "from noscheme import role, use, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      use: use.required\n    2:\n      role: role.passive\n      use: use.optional\nblock B:\n  net.passive wire\n  Part p"
   },
   {
     "name": "unicode",
-    "source": "// µ Ω 😀\nfrom noscheme import role, unused, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      unused: unused.never\n    2:\n      role: role.passive\n      unused: unused.always\nboard B:\n  net.passive wire\n  Part p\n"
+    "source": "// µ Ω 😀\nfrom noscheme import role, use, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      use: use.required\n    2:\n      role: role.passive\n      use: use.optional\nblock B:\n  net.passive wire\n  Part p\n"
   },
   {
     "name": "unknown",
-    "source": "from noscheme import role, unused, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      unused: unused.never\n    2:\n      role: role.passive\n      unused: unused.always\nboard B:\n  net.passive wire\n  net.passive p\n"
+    "source": "from noscheme import role, use, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      use: use.required\n    2:\n      role: role.passive\n      use: use.optional\nblock B:\n  net.passive wire\n  net.passive p\n"
   },
   {
     "name": "collision",
-    "source": "from noscheme import role, unused, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      unused: unused.never\n    2:\n      role: role.passive\n      unused: unused.always\nboard B:\n  net.passive wire\n  net.passive TODO_connection_1\n  Part p\n"
+    "source": "from noscheme import role, use, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      use: use.required\n    2:\n      role: role.passive\n      use: use.optional\nblock B:\n  net.passive wire\n  net.passive TODO_connection_1\n  Part p\n"
   },
   {
     "name": "existing-param-section",
-    "source": "from noscheme import role, unused, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      unused: unused.never\n    2:\n      role: role.passive\n      unused: unused.always\nboard B:\n  net.passive wire\n  Part p:\n    params:\n      optional: 3\n"
+    "source": "from noscheme import role, use, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      use: use.required\n    2:\n      role: role.passive\n      use: use.optional\nblock B:\n  net.passive wire\n  Part p:\n    params:\n      optional: 3\n"
   },
   {
     "name": "forbidden-pin",
-    "source": "from noscheme import role, unused, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      unused: unused.never\n    2:\n      role: role.do_not_connect\n      unused: unused.always\nboard B:\n  net.passive wire\n  Part p\n"
+    "source": "from noscheme import role, use, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      use: use.required\n    2:\n      use: use.disallowed\nblock B:\n  net.passive wire\n  Part p\n"
   },
   {
     "name": "positional",
-    "source": "from noscheme import role, unused, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      unused: unused.always\n    2:\n      role: role.passive\n      unused: unused.always\n  metadata:\n    interchangeable: [1, 2]\nboard B:\n  net.passive wire\n  Part<required: 3> p(wire, wire)\n"
+    "source": "from noscheme import role, use, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      use: use.optional\n    2:\n      role: role.passive\n      use: use.optional\n  metadata:\n    interchangeable: [1, 2]\nblock B:\n  net.passive wire\n  Part<required: 3> p(wire, wire)\n"
   },
   {
     "name": "unnamed",
-    "source": "from noscheme import role, unused, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      unused: unused.never\n    2:\n      role: role.passive\n      unused: unused.always\nboard B:\n  net.passive wire\n  Part<4> p\n"
+    "source": "from noscheme import role, use, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      use: use.required\n    2:\n      role: role.passive\n      use: use.optional\nblock B:\n  net.passive wire\n  Part<4> p\n"
   },
   {
     "name": "parameter-shift",
-    "source": "from noscheme import role, unused, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      unused: unused.never\n    2:\n      role: role.passive\n      unused: unused.always\nboard B:\n  net.passive wire\n  Part<required: (1 << 3)> p\n"
+    "source": "from noscheme import role, use, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      use: use.required\n    2:\n      role: role.passive\n      use: use.optional\nblock B:\n  net.passive wire\n  Part<required: (1 << 3)> p\n"
   },
   {
     "name": "multiline-parameters",
-    "source": "from noscheme import role, unused, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      unused: unused.never\n    2:\n      role: role.passive\n      unused: unused.always\nboard B:\n  net.passive wire\n  Part<\n    required: (8 >> 1),\n    optional: 2,\n  > p\n"
+    "source": "from noscheme import role, use, net\ncomponent Part:\n  params:\n    number required\n    number optional = 10\n  pins:\n    1 (signal):\n      role: role.passive\n      use: use.required\n    2:\n      role: role.passive\n      use: use.optional\nblock B:\n  net.passive wire\n  Part<\n    required: (8 >> 1),\n    optional: 2,\n  > p\n"
   }
 ]

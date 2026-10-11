@@ -1,23 +1,23 @@
 // STM32H523 pin roles, decoupling, crystal, and public subsystem interface.
 
-from noscheme import role, net, unused, bias
+from noscheme import role, net, use, bias
 from MCU_ST_STM32H5 import STM32H523VCTx
 from interfaces import I2C, SPI, USB2, SWD
 from components import Capacitor0603, CrystalHC49
 
 extend STM32H523VCTx<"STM32H523VCT6"> STM32H523Board:
   pins:
-    [1..5, 38..41, 46, 70..72]: [role.digital_bidirectional, unused.never]
-    [6, 11, 21..22, 28, 50, 73, 75, 100]: [role.power_input, unused.never]
-    [10, 19..20, 27, 49, 74, 99]: [role.ground, unused.never]
-    12: [role.analog_input, unused.never]
-    13: [role.analog_output, unused.never]
-    14: [role.open_drain, unused.never]
+    [1..5, 38..41, 46, 70..72]: [role.digital_bidirectional, use.required]
+    [6, 11, 21..22, 28, 50, 73, 75, 100]: [role.power_input, use.required]
+    [10, 19..20, 27, 49, 74, 99]: [role.ground, use.required]
+    12: [role.analog_input, use.required]
+    13: [role.analog_output, use.required]
+    14: [role.open_drain, use.required]
     // I2C pins: firmware leaves the internal pull-ups off; board resistors set the level.
-    [66..67, 92..93]: [role.open_drain, unused.never, bias.none]
-    [15..17, 25, 29..30, 32, 42..43, 45, 55, 89]: [role.digital_output, unused.never]
-    [18, 26, 31, 33..34, 44, 56, 76, 94]: [role.digital_input, unused.never]
-    [48, 98]: [role.power_output, unused.never]
+    [66..67, 92..93]: [role.open_drain, use.required, bias.none]
+    [15..17, 25, 29..30, 32, 42..43, 45, 55, 89]: [role.digital_output, use.required]
+    [18, 26, 31, 33..34, 44, 56, 76, 94]: [role.digital_input, use.required]
+    [48, 98]: [role.power_output, use.required]
 
 // Concrete reference-board implementations.
 // Sources and pin allocation are recorded in docs/PROJECT.md.

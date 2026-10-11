@@ -17,7 +17,7 @@ SOURCE = """component R:
   pins:
     1..2:
       role: role.passive
-board B:
+block B:
   R r:
     1: missing1
     2: missing2
@@ -62,7 +62,7 @@ def test_arguments_and_bindings_are_independent_but_each_binding_stops(tmp_path)
 
 def test_independent_definitions_and_shared_body_deduplication(tmp_path):
     source = (
-        SOURCE.replace("board B:", "block W:")
+        SOURCE.replace("block B:", "block W:")
         + """extend W Derived:
   metadata:
     custom:
@@ -70,7 +70,7 @@ def test_independent_definitions_and_shared_body_deduplication(tmp_path):
 component BadDefault:
   params:
     string value = unknown_default
-board B:
+block B:
   W w()
 """
     )
@@ -102,7 +102,7 @@ def test_cli_reports_all_errors_without_touching_artifacts(tmp_path, capsys, com
     make(tmp_path, SOURCE)
     out = tmp_path / "build"
     out.mkdir()
-    files = [out / "circuit.json", out / "board.net", tmp_path / "noscheme.state.json"]
+    files = [out / "circuit.json", out / "board.net", tmp_path / "noscheme.default.state.json"]
     for path in files:
         path.write_text("previous artifact")
     args = [command, "--project", str(tmp_path), "--diagnostics", "json"]

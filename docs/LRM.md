@@ -18,11 +18,13 @@ electrical constraints, and exports a netlist for KiCad. Placement and routing
 belong to the CAD tool.
 
 This manual is the normative reference for the implemented source language and
-compiler behavior. The [workflow HOWTO](../HOWTO.md) covers installation and
-circuit development; [DEVELOPMENT.md](DEVELOPMENT.md) covers compiler development;
-[EDITOR_SUPPORT.md](EDITOR_SUPPORT.md) covers editor setup; [PROJECT.md](PROJECT.md) records design decisions;
-[PLAN.md](PLAN.md) retains implementation history. Features identified as unsupported
-are not available merely because their syntax resembles another language.
+its semantics. The [usage guide](../USAGE.md) covers installation, circuit
+development, and the [command reference](../USAGE.md#9-command-reference), including
+implementation-specific diagnostics and artifacts.
+[DEVELOPMENT.md](DEVELOPMENT.md) covers compiler development;
+[EDITOR_SUPPORT.md](EDITOR_SUPPORT.md) covers editor setup;
+[PROJECT.md](PROJECT.md) records design decisions; [PLAN.md](PLAN.md) retains
+implementation history.
 
 ## Contents
 
@@ -39,12 +41,11 @@ are not available merely because their syntax resembles another language.
 11. [ERC choices and configurations](#11-erc-choices-and-configurations)
 12. [Extending ERC](#12-extending-erc)
 13. [CAD identities and export](#13-cad-identities-and-export)
-14. [Commands and diagnostics](#14-commands-and-diagnostics)
-15. [Complete example](#15-complete-example)
-16. [Limits and unsupported features](#16-limits-and-unsupported-features)
+14. [Complete example](#14-complete-example)
+15. [Limits and unsupported features](#15-limits-and-unsupported-features)
 
 Examples described as fragments belong inside the indicated enclosing construct.
-A complete project requires a TOML configuration and a selected root block.
+A complete project requires a `.toml` configuration and one or more root blocks.
 
 ## 1. Projects and modules
 
@@ -88,21 +89,16 @@ or hyphens. Select one with `--target NAME` on `load`, `resolve`, `lint`, `evalu
 requires `default_target`; editors use that default too. Only the selected root's
 module graph is loaded.
 
-For compatibility, the old top-level `board = "main.Demo"` selects a single root
-without a `targets` table and writes directly to `output_dir`. `board` and `targets`
-cannot be combined. The root may be a block, an extension of a block, or a legacy
-`board` definition. New designs should use blocks and named targets.
-
 ### 1.2 Modules and imports
 
-Source files use the `.nosch` suffix. The module `parts.passives` corresponds to
+Source files use the `.nosch` suffix. A module called `parts.passives` corresponds to
 `parts/passives.nosch` under a configured search root. Multiple matches, missing
 modules, import cycles, and symlink escapes from a search root are errors.
-Only modules reachable from the selected board module are loaded by the compiler.
+Only modules reachable from the selected root's module are loaded by the compiler.
 
 ```nosch
 from parts.passives import Resistor, Capacitor
-from noscheme import role, net, unused, bias, num, std
+from noscheme import role, net, use, bias, num, std
 ```
 
 Both module-qualified imports and local aliases are supported:
@@ -110,10 +106,6 @@ Both module-qualified imports and local aliases are supported:
 ```nosch
 import Device
 from Device import R as KiCadResistor
-
-extend Device.R Resistor:
-  metadata:
-    footprint: "Resistor_SMD:R_0603_1608Metric"
 ```
 
 `import Device` exposes definitions as `Device.R`, not bare `R`.
@@ -137,7 +129,7 @@ errors; distinct sibling module imports may share a namespace prefix.
 |---|---|
 | `role` | Endpoint electrical roles |
 | `net` | Scalar net types |
-| `unused` | Connection policies |
+| `use` | Connection policies |
 | `bias` | Explicit pull-up/pull-down assertions |
 | `num` | Numeric conversion and rounding helpers |
 | `std` | Standard ERC rules and predicates for `checks` (section 12) |
@@ -150,6 +142,9 @@ such as `from noscheme import role as electrical` with
 it never grants access to a component or block's private internals.
 
 ## 2. Lexical rules
+
+The parser grammars are [Python/Lark](../src/noscheme/noscheme.lark) and
+[C++/ANTLR](../cpp/grammar/NoScheme.g4). Source files use UTF-8 encoding.
 
 ### 2.1 Layout and punctuation
 
@@ -165,7 +160,7 @@ metadata keys from their values. `=` appears in
 parameter defaults and named formatting arguments; it is not a connection
 operator. Lists and helper calls use commas. Instance sections do not.
 
-The structural words are `from`, `import`, `as`, `component`, `block`, `board`,
+The structural words are `from`, `import`, `as`, `component`, `block`,
 `bundle`, `extend`, and `global`. Section names are `pins`,
 `ports`, `params`, `metadata`, and `elements`. These words are
 recognized in their grammatical contexts. In an instance body, `params`, `metadata`,
@@ -215,10 +210,16 @@ parameter type.
 
 ### 2.4 Numbers and physical pin identifiers
 
-Number literals are decimal integers, decimals with digits on both sides of the
-point, or exponent forms: `12`, `12.5`, `12e3`, `1.25e-3`. A leading sign is a
-unary operator. Hexadecimal, binary, underscore-separated, and `.5` literals are
-not supported.
+Number literals include decimal integers (`12`), hexadecimal integers (`0xFF`),
+binary integers (`0b1010`), decimal fractions (`12.5`, `.5`), and exponent forms
+(`12e3`, `1.25e-3`, `.5e2`). Base prefixes may also use uppercase `X` or `B`.
+A leading sign is a unary operator. Octal syntax is not supported; a leading zero
+in a decimal literal does not change its base.
+
+A single underscore may separate adjacent digits: `1_000`, `0xFF_FF`,
+`0b1010_0011`, `1_2.3_4`, and `1e1_0`. Underscores cannot lead or trail a digit
+sequence, repeat, or touch a base prefix, decimal point, exponent marker, sign,
+or SI prefix. They do not affect the value.
 
 A number may end in an SI prefix, with no space: `4.7k`, `100n`, `10u`, `2.2M`.
 The prefix may instead replace the decimal point, as in IEC 60062 codes: `4k7`
@@ -229,8 +230,10 @@ is `4.7k`, `1u5` is `1.5u`, and `R` marks a unity decimal point (`4R7` is 4.7,
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Scale | 10⁻¹⁸ | 10⁻¹⁵ | 10⁻¹² | 10⁻⁹ | 10⁻⁶ | 10⁻³ | 1 | 10³ | 10⁶ | 10⁹ | 10¹² | 10¹⁵ |
 
-Prefixes are case-sensitive (`m` is milli, `M` is mega), and there is no `E` or
-`µ`. The value is computed exactly in decimal: `100n` is the double nearest
+Prefixes are case-sensitive (`m` is milli, `M` is mega). `µ` is an alias for `u`,
+including embedded forms such as `1µ5`; displays use the ASCII spelling `u`.
+There is no `E` prefix. SI prefixes apply to decimal literals only, including
+leading-dot forms such as `.5µ`. The value is computed exactly in decimal: `100n` is the double nearest
 10⁻⁷, not `100 * 1e-9`. An integral result has the integer tag (`4.7k` is
 4700); others are doubles. A literal has at most one decimal mark (`4.7k7` is an
 error), cannot combine a prefix with an exponent, and cannot be followed by a
@@ -282,7 +285,7 @@ bracketed list or a block comment followed by code on its line.
 ## 3. Declarations
 
 A module contains imports, definitions, and extensions. Definitions start with
-`component`, `block`, `board`, or `bundle` and have a nonempty indented body.
+`component`, `block`, or `bundle` and have a nonempty indented body.
 `extend Base<parameters> Name` specializes a component, block, or net type
 (section 9.3); it takes the kind of its base. Its body is optional. Nets and
 instances both use `Type name`; the resolved type determines which they declare.
@@ -293,13 +296,13 @@ Duplicate names, duplicate sections, and overlapping pin declarations are errors
 A component describes one physical part and its pin interface:
 
 ```nosch
-from noscheme import role, unused
+from noscheme import role, use
 
 component Resistor:
   params:
     resistance value
   pins:
-    1..2: [role.passive, unused.never]
+    1..2: [role.passive, use.required]
   metadata:
     ref_prefix: "R"
     footprint: "Resistor_SMD:R_0603_1608Metric"
@@ -307,22 +310,24 @@ component Resistor:
 
 A pin entry may list builtin values instead of, or before, indented fields. Each
 value's namespace names the field it sets: `role.x` sets `role`, `bias.x` sets
-`bias`, and `unused.x` sets `unused`. Several values from one namespace form a
+`bias`, and `use.x` sets `use`. Several values from one namespace form a
 list, which only `role` accepts, as a definition's permitted roles:
 
 ```nosch
 pins:
-  1: [role.ground, role.power_input, unused.never]
+  1: [role.ground, role.power_input, use.required]
   2: role.open_drain
     capacitance: 5p
 ```
 
-This also applies in specializations and instance pin overlays, and follows
+This also applies in [specializations](#7-specialization) and instance pin
+overlays, and follows
 import aliases. Setting a field both ways, or using a value that is not a builtin
-`role`, `bias`, or `unused` value, is an error. Ports and bundle fields are
+`role`, `bias`, or `use` value, is an error. Ports and bundle fields are
 excluded: their value position holds the net type.
 
-Physical components do not contain internal instances or nets. A component may
+Physical components are the lowest-level objects in NoScheme and do not contain
+internal instances or nets. A component may
 omit its footprint while a design is being developed; physical instances then
 receive an unspecified-footprint warning.
 
@@ -344,8 +349,8 @@ aliases; a specialization's aliases replace the inherited ones.
 
 ### 3.2 Reusable blocks
 
-A block exposes ports and parameters and contains an internal circuit. Definition
-fragment, assuming `Resistor` and the builtin namespaces have been imported:
+A block exposes ports and parameters and contains an internal circuit. This
+example assumes that `Resistor` and the builtin namespaces have been imported:
 
 ```nosch
 block SeriesResistor:
@@ -359,8 +364,10 @@ block SeriesResistor:
     2: output
 ```
 
-Ports declare internal connections; do not separately declare a net of the same
-name. Internal parts and nets are private. A caller may configure only the public
+Ports connect a block's internal circuit to the circuit that encloses each
+instance of that block. Each port name is available as a connection inside the
+block; do not separately declare a net of the same name. Internal parts and nets
+are private. A caller may configure only the public
 parameters, ports, choices, and supported instance metadata. It cannot access
 `resistor.1` through the block or modify the internal resistor directly.
 
@@ -384,10 +391,7 @@ these declarations may only be expanded as a root. Instantiating one inside anot
 block reports an error at the instance. Inherited globals and configurations obey
 the same rule. Ordinary blocks can serve as roots or be reused as instances.
 
-The legacy `board` keyword remains accepted with its original restrictions (no
-parameters, ports, inheritance, or instantiation); it is unnecessary in new code.
-
-Board-body fragment:
+Root-block body fragment:
 
 ```nosch
 global net.ground gnd
@@ -438,18 +442,25 @@ params:
 
 A quantity parameter holds a number in its base SI unit. It names the unit and
 how the value is displayed; arithmetic is ordinary numeric arithmetic, and there is
-no dimensional checking. A quantity parameter also accepts a string, such as
+no dimensional checking (for now). A quantity parameter also accepts a string, such as
 `"10k 1%"` or `"DNP"`, which is displayed verbatim and has no numeric meaning; using
 it where a number is required is an error.
 
 A parameter without a default is required at instantiation. Supply named values
 between the type and instance name, as `Resistor<value: 4.7k> r`, or under the
 instance's `params:` section as `value: 4.7k`. Unknown arguments and wrong types
-are errors. A single unnamed value, `Resistor<4.7k> r`, selects the sole parameter
-without a default, or the sole parameter if all have defaults. An inherited unnamed
-parameter keeps its identity. An ambiguous or absent target is an error; an unnamed
-value must precede named entries, and the same parameter cannot be set twice. Shifts in such
-lists require parentheses, for example `Part<count: (1 << 3)> p`.
+are errors.
+
+A single unnamed value, `Resistor<4.7k> r`, selects the only parameter without a
+default, even when other parameters have defaults. For example, with parameters
+`resistance value` and `string label = ""`, it sets `value`. If every parameter has
+a default, an unnamed value is allowed only when there is exactly one parameter.
+Two required parameters, or two defaulted parameters with no required parameter,
+make the shorthand ambiguous. An inherited unnamed parameter keeps its identity,
+even after a specialization gives it a default. An ambiguous or absent target is
+an error; an unnamed value must precede named entries, and the same parameter
+cannot be set twice. Shifts in such lists require parentheses, for example
+`Part<count: (1 << 3)> p`.
 Defaults may depend on other parameters; dependency cycles are errors. An
 explicit argument replaces its default, so the replaced default is not evaluated.
 
@@ -582,7 +593,7 @@ component Resistor:
 
 The list accepts physical pin IDs or aliases, including bare integer spellings.
 It must resolve to at least two distinct existing pins. Their electrical metadata
-must match, including roles, unused policies, bias, numeric fields, and checks;
+must match, including roles, connection policies, bias, numeric fields, and checks;
 aliases and `custom` data may differ. This is an author assertion about the part's
 symmetry, not electrical inference. Only one group is supported. An empty list
 clears an inherited group. Specializations that give the pins different electrical
@@ -656,11 +667,11 @@ Here `supply`, `ground`, and `output` bind to the bank's ports of those names an
 `Led(*)` connects nets named `anode` and `cathode`. Candidates are the enclosing
 definition's local nets and, in a block, its ports; globals are never matched, so
 write `gnd: global.gnd`. A pin or port with no same-name net is left to its
-unused-connection policy, which by default requires a connection or `no_connect`.
+connection policy, which by default requires a connection or `no_connect`.
 `*` is an error when it matches nothing, or when one pin matches through two of
 its names. Shapes follow the usual rules: a scalar net broadcasts across an
 instance array, and an array net must match the instance and port dimensions.
-Renaming a net or port can silently change what `*` connects; the unused-connection
+Renaming a net or port can silently change what `*` connects; the connection
 policy reports a pin that loses its connection.
 
 Positional nets map deterministically to the listed physical pins, in list order.
@@ -722,13 +733,14 @@ no standalone connection, net-alias, or net-merging statements.
 The outermost bound caller net supplies the flattened source name. Internal names
 and source locations remain available for diagnostics.
 
-### 5.3 Unused and forbidden connections
+### 5.3 Connection policies
 
 | Pin/port policy | Caller obligation |
 |---|---|
-| `unused.always` | Omission or intentional disconnection is allowed |
-| `unused.explicit` | Connect or explicitly bind `no_connect`; this is the default |
-| `unused.never` | Make a real connection; `no_connect` and omission are errors |
+| `use.optional` | Omission or intentional disconnection is allowed |
+| `use.explicit` | Connect or explicitly bind `no_connect`; this is the default |
+| `use.required` | Make a real connection; `no_connect` and omission are errors |
+| `use.disallowed` | No net may be assigned; omission and `no_connect` are allowed |
 
 A net name alone does not establish a useful physical connection. A connected
 physical pin subject to connection requirements needs another physical or modeled
@@ -736,13 +748,14 @@ external endpoint. Ordinary forwarding ports and placeholders do not count as
 additional physical endpoints.
 
 For an intentionally lone endpoint, such as a test pad or antenna feed on its
-own net, declare `unused: unused.always` on the pin definition or a metadata
+own net, declare `use: use.optional` on the pin definition or a metadata
 specialization. This permits the lone connection; it does not waive driver or
 other electrical checks on that net. A net waiver cannot replace this pin policy.
 
-`role.do_not_connect` forbids assigning any net, including an otherwise empty net.
-Omission and `no_connect` are allowed. Combining it with `unused.never` is a
-conflicting-constraints error. Instance metadata and waivers cannot override
+`use.disallowed` forbids assigning any net, including an otherwise empty net.
+Omission and `no_connect` are allowed. A pin or port has exactly one connection
+policy, specified with `use: use.disallowed` or pin shorthand. Electrical roles
+remain separate. Instance metadata and waivers cannot override
 mandatory connection policies; a metadata specialization may correct a definition.
 
 A required child port also needs an endpoint outside its block instance.
@@ -752,7 +765,7 @@ A required child port also needs an endpoint outside its block instance.
 ### 6.1 Bundle declarations
 
 ```nosch
-from noscheme import net
+from noscheme import net, use
 
 bundle I2C:
   net.open_drain scl
@@ -881,7 +894,7 @@ For example, a specialization may set shared supply metadata with:
 pins:
   [11, 28, 50, 75, 100]:
     role: role.power_input
-    unused: unused.never
+    use: use.required
 ```
 
 Pin lists do not apply to block ports, bundle declarations, parameters, or
@@ -893,7 +906,7 @@ instance-array element, write `[0].[1, 3]`; `[0].1` retains its existing meaning
 ## 7. Specialization
 
 Use `extend Base<parameters> Name` for single inheritance. The base must be a
-component, block, or net type (section 9.3); boards and bundles cannot be bases.
+component, block, or net type (section 9.3); bundles cannot be bases.
 Parameter values in `<...>` replace inherited defaults. A trailing `:` is required
 only when an indented body follows. Definition fragment:
 
@@ -906,7 +919,8 @@ extend Resistor<value: 4.7k> Pullup:
 
 Specializations may override metadata and defaults for existing parameters.
 They may not add/remove pins or parameters, change parameter types, alter an
-internal circuit, or expose private internals. Existing parameterized dimensions
+internal circuit, or expose private internals. In particular, a block
+specialization cannot add instances or nets. Existing parameterized dimensions
 can still vary through parameter values. Instance arguments override defaults.
 
 Metadata mappings merge recursively by key. Scalar values and lists replace
@@ -914,7 +928,7 @@ inherited values; lists such as a pin's aliases do not concatenate. A specializa
 can replace a default but cannot remove it. The merged result is validated,
 including aliases and electrical constraints. Inheritance cycles are errors.
 
-At definition time, metadata can correct restrictive upstream roles or unused-pin
+At definition time, metadata can correct restrictive upstream roles or connection
 policies. Instances must obey the resulting definition.
 
 ## 8. Metadata reference
@@ -934,11 +948,10 @@ literal instead: `capacitance: 10p`, `max_load_current: 100m`.
 | `component` | `bom`, `current_loads`, `custom`, `footprint`, `interchangeable`, `ref_prefix`, `value` |
 | `current_load` | `max_load_current`, `pins` |
 | `block` | `configurations`, `custom`, `erc_choices` |
-| `board` | `configurations`, `custom`, `erc_choices` |
 | `bundle` | `custom` |
-| `pin` | `checks`, `custom`, `max_load_current`, `max_source_current`, `role`, `tristate_capable`, `unused` |
+| `pin` | `checks`, `custom`, `max_load_current`, `max_source_current`, `role`, `tristate_capable`, `use` |
 | `aggregate_load` | `max_load_current` |
-| `port` | `aggregate_load`, `checks`, `custom`, `placeholder`, `role`, `unused`, `waivers` |
+| `port` | `aggregate_load`, `checks`, `custom`, `placeholder`, `role`, `use`, `waivers` |
 | `net` | `checks`, `custom`, `net_class`, `placeholder`, `waivers` |
 | `instance` | `bom`, `custom`, `erc_choices`, `footprint`, `identity`, `ref`, `value` |
 | `instance_pin` | `checks`, `custom`, `external_role`, `role`, `tristate_capable` |
@@ -959,7 +972,7 @@ retains its leading zero). `role` on a definition can be one role or a list of
 permitted roles.
 
 Definitions declare `pins` directly. Instances annotate existing pins under
-`metadata.pins`; they cannot add pins or change aliases or unused policies. An
+`metadata.pins`; they cannot add pins or change aliases or connection policies. An
 instance's `role` is the role the pin plays in that circuit, directly or through a
 choice mapping:
 
@@ -1054,7 +1067,6 @@ Import `role` and use one of:
 | `open_drain` | Can pull a signal low or release it. Multiple open-drain drivers may share a net; a pull-up provides the high level. |
 | `open_source` | Can pull a signal high or release it. Multiple open-source drivers may share a net; a pull-down provides the low level. |
 | `unchecked` | Electrical behavior is unspecified; ERC cannot treat this endpoint as passive or prove its driver behavior. |
-| `do_not_connect` | Must not be assigned to any net. Conflicts with unused.never; this connection rule cannot be waived. |
 <!-- /generated:roles -->
 
 An absent, unchecked, or unselected role is not silently treated as passive.
@@ -1100,7 +1112,7 @@ An extension of a `net` builtin names reusable net metadata, typically checks, o
 builtin electrical type or another net type:
 
 ```nosch
-from noscheme import net, bias, std
+from noscheme import net, bias, std, use
 
 extend net.open_drain I2CLine:
   wiring_capacitance: 5p
@@ -1428,7 +1440,7 @@ waivers by registering with `waivable=False`.
 Choices describe electrical assumptions on one unchanged physical circuit.
 They do not alter parts, values, connectivity, footprints, or identities.
 
-A board or block declares public choices in metadata:
+A block declares public choices in metadata:
 
 ```nosch
 metadata:
@@ -1567,7 +1579,7 @@ metadata overlay. Pins accept pin rules; nets and public ports accept net rules.
 Each entry names one application and calls an imported rule:
 
 ```nosch
-from noscheme import net, std
+from noscheme import net, std, use
 
 block B:
   net.digital signal:
@@ -1732,7 +1744,6 @@ footprint roots, no alternatives are inferred. These custom metadata lists are
 inherited and may be replaced by specializations. They provide editor hints,
 not language restrictions or guarantees of mechanical compatibility.
 
-
 The compiler consumes NoScheme definitions; it does not import KiCad symbols
 implicitly. `convert-library` writes explicit components and footprint snapshots
 into a new directory, with sources in the canonical layout. It preserves physical
@@ -1752,7 +1763,7 @@ polarized capacitors, and devices with more than two pins are excluded. This is 
 library-data heuristic: review the generated group for specialized parts, and
 clear it in a specialization when the terminals have different uses.
 
-KiCad `no_connect` maps to `role.do_not_connect`. An explicit KiCad `tri_state`
+KiCad `no_connect` maps to `use.disallowed`. An explicit KiCad `tri_state`
 output maps to `role.digital_output` plus `tristate_capable: true` when its other
 representations do not contradict that capability. A generic bidirectional pin
 does not acquire the flag automatically.
@@ -1865,153 +1876,26 @@ The command prints a JSON summary containing output/state paths, grouped row cou
 total physical parts, fitted parts, and DNP parts. Empty designs produce a CSV with
 only the header. Both Python and native implementations support this command.
 
-## 14. Commands and diagnostics
-
-The installed tools are `noscheme` and `noscheme-lsp`. With the development
-environment, prefix commands with `uv run --locked`.
-
-| Command | Result |
-|---|---|
-| `noscheme parse FILE` | Parse source and emit typed AST JSON |
-| `noscheme format [PATH...]` | Rewrite sources in the canonical layout |
-| `noscheme load --project PATH` | Load configuration and imports |
-| `noscheme resolve --project PATH` | Resolve definitions and public interfaces |
-| `noscheme lint --project PATH` | Opt-in unused-parameter warnings; no artifacts |
-| `noscheme evaluate --project PATH` | Evaluate parameterized declarations |
-| `noscheme check --project PATH` | Check structure and ERC |
-| `noscheme compile --project PATH` | Write circuit and ERC reports |
-| `noscheme export-bom --project PATH` | Write grouped CSV BOM and update reference reservations |
-| `noscheme export-kicad --project PATH --footprints FILE` | Validate footprints, export netlist, and update state |
-| `noscheme convert-library FILE --output NEW_DIRECTORY` | Convert a KiCad symbol library |
-| `noscheme update-kicad-classes INPUT --memberships FILE --output NEW_FILE` | Update class membership in a project copy |
-| `noscheme-lsp [--project PATH]` | Run the language server over stdin/stdout |
-
-`--project` accepts a directory or TOML file and defaults to the current directory
-for compiler commands. Diagnostics support `--diagnostics text` and `json`.
-`parse` also accepts `--output FILE`. Conversion accepts repeatable `--symbol`,
-`--footprint-root`, and `--extra-footprint` options; omit `--symbol` to convert
-all symbols. The conversion output directory must not already exist.
-
-`check`, `compile`, and `export-kicad` accept repeated `--erc-configuration NAME`.
-
-`format` accepts files and directories, defaulting to the current directory. It
-skips hidden directories and each project's `output_dir`. `--check` writes nothing
-and fails if a file would change; `--diff` prints the changes instead of writing
-them. Files it cannot format are reported, and the command then fails.
-`load`, `resolve`, and `evaluate` are inspection stages, not electrical validation.
-
-Conversion maps KiCad `open_collector` to `role.open_drain` and `open_emitter`
-to `role.open_source`. `free` and `unspecified` remain unmapped, retain their
-original type in custom metadata, and produce conversion issues. They do not
-silently become unchecked endpoints.
-
-`noscheme lint --project PATH` reports `lint.unused-parameter` warnings in text,
-or JSON with `--diagnostics json`. It runs only when explicitly requested, returns
-zero for warnings, and writes no artifacts. Structural errors still fail. It
-checks lexical references across loaded definitions, including inherited uses,
-default expressions, numeric metadata, array dimensions, and element overrides.
-The conventional component `value` parameter is implicitly used unless replaced
-by `metadata.value`. Supplying a named argument alone is not a use inside the
-component. This is a source lint, not whole-program dead-code analysis; intentional
-public compatibility placeholders can remain unused.
-
-### 14.1 Failures and publication
-
-Diagnostics carry a stable code, severity, message, filename, line/column, and
-related source locations. Expanded instance paths and configuration labels are
-retained where applicable. Text and JSON reports describe the same checks.
-
-Once interfaces resolve successfully, body checking reports independent errors
-across definitions and instances, including separate arguments and connection
-statements. It stops a dependent check when its prerequisite is invalid: an
-unknown component type, for example, prevents checking that instance's pins.
-Namespace/type setup failures stop the affected body. Identical errors in shared
-inherited bodies are reported once. Structural errors still block subsequent
-evaluation, elaboration, and export. Grammar parsing, interface construction,
-and elaboration remain fail-fast. Once a file parses, AST structural validation
-can report multiple duplicate sections, fields, or invalid declaration contexts.
-This is not general syntax-error recovery.
-
-- `check` returns 1 for electrical errors.
-- `compile` and `export-kicad` may publish with electrical errors and return 0.
-  Inspect their reports; successful export does not mean the circuit passed ERC.
-- Structural/source errors return 1 and block publication.
-- Configuration, command, and I/O errors use exit status 2.
-- Warnings alone do not block publication. Failed compilation preserves previous
-  successful circuit/state artifacts. Editor analysis writes neither.
-
-### 14.2 Output files
-
-Compilation produces `circuit.json`, `erc.txt`, and `erc.json`. KiCad export
-produces ERC reports, `board.net`, `names.json`, `netclasses.json`, `nets.txt`, `nets.json`,
-`changes.txt`, and `export.json`, plus persistent `noscheme.<target>.state.json` outside the
-output directory. Change reports compare against the last successful export.
-`changes.txt` lists before/after values, footprints, references, paths, and each
-changed pin connection. `export.json.probable_renames` lists unique pairs of
-removed/added identities with exactly matching footprints, values, and pin nets.
-These are advisory hints, not proof of a rename. They never transfer UUIDs,
-references, or placement; added and removed identities remain distinct. To retain
-identity across a planned source rename, set explicit `identity` metadata before
-exporting the renamed design (section 13).
-
-Every exported physical component has two netlist properties, also exported as
-fields so KiCad can copy them into footprint properties:
-
-- `noscheme_path`: its current full source instance path, relative to the board,
-  including nested block names and array indices, such as `indicators[0].resistor`.
-- `noscheme_identity`: its stable identity used to allocate UUIDs and references.
-  Explicit identity metadata can keep this different from the current source
-  path after a rename.
-
-Connectivity remains flattened. These properties describe the source hierarchy;
-they do not create KiCad sheets or alter footprint placement. After updating
-the PCB from the netlist, select a footprint and press `E` to inspect its fields
-in Footprint Properties. The user verified both fields after importing the
-STM32 example into KiCad.
-
-Explicit `no_connect` bindings and unconnected `role.do_not_connect` pins are
-exported on individual synthetic nets with node `pintype: no_connect`. This
-lets KiCad distinguish intentionally unused pads from pins missing in the
-netlist, including footprints with duplicate mounting-pad numbers. Names use
-the stable component UUID and pin number, with a suffix if needed to avoid a
-real net name. They exist only in `board.net`; they do not add source nets,
-ERC connections, or entries to `names.json` and the source-net reports.
-Other omitted pins retain their existing diagnostics and are not automatically
-marked no-connect.
-
-KiCad `libparts` retains the first declared pin alias (or physical pad ID when
-there is no alias). A single known role maps to the corresponding KiCad pin type;
-analog and digital inputs/outputs share KiCad's input/output types, ground maps
-to `power_in`, and explicitly tri-state-capable outputs map to `tri_state`.
-Unknown, unresolved, or differing instance types in a shared component entry
-become `unspecified`. NoScheme ERC remains authoritative. The field format follows
-[KiCad's documented libparts format](https://github.com/KiCad/kicad-doc/blob/master/src/eeschema/eeschema_creating_customized_netlists_and_bom_files.adoc);
-PCB Editor display behavior still requires manual validation.
-
-The language server supports diagnostics, go-to-definition, references, rename,
-formatted hover, and contextual completion. It uses unsaved buffers and a short typing debounce.
-See [EDITOR_SUPPORT.md](EDITOR_SUPPORT.md#language-server) for client setup and current limits.
-
-## 15. Complete example
+## 14. Complete example
 
 This two-part test board connects a resistor between an external digital signal
 and ground. `main.nosch`:
 
 ```nosch
-from noscheme import role, net, unused
+from noscheme import role, net, use
 
 component Resistor:
   params:
     resistance value
   pins:
-    1..2: [role.passive, unused.never]
+    1..2: [role.passive, use.required]
   metadata:
     ref_prefix: "R"
     footprint: "Resistor_SMD:R_0603_1608Metric"
 
 component Header:
   pins:
-    1..2: [role.passive, unused.never]
+    1..2: [role.passive, use.required]
   metadata:
     ref_prefix: "J"
     footprint: "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical_SMD_Pin1Left"
@@ -2035,10 +1919,12 @@ Place this `noscheme.toml` beside it:
 
 ```toml
 language_version = "0.1"
-block = "main.Demo"
 source_paths = ["."]
 library_paths = []
 output_dir = "build"
+
+[targets.demo]
+root = "main.Demo"
 ```
 
 Run `noscheme check --project .` and `noscheme compile --project .`. Export also
@@ -2051,7 +1937,7 @@ The [parameterized ERC example](../examples/parameterized_erc/README.md) demonst
 shared value/quantity parameters, and [WREN](../examples/wren/README.md) provides
 a 1,507-component compilation/LSP benchmark with explicitly unchecked net policies.
 
-## 16. Limits and unsupported features
+## 15. Limits and unsupported features
 
 The implementation has configurable Python-API resource limits to reject runaway
 expansion and oversized expressions. Integers always fit signed 64 bits; the API may

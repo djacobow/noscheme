@@ -71,7 +71,7 @@ def net_facts(ctx):
         known, uncertain = [], []
         for label, pin in ctx.endpoints:
             roles = attribute(pin, "external_role", attribute(pin, "role", ()))
-            if len(roles) != 1 or roles[0] in {"unchecked", "do_not_connect"}:
+            if len(roles) != 1 or roles[0] == "unchecked" or attribute(pin, "use") == "disallowed":
                 uncertain.append((label, pin))
             else:
                 known.append((roles[0], label, pin))
@@ -101,10 +101,10 @@ def compatibility(ctx):
         uncertain, conflicts = False, []
         for label, pin in ctx.endpoints:
             roles = frozenset(attribute(pin, "external_role", attribute(pin, "role", ())))
+            if attribute(pin, "use") == "disallowed":
+                continue
             if not roles or "unchecked" in roles:
                 uncertain = True
-                continue
-            if roles == {"do_not_connect"}:
                 continue
             permitted = set(roles)
             for declaration in constraints:

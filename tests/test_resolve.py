@@ -9,13 +9,13 @@ from noscheme.resolve import Resolver, resolve_project
 from noscheme.cli import main
 
 
-PRELUDE = "from noscheme import role, unused, net, num\n"
-BOARD = "\nboard B:\n  net.passive n\n"
+PRELUDE = "from noscheme import role, use, net, num\n"
+BOARD = "\nblock B:\n  net.passive n\n"
 
 
 def make_project(tmp_path, text, libraries=None):
     (tmp_path / "noscheme.toml").write_text(
-        'language_version = "0.1"\nboard = "main.B"\nsource_paths = ["."]\nlibrary_paths = []\noutput_dir = "build"\n'
+        'language_version = "0.1"\ntargets.default.root = "main.B"\ntargets.default.output_dir = "build"\nsource_paths = ["."]\nlibrary_paths = []\noutput_dir = "build"\n'
     )
     (tmp_path / "main.nosch").write_text(text)
     for name, source in (libraries or {}).items():
@@ -33,7 +33,7 @@ def test_inheritance_merge_alias_replacement_and_defaults(tmp_path):
         """extend Base<value: "2kOhm"> Child:
   pins:
     01 (new):
-      unused: unused.always
+      use: use.optional
   metadata:
     custom:
       nested:
@@ -43,7 +43,7 @@ component Base:
     string value = "1k"
   pins:
     01 (old):
-      unused: unused.never
+      use: use.required
     1:
       role: role.passive
   metadata:
@@ -56,8 +56,8 @@ component Base:
     parent, child = definitions["main", "Base"], definitions["main", "Child"]
     assert child.aliases == {"01": "01", "1": "1", "new": "01"}
     assert "old" in parent.aliases
-    assert child.interface["01"].metadata["unused"].value == "always"
-    assert parent.interface["01"].metadata["unused"].value == "never"
+    assert child.interface["01"].metadata["use"].value == "optional"
+    assert parent.interface["01"].metadata["use"].value == "required"
     nested = child.metadata["custom"].value["nested"].value
     assert nested["retained"].value == 1
     assert nested["changed"].value == "child"
@@ -175,7 +175,7 @@ BASE = """component C:
   pins:
     1 (A):
       role: [role.digital_input, role.passive]
-      unused: unused.never
+      use: use.required
 block Hidden:
   ports:
     net.passive public:
@@ -195,7 +195,7 @@ block Hidden:
             "resolve.net",
         ),
         (
-            "C c:\n    metadata:\n      pins:\n        1:\n          unused: unused.always",
+            "C c:\n    metadata:\n      pins:\n        1:\n          use: use.optional",
             "metadata.unknown",
         ),
         (
@@ -290,7 +290,7 @@ def test_no_inheritance_depth_limit(tmp_path):
 def test_unimported_metadata_namespace(tmp_path):
     p = make_project(
         tmp_path,
-        "component C:\n  pins:\n    1:\n      role: role.passive\nboard B:\n  metadata:\n    custom:\n      x: 1\n",
+        "component C:\n  pins:\n    1:\n      role: role.passive\nblock B:\n  metadata:\n    custom:\n      x: 1\n",
     )
     with pytest.raises(DiagnosticError) as exc:
         resolve_project(p)
@@ -321,3 +321,18 @@ def test_expansion_limit_is_configurable(tmp_path):
     with pytest.raises(DiagnosticError) as exc:
         Resolver(load_project(p), max_pins=3).resolve_all()
     assert exc.value.diagnostics[0].code == "resolve.pin-range"
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "use: unused.never",
+        "unused: use.required",
+        "role: role.do_not_connect",
+        "use: use.never",
+        "use: use.always",
+    ],
+)
+def test_removed_connection_policy_spellings_are_rejected(tmp_path, field):
+    with pytest.raises(DiagnosticError):
+        resolve(tmp_path, f"component C:\n  pins:\n    1:\n      {field}\n")

@@ -1,10 +1,10 @@
-from noscheme import role, unused
+from noscheme import role, use
 
 component Resistor:
   params:
     resistance value
   pins:
-    1..2: [role.passive, unused.never]
+    1..2: [role.passive, use.required]
   metadata:
     ref_prefix: "R"
     interchangeable: [1, 2]
@@ -16,17 +16,17 @@ component Led:
   pins:
     1 (cathode):
       role: role.passive
-      unused: unused.never
+      use: use.required
     2 (anode):
       role: role.passive
-      unused: unused.never
+      use: use.required
   metadata:
     ref_prefix: "D"
     footprint: "LED_SMD:LED_0603_1608Metric"
 
 component Header:
   pins:
-    1..2: unused.explicit
+    1..2: use.explicit
   metadata:
     ref_prefix: "J"
     footprint: "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical"

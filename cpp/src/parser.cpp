@@ -29,7 +29,8 @@ public:
     std::size_t pos =
         t ? byte(s, t->getStartIndex())
           : s.lines[std::min(line - 1, s.lines.size() - 1)] + column;
-    throw Failure("syntax.invalid", message, pos, pos + 1);
+    throw Failure("syntax.invalid", message, pos,
+                  t ? byte(s, t->getStartIndex() + 1) : pos + 1);
   }
 };
 // Comments become one space per character, keeping line breaks, so ANTLR
@@ -193,6 +194,7 @@ class Builder {
     }
   }
   std::string tag(std::string text) {
+    text = normalized_number(std::move(text));
     auto k = text.find_first_of(numeric_prefixes), dot = text.find('.');
     if (dot != std::string::npos && k + 1 < text.size())
       return "invalid";
@@ -311,9 +313,24 @@ class Builder {
         result->items.push_back(expr(item));
       return result;
     }
-    auto type = x->SCALED() ? tag(x->getText())
-                : x->INT()  ? "integer"
-                            : "double";
+    // A leading decimal point is parsed separately so array pin selectors
+    // such as [0].2 retain their dot and integer tokens.
+    if (x->DOT()) {
+      auto text = x->getText();
+      std::size_t invalid = std::string::npos;
+      if (end(x) - begin(x) != text.size())
+        invalid = 0;
+      else if (auto dot = text.find('.', 1); dot != std::string::npos)
+        invalid = dot + 1;
+      else
+        invalid = text.find_first_of("xXbB");
+      if (invalid != std::string::npos)
+        throw Failure("syntax.invalid", "invalid leading-dot number",
+                      begin(x) + invalid, begin(x) + invalid + 1);
+    }
+    auto type = x->SCALED()             ? tag(x->getText())
+                : x->INT() && !x->DOT() ? "integer"
+                                        : "double";
     if (type == "invalid")
       throw Failure(
           "syntax.number",

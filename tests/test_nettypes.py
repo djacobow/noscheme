@@ -32,7 +32,7 @@ component Dev:
       role: role.open_drain
       bias: bias.none
       capacitance: 10p
-board B:
+block B:
   I2C bus
   I2CLine extra:
     checks:
@@ -65,14 +65,14 @@ def test_net_types_attach_checks_through_bundles_inheritance_and_overrides(tmp_p
 def test_port_type_checks_run_on_the_flattened_net_even_when_outer_net_is_unchecked(tmp_path):
     source = (
         SOURCE.replace(
-            "board B:",
+            "block B:",
             """block Receiver:
   ports:
     I2CLine line
   Dev device:
     1: line
     2: no_connect
-board B:""",
+block B:""",
         )
         .replace(
             "  I2CLine extra:\n    checks:\n      pull: std.parallel(min=5000)\n",
@@ -124,20 +124,20 @@ def test_net_type_inheritance_cycle(tmp_path):
 
 
 def test_net_and_nettype_are_contextual():
-    tree = parse("board B:\n  net.passive net, nettype\n", "main.nosch")
+    tree = parse("block B:\n  net.passive net, nettype\n", "main.nosch")
     assert [d.name.text for d in tree.items[0].body[0].declarators] == ["net", "nettype"]
 
 
 def test_same_type_application_runs_once_per_net(tmp_path):
     source = SOURCE.replace(
-        "board B:",
+        "block B:",
         """block Receiver:
   ports:
     I2CLine line
   Dev device:
     1: line
     2: no_connect
-board B:""",
+block B:""",
     ).replace("    [1].1: extra\n    [1].2: no_connect\n", "")
     source = source.replace(
         "  Dev d[2]",
@@ -174,13 +174,13 @@ component P:
   pins:
     1:
       role: role.passive
-      unused: unused.always
+      use: use.optional
 block Holder:
   ports:
     Line line
   P p:
     1: line
-board B:
+block B:
   net.passive outer
   Holder holder:
     line: outer

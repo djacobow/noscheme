@@ -283,7 +283,6 @@ const std::map<std::string, Strings> &port_allowed() {
       {"open_drain", unite({PASSIVE, {"digital_input", "open_drain"}})},
       {"open_source", unite({PASSIVE, {"digital_input", "open_source"}})},
       {"unchecked", allowed_roles().at("passive")},
-      {"do_not_connect", {}},
   };
   return roles;
 }
@@ -315,6 +314,12 @@ struct Known {
   std::string role, label;
   std::size_t pin;
 };
+std::string attribute_text(const View &view, std::size_t leaf,
+                           const std::string &key,
+                           const std::string &fallback = "") {
+  auto *value = text(view.attribute(leaf, key));
+  return value ? *value : fallback;
+}
 struct NetFacts {
   std::size_t origin;
   std::vector<std::size_t> constraints;
@@ -348,7 +353,7 @@ const NetFacts &net_facts(const Context &ctx) {
       auto roles = view.roles(pin);
       auto label = view.label(pin);
       if (roles.size() != 1 || roles[0] == "unchecked" ||
-          roles[0] == "do_not_connect")
+          attribute_text(view, pin, "use") == "disallowed")
         facts.uncertain.emplace_back(label, pin);
       else
         facts.known.push_back({roles[0], label, pin});
@@ -385,12 +390,12 @@ const Compatibility &compatibility(const Context &ctx) {
         for (auto pin : ctx.pins()) {
           auto list = view.roles(pin);
           Strings roles(list.begin(), list.end());
+          if (attribute_text(view, pin, "use") == "disallowed")
+            continue;
           if (roles.empty() || roles.contains("unchecked")) {
             result.uncertain = true;
             continue;
           }
-          if (roles == Strings{"do_not_connect"})
-            continue;
           auto permitted = roles;
           std::vector<std::size_t> incompatible;
           for (auto declaration : constraints) {
@@ -417,24 +422,11 @@ const Compatibility &compatibility(const Context &ctx) {
         return result;
       });
 }
-std::string attribute_text(const View &view, std::size_t leaf,
-                           const std::string &key,
-                           const std::string &fallback) {
-  auto *value = text(view.attribute(leaf, key));
-  return value ? *value : fallback;
-}
 bool attribute_true(const View &view, std::size_t leaf,
                     const std::string &key) {
   auto *value = view.attribute(leaf, key);
   return value && value->is<bool>() && *value->get_if<bool>();
 }
-// Python compares a role attribute tuple with ("do_not_connect",).
-bool exactly(const View &view, std::size_t leaf, const std::string &key,
-             const std::string &role) {
-  auto *value = view.attribute(leaf, key);
-  return value && value->is<MetaList>() && single(meta_strings(*value), role);
-}
-
 // erc_connections
 std::vector<Diagnostic> connection_results(const Context &ctx) {
   const auto &view = ctx.view;
@@ -444,8 +436,8 @@ std::vector<Diagnostic> connection_results(const Context &ctx) {
   const auto &endpoints = ctx.pins();
   for (auto pin : endpoints)
     if (view.leaf(pin).kind != "port" && endpoints.size() < 2 &&
-        attribute_text(view, pin, "unused", "explicit") != "always" &&
-        !exactly(view, pin, "role", "do_not_connect"))
+        attribute_text(view, pin, "use", "explicit") != "optional" &&
+        attribute_text(view, pin, "use") != "disallowed")
       connection_issue(view, results, "required_connection",
                        view.label(pin) + " on " + python_repr(name) +
                            " needs another physical endpoint",
@@ -465,13 +457,9 @@ std::vector<Diagnostic> pin_results(const Context &ctx) {
   auto pin = *ctx.pin;
   const auto &record = view.leaf(pin);
   auto label = view.label(pin);
-  auto policy = attribute_text(view, pin, "unused", "explicit");
+  auto policy = attribute_text(view, pin, "use", "explicit");
   auto span = view.record_span(pin);
-  if (exactly(view, pin, "role", "do_not_connect")) {
-    if (policy == "never")
-      results.emit("required_connection",
-                   label + ": unused.never conflicts with role.do_not_connect",
-                   span, label);
+  if (policy == "disallowed") {
     if (record.net)
       results.emit("do_not_connect", label + " must not be assigned to any net",
                    span, label);
@@ -481,10 +469,10 @@ std::vector<Diagnostic> pin_results(const Context &ctx) {
     connection_issue(view, results, "unused_pin",
                      label + " must connect or explicitly bind to no_connect",
                      pin);
-  else if (!record.net && policy == "never")
+  else if (!record.net && policy == "required")
     connection_issue(view, results, "required_connection",
                      label + " must connect; no_connect cannot override "
-                             "unused.never",
+                             "use.required",
                      pin);
   return results.diagnostics;
 }
@@ -637,22 +625,17 @@ void check_port(const View &view, std::size_t port,
     return role ? meta_strings(*role) : std::vector<std::string>{};
   }();
   Strings roles(list.begin(), list.end());
-  auto policy = attribute_text(view, port, "unused", "explicit");
+  auto policy = attribute_text(view, port, "use", "explicit");
   auto binding = record.binding;
   auto span = view.record_span(port);
   std::vector<std::size_t> internal, external;
   for (auto pin : endpoints)
     (within(view.leaf(pin).scope, scope) ? internal : external).push_back(pin);
-  if (roles == Strings{"do_not_connect"}) {
+  if (policy == "disallowed") {
     if (binding == BindingState::connected)
       results.emit("do_not_connect",
                    "port " + label + " must not connect to a caller net", span,
                    label);
-    if (policy == "never")
-      results.emit("required_port_connection",
-                   "port " + label +
-                       ": unused.never conflicts with role.do_not_connect",
-                   span, label);
     return;
   }
   // Board ports have no caller. Child ports must honor their caller contract,
@@ -663,13 +646,13 @@ void check_port(const View &view, std::size_t port,
                        "port " + label +
                            " must connect or explicitly bind to no_connect",
                        port);
-    else if (policy == "never" && binding != BindingState::connected)
+    else if (policy == "required" && binding != BindingState::connected)
       connection_issue(
           view, results, "required_port_connection",
           "port " + label +
-              " must connect; no_connect cannot override unused.never",
+              " must connect; no_connect cannot override use.required",
           port);
-    else if (policy != "always" && binding == BindingState::connected &&
+    else if (policy != "optional" && binding == BindingState::connected &&
              external.empty())
       connection_issue(view, results, "required_port_connection",
                        "port " + label + " needs an endpoint outside its block",

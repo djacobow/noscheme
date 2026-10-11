@@ -133,7 +133,7 @@ def extract(netlist, source, output):
         ref_types[ref] = key
     part_lines = [
         "// Generated from KiCad's XML netlist; see ../README.md.",
-        "from noscheme import role, unused",
+        "from noscheme import role, use",
         "",
     ]
     for key, (c, singletons) in sorted(component_types.items()):
@@ -142,7 +142,7 @@ def extract(netlist, source, output):
             part_lines += ["    pins:"]
         for num, pin in sorted(c["pins"].items()):
             values = [f"role.{roles[pin['type']]}"] + (
-                ["unused.always"] if num in singletons else []
+                ["use.optional"] if num in singletons else []
             )
             shown = values[0] if len(values) == 1 else "[" + ", ".join(values) + "]"
             part_lines += [f"        {json.dumps(num)}: {shown}"]
@@ -264,7 +264,7 @@ def extract(netlist, source, output):
     # Definitions are already stored child-first.
     for kind, definition in definitions.items():
         lines += (
-            [("board WrenFull:" if kind == tree["/"]["type"] else f"block {kind}:")]
+            [("block WrenFull:" if kind == tree["/"]["type"] else f"block {kind}:")]
             + definition["lines"]
             + [""]
         )

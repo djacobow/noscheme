@@ -26,11 +26,11 @@ OCTAL = """component Octal:
   pins:
     1..10: role.passive
 """
-BOARD = "board B:\n  net.passive n\n"
+BOARD = "block B:\n  net.passive n\n"
 
 
 def wildcard(arguments):
-    return PART + BLOCK + f"board B:\n  net.passive unrelated\n  Unit u{arguments}\n"
+    return PART + BLOCK + f"block B:\n  net.passive unrelated\n  Unit u{arguments}\n"
 
 
 def voltage(value):
@@ -41,7 +41,7 @@ def voltage(value):
     number supply = 3
   ports:
     net.power rail:
-      unused: unused.always
+      use: use.optional
   net.power n:
     voltage: {value}
   P p(1: n, 2: rail):
@@ -49,7 +49,7 @@ def voltage(value):
       pins:
         1:
           voltage: 0..supply * 2
-board B:
+block B:
   net.power rail
   Unit u(rail: rail)
 """
@@ -57,15 +57,15 @@ board B:
 
 
 def voltage_fields(fields):
-    return PART + f"board B:\n  net.power n:\n{fields}  P p(1: n, 2: n)\n"
+    return PART + f"block B:\n  net.power n:\n{fields}  P p(1: n, 2: n)\n"
 
 
 def flat(binding):
-    return OCTAL + f"board B:\n  net.passive x[4][2]\n  Octal o:\n    {binding}\n"
+    return OCTAL + f"block B:\n  net.passive x[4][2]\n  Octal o:\n    {binding}\n"
 
 
 ALIASES = PART + BOARD + "  P p(A: n, 2: no_connect)\n"
-GROUPED = PART + "board B:\n  net.power a, b:\n    voltage: 4.75..5.25\n  P p(1: a, 2: b)\n"
+GROUPED = PART + "block B:\n  net.power a, b:\n    voltage: 4.75..5.25\n  P p(1: a, 2: b)\n"
 BODY = PART + BOARD + "  P p:\n    1: n\n    2: no_connect\n"
 VALUED = """component V:
   params:
@@ -76,17 +76,17 @@ VALUED = """component V:
   metadata:
     interchangeable: [1, 2]
 """
-PAIR = "board B:\n  net.passive a, b\n"
+PAIR = "block B:\n  net.passive a, b\n"
 SOURCES = {
     "body": BODY,
     "body_after_section": BODY.replace(
         "    1: n\n", "    metadata:\n      custom:\n        x: 1\n    1: n\n"
     ),
     "body_quoted_section_word": PART.replace("1 (A):", '"params":')
-    + 'board B:\n  P p:\n    "params": no_connect\n    2: no_connect\n',
+    + 'block B:\n  P p:\n    "params": no_connect\n    2: no_connect\n',
     "wildcard": PART
     + BLOCK
-    + """board B:
+    + """block B:
   net.power supply
   net.ground ground, other
   net.passive data[2]
@@ -98,14 +98,14 @@ SOURCES = {
   ports:
     net.passive A
   P p(*, 2: no_connect)
-board B:
+block B:
   net.passive n
   Wrapper w(A: n)
   P q(1: n, 2: no_connect)
 """,
-    "wildcard_alias": PART + "board B:\n  net.passive A, n1\n  P p(*, 2: no_connect)\n",
+    "wildcard_alias": PART + "block B:\n  net.passive A, n1\n  P p(*, 2: no_connect)\n",
     "wildcard_two_names": PART.replace("1 (A):", "n1 (A):")
-    + "board B:\n  net.passive A, n1\n  P p(*, 2: no_connect)\n",
+    + "block B:\n  net.passive A, n1\n  P p(*, 2: no_connect)\n",
     "wildcard_unmatched": wildcard("(*)"),
     "wildcard_twice": wildcard("(*, *)"),
     "wildcard_slash": wildcard("(/)"),
@@ -123,7 +123,7 @@ board B:
     "aliases_in_metadata": ALIASES[:-1]
     + ":\n    metadata:\n      pins:\n        1 (x):\n          role: role.passive\n",
     "flat": OCTAL
-    + """board B:
+    + """block B:
   net.passive x[4][2]
   net.passive y[2]
   Octal o:
@@ -137,7 +137,7 @@ board B:
     "flat_no_connect": flat("1: flat(no_connect)"),
     "flat_other_call": flat("1..8: wide(x)"),
     "choice_shorthand": PART
-    + """board B:
+    + """block B:
   metadata:
     erc_choices:
       mode: ["on", "off"]
@@ -153,7 +153,7 @@ board B:
     "unnamed_parameter": VALUED
     + """extend V<label: "pull"> Pull
 extend V<2.2k> Fixed
-board B:
+block B:
   net.passive a, b
   V<4.7k> r(a, b)
   Pull<1k> pull(a, b)
@@ -166,13 +166,13 @@ board B:
     "unnamed_parameter_twice": VALUED + PAIR + "  V<4.7k, value: 1k> r(a, b)\n",
     "unnamed_parameter_none": PART + BOARD + "  P<1> p(1: n, 2: no_connect)\n",
     "unnamed_parameter_late": VALUED + PAIR + '  V<label: "y", 4.7k> r(a, b)\n',
-    "net_parameters": PART + "board B:\n  net.passive<1> n\n",
-    "net_connections": PART + "board B:\n  net.passive n(x)\n",
-    "net_section": PART + "board B:\n  net.passive n:\n    metadata:\n      x: 1\n",
-    "global_instance": PART + "board B:\n  global P p\n",
-    "instance_names": PART + "board B:\n  P p, q\n",
+    "net_parameters": PART + "block B:\n  net.passive<1> n\n",
+    "net_connections": PART + "block B:\n  net.passive n(x)\n",
+    "net_section": PART + "block B:\n  net.passive n:\n    metadata:\n      x: 1\n",
+    "global_instance": PART + "block B:\n  global P p\n",
+    "instance_names": PART + "block B:\n  P p, q\n",
     "instance_field": PART + BOARD + "  P p:\n    voltage: 5\n",
-    "unknown_type": PART + "board B:\n  Missing m:\n    voltage: 5\n",
+    "unknown_type": PART + "block B:\n  Missing m:\n    voltage: 5\n",
     "net_type_extension": """extend net.power Rail:
   voltage: 4.75..5.25
 extend Rail Rail3:
@@ -180,7 +180,7 @@ extend Rail Rail3:
 bundle Pair:
   Rail a
   Rail3 b[2]
-board B:
+block B:
   Pair pair
   global Rail3 r
 """,
@@ -337,7 +337,7 @@ def test_new_forms_format_canonically():
     source = """component C:
   pins:
     1 (a,b): role.passive
-board B:
+block B:
   net.power v, w:
     voltage: 5±5 %
     custom:
@@ -351,7 +351,7 @@ board B:
   pins:
     1 (a, b): role.passive
 
-board B:
+block B:
   net.power v, w:
     voltage: 5 ± 5%
     custom:

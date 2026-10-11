@@ -1,5 +1,8 @@
 language_version = "0.1"
-board = "main.SharedBus"
 source_paths = ["."]
 library_paths = []
+output_dir = "build"
+
+[targets.default]
+root = "main.SharedBus"
 output_dir = "build"

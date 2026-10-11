@@ -708,7 +708,6 @@ def field_errors(fields):
 ALLOWED_SECTIONS = {
     "component": {"params", "pins", "metadata"},
     "block": {"params", "ports", "metadata"},
-    "board": {"metadata"},
     "bundle": {"metadata"},
     "nettype": set(),
 }
@@ -789,14 +788,14 @@ def kind_errors(d):
                     n,
                 )
         elif isinstance(n, a.Declaration):
-            if d.kind not in {"block", "board"} or d.base:
+            if d.kind not in {"block"} or d.base:
                 v.error(
                     "syntax.declaration-context",
-                    "internal circuit declarations require a base block or board",
+                    "internal circuit declarations require a base block",
                     n,
                 )
-            if n.global_ and d.kind not in {"board", "block"}:
-                v.error("syntax.global-context", "only a board may declare globals", n)
+            if n.global_ and d.kind not in {"block"}:
+                v.error("syntax.global-context", "only a block may declare globals", n)
     return tuple(v.errors)
 
 

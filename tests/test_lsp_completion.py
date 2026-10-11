@@ -15,7 +15,7 @@ extend Receiver Specialized:
   metadata:
     custom:
       note: "Inherited interface"
-board B:
+block B:
 """
 
 
@@ -46,7 +46,7 @@ def test_inline_pin_and_parameter_completion(tmp_path):
     assert not complete(tmp_path, source + "  Receiver<value: 2, va|> r")
     assert not complete(tmp_path, source + "  Receiver<value: si|> r")
     assert not complete(tmp_path, source + "  Receiver r(01: net)\n  si|")
-    extension = source.replace("board B:\n", "extend Receiver<va|> Valued\nboard B:\n")
+    extension = source.replace("block B:\n", "extend Receiver<va|> Valued\nblock B:\n")
     suggestions = complete(tmp_path, extension + "  net.passive n\n")
     assert suggestions["value"].text == "value: "
 
@@ -54,10 +54,10 @@ def test_inline_pin_and_parameter_completion(tmp_path):
 @pytest.mark.parametrize("argument", ["bus.", "01: bus.", "bus[0:1]."])
 def test_inline_bundle_member_completion(tmp_path, argument):
     source = PRELUDE.replace(
-        "board B:",
+        "block B:",
         """bundle Bus:
   net.digital data
-board B:
+block B:
   Bus bus[2]""",
     )
     source += "\n  Receiver r(" + argument + "|)"
@@ -100,7 +100,7 @@ def test_builtin_namespace_uses_registry_and_explicit_import(tmp_path):
     suggestions = complete(tmp_path, PRELUDE + "  net.tri| data")
     assert set(suggestions) == {"tristate"}
     source = "from noscheme import role\ncomponent C:\n  pins:\n    1:\n      role: role.digital_|"
-    source += "\nboard B:\n  net.passive n\n"
+    source += "\nblock B:\n  net.passive n\n"
     assert set(complete(tmp_path, source)) == {
         "digital_input",
         "digital_output",
@@ -122,11 +122,11 @@ def test_comments_and_strings_do_not_offer_completion(tmp_path):
 
 def test_imported_components_and_aliases_use_unsaved_library(tmp_path):
     (tmp_path / "lib.nosch").write_text(
-        "component Other:\n  pins:\n    old:\n      unused: unused.always\n"
+        "component Other:\n  pins:\n    old:\n      use: use.optional\n"
     )
     make(tmp_path, "")
     path = tmp_path / "main.nosch"
-    source = "from lib import Other\nboard B:\n  Other r:\n    "
+    source = "from lib import Other\nblock B:\n  Other r:\n    "
     library = (
         "from noscheme import role\ncomponent Other:\n  pins:\n    new:\n      role: role.passive\n"
     )
@@ -152,7 +152,7 @@ extend Part Derived:
 
 
 def test_footprint_strings_in_incomplete_instance(tmp_path):
-    prelude = "from noscheme import role\n" + FOOTPRINTS + "board B:\n"
+    prelude = "from noscheme import role\n" + FOOTPRINTS + "block B:\n"
     for value in ['"|', '"Test:|"', '"Test:|old"', "|"]:
         source = prelude + "  Derived p:\n    metadata:\n      footprint: " + value
         choices = complete(tmp_path, source)
@@ -167,7 +167,7 @@ def test_footprint_strings_in_incomplete_instance(tmp_path):
 def test_footprint_in_specialization_and_custom_exclusion(tmp_path):
     source = "from noscheme import role\n" + FOOTPRINTS
     source += 'extend Derived Final:\n  metadata:\n    footprint: "Test:|"\n'
-    source += "board B:\n  metadata:\n    custom:\n      note: true\n"
+    source += "block B:\n  metadata:\n    custom:\n      note: true\n"
     assert list(complete(tmp_path, source)) == ["Test:Z_default", "Test:A"]
     assert not complete(tmp_path, source.replace("    footprint:", "    custom:\n      footprint:"))
     assert not complete(tmp_path, source.replace("    footprint:", "    // footprint:"))
@@ -175,14 +175,14 @@ def test_footprint_in_specialization_and_custom_exclusion(tmp_path):
 
 
 def test_footprint_prefix_and_no_hints_still_allow_strings(tmp_path):
-    source = "from noscheme import role\n" + FOOTPRINTS + "board B:\n"
+    source = "from noscheme import role\n" + FOOTPRINTS + "block B:\n"
     source += '  Part p:\n    metadata:\n      footprint: "Test:A|"\n  )'
     assert list(complete(tmp_path, source)) == ["Test:A"]
     assert not complete(tmp_path, source.replace("Test:A|", "Other:Custom|"))
 
 
 def test_nested_custom_metadata_does_not_offer_footprints(tmp_path):
-    source = "from noscheme import role\n" + FOOTPRINTS + "board B:\n"
+    source = "from noscheme import role\n" + FOOTPRINTS + "block B:\n"
     source += '  Part p:\n    metadata:\n      custom:\n        metadata:\n          footprint: "|'
     assert not complete(tmp_path, source)
 
@@ -224,7 +224,7 @@ component Part:
       role: role.passive
       checks:
         drive: std.|
-board B:
+block B:
   net.passive bus
 """
     assert set(complete(tmp_path, pin)) == {
@@ -269,7 +269,7 @@ def test_empty_declaration_type_lists_visible_types(tmp_path, header):
 @pytest.mark.parametrize(
     ("header", "expected"),
     [
-        ("extend ", {"parts.Part", "Alias", "parts.Group", "parts.Signal"}),
+        ("extend ", {"B", "parts.Part", "Alias", "parts.Group", "parts.Signal"}),
         ("bundle Pair:\n  ", {"parts.Signal", "parts.Bus"}),
         ("block W:\n  ports:\n    ", {"parts.Signal", "parts.Bus"}),
     ],
@@ -277,14 +277,14 @@ def test_empty_declaration_type_lists_visible_types(tmp_path, header):
 def test_empty_type_contexts_filter_visible_namespace(tmp_path, header, expected):
     (tmp_path / "parts.nosch").write_text(LIBRARY)
     prelude = "import parts\nfrom parts import Part as Alias\n"
-    prelude += "board B:\n  metadata:\n    custom:\n      demo: true\n"
+    prelude += "block B:\n  metadata:\n    custom:\n      demo: true\n"
     suggestions = complete(tmp_path, prelude + header + "|\n")
     assert {name for name in suggestions if "net." not in name} == expected
     assert "parts.net.digital" in suggestions
 
 
 def test_empty_net_type_offers_aliased_builtin_namespace(tmp_path):
-    suggestions = complete(tmp_path, "from noscheme import net as nt\nboard B:\n  | wire\n")
+    suggestions = complete(tmp_path, "from noscheme import net as nt\nblock B:\n  | wire\n")
     assert "nt.digital" in suggestions
     assert "nt.unchecked" in suggestions
     assert all(name.startswith("nt.") for name in suggestions)

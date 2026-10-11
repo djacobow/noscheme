@@ -17,8 +17,7 @@ def net_results(ctx):
         if (
             pin.get("kind") != "port"
             and len(endpoints) < 2
-            and attribute(pin, "unused", "explicit") != "always"
-            and attribute(pin, "role") != ("do_not_connect",)
+            and attribute(pin, "use", "explicit") not in {"optional", "disallowed"}
         ):
             results.connection(
                 ctx,
@@ -37,16 +36,8 @@ def pin_results(ctx):
     emit = results.emit
     pin = record = ctx.pin
     label = pin.label
-    roles = attribute(pin, "role", [])
-    policy = attribute(pin, "unused", "explicit")
-    if roles == ("do_not_connect",):
-        if policy == "never":
-            emit(
-                "required_connection",
-                f"{label}: unused.never conflicts with role.do_not_connect",
-                record,
-                label,
-            )
+    policy = attribute(pin, "use", "explicit")
+    if policy == "disallowed":
         if pin["net"] is not None:
             emit("do_not_connect", f"{label} must not be assigned to any net", record, label)
         return tuple(results.diagnostics)
@@ -58,11 +49,11 @@ def pin_results(ctx):
             record,
             label,
         )
-    elif pin["net"] is None and policy == "never":
+    elif pin["net"] is None and policy == "required":
         results.connection(
             ctx,
             "required_connection",
-            f"{label} must connect; no_connect cannot override unused.never",
+            f"{label} must connect; no_connect cannot override use.required",
             record,
             label,
         )

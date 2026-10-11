@@ -210,8 +210,7 @@ Json rename_plan(const RenameContext &context, const Sources &sources,
   for (const auto &[module_name, module] : context.project.modules)
     for (const auto &entry : module.ast->items)
       if (auto *item = as<ast::Definition>(entry)) {
-        bool board = item->keyword == "board" ||
-                     item == context.project.board.declaration;
+        bool board = item == context.project.board.declaration;
         if (!board && item->name.span == selected->target)
           allowed = named = true;
         auto field_allowed = [&](const ast::Field &field) {
@@ -244,7 +243,7 @@ Json rename_plan(const RenameContext &context, const Sources &sources,
     throw std::runtime_error(
         "Rename supports nets, parameters, components, blocks, bundles, ports, "
         "bundle fields, and board-level instances. Physical pins, aliases, "
-        "board names, and internal instances cannot be renamed.");
+        "internal instances cannot be renamed.");
   Bindings bindings(context.project);
   auto origin = bindings.occurrence(*selected, sources);
   Json spans = Json::array();

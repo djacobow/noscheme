@@ -1,5 +1,5 @@
 // Generated from KiCad's XML netlist; see ../README.md.
-from noscheme import role, unused
+from noscheme import role, use
 
 component Part_00f812a8749c2f46:
   pins:
@@ -2452,7 +2452,7 @@ component Part_e61f839494a1cb13:
     "A29": role.digital_bidirectional
     "A3": role.digital_bidirectional
     "A30": role.digital_bidirectional
-    "A31": [role.digital_bidirectional, unused.always]
+    "A31": [role.digital_bidirectional, use.optional]
     "A32": role.digital_bidirectional
     "A4": role.digital_bidirectional
     "A5": role.digital_bidirectional
@@ -2484,7 +2484,7 @@ component Part_e61f839494a1cb13:
     "B29": role.digital_bidirectional
     "B3": role.digital_bidirectional
     "B30": role.digital_bidirectional
-    "B31": [role.digital_bidirectional, unused.always]
+    "B31": [role.digital_bidirectional, use.optional]
     "B32": role.digital_bidirectional
     "B4": role.digital_bidirectional
     "B5": role.digital_bidirectional

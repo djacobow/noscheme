@@ -45,4 +45,4 @@ The script converts the explicit symbol list into temporary directories before
 copying the generated files here. It then snapshots the design's selected KiCad
 footprints. Review the diff before
 accepting library changes. It does not change the original Eagle evidence,
-`footprint_overrides.json`, or `noscheme.state.json`.
+`footprint_overrides.json`, or `noscheme.default.state.json`.

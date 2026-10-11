@@ -1,4 +1,4 @@
-from noscheme import role, net, unused, f, num
+from noscheme import role, net, use, f, num
 
 component Part:
     params:
@@ -6,7 +6,7 @@ component Part:
         string value
     pins:
         1..20:
-            unused: unused.explicit
+            use: use.explicit
         01 (extra, "EP-1"):
         A1:
             role: role.passive
@@ -24,7 +24,7 @@ block Block:
         Parallel bus[2]:
             placeholder: true
 
-board Test:
+block Test:
     global net.ground #ground
     net.digital signal#[2][4]
     Parallel values[2]

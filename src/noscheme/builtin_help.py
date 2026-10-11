@@ -15,7 +15,6 @@ BUILTIN_HELP = {
         "open_drain": "Can pull a signal low or release it. Multiple open-drain drivers may share a net; a pull-up provides the high level.",
         "open_source": "Can pull a signal high or release it. Multiple open-source drivers may share a net; a pull-down provides the low level.",
         "unchecked": "Electrical behavior is unspecified; ERC cannot treat this endpoint as passive or prove its driver behavior.",
-        "do_not_connect": "Must not be assigned to any net. Conflicts with unused.never; this connection rule cannot be waived.",
     },
     "net": {
         "passive": "Allows passive, digital, analog, power, and ground roles. Driver conflicts and power-to-ground conflicts are still checked.",
@@ -29,9 +28,10 @@ BUILTIN_HELP = {
         "tristate": "Shared digital bus. Endpoints other than passive contacts and digital inputs require tristate_capable: true. Multiple capable drivers are allowed; enable timing and arbitration are not modeled.",
         "unchecked": "Skips this declaration's electrical compatibility constraints without a warning. Outermost unchecked nets are counted in the ERC report. Other declarations and mandatory connection policies still apply.",
     },
-    "unused": {
-        "always": "May be left unconnected without an explicit no_connect binding.",
-        "explicit": "An unused pin or port must be explicitly bound to no_connect. This is the default unused policy.",
-        "never": "Must be connected; no_connect is not allowed. An instance cannot weaken this policy.",
+    "use": {
+        "disallowed": "Must not be assigned to any net. Omission or no_connect is allowed; this connection rule cannot be waived.",
+        "optional": "May be left unconnected without an explicit no_connect binding.",
+        "explicit": "An unused pin or port must be explicitly bound to no_connect. This is the default connection policy.",
+        "required": "Must be connected; no_connect is not allowed. An instance cannot weaken this policy.",
     },
 }

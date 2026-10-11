@@ -26,7 +26,7 @@ block Module:
         max_load_current: 100m
   Load load:
     1: power
-board B:
+block B:
   net.power rail
   Supply supply:
     1: rail
@@ -72,7 +72,7 @@ def test_array_instances_have_independent_aggregate_budgets(tmp_path):
 
 def test_nested_boundaries_check_each_level(tmp_path):
     source = SOURCE.replace(
-        "board B:",
+        "block B:",
         """block Outer:
   ports:
     net.power power:
@@ -81,7 +81,7 @@ def test_nested_boundaries_check_each_level(tmp_path):
         max_load_current: 90m
   Module inner:
     power: power
-board B:""",
+block B:""",
     ).replace("Module module", "Outer module")
     source = source.replace("max_load_current: 80m", "max_load_current: 120m")
     diagnostics = errors(tmp_path, source)
@@ -174,13 +174,13 @@ def test_rechecking_preserves_original_circuit(tmp_path):
 
 def test_inherited_port_budget_override(tmp_path):
     source = SOURCE.replace(
-        "board B:",
+        "block B:",
         """extend Module Smaller:
   ports:
     power:
       aggregate_load:
         max_load_current: 70m
-board B:""",
+block B:""",
     ).replace("Module module", "Smaller module")
     assert codes(tmp_path, source) == ["erc.aggregate_current_overload"]
 
@@ -205,8 +205,8 @@ def test_configuration_role_selection_checks_each_internal_budget(tmp_path):
 """,
     )
     source = source.replace(
-        "board B:",
-        '''board B:
+        "block B:",
+        '''block B:
   metadata:
     erc_choices:
       mode: ["on", "off"]

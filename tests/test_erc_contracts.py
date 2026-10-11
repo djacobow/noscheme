@@ -2,6 +2,8 @@
 
 import pytest
 
+from noscheme.diagnostics import DiagnosticError
+
 from noscheme.erc import apply_erc, check_circuit
 from test_circuit import compile_source
 from test_erc import component, pair, codes
@@ -60,7 +62,7 @@ def test_selectable_roles_are_not_guessed(tmp_path):
     c = compile_source(
         tmp_path,
         source
-        + """board B:
+        + """block B:
   net.digital n
   P p[2]:
     1: n
@@ -86,17 +88,17 @@ def hierarchy(
   ports:
     net.{inner_type} signal:
       role: role.{contract}
-      unused: unused.never
+      use: use.required
   {internal} p:
     1: signal
 block Forward:
   ports:
     net.{inner_type} signal:
       role: role.{contract}
-      unused: unused.never
+      use: use.required
   W child:
     signal: signal
-board B:
+block B:
   net.{outer_type} n
   Forward w:
     signal: n
@@ -157,10 +159,10 @@ def test_all_type_constraints_share_one_role_selection(tmp_path):
     "binding,policy,expected",
     [
         ("", "explicit", "unused_port"),
-        ("", "always", None),
+        ("", "optional", None),
         ("signal: no_connect", "explicit", None),
-        ("signal: no_connect", "never", "required_port_connection"),
-        ("signal: n", "never", "required_port_connection"),
+        ("signal: no_connect", "required", "required_port_connection"),
+        ("signal: n", "required", "required_port_connection"),
     ],
 )
 def test_port_connection_contracts_need_an_outside_endpoint(tmp_path, binding, policy, expected):
@@ -170,10 +172,10 @@ def test_port_connection_contracts_need_an_outside_endpoint(tmp_path, binding, p
         + f"""block W:
   ports:
     net.passive signal:
-      unused: unused.{policy}
+      use: use.{policy}
   P p[2]:
     1: signal
-board B:
+block B:
   net.passive n:
     placeholder: true
   W w{":" if clause else ""}
@@ -191,7 +193,7 @@ def test_explicit_external_port_supplies_real_endpoint_once(tmp_path):
         + """block External:
   ports:
     net.digital signal
-board B:
+block B:
   net.digital n
   External e:
     signal: n
@@ -237,13 +239,13 @@ def test_bundle_array_port_contracts_are_checked_per_leaf(tmp_path):
         + """bundle Bus:
   net.digital signal:
     role: role.digital_output
-    unused: unused.never
+    use: use.required
 block W:
   ports:
     Bus bus[2]
   Driver driver[2]:
     1: bus[0:2].signal
-board B:
+block B:
   Bus bus[2]
   W w:
     bus: bus
@@ -266,8 +268,8 @@ def test_unselected_internal_roles_cannot_conceal_definite_contract_violation(tm
 
 def test_port_contract_uncertainty_is_reported_without_inventing_driver(tmp_path):
     source = hierarchy().replace(
-        "role: role.digital_output\n      unused: unused.explicit",
-        "role: [role.digital_output, role.digital_input]\n      unused: unused.explicit",
+        "role: role.digital_output\n      use: use.explicit",
+        "role: [role.digital_output, role.digital_input]\n      use: use.explicit",
     )
     c = compile_source(tmp_path, source)
     assert codes(c).count("incomplete_port_role") == 2
@@ -281,7 +283,7 @@ def test_port_policies_cannot_be_waived(tmp_path):
         with pytest.raises(DiagnosticError) as exc:
             compile_source(
                 tmp_path,
-                f"""board B:
+                f"""block B:
   net.digital n:
     waivers:
       {check}: "Not allowed"
@@ -341,8 +343,8 @@ def test_unchecked_report_counts_nets_once_across_configs_and_declarations(tmp_p
     from noscheme.erc import report_files
 
     source = hierarchy(outer_type="unchecked").replace(
-        "board B:",
-        '''board B:
+        "block B:",
+        '''block B:
   metadata:
     erc_choices:
       mode: ["first", "second"]
@@ -368,3 +370,37 @@ def test_inner_unchecked_is_not_counted_as_an_unchecked_outer_net(tmp_path):
     diagnostics = apply_erc(circuit)
     assert any(d.code == "erc.missing_driver" for d in diagnostics)
     assert circuit["erc"]["unchecked_nets"] == 0
+
+
+@pytest.mark.parametrize(
+    "binding,forbidden", [("", False), ("signal: no_connect", False), ("signal: n", True)]
+)
+def test_disallowed_port_policy(tmp_path, binding, forbidden):
+    source = """block W:
+  ports:
+    net.passive signal:
+      use: use.disallowed
+      placeholder: true
+block B:
+  net.passive n:
+    placeholder: true
+  W w""" + (f":\n    {binding}\n" if binding else "\n")
+    found = codes(compile_source(tmp_path, source))
+    assert ("do_not_connect" in found) is forbidden
+    assert "unused_port" not in found
+
+
+@pytest.mark.parametrize("policy", ["use.optional", "use.explicit", "use.required"])
+def test_instance_cannot_override_disallowed_policy(tmp_path, policy):
+    source = (
+        component(use="disallowed")
+        + f"""block B:
+  P p:
+    metadata:
+      pins:
+        1:
+          use: {policy}
+"""
+    )
+    with pytest.raises(DiagnosticError):
+        compile_source(tmp_path, source)

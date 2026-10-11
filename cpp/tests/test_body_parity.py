@@ -41,7 +41,7 @@ def test_positional(probe, tmp_path, arguments):
         {
             "src/main.nosch": PRELUDE
             + PART
-            + f"""board B:
+            + f"""block B:
   net.passive a
   net.passive b
   R<value: 2.2k> r({arguments})
@@ -74,7 +74,7 @@ def test_inherited_positional_body(probe, tmp_path):
             "src/main.nosch": PRELUDE
             + """from library import Base
 extend Base<value: 20k> Child
-board B:
+block B:
   net.passive a
   Child c(a: a)
 """,
@@ -123,7 +123,7 @@ def test_multiple_diagnostics(probe, tmp_path, variant):
         )
     elif variant == "inherited":
         source = (
-            source.replace("board B:", "block W:")
+            source.replace("block B:", "block W:")
             + """extend W Derived:
   metadata:
     custom:
@@ -131,7 +131,7 @@ def test_multiple_diagnostics(probe, tmp_path, variant):
 component BadDefault:
   params:
     string value = unknown_default
-board B:
+block B:
   W w
 """
         )
@@ -175,14 +175,14 @@ def test_element_metadata(probe, tmp_path, change):
         ("choice(power_mode,", "choice(typo,"),
         ("absent=role.passive", "typo=role.passive"),
         ('header="absent"', 'header="invalid"'),
-        ("1..2: [role.passive, unused.never]", "1..2: [role.ground, role.passive, unused.never]"),
+        ("1..2: [role.passive, use.required]", "1..2: [role.ground, role.passive, use.required]"),
     ],
 )
 def test_choices(probe, tmp_path, old, new):
     source = (
         (ROOT / "examples/power_modes/main.nosch")
         .read_text()
-        .replace("block PowerModes:", "board B:")
+        .replace("block PowerModes:", "block B:")
     )
     assert old in source
     compare(
@@ -203,7 +203,7 @@ def test_choices(probe, tmp_path, old, new):
 def test_privacy_and_roles(probe, tmp_path, instance, code):
     source = (
         fixture_source("test_resolve.py", "BASE")
-        + "board B:\n  net.passive n\n  "
+        + "block B:\n  net.passive n\n  "
         + instance
         + "\n"
     )
@@ -231,7 +231,7 @@ def test_privacy_and_roles(probe, tmp_path, instance, code):
     ],
 )
 def test_types_and_bindings(probe, tmp_path, source):
-    check_source(probe, tmp_path, PART + source + "board B:\n  net.passive a\n")
+    check_source(probe, tmp_path, PART + source + "block B:\n  net.passive a\n")
 
 
 @pytest.mark.parametrize("limit", [0, 1, 3, 128])
@@ -239,7 +239,7 @@ def test_expression_depth(probe, tmp_path, limit):
     check_source(
         probe,
         tmp_path,
-        PART.replace("10k", "(1 + 2) * 3") + "board B:\n  net.passive a\n",
+        PART.replace("10k", "(1 + 2) * 3") + "block B:\n  net.passive a\n",
         max_expression_depth=limit,
     )
 
@@ -254,7 +254,7 @@ def test_custom_map_keys_are_not_internal_encodings(probe, tmp_path):
       node: "Number"
       constraint: "positive"
       type: "number"
-board B:
+block B:
   C c
 """,
     )
@@ -275,7 +275,7 @@ def test_metadata_diagnostic_order(probe, tmp_path):
       group:
         pins: []
         max_load_current: g_missing
-board B:
+block B:
   C c
 """,
     )
@@ -294,7 +294,7 @@ def test_component_pin_annotations(probe, tmp_path, annotation):
         probe,
         tmp_path,
         PART
-        + f"""board B:
+        + f"""block B:
   R r:
     metadata:
       pins:
@@ -325,7 +325,7 @@ def test_bundle_fields(probe, tmp_path, binding):
 block Wrapper:
   ports:
     Bus bus
-board B:
+block B:
   Bus n
   Wrapper w:
     {binding}
@@ -351,7 +351,7 @@ def test_block_metadata(probe, tmp_path, metadata):
         f"""block W:
   ports:
     net.passive p
-board B:
+block B:
   W w:
     metadata:
       {metadata}
@@ -372,7 +372,7 @@ extend Base Child:
   pins:
     1:
       max_source_current: missing_override
-board B:
+block B:
   Child c
 """,
     )
@@ -388,7 +388,7 @@ def test_positional_does_not_mutate_cached_ast(probe, tmp_path):
         {
             "src/main.nosch": PRELUDE
             + PART
-            + """board B:
+            + """block B:
   net.passive n
   R r(n, no_connect)
 """
@@ -418,7 +418,7 @@ def test_deep_bundle_chain(probe, tmp_path):
     source = (
         "bundle Z180:\n  net.passive p\n"
         + "".join(f"bundle Z{i}:\n  Z{i + 1} p\n" for i in range(180))
-        + "board B:\n  Z0 n\n"
+        + "block B:\n  Z0 n\n"
     )
     check_source(probe, tmp_path, source)
 
@@ -431,7 +431,7 @@ def test_instance_choice_diagnostic_order(probe, tmp_path):
   metadata:
     erc_choices:
       mode: ["on", "off"]
-board B:
+block B:
   W w:
     metadata:
       erc_choices:
@@ -448,7 +448,7 @@ component C:
   params:
     number math = 1
     number value = math.ceil(1.2)
-board B:
+block B:
   C c
 """
     if not shadow:

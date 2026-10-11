@@ -193,7 +193,7 @@ class Declarator(Node):
 
 @dataclass(frozen=True)
 class Declaration(Node):
-    """`Type<params> name(args):` in a block, board, or bundle, before its type resolves.
+    """`Type<params> name(args):` in a block or bundle, before its type resolves.
 
     The project loader makes it Nets or an Instance by the kind of its type. Sections
     are those of an instance, with `<...>` and `(...)` entries merged in; body lines
@@ -223,7 +223,7 @@ class Net(Node):
 @dataclass(frozen=True)
 class Definition(Node):
     # "extend" until the project loader gives an extension its base's kind.
-    kind: Literal["component", "block", "board", "bundle", "nettype", "extend"]
+    kind: Literal["component", "block", "bundle", "nettype", "extend"]
     name: Name
     base: tuple[Name, ...] | None
     body: tuple[Section | Declaration | Instance | Net | Field, ...]

@@ -9,9 +9,9 @@ from noscheme.resolve import resolve_project
 from noscheme.project import load_project
 
 
-def make(tmp_path, declarations="", board="board B:\n  net.passive n\n"):
+def make(tmp_path, declarations="", board="block B:\n  net.passive n\n"):
     (tmp_path / "noscheme.toml").write_text(
-        'language_version = "0.1"\nboard = "main.B"\nsource_paths = ["."]\nlibrary_paths = []\noutput_dir = "build"\n'
+        'language_version = "0.1"\ntargets.default.root = "main.B"\ntargets.default.output_dir = "build"\nsource_paths = ["."]\nlibrary_paths = []\noutput_dir = "build"\n'
     )
     (tmp_path / "main.nosch").write_text("from noscheme import num, net\n" + declarations + board)
     return tmp_path
@@ -50,6 +50,21 @@ def run(evaluator, text, env=None):
         ("num.ceil(-2.9)", -2, "integer"),
         ("num.floor(-2.1)", -3, "integer"),
         ("num.round(2.5)", 3, "integer"),
+        ("0xFF_FF", 65535, "integer"),
+        ("0X7f", 127, "integer"),
+        ("0b1010_0011", 163, "integer"),
+        ("0B11", 3, "integer"),
+        ("1_000 + 2", 1002, "integer"),
+        (".5", 0.5, "double"),
+        (".5e+2", 50.0, "double"),
+        ("1_2.3_4e-0_1", 1.234, "double"),
+        (".5k", 500, "integer"),
+        ("10µ", 1e-5, "double"),
+        ("1µ5", 1.5e-6, "double"),
+        ("1_000µ", 0.001, "double"),
+        (".5µ", 5e-7, "double"),
+        ("0x7fff_ffff_ffff_ffff", (1 << 63) - 1, "integer"),
+        ("-0x8000_0000_0000_0000", -(1 << 63), "integer"),
         ("num.round(-2.5)", -3, "integer"),
         ("num.round(2.4999999999999996)", 2, "integer"),
         ("num.round(4503599627370495.0)", 4503599627370495, "integer"),
@@ -74,6 +89,28 @@ def test_integer_context_warns_even_when_integral(evaluator):
 @pytest.mark.parametrize(
     "text,code",
     [
+        ("1._5", "expression.unsupported"),
+        *[
+            (literal, "syntax.invalid")
+            for literal in [
+                "1__0",
+                "1_",
+                "0x_FF",
+                "0xFF_",
+                "0b_10",
+                "0b102",
+                "1_.5",
+                ".5_",
+                "1e_2",
+                "1e2_",
+                "1_µ",
+                "1µ_5",
+                "0o77",
+                ". 5",
+                ".1.2",
+                ".0xF",
+            ]
+        ],
         ("1 / 0", "number.divide-by-zero"),
         ("1e309", "number.nonfinite"),
         ("1e308 * 1e308", "number.nonfinite"),
@@ -192,6 +229,10 @@ def test_signed_integer_boundaries(evaluator, text, value):
     "text",
     [
         "9223372036854775808",
+        "0x8000_0000_0000_0000",
+        "-0x8000_0000_0000_0001",
+        "0b1" + "0" * 63,
+        "0x" + "f" * 5000,
         "-9223372036854775809",
         "9223372036854775807 + 1",
         "-9223372036854775808 - 1",
@@ -237,7 +278,7 @@ def test_binding_order_forwarding_and_override(tmp_path):
   metadata:
     value: label
 """,
-        """board B:
+        """block B:
   C<b: 4> c
 """,
     )
@@ -258,7 +299,7 @@ def test_binding_order_forwarding_and_override(tmp_path):
     ],
 )
 def test_binding_errors(tmp_path, params, args, code):
-    body = f"board B:\n  C<{args}> c\n" if args else "board B:\n  C c\n"
+    body = f"block B:\n  C<{args}> c\n" if args else "block B:\n  C c\n"
     p = make(tmp_path, "component C:\n  params:\n    " + params + "\n", body)
     with pytest.raises(DiagnosticError) as exc:
         evaluate_project(*resolve_project(p))
@@ -270,7 +311,7 @@ def test_override_does_not_evaluate_bad_default(tmp_path):
     p = make(
         tmp_path,
         "component C:\n  params:\n    number x = 1 / 0\n",
-        "board B:\n  C<x: 2> c\n",
+        "block B:\n  C<x: 2> c\n",
     )
     assert (
         evaluate_project(*resolve_project(p))[0]["instances"][1]["parameters"]["x"]["value"] == "2"
@@ -316,7 +357,7 @@ block Wrapper:
     metadata:
       value: x
 """,
-        "board B:\n  Wrapper w()\n",
+        "block B:\n  Wrapper w()\n",
     )
     report, _ = evaluate_project(*resolve_project(p))
     child = report["instances"][-1]
@@ -328,7 +369,7 @@ def test_inherited_defaults_evaluate_in_origin_module(tmp_path):
     p = make(
         tmp_path,
         'from lib import C\nextend C D:\n  metadata:\n    custom:\n      note: "child"\n',
-        "board B:\n  D d()\n",
+        "block B:\n  D d()\n",
     )
     (p / "main.nosch").write_text(
         (p / "main.nosch").read_text().replace("num, f, nettype", "nettype")
@@ -344,7 +385,7 @@ def test_cli_warnings_are_nonblocking(tmp_path, capsys):
     p = make(
         tmp_path,
         "component C:\n  params:\n    number x = 1\n",
-        "board B:\n  C c[2.0]()\n",
+        "block B:\n  C c[2.0]()\n",
     )
     assert main(["evaluate", "--project", str(p), "--diagnostics", "json"]) == 0
     result = capsys.readouterr()
@@ -358,7 +399,7 @@ def test_connection_index_evaluation_and_warning(tmp_path):
     p = make(
         tmp_path,
         'component C:\n  pins:\n    1:\n      custom:\n        note: "pin"\n',
-        "board B:\n  net.passive n[4]\n  C c:\n    1: n[3.0]\n",
+        "block B:\n  net.passive n[4]\n  C c:\n    1: n[3.0]\n",
     )
     report, warnings = evaluate_project(*resolve_project(p))
     assert report["instances"][0]["connection_selections"]["c"][0]["start"] == 3
@@ -369,7 +410,7 @@ def test_recursive_instantiation_reports_error(tmp_path):
     p = make(
         tmp_path,
         "block Recursive:\n  Recursive child()\n",
-        "board B:\n  Recursive r()\n",
+        "block B:\n  Recursive r()\n",
     )
     with pytest.raises(DiagnosticError) as exc:
         evaluate_project(*resolve_project(p))

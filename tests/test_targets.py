@@ -11,12 +11,12 @@ from noscheme.diagnostics import DiagnosticError
 from noscheme.project import load_project, read_config
 from noscheme.resolve import resolve_project
 
-SOURCE = """from noscheme import net, role, unused
+SOURCE = """from noscheme import net, role, use
 component P:
   pins:
     1:
       role: role.passive
-      unused: unused.always
+      use: use.optional
   metadata:
     footprint: "Test:P"
 block Circuit:
@@ -80,7 +80,7 @@ def test_defaults_extensions_and_isolated_artifacts(tmp_path, capsys):
             None,
             "allows only",
         ),
-        ('board = "main.Circuit"\n' + CONFIG, None, "cannot be combined"),
+        ('board = "main.Circuit"\n' + CONFIG, None, "unknown configuration key"),
     ],
 )
 def test_invalid_target_configuration(tmp_path, config, target, message):

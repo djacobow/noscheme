@@ -8,13 +8,13 @@ from noscheme.diagnostics import DiagnosticError
 from noscheme.resolve import resolve_project
 
 ROOT = Path(__file__).resolve().parents[1]
-PRELUDE = "from noscheme import role, unused, net\n"
+PRELUDE = "from noscheme import role, use, net\n"
 PART = """component P:
   pins:
     1 (A):
-      unused: unused.explicit
+      use: use.explicit
     2:
-      unused: unused.explicit
+      use: use.explicit
   metadata:
     footprint: "Test:Part"
 """
@@ -22,7 +22,7 @@ PART = """component P:
 
 def make(tmp_path, source):
     (tmp_path / "noscheme.toml").write_text(
-        'language_version = "0.1"\nboard = "main.B"\nsource_paths = ["."]\nlibrary_paths = []\noutput_dir = "build"\n'
+        'language_version = "0.1"\ntargets.default.root = "main.B"\ntargets.default.output_dir = "build"\nsource_paths = ["."]\nlibrary_paths = []\noutput_dir = "build"\n'
     )
     (tmp_path / "main.nosch").write_text(PRELUDE + source)
     return tmp_path
@@ -93,7 +93,7 @@ def test_shapes_scalar_sharing_and_leading_indices(tmp_path):
     c = compile_source(
         tmp_path,
         PART
-        + """board B:
+        + """block B:
   net.passive common
   net.passive data[2][3]
   P p[2][3]:
@@ -116,7 +116,7 @@ def test_port_indices_apply_within_each_instance(tmp_path):
   ports:
     net.digital data[3]:
       placeholder: true
-board B:
+block B:
   net.digital n[2]
   W w[2]:
     data[1]: n
@@ -140,7 +140,7 @@ board B:
     ],
 )
 def test_shape_errors(tmp_path, net_shape, inst_shape, binding, code):
-    source = PART + f"board B:\n  net.passive n{net_shape}\n  P p{inst_shape}:\n    {binding}\n"
+    source = PART + f"block B:\n  net.passive n{net_shape}\n  P p{inst_shape}:\n    {binding}\n"
     with pytest.raises(DiagnosticError) as exc:
         compile_source(tmp_path, source)
     assert exc.value.diagnostics[0].code == code
@@ -159,7 +159,7 @@ def test_alias_range_array_and_no_connect_overlap(tmp_path, bindings):
     with pytest.raises(DiagnosticError) as exc:
         compile_source(
             tmp_path,
-            PART + "board B:\n  net.passive n\n  P p[2]:\n    " + bindings + "\n",
+            PART + "block B:\n  net.passive n\n  P p[2]:\n    " + bindings + "\n",
         )
     assert exc.value.diagnostics[0].code == "connection.overlap"
     assert exc.value.diagnostics[0].related
@@ -169,7 +169,7 @@ def test_pin_range_and_slice(tmp_path):
     c = compile_source(
         tmp_path,
         PART
-        + """board B:
+        + """block B:
   net.passive n[4]
   P p:
     1..2: n[1:3]
@@ -195,12 +195,12 @@ def test_bundle_nominal_types_and_breakout(tmp_path):
     with pytest.raises(DiagnosticError) as exc:
         compile_source(
             tmp_path,
-            BUNDLES + "board B:\n  Other n\n  W w:\n    bus: n\n",
+            BUNDLES + "block B:\n  Other n\n  W w:\n    bus: n\n",
         )
     assert exc.value.diagnostics[0].code == "connection.bundle-type"
     c = compile_source(
         tmp_path,
-        BUNDLES + "board B:\n  Other n\n  W w:\n    bus.x: n.y\n    bus.y: n.x\n",
+        BUNDLES + "block B:\n  Other n\n  W w:\n    bus.x: n.y\n    bus.y: n.x\n",
     )
     block = next(b for b in c["blocks"] if b["path"] == ["w"])
     assert [p["net"] for p in block["ports"]["bus"]] == ["n.y", "n.x"]
@@ -210,7 +210,7 @@ def test_bundle_whole_and_field_overlap(tmp_path):
     with pytest.raises(DiagnosticError) as exc:
         compile_source(
             tmp_path,
-            BUNDLES + "board B:\n  A n\n  W w:\n    bus: n\n    bus.x: n.x\n",
+            BUNDLES + "block B:\n  A n\n  W w:\n    bus: n\n    bus.x: n.x\n",
         )
     assert exc.value.diagnostics[0].code == "connection.overlap"
 
@@ -224,7 +224,7 @@ def test_caller_connections_cannot_fake_port_implementation(tmp_path):
     net.passive a:
       placeholder: true
     net.passive b
-board B:
+block B:
   net.passive n
   Empty e:
     a: n
@@ -242,16 +242,16 @@ def test_missing_global_only_fails_when_expanded(tmp_path):
     1: global.missing
 """
     )
-    compile_source(tmp_path, unused + "board B:\n  net.passive n\n")
+    compile_source(tmp_path, unused + "block B:\n  net.passive n\n")
     with pytest.raises(DiagnosticError) as exc:
-        compile_source(tmp_path, unused + "board B:\n  Global g()\n")
+        compile_source(tmp_path, unused + "block B:\n  Global g()\n")
     assert exc.value.diagnostics[0].code == "connection.global"
 
 
 def test_explicit_no_connect_and_omitted_pins(tmp_path):
     c = compile_source(
         tmp_path,
-        PART + "board B:\n  P p:\n    1: no_connect\n",
+        PART + "block B:\n  P p:\n    1: no_connect\n",
     )
     pins = c["parts"][0]["pins"]
     assert pins["1"]["binding"] == "no_connect" and pins["1"]["net"] is None
@@ -259,7 +259,7 @@ def test_explicit_no_connect_and_omitted_pins(tmp_path):
 
 
 def test_limits_and_array_explicit_identity(tmp_path):
-    source = PART + 'board B:\n  P p[3]:\n    metadata:\n      identity: "stable"\n'
+    source = PART + 'block B:\n  P p[3]:\n    metadata:\n      identity: "stable"\n'
     c = compile_source(tmp_path, source)
     assert [p["identity"] for p in c["parts"]] == ["stable[0]", "stable[1]", "stable[2]"]
     with pytest.raises(DiagnosticError) as exc:
@@ -270,7 +270,7 @@ def test_limits_and_array_explicit_identity(tmp_path):
 def test_compile_repeatability_and_failed_run_preserves_output(tmp_path, capsys):
     p = make(
         tmp_path,
-        PART + "board B:\n  net.passive n\n  P p:\n    1: n\n",
+        PART + "block B:\n  net.passive n\n  P p:\n    1: n\n",
     )
     args = ["compile", "--project", str(p)]
     assert main(args) == 0
@@ -285,7 +285,7 @@ def test_compile_repeatability_and_failed_run_preserves_output(tmp_path, capsys)
 def test_scalar_bundle_shares_across_instances(tmp_path):
     c = compile_source(
         tmp_path,
-        BUNDLES + "board B:\n  A n\n  W w[2]:\n    bus: n\n",
+        BUNDLES + "block B:\n  A n\n  W w[2]:\n    bus: n\n",
     )
     for block in c["blocks"]:
         if block["path"]:
@@ -303,7 +303,7 @@ def test_multiple_ports_can_share_caller_net_and_count_pins_once(tmp_path):
   P p:
     1: a
     2: b
-board B:
+block B:
   net.passive n
   W w:
     a: n
@@ -319,7 +319,7 @@ def test_net_declaration_does_not_implement_a_port(tmp_path):
     with pytest.raises(DiagnosticError) as exc:
         compile_source(
             tmp_path,
-            "block W:\n  ports:\n    net.passive a\n  net.passive unused\nboard B:\n  W w()\n",
+            "block W:\n  ports:\n    net.passive a\n  net.passive unused\nblock B:\n  W w()\n",
         )
     assert exc.value.diagnostics[0].code == "port.unimplemented"
 
@@ -330,7 +330,7 @@ def test_external_port_is_explicit_structural_support(tmp_path):
         """block W:
   ports:
     net.digital a
-board B:
+block B:
   net.digital n
   W w:
     a: n
@@ -346,7 +346,7 @@ board B:
 
 
 def test_source_reordering_preserves_semantic_circuit(tmp_path):
-    first = PART + "board B:\n  net.passive a\n  net.passive b\n  P p:\n    1: a\n    2: b\n"
+    first = PART + "block B:\n  net.passive a\n  net.passive b\n  P p:\n    1: a\n    2: b\n"
     second = (
         first.replace("  net.passive a\n  net.passive b\n", "").replace(
             "    1: a\n    2: b", "    2: b\n    1: a"
@@ -377,7 +377,7 @@ def test_no_connect_on_block_port_preserved(tmp_path):
     net.passive a
   P p:
     1: a
-board B:
+block B:
   W w:
     a: no_connect
 """,
@@ -394,7 +394,7 @@ def test_explicit_identity_preserves_descendant_identity_on_rename(tmp_path):
         PART
         + """block W:
   P p()
-board B:
+block B:
   W original:
     metadata:
       identity: "stable"

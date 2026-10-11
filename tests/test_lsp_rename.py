@@ -116,7 +116,7 @@ def test_alias_reexport_chain(tmp_path):
         tmp_path,
         """from middle import Alias
 from library import Unit as Separate
-board B:
+block B:
   Alias a()
   Separate b()
 """,
@@ -151,7 +151,7 @@ block Unit:
   ports:
     net.digital input:
       role: role.digital_input
-board B:
+block B:
   net.digital n
   Unit p:
     input: n
@@ -175,7 +175,7 @@ bundle Bus:
 block Unit:
   ports:
     Bus custom
-board B:
+block B:
   Unit p()
 """
     make_project(tmp_path, source)
@@ -189,7 +189,7 @@ board B:
 def test_global_net_rename_reaches_other_modules(tmp_path):
     source = """from noscheme import net
 import child
-board B:
+block B:
   global net.passive supply
   child.Unit block()
 """
@@ -245,7 +245,7 @@ def test_board_block_rename_preserves_descendants_and_array_identities(tmp_path,
     ],
 )
 def test_board_instance_identity_insertion_formats_and_existing_identity(tmp_path, body):
-    source = "from library import Part\nboard B:\n" + body
+    source = "from library import Part\nblock B:\n" + body
     s = session(tmp_path, source, LIBRARY.replace("string value", "resistance value"))
     path = tmp_path / "main.nosch"
     result = apply(s.rename(path, source.index("old"), "new"), s.sources)
@@ -273,7 +273,7 @@ def test_board_instance_identity_insertion_formats_and_existing_identity(tmp_pat
 
 def test_board_rename_preserves_newlines_and_nonstandard_indentation(tmp_path):
     source = (
-        'from library import Part\r\nboard B:\r\n  Part old:\r\n    params:\r\n      value: "a"\r\n'
+        'from library import Part\r\nblock B:\r\n  Part old:\r\n    params:\r\n      value: "a"\r\n'
     )
     session(tmp_path, source)
     path = tmp_path / "main.nosch"
@@ -289,7 +289,7 @@ component Part:
   pins:
     1:
       role: role.power_input
-board B:
+block B:
   net.ground gnd:
     waivers:
       incompatible_role:
@@ -318,7 +318,7 @@ def test_board_rename_keeps_export_uuid_and_reference_without_writing_state(tmp_
     from noscheme.kicad.export import export_project
 
     source = """from library import Part
-board B:
+block B:
   Part old[2]:
     metadata:
       footprint: "Test:OnePad"
@@ -333,7 +333,7 @@ board B:
     )
     project, before = compile_buffers(tmp_path, s.sources)
     export_project(project, before, footprints)
-    state = tmp_path / "noscheme.state.json"
+    state = tmp_path / "noscheme.default.state.json"
     saved = state.read_bytes()
     result = apply(s.rename(path, source.index("old"), "new"), s.sources)
     assert state.read_bytes() == saved
@@ -350,7 +350,7 @@ board B:
 def test_net_type_rename_updates_extensions_and_uses(tmp_path):
     from test_nettypes import SOURCE as nettypes
 
-    source = "from noscheme import role, unused, net\n" + nettypes
+    source = "from noscheme import role, use, net\n" + nettypes
     s = session(tmp_path, source)
     path = tmp_path / "main.nosch"
     result = apply(s.rename(path, source.index("I2CLine:"), "BusLine"), s.sources)[path]

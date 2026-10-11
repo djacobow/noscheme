@@ -40,9 +40,9 @@ def test_exact_pins_ambiguous_alias_and_inheritance(tmp_path):
     assert report["symbols"] == {"Child": "Child"}
     assert any(i["check"] == "ambiguous_alias" and i["alias"] == "GND" for i in report["issues"])
     (tmp_path / "noscheme.toml").write_text(
-        'language_version="0.1"\nboard="main.B"\nsource_paths=["."]\nlibrary_paths=["converted"]\noutput_dir="build"\n'
+        'language_version="0.1"\ntargets.default.root = "main.B"\ntargets.default.output_dir = "build"\nsource_paths=["."]\nlibrary_paths=["converted"]\noutput_dir="build"\n'
     )
-    (tmp_path / "main.nosch").write_text("from Test import Child\nboard B:\n  Child c()\n")
+    (tmp_path / "main.nosch").write_text("from Test import Child\nblock B:\n  Child c()\n")
     d = resolve_project(tmp_path)[1]["Test", "Child"]
     assert set(d.interface) == {"01", "1", "2"}
     assert d.aliases["A"] == "01" and "GND" not in d.aliases
@@ -146,7 +146,7 @@ def test_kicad_no_connect_maps_to_forbidden_connection_role(tmp_path):
     report = convert_library(source, tmp_path / "out")
     assert not any(i["check"] == "unmapped_pin_type" for i in report["issues"])
     text = (tmp_path / "out/Test.nosch").read_text()
-    assert "role: role.do_not_connect" in text
+    assert "use: use.disallowed" in text
     assert 'kicad_pin_types: ["no_connect"]' in text
 
 
@@ -184,10 +184,10 @@ def test_filter_candidates_saved_and_completed_offline(tmp_path):
     assert any(i["check"] == "invalid_footprint_candidate" for i in report["issues"])
     root.rename(tmp_path / "unavailable")
     (tmp_path / "noscheme.toml").write_text(
-        'language_version="0.1"\nboard="main.B"\nsource_paths=["."]\nlibrary_paths=["converted"]\noutput_dir="build"\n'
+        'language_version="0.1"\ntargets.default.root = "main.B"\ntargets.default.output_dir = "build"\nsource_paths=["."]\nlibrary_paths=["converted"]\noutput_dir="build"\n'
     )
     path = tmp_path / "main.nosch"
-    text = 'from Parts import Part\nboard B:\n  Part p:\n    metadata:\n      footprint: "'
+    text = 'from Parts import Part\nblock B:\n  Part p:\n    metadata:\n      footprint: "'
     choices = completion_items(path, tmp_path, {path: text}, len(text))
     assert [s.label for s in choices] == ["Test:Z", "Test:R2", "Test:R_2"]
 

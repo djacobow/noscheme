@@ -117,7 +117,7 @@ private JSON-lines protocol; install matching revisions of the launcher and
 native executable. Python remains required for registry descriptions and custom
 ERC plugins. `convert-library` and `update-kicad-classes` remain Python utilities.
 
-Native export reads the existing `noscheme.state.json`, preserves its namespace,
+Native export reads the existing `noscheme.<target>.state.json`, preserves its namespace,
 UUIDs, retired references, and previous-design records, and writes the same state
 schema. Switching implementations does not require resetting state. Electrical
 errors block `check` but permit `compile` and `export-kicad`; structural and
@@ -514,7 +514,7 @@ and explicit globals without exposing private block internals. Definitions point
 to original declarations across imports. Hover
 shows concise declaration descriptions, with public interfaces and parameter
 types for component/block definitions, using Markdown when the client supports it.
-Field hover shows its type. Common metadata (roles, unused policy, aliases,
+Field hover shows its type. Common metadata (roles, connection policy, aliases,
 footprint, value, reference prefix) includes the module that supplied it.
 Parameters show simple default expressions or required status; nets and instances
 show their declared types. Long metadata text is truncated at a UTF-8 boundary.
@@ -525,7 +525,7 @@ The queue is bounded to 128 requests. Cursor and target ranges use UTF-16.
 Navigation currently shares the full analysis lane, including ERC; separating
 interactive analysis from slow checks remains future work.
 
-Builtin role, net, and unused-policy hover shares its descriptions with the
+Builtin role, net, and connection-policy hover shares its descriptions with the
 Python server. Registered ERC rules show their signature, scope, and whether
 they permit waivers, including project plugins.
 
@@ -608,7 +608,7 @@ a tolerance's `±` or `+/-` spelling. It reparses and compares the result before
 returning an edit. Range formatting is not supported by either server.
 Prepare Rename and Rename match the current Python scope, including import aliases,
 nets, parameters, public block ports, bundles, and board-level instances. Physical
-pins, board names, module qualifiers, and internal instances are refused. Board
+pins, root definition names, module qualifiers, and internal instances are refused. Board
 instance renames preserve identity, update waiver paths, and validate the proposed
 physical parts/connectivity. Source edits never write CAD output or identity state.
 

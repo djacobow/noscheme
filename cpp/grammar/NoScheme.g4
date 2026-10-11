@@ -4,7 +4,7 @@ module: NL* (importDecl | definition | extension)* EOF;
 importDecl: FROM path IMPORT importedName (COMMA importedName)* NL | IMPORT path NL;
 importedName: name (AS name)?;
 definition: kind name COLON NL INDENT definitionItem+ DEDENT;
-kind: COMPONENT | BLOCK | BOARD | BUNDLE;
+kind: COMPONENT | BLOCK | BUNDLE;
 // `extend Base<params> Name:` specializes a component, block, or net type, and
 // is of the base's kind; `<...>` gives parameter defaults. The body is optional.
 extension: EXTEND path typeArguments? name (NL | COLON NL INDENT definitionItem+ DEDENT);
@@ -24,7 +24,7 @@ pinKey: name | INT | STRING;
 // `number gain = 2`, `net.power supply:`.
 typedField: path declarator (COMMA declarator)* (EQUAL expr)? (NL | COLON NL INDENT field+ DEDENT);
 declarator: name index*;
-// In a block, board, or bundle: a net or an instance, told apart once the type
+// In a block or bundle: a net or an instance, told apart once the type
 // resolves. `<...>` holds parameters, `(...)` connections; the body holds net
 // fields, or connections then params, metadata, and elements sections.
 declaration: GLOBAL? path typeArguments? declarator (COMMA declarator)* argumentList? (NL | COLON NL INDENT (bodyEntry+ instSection* | instSection+) DEDENT);
@@ -56,7 +56,7 @@ sum: product (ADD product)*;
 product: unary (MUL unary)*;
 unary: ADD unary | postfix;
 postfix: atom suffix*;
-atom: SCALED | NUMBER | INT | STRING | name | LPAREN expr RPAREN | LBRACK (expr (COMMA expr)* COMMA?)? RBRACK;
+atom: DOT? (SCALED | NUMBER | INT) | STRING | name | LPAREN expr RPAREN | LBRACK (expr (COMMA expr)* COMMA?)? RBRACK;
 suffix: DOT name | index | LPAREN (callArgument (COMMA callArgument)* COMMA?)? RPAREN;
 callArgument: name EQUAL expr | expr;
 reference: name (DOT name | index)*;
@@ -64,14 +64,20 @@ index: LBRACK expr (COLON expr)? RBRACK;
 path: name (DOT name)*;
 // Lark's contextual lexer permits structural words as names outside their keyword context.
 name: bindingName | PARAMS | METADATA | ELEMENTS;
-bindingName: NAME | FROM | IMPORT | AS | COMPONENT | BLOCK | BOARD | BUNDLE | EXTEND | GLOBAL | PINS | PORTS;
-FROM:'from'; IMPORT:'import'; AS:'as'; COMPONENT:'component'; BLOCK:'block'; BOARD:'board'; BUNDLE:'bundle'; EXTEND:'extend'; GLOBAL:'global'; PARAMS:'params'; PINS:'pins'; PORTS:'ports'; METADATA:'metadata'; ELEMENTS:'elements';
+bindingName: NAME | FROM | IMPORT | AS | COMPONENT | BLOCK | BUNDLE | EXTEND | GLOBAL | PINS | PORTS;
+FROM:'from'; IMPORT:'import'; AS:'as'; COMPONENT:'component'; BLOCK:'block'; BUNDLE:'bundle'; EXTEND:'extend'; GLOBAL:'global'; PARAMS:'params'; PINS:'pins'; PORTS:'ports'; METADATA:'metadata'; ELEMENTS:'elements';
 SHIFT: '<<' | '>>'; TOLERANCE: '\u00B1' | '+/-'; PERCENT: '%'; ADD: '+' | '-'; MUL: '*' | '/';
 RANGE:'..'; DOT:'.'; COMMA:','; COLON:':'; EQUAL:'=';
 LPAREN:'('; RPAREN:')'; LBRACK:'['; RBRACK:']'; LANGLE:'<'; RANGLE:'>';
-SCALED: [0-9]+ ('.' [0-9]+)? [afpnumkMGTPR] [0-9]*;
-NUMBER: [0-9]+ '.' [0-9]+ ([eE] [+-]? [0-9]+)? | [0-9]+ [eE] [+-]? [0-9]+;
-INT: [0-9]+;
+fragment DIGITS: [0-9] ('_'? [0-9])*;
+// A prefix cannot be the beginning of a longer identifier (100nF, 1µ_5).
+SCALED: DIGITS ('.' DIGITS)? [afpnuµmkMGTPR] DIGITS?
+  {!((_input->LA(1) >= 'A' && _input->LA(1) <= 'Z') ||
+     (_input->LA(1) >= 'a' && _input->LA(1) <= 'z') ||
+     (_input->LA(1) >= '0' && _input->LA(1) <= '9') ||
+     _input->LA(1) == '_' || _input->LA(1) == '#')}?;
+NUMBER: DIGITS '.' DIGITS ([eE] [+-]? DIGITS)? | DIGITS [eE] [+-]? DIGITS;
+INT: '0' [xX] [0-9a-fA-F] ('_'? [0-9a-fA-F])* | '0' [bB] [01] ('_'? [01])* | DIGITS;
 NAME: [A-Za-z_#] [A-Za-z0-9_#]*;
 STRING: '"' ('\\' ~[\r\n] | ~["\\\r\n])* '"';
 BLOCK_COMMENT: '/*' .*? '*/' -> channel(HIDDEN);

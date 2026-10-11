@@ -17,7 +17,7 @@ component P:
       role: role.passive
       pull_resistance: resistance
 extend P<resistance: 4700> Specialized
-board B:
+block B:
   Specialized<unused_arg: 2> p:
     1: no_connect
 """
@@ -45,7 +45,7 @@ def test_lint_cli_is_opt_in_and_writes_no_artifacts(tmp_path, capsys):
 
 def test_element_expression_and_dimensions_are_uses(tmp_path):
     source = SOURCE.replace(
-        "board B:",
+        "block B:",
         """block Group:
   params:
     number count = 2
@@ -56,7 +56,7 @@ def test_element_expression_and_dimensions_are_uses(tmp_path):
       [0]:
         params:
           resistance: resistance
-board B:""",
+block B:""",
     )
     make(tmp_path, source)
     assert len(unused_parameters(resolve_project(tmp_path)[1])) == 2

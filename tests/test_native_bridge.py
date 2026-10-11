@@ -139,7 +139,7 @@ def plugin_request(tmp_path):
         tmp_path,
         "from example import wide\n"
         + PART
-        + "board B:\n  net.passive n:\n    checks:\n      w: wide(limit=0)\n"
+        + "block B:\n  net.passive n:\n    checks:\n      w: wide(limit=0)\n"
         + "  P p(1: n)\n",
     )
     config = root / "noscheme.toml"

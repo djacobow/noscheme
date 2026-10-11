@@ -1,5 +1,5 @@
 // Electrical-model demonstration, not a fabrication design.
-from noscheme import role, unused, net, bias, std
+from noscheme import role, use, net, bias, std
 
 component Pullup:
   params:
@@ -7,10 +7,10 @@ component Pullup:
   pins:
     1 (supply):
       role: role.passive
-      unused: unused.never
+      use: use.required
     2 (signal):
       role: role.passive
-      unused: unused.never
+      use: use.required
       bias: bias.pull_up
       checks:
         reference: std.bias_reference("supply")
@@ -26,8 +26,8 @@ component Endpoint:
       bias: bias.none
       min_voltage: -0.3
       max_voltage: 3.6
-      unused: unused.never
-    2: [role.power_output, unused.never]
+      use: use.required
+    2: [role.power_output, use.required]
   metadata:
     custom:
       description: "Abstract external source and open-drain endpoint"

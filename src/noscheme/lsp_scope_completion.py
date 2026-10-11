@@ -11,14 +11,14 @@ from .lsp_completion import (
     owner_before,
     recovered_project,
 )
-from .metadata import SCHEMAS, ROLES, NETTYPES, UNUSED, BIAS_VALUES
+from .metadata import SCHEMAS, ROLES, NETTYPES, USE_POLICIES, BIAS_VALUES
 from .project import net_type
 from .resolve import Resolver
 
 NAME = r"[A-Za-z_#][A-Za-z0-9_#]*"
 PATH = r"[A-Za-z0-9_#.]*"
-ENUMS = {"roles": "role", "role": "role", "unused": "unused", "bias": "bias"}
-VALUES = {"role": ROLES, "net": NETTYPES, "unused": UNUSED, "bias": BIAS_VALUES}
+ENUMS = {"roles": "role", "role": "role", "use": "use", "bias": "bias"}
+VALUES = {"role": ROLES, "net": NETTYPES, "use": USE_POLICIES, "bias": BIAS_VALUES}
 NUMERIC = {
     "expression",
     "number",

@@ -27,7 +27,6 @@ ROLES = frozenset(
         "open_drain",
         "open_source",
         "unchecked",
-        "do_not_connect",
     }
 )
 NETTYPES = frozenset(
@@ -44,7 +43,7 @@ NETTYPES = frozenset(
         "unchecked",
     }
 )
-UNUSED = frozenset({"always", "explicit", "never"})
+USE_POLICIES = frozenset({"optional", "explicit", "required", "disallowed"})
 MISSING = ("warning", "error", "ignore")
 NUMERIC = frozenset({"number", "positive", "nonnegative"})
 PIN_SCOPES = ("pin", "instance_pin", "port")
@@ -71,16 +70,11 @@ SCHEMAS = {
         "erc_choices": "choice_declarations",
         "configurations": "configurations",
     },
-    "board": {
-        "custom": "custom",
-        "erc_choices": "choice_declarations",
-        "configurations": "configurations",
-    },
     "bundle": {"custom": "custom"},
     "pin": {
         "tristate_capable": "bool",
         "role": "roles",
-        "unused": "unused",
+        "use": "use",
         "custom": "custom",
         "max_source_current": "current",
         "max_load_current": "current",
@@ -90,7 +84,7 @@ SCHEMAS = {
         "aggregate_load": "aggregate_load",
         "placeholder": "bool",
         "role": "roles",
-        "unused": "unused",
+        "use": "use",
         "waivers": "waivers",
         "custom": "custom",
     },
@@ -438,8 +432,8 @@ def read_value(key, kind, expr, scope, project, module, local_names=()):
         if not items:
             fail("metadata.value", "role list cannot be empty", expr.span)
         value = tuple(enum(x, "role", ROLES, project, module, local_names) for x in items)
-    elif kind == "unused":
-        value = enum(expr, "unused", UNUSED, project, module, local_names)
+    elif kind == "use":
+        value = enum(expr, "use", USE_POLICIES, project, module, local_names)
     elif kind == "aliases":
         if not isinstance(expr, a.ListExpr):
             fail("metadata.value", f"{key!r} requires a list of pin names", expr.span)
@@ -471,7 +465,7 @@ def read_value(key, kind, expr, scope, project, module, local_names=()):
                 "bias": BIAS_VALUES,
                 "role": ROLES,
                 "net": NETTYPES,
-                "unused": UNUSED,
+                "use": USE_POLICIES,
             }
             if symbol is None or symbol.name not in alternatives:
                 fail("metadata.value", "expected a literal or imported enum value", expr.span)
@@ -493,7 +487,7 @@ def read_value(key, kind, expr, scope, project, module, local_names=()):
 
 
 # Builtin namespaces whose values may stand alone in a pin entry, and the field each sets.
-SHORTHAND = {"role": "role", "bias": "bias", "unused": "unused"}
+SHORTHAND = {"role": "role", "bias": "bias", "use": "use"}
 
 
 def pin_metadata(field, scope, project, module, local_names=()):
@@ -531,7 +525,7 @@ def pin_metadata(field, scope, project, module, local_names=()):
         if symbol is None or symbol.module != "noscheme" or symbol.name not in SHORTHAND:
             fail(
                 "metadata.shorthand",
-                "a pin entry's value lists builtin role, bias, or unused values",
+                "a pin entry's value lists builtin role, bias, or use values",
                 item.span,
             )
         groups.setdefault(SHORTHAND[symbol.name], []).append(item)

@@ -48,9 +48,9 @@ def compare(
         else "  metadata:\n" + "\n".join("    " + line for line in text.splitlines())
     )
     source = (
-        "from noscheme import role, unused, bias, num, std\nfrom noscheme import role as r\ncomponent Part:\n"
+        "from noscheme import role, use, bias, num, std\nfrom noscheme import role as r\ncomponent Part:\n"
         + body
-        + "\nboard B:\n  Part p\n"
+        + "\nblock B:\n  Part p\n"
     )
     source = imports + source
     if plugin:
@@ -114,7 +114,7 @@ def compare(
         ('interchangeable: [""]', "component"),
         ("interchangeable: 1", "component"),
         (
-            "role: [role.passive, r.digital_input]\nunused: unused.always\nmax_load_current: 10m",
+            "role: [role.passive, r.digital_input]\nuse: use.optional\nmax_load_current: 10m",
             "pin",
         ),
         ("role: []", "pin"),
@@ -140,11 +140,11 @@ def test_values(probe, tmp_path, text, scope):
 @pytest.mark.parametrize(
     "text,scope,locals",
     [
-        ("[role.open_drain, bias.none, unused.always]", "pin", ()),
+        ("[role.open_drain, bias.none, use.optional]", "pin", ()),
         ("[role.passive, role.digital_input]", "pin", ()),
         ("[]", "pin", ()),
         ("role.passive\n      role: role.passive", "pin", ()),
-        ("[unused.always, unused.never]", "pin", ()),
+        ("[use.optional, use.required]", "pin", ()),
         ("[role.passive, role.digital_input]", "instance_pin", ()),
         ("role.passive", "pin", ("role",)),
         ("num.ceil(1)", "pin", ()),
@@ -216,7 +216,7 @@ component Child:
         after: 3
       expression:
         new: false
-board B:
+block B:
   Child p
 """
         },
@@ -247,8 +247,8 @@ def test_shadowed_attribute_enum(probe, tmp_path):
     [
         ("net", "checks:\n  capacitance: std.sum(capacitance, max=400p)"),
         ("net", 'waivers:\n  missing_driver: "demo"'),
-        ("board", 'erc_choices:\n  supply: ["usb", "header"]'),
-        ("board", 'configurations:\n  usb:\n    supply: "usb"'),
+        ("block", 'erc_choices:\n  supply: ["usb", "header"]'),
+        ("block", 'configurations:\n  usb:\n    supply: "usb"'),
         ("component", "current_loads:\n  core:\n    pins: [1, 2]\n    max_load_current: 10m"),
         ("instance_pin", "role: choice(mode, input=role.digital_input)"),
     ],
@@ -282,17 +282,17 @@ def test_specialized_forms(probe, tmp_path, scope, text):
         ("net", "checks:\n  bad: std.any(bias.bad)"),
         ("net", "checks: 1"),
         ("net", "checks:\n  bad:\n    value: 1"),
-        ("board", 'erc_choices:\n  supply#: ["usb", "header"]'),
-        ("board", "erc_choices:\n  supply: []"),
-        ("board", 'erc_choices:\n  supply: ["usb", "usb"]'),
-        ("board", 'erc_choices:\n  supply: ["usb", 1]'),
-        ("board", 'erc_choices:\n  supply: ["usb", "\u2003"]'),
-        ("board", 'erc_choices:\n  "bad.name": ["usb"]'),
+        ("block", 'erc_choices:\n  supply#: ["usb", "header"]'),
+        ("block", "erc_choices:\n  supply: []"),
+        ("block", 'erc_choices:\n  supply: ["usb", "usb"]'),
+        ("block", 'erc_choices:\n  supply: ["usb", 1]'),
+        ("block", 'erc_choices:\n  supply: ["usb", "\u2003"]'),
+        ("block", 'erc_choices:\n  "bad.name": ["usb"]'),
         (
-            "board",
+            "block",
             'configurations:\n  active:\n    supply: "usb"\n  inactive:\n    supply: "header"',
         ),
-        ("board", "configurations:\n  active:\n    supply: 1"),
+        ("block", "configurations:\n  active:\n    supply: 1"),
         ("instance", 'erc_choices:\n  supply: "usb"'),
         (
             "instance",
@@ -410,7 +410,7 @@ component Child:
   metadata:
     checks:
       cap: {child_call}
-board B:
+block B:
   Child p
 """
         },

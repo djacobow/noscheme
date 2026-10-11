@@ -1,16 +1,16 @@
 // Electrical example: capability checking does not verify bus arbitration.
-from noscheme import role, net, unused
+from noscheme import role, net, use
 
 component Transceiver:
   pins:
     data:
       role: role.digital_bidirectional
       tristate_capable: true
-      unused: unused.never
+      use: use.required
 
 component Receiver:
   pins:
-    data: [role.digital_input, unused.never]
+    data: [role.digital_input, use.required]
 
 block SharedBus:
   net.tristate data

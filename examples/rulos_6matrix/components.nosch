@@ -1,6 +1,6 @@
 // Adapted from Jeremy Elson / rulos, 6-Line Matrix Rev B. See README.md.
 // KiCad specializations preserve the source pin numbers. See KICAD_MATCHES.md.
-from noscheme import role, unused, bias, std
+from noscheme import role, use, bias, std
 import Device
 import MCU_ST_STM32F3
 import Interface
@@ -75,7 +75,7 @@ component SinkDriver:
       role: role.digital_input
     "22" (SDO):
       role: role.digital_output
-      unused: unused.always
+      use: use.optional
     "23" (R_EXT):
       role: role.analog_input
     "24" (VCC):
@@ -313,7 +313,7 @@ extend Connector_Generic.Conn_02x05_Odd_Even CortexHeader:
     1:
       // Probe senses target voltage; it does not power itself from here.
       max_load_current: 1m
-    6: unused.always
+    6: use.optional
   metadata:
     footprint: "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD"
 

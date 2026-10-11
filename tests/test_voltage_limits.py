@@ -12,7 +12,7 @@ SOURCE = """component Input:
       role: role.power_input
       min_voltage: -0.3
       max_voltage: maximum
-board B:
+block B:
   net.power supply:
     min_voltage: 3.3 * 0.95
     max_voltage: 3.3 * 1.05

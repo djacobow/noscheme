@@ -12,20 +12,13 @@ def check_port(port, endpoints, emit, connection):
     scope = port["scope"]
     label = path_text(port["path"])
     roles = set(attribute(port, "role", []))
-    policy = attribute(port, "unused", "explicit")
+    policy = attribute(port, "use", "explicit")
     binding = port["binding"]
     internal = [(name, pin) for name, pin in endpoints if pin["scope"][: len(scope)] == scope]
     external = [(name, pin) for name, pin in endpoints if pin["scope"][: len(scope)] != scope]
-    if roles == {"do_not_connect"}:
+    if policy == "disallowed":
         if binding == "connected":
             emit("do_not_connect", f"port {label} must not connect to a caller net", port, label)
-        if policy == "never":
-            emit(
-                "required_port_connection",
-                f"port {label}: unused.never conflicts with role.do_not_connect",
-                port,
-                label,
-            )
         return
     # Board ports have no caller. Child ports must honor their caller contract,
     # regardless of how many physical endpoints happen to exist inside them.
@@ -37,14 +30,14 @@ def check_port(port, endpoints, emit, connection):
                 port,
                 label,
             )
-        elif policy == "never" and binding != "connected":
+        elif policy == "required" and binding != "connected":
             connection(
                 "required_port_connection",
-                f"port {label} must connect; no_connect cannot override unused.never",
+                f"port {label} must connect; no_connect cannot override use.required",
                 port,
                 label,
             )
-        elif policy != "always" and binding == "connected" and not external:
+        elif policy != "optional" and binding == "connected" and not external:
             connection(
                 "required_port_connection",
                 f"port {label} needs an endpoint outside its block",
