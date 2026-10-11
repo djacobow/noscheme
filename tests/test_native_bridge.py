@@ -33,7 +33,7 @@ def test_core_and_standard_fields():
 def test_plugin_schema_and_opaque_default(tmp_path):
     plugin = tmp_path / "rules.py"
     plugin.write_text("""def register(r):
-    r.fields("pin", {"ratings": {"limit": "voltage"}, "mode": ("bias", {"pull_up", "none"})})
+    r.fields("pin", {"ratings": {"limit": "voltage"}, "mode": ("pull", {"up", "none"})})
     r.net_rule("example.check", lambda ctx, **kw: None,
                parameters={"z": "literal", "a": "number"}, defaults={"z": object()})
     r.predicate("example.active", lambda endpoint: True)
@@ -47,8 +47,8 @@ def test_plugin_schema_and_opaque_default(tmp_path):
     ]
     assert {f["name"]: f["schema"] for f in data["schemas"]["pin"]}["mode"] == {
         "kind": "enum",
-        "namespace": "bias",
-        "values": ["none", "pull_up"],
+        "namespace": "pull",
+        "values": ["none", "up"],
     }
     assert json.loads(json.dumps(response)) == response
 

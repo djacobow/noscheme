@@ -6,6 +6,8 @@ CHECKS = (
     "unused_pin",
     "unconnected_net",
     "missing_driver",
+    "missing_pull",
+    "opposing_pull",
     "multiple_drivers",
     "power_ground_conflict",
     "incomplete_roles",
@@ -42,7 +44,7 @@ WAIVABLE = frozenset(CHECKS) - {
 # Passive contacts impose no electrical domain. Unknown/unchecked and forbidden
 # roles are handled separately; they are never inferred to be passive.
 PASSIVE = {"passive"}
-DIGITAL = {"digital_input", "digital_output", "digital_bidirectional", "open_drain", "open_source"}
+DIGITAL = {"digital_input", "digital_output", "digital_bidirectional", "drive.low", "drive.high"}
 ANALOG = {"analog_input", "analog_output", "analog_bidirectional"}
 INPUTS = {"digital_input", "analog_input", "power_input"}
 ALLOWED_ROLES = {
@@ -50,8 +52,8 @@ ALLOWED_ROLES = {
     "passive": PASSIVE | DIGITAL | ANALOG | {"power_input", "power_output", "ground"},
     "digital": PASSIVE | DIGITAL,
     "bidirectional": PASSIVE | DIGITAL,
-    "open_drain": PASSIVE | {"digital_input", "open_drain"},
-    "open_source": PASSIVE | {"digital_input", "open_source"},
+    "idle_high": PASSIVE | {"digital_input", "drive.low"},
+    "idle_low": PASSIVE | {"digital_input", "drive.high"},
     "analog": PASSIVE | ANALOG,
     "power": PASSIVE | INPUTS | {"power_output"},
     "ground": PASSIVE | {"digital_input", "analog_input", "ground"},
@@ -70,8 +72,8 @@ PORT_ALLOWED = {
     "power_input": PASSIVE | {"power_input"},
     "power_output": PASSIVE | {"power_input", "power_output"},
     "ground": ALLOWED_ROLES["ground"],
-    "open_drain": PASSIVE | {"digital_input", "open_drain"},
-    "open_source": PASSIVE | {"digital_input", "open_source"},
+    "drive.low": PASSIVE | {"digital_input", "drive.low"},
+    "drive.high": PASSIVE | {"digital_input", "drive.high"},
     "unchecked": ALLOWED_ROLES["passive"],
 }
 PORT_EVIDENCE = {
@@ -84,6 +86,6 @@ PORT_EVIDENCE = {
     "power_input": {"power_input"},
     "power_output": {"power_output"},
     "ground": {"ground"},
-    "open_drain": {"open_drain"},
-    "open_source": {"open_source"},
+    "drive.low": {"drive.low"},
+    "drive.high": {"drive.high"},
 }

@@ -168,7 +168,7 @@ MetaValue MetadataReader::read_value(const Json &schema, const ast::Node &expr,
   if (auto *member = as<ast::Member>(&expr); scope == "attributes" && member) {
     const auto *symbol = namespace_symbol(*member->base, false);
     if (!symbol ||
-        !std::set<std::string>{"bias", "role", "net", "use"}.contains(
+        !std::set<std::string>{"pull", "drive", "role", "net", "use"}.contains(
             symbol->name))
       error("metadata.value", "expected a literal or imported enum value",
             expr.span);
@@ -522,16 +522,22 @@ MetaList MetadataReader::selector(const ast::Node &expr) {
       result.push_back(
           MetaList{"role", enumeration(*item, "role",
                                        registry.data.at("enums").at("role"))});
-    else if (base && base->module == "noscheme" && base->name == "bias")
+    else if (base && base->module == "noscheme" && base->name == "drive")
       result.push_back(MetaList{
-          "field", "bias",
-          enumeration(*item, "bias", registry.data.at("enums").at("bias"))});
+          "role",
+          "drive." + enumeration(*item, "drive",
+                                 registry.data.at("enums").at("drive"))});
+    else if (base && base->module == "noscheme" && base->name == "pull")
+      result.push_back(
+          MetaList{"field", base->name,
+                   enumeration(*item, base->name,
+                               registry.data.at("enums").at(base->name))});
     else if (field && endpoint_schema(field->text) &&
              endpoint_schema(field->text)->at("kind") == "bool")
       result.push_back(MetaList{"field", field->text, true});
     else
       error("erc.application",
-            "expected predicate, role, bias, boolean field, or list",
+            "expected predicate, role, pull, boolean field, or list",
             item->span);
   }
   return result;
@@ -653,9 +659,10 @@ MetaFields MetadataReader::pin(const ast::Field &field,
     auto *member = as<ast::Member>(item);
     auto symbol = member ? namespace_symbol(*member->base) : nullptr;
     if (!symbol || symbol->module != "noscheme" ||
-        !std::set<std::string>{"role", "bias", "use"}.contains(symbol->name))
-      error("metadata.shorthand", "expected builtin role, bias, or use value",
-            item->span);
+        !std::set<std::string>{"role", "drive", "pull", "use"}.contains(
+            symbol->name))
+      error("metadata.shorthand",
+            "expected builtin role, drive, pull, or use value", item->span);
     auto found = std::ranges::find(groups, symbol->name,
                                    [](const auto &g) { return g.first; });
     if (found == groups.end())

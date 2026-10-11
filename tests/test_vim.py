@@ -18,7 +18,7 @@ def test_noscheme_runtime(tmp_path, editor):
     source = [
         "net.digital buttons#",
         "net.digital #reset:  // TODO test",
-        "  bias: bias.pull_up",
+        "  pull: pull.up",
         '  value: "https://example/*ok*/\\\\path"',
         "/* block /* does not nest */ global net.digital visible",
         "10.5e-2 << 1 sizes",
@@ -55,7 +55,7 @@ def test_noscheme_runtime(tmp_path, editor):
         (1, "net.digital", "noschemeBuiltin"),
         (2, "#reset", ""),
         (2, "TODO", "noschemeTodo"),
-        (3, "bias.pull_up", "noschemeBuiltin"),
+        (3, "pull.up", "noschemeBuiltin"),
         (4, "https", "noschemeString"),
         (4, "/*ok*/", "noschemeString"),
         (4, "\\\\", "noschemeEscape"),

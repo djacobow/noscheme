@@ -314,7 +314,9 @@ def test_libpart_pin_names_and_role_consensus(setup):
     project, circuit, _ = setup
     led_parts = [p for p in circuit["parts"] if p["definition"] == "parts.Led"]
     for part in led_parts:
-        part["pins"]["1"]["metadata"]["role"]["value"] = ["open_source"]
+        part["pins"]["1"]["metadata"]["drive"] = dict(
+            part["pins"]["1"]["metadata"]["role"], value="high"
+        )
     export_project(*setup)
     netlist = load(project.config.output_dir / "board.net")
     libparts = children(children(netlist, "libparts")[0], "libpart")
@@ -325,6 +327,7 @@ def test_libpart_pin_names_and_role_consensus(setup):
         "cathode",
         "open_emitter",
     )
+    del led_parts[0]["pins"]["1"]["metadata"]["drive"]
     led_parts[0]["pins"]["1"]["metadata"]["role"]["value"] = ["digital_input"]
     export_project(*setup)
     netlist = load(project.config.output_dir / "board.net")

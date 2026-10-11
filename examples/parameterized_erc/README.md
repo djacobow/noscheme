@@ -16,7 +16,7 @@ element 1 keeps the 4.7 kΩ default. Each part's `value` parameter is a
 `resistance`: it displays as `2.2kOhm` or `4.7kOhm` and also supplies the pin's
 `pull_resistance`. Their parallel resistance is about 1.50 kΩ, above the example's
 1 kΩ minimum, asserted by the named check
-`pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=1k)`. Per-element
+`up: std.parallel(pull_resistance, where=pull.up, min=1k)`. Per-element
 placement notes appear under custom metadata.
 
 Both instances connect by name in their argument lists; the pull resistors'
@@ -24,7 +24,7 @@ supply and signal terminals have different ERC metadata, so they are not
 interchangeable. The resistor array adds an `elements:` section after its
 arguments for the per-element values and placement notes.
 
-The pin check `reference: std.bias_reference("supply")` names the resistor's supply
+The pin check `reference: std.pull_reference("supply")` names the resistor's supply
 terminal. ERC checks its actual connection to a declared power net. It does not
 infer voltage or trace through other components. The design can therefore fail this
 check even if the resistance budget passes.

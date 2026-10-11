@@ -13,7 +13,7 @@ Use the placement notes on decoupling capacitors during PCB layout. All small
 resistors/capacitors use 0603. No unverified current capacities are annotated.
 */
 
-from noscheme import role, net, bias
+from noscheme import role, net, pull, drive
 from interfaces import I2C, SPI, USB2, SWD
 from components import I2CPullup, InputPullup0603, InputPulldown0603, Capacitor0603
 from components import PushButton, Indicator
@@ -104,8 +104,8 @@ block STM32H523Reference:
         1: role.power_input
         2: role.ground
         // Assumes the display module adds no pull-ups; model them here if it does.
-        3: [role.open_drain, bias.none]
-        4: [role.open_drain, bias.none]
+        3: [drive.low, pull.none]
+        4: [drive.low, pull.none]
 
   I2CPullup oled_scl_pullup(1: global.v3v3, 2: oled.scl)
   I2CPullup oled_sda_pullup(1: global.v3v3, 2: oled.sda)
@@ -133,8 +133,8 @@ block STM32H523Reference:
         3: choice(power_source, usb=role.power_input, header5v=role.power_output)
         4: role.power_input
         // Assumes expansion devices add no I2C pull-ups of their own.
-        5: [role.open_drain, bias.none]
-        6: [role.open_drain, bias.none]
+        5: [drive.low, pull.none]
+        6: [drive.low, pull.none]
         7: role.digital_input
         8: role.digital_input
         9: role.digital_output

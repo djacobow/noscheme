@@ -247,6 +247,9 @@ class HoverDetails:
             role = metadata.get("role", {}).get("value")
             net = pin.get("net")
             detail = f"Effective role: {brief(role)}; net: {net or '(unconnected)'}"
+            for field in ("drive", "external_drive", "pull"):
+                if field in metadata:
+                    detail += f"; {field}: {brief(metadata[field]['value'])}"
             if detail not in seen:
                 seen.add(detail)
                 lines.append(detail)

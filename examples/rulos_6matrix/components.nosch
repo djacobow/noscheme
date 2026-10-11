@@ -1,6 +1,6 @@
 // Adapted from Jeremy Elson / rulos, 6-Line Matrix Rev B. See README.md.
 // KiCad specializations preserve the source pin numbers. See KICAD_MATCHES.md.
-from noscheme import role, use, bias, std
+from noscheme import role, use, pull, std, drive
 import Device
 import MCU_ST_STM32F3
 import Interface
@@ -118,10 +118,10 @@ extend Resistor I2CPullup:
     1:
       // Demo allowance for resistor parasitic loading.
       capacitance: 2p
-      bias: bias.pull_up
+      pull: pull.up
       pull_resistance: value
       checks:
-        reference: std.bias_reference("2")
+        reference: std.pull_reference("2")
     2:
       role: role.power_input
       // Both buses low, upper rail bound, 1% resistance tolerance.
@@ -165,9 +165,10 @@ extend MCU_ST_STM32F3.STM32F303K8Tx MCU:
     [16, 32]: role.ground
     [6..13, 19, 26, 28]: role.digital_output
     [20, 24, 31]: role.digital_input
-    4: role.open_drain
+    // NRST includes a weak internal pull-up (STM32F303x6/x8 datasheet).
+    4: [drive.low, pull.up]
     [29..30]:
-      role: role.open_drain
+      drive: drive.low
       // Demo bound, not the datasheet's typical 5pF figure.
       capacitance: 10p
   metadata:
@@ -222,7 +223,7 @@ extend Interface.PCA9600D I2CBuffer:
     // Datasheet maximum effective input capacitance per signal pad.
     // RX/TX and RY/TY are separate pads and both count on the joined nets.
     [1, 3, 5, 7]:
-      role: role.open_drain
+      drive: drive.low
       capacitance: 10p
     [2, 6]:
       capacitance: 10p

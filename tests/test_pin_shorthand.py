@@ -5,7 +5,7 @@ import pytest
 from noscheme.diagnostics import DiagnosticError
 from test_circuit import compile_source
 
-SOURCE = """from noscheme import bias
+SOURCE = """from noscheme import pull, drive
 component Contact:
   pins:
     1..2: [role.passive, use.required]
@@ -13,7 +13,7 @@ component Contact:
 component Chip:
   pins:
     1: [role.ground, role.power_input]
-    2: role.open_drain
+    2: drive.low
       capacitance: 5p
 block Port:
   ports:
@@ -30,7 +30,7 @@ block B:
     3: no_connect
     metadata:
       pins:
-        1: [role.power_output, bias.none]
+        1: [role.power_output, pull.none]
         2: role.ground
   Chip chip:
     1: b
@@ -57,7 +57,7 @@ def pins(circuit):
 
 def test_shorthand_sets_fields_named_by_value_namespaces(tmp_path):
     result = pins(compile_source(tmp_path, SOURCE))
-    assert result["chip.2"]["role"] == ["open_drain"]
+    assert result["chip.2"]["drive"] == "low"
     assert result["chip.2"]["capacitance"] == 5e-12  # Indented fields still apply.
     assert result["port.contact.1"]["use"] == "required"
 
@@ -67,7 +67,7 @@ def test_instance_role_selects_or_describes_attached_equipment(tmp_path):
     # A passive contact's instance role describes what is attached to it.
     assert result["contact.1"]["role"] == ["passive"]
     assert result["contact.1"]["external_role"] == ["power_output"]
-    assert result["contact.1"]["bias"] == "none"
+    assert result["contact.1"]["pull"] == "none"
     assert result["contact.2"]["external_role"] == ["ground"]
     # A pin declaring active roles has one selected instead.
     assert result["chip.1"]["role"] == ["ground"]
@@ -77,11 +77,11 @@ def test_instance_role_selects_or_describes_attached_equipment(tmp_path):
 @pytest.mark.parametrize(
     "old,new,message",
     [
-        ("2: role.open_drain\n", "2: 5\n", "builtin role, bias, or use"),
-        ("2: role.open_drain\n", "2: [bias.none, bias.pull_up]\n", "takes one value"),
+        ("2: drive.low\n", "2: 5\n", "builtin role, drive, pull, or use"),
+        ("2: drive.low\n", "2: [pull.none, pull.up]\n", "takes one value"),
         (
-            "2: role.open_drain\n      capacitance",
-            "2: role.open_drain\n      role: role.passive\n      capacitance",
+            "2: drive.low\n      capacitance",
+            "2: drive.low\n      drive: drive.high\n      capacitance",
             "already set",
         ),
         ("        2: role.ground\n", "        2: use.optional\n", "not allowed"),
@@ -104,7 +104,5 @@ def test_shorthand_and_role_errors(tmp_path, old, new, message):
 
 
 def test_shorthand_follows_import_aliases(tmp_path):
-    source = "from noscheme import role as r\n" + SOURCE.replace(
-        "2: role.open_drain\n", "2: r.open_drain\n"
-    )
-    assert pins(compile_source(tmp_path, source))["chip.2"]["role"] == ["open_drain"]
+    source = "from noscheme import drive as d\n" + SOURCE.replace("2: drive.low\n", "2: d.low\n")
+    assert pins(compile_source(tmp_path, source))["chip.2"]["drive"] == "low"

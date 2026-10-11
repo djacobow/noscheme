@@ -407,3 +407,13 @@ borrow concepts, but will not use code wholesale.
 Earlier design reviews informed the milestone history in [PLAN.md](PLAN.md).
 Adopted behavior is specified in the LRM; historical proposals are not a second
 language specification.
+
+### Directional drive and passive pulls
+
+Both implementations distinguish `drive.low`/`drive.high` from
+`pull.up`/`pull.down`/`pull.none`. These replace the topology-named directional
+roles and the `bias` namespace. `net.idle_high` and `net.idle_low` require both an
+active directional driver and a matching passive pull, reject opposing pulls,
+and retain optional resistance/capacitance checks. A single endpoint may supply
+both behaviors. Examples explicitly model internal reset pulls and external
+bus pull-up assumptions; no resistor or voltage is inferred through components.

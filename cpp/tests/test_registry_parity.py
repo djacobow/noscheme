@@ -81,7 +81,7 @@ def test_supplied_snapshot(probe, tmp_path):
         lambda r: r.update(version=True),
         lambda r: r["registry"].update(schemas=[]),
         lambda r: r["registry"]["schemas"].update(
-            net=[{"name": "x", "schema": {"kind": "enum", "namespace": "bias", "values": []}}]
+            net=[{"name": "x", "schema": {"kind": "enum", "namespace": "pull", "values": []}}]
         ),
         lambda r: r["registry"]["rules"]["std.count"].update(scope="unknown"),
         lambda r: r["registry"]["rules"]["std.count"]["parameters"].append(

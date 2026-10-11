@@ -36,7 +36,7 @@
     (,(regexp-opt '("number" "string" "resistance" "capacitance" "inductance"
                     "voltage" "current" "frequency" "power" "time") 'symbols)
      . font-lock-type-face)
-    ("\\_<\\(?:role\\|net\\|bias\\|use\\|num\\)\\.[[:alnum:]_#]+"
+    ("\\_<\\(?:role\\|drive\\|net\\|pull\\|use\\|num\\)\\.[[:alnum:]_#]+"
      . font-lock-builtin-face)
     ("\\(?:^\\|[^[:alnum:]_#]\\)\\(\\(?:0[xX][0-9a-fA-F]\\(?:_?[0-9a-fA-F]\\)*\\|0[bB][01]\\(?:_?[01]\\)*\\|\\(?:[0-9]\\(?:_?[0-9]\\)*\\(?:\\.[0-9]\\(?:_?[0-9]\\)*\\)?\\|\\.[0-9]\\(?:_?[0-9]\\)*\\)\\(?:[eE][+-]?[0-9]\\(?:_?[0-9]\\)*\\|[afpnuµmkMGTPR]\\(?:[0-9]\\(?:_?[0-9]\\)*\\)?\\)?\\)\\)\\_>"
      (1 font-lock-constant-face))

@@ -11,7 +11,7 @@ CAPABLE = "      tristate_capable: true\n"
 
 
 @pytest.mark.parametrize(
-    "role", ["digital_output", "digital_bidirectional", "open_drain", "open_source"]
+    "role", ["digital_output", "digital_bidirectional", "pull_low", "pull_high"]
 )
 @pytest.mark.parametrize("capable", [True, False])
 def test_shared_bus_requires_explicit_capability(tmp_path, role, capable):
@@ -24,7 +24,7 @@ def test_shared_bus_requires_explicit_capability(tmp_path, role, capable):
 
 
 @pytest.mark.parametrize(
-    "role", ["digital_output", "digital_bidirectional", "open_drain", "open_source"]
+    "role", ["digital_output", "digital_bidirectional", "pull_low", "pull_high"]
 )
 def test_multiple_capable_drivers_are_allowed(tmp_path, role):
     assert codes(pair(tmp_path, "digital_output", role, "tristate", CAPABLE, CAPABLE)) == []

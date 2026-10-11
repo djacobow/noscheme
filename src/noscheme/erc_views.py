@@ -32,6 +32,21 @@ def value(record, key, default=None):
     return record.get("metadata", {}).get(key, {}).get("value", default)
 
 
+def effective_roles(record, *, external=True):
+    roles = (
+        value(record, "external_role", value(record, "role", ()))
+        if external
+        else value(record, "role", ())
+    )
+    outside = external and any(
+        k in record.get("metadata", {}) for k in ("external_role", "external_drive")
+    )
+    drive = value(record, "external_drive" if outside else "drive")
+    if drive is not None:
+        return ("drive.low" if drive == "low" else "drive.high",)
+    return roles
+
+
 def attributes(record):
     return MappingProxyType(
         {key: unwrap(item["value"]) for key, item in record.get("metadata", {}).items()}
@@ -115,7 +130,9 @@ class Circuit(Mapping):
             origin = next(d for d in data["declarations"] if d["path"] == data["path"])
             declarations = tuple(Record(d, path_text(d["path"])) for d in data["declarations"])
             endpoints = by_net.get(data["name"], []) + [
-                d for d in declarations if "external_role" in d.attributes
+                d
+                for d in declarations
+                if "external_role" in d.attributes or "external_drive" in d.attributes
             ]
             # The outer declaration supplies convenient attributes; all boundaries remain available.
             nets[data["name"]] = Net(

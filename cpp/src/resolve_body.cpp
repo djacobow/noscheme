@@ -318,11 +318,16 @@ class BodyResolver {
         for (const auto &key : {"role", "external_role"})
           if (annotations.contains(key))
             selection(annotations.at(key), declared);
-        if (annotations.contains("external_role") && part.kind == "component")
+        if ((annotations.contains("external_role") ||
+             annotations.contains("external_drive")) &&
+            part.kind == "component")
           fail("metadata.role",
                "write role on a component pin: on a passive or undeclared "
                "contact it describes the attached equipment",
-               annotations.at("external_role").span);
+               annotations
+                   .at(annotations.contains("external_role") ? "external_role"
+                                                             : "external_drive")
+                   .span);
         for (const auto &name : physical_keys(field.key, max_pins)) {
           auto alias = part.aliases.find(name);
           if (alias == part.aliases.end())
@@ -336,6 +341,13 @@ class BodyResolver {
                                      seen.at(pin)->json())}));
           seen[pin] = &field.span;
           const auto &metadata = part.interface.at(pin).metadata;
+          validate_drive(merge_metadata(metadata, annotations));
+          if (annotations.contains("drive") && metadata.contains("drive") &&
+              annotations.at("drive").value.string() !=
+                  metadata.at("drive").value.string())
+            fail("metadata.constraint",
+                 "instance drive differs from the definition drive",
+                 annotations.at("drive").span);
           if (annotations.contains("role") && metadata.contains("role")) {
             auto permitted = possible(metadata.at("role"));
             bool attached = attached_role(part, pin);
@@ -709,9 +721,23 @@ metadata_field_order(const MetaFields &values, const MetadataOrder *orders,
                      const std::vector<std::string> &path) {
   return metadata_keys(values, orders, path);
 }
+void validate_drive(const MetaFields &metadata) {
+  const std::set<std::string> allowed{"passive", "digital_input",
+                                      "digital_output", "digital_bidirectional",
+                                      "unchecked"};
+  for (const std::string prefix : {"", "external_"}) {
+    auto drive = metadata.find(prefix + "drive"),
+         role = metadata.find(prefix + "role");
+    if (drive != metadata.end() && role != metadata.end() &&
+        !std::ranges::includes(allowed, possible(role->second)))
+      fail("metadata.drive",
+           "directional drive requires a digital or passive role",
+           drive->second.span);
+  }
+}
 bool attached_role(const Definition &definition, const std::string &pin) {
   const auto &metadata = definition.interface.at(pin).metadata;
-  return definition.kind == "component" &&
+  return definition.kind == "component" && !metadata.contains("drive") &&
          (!metadata.contains("role") ||
           std::ranges::includes(std::set<std::string>{"passive"},
                                 possible(metadata.at("role"))));

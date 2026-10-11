@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from collections.abc import Mapping
 
+from .erc_views import effective_roles
 from .ast import Span
 from .diagnostics import Diagnostic, Related
 from .erc_rules import ALLOWED_ROLES
@@ -61,7 +62,7 @@ def net_facts(ctx):
             return (
                 origin["type"] in {"power", "ground"}
                 and declaration["kind"] == "port"
-                and declaration["type"] in {"digital", "bidirectional", "open_drain"}
+                and declaration["type"] in {"digital", "bidirectional", "idle_high", "idle_low"}
                 and attribute(declaration, "role") == ("digital_input",)
             )
 
@@ -70,7 +71,7 @@ def net_facts(ctx):
         )
         known, uncertain = [], []
         for label, pin in ctx.endpoints:
-            roles = attribute(pin, "external_role", attribute(pin, "role", ()))
+            roles = effective_roles(pin)
             if len(roles) != 1 or roles[0] == "unchecked" or attribute(pin, "use") == "disallowed":
                 uncertain.append((label, pin))
             else:
@@ -100,7 +101,7 @@ def compatibility(ctx):
         constraints = net_facts(ctx).constraints
         uncertain, conflicts = False, []
         for label, pin in ctx.endpoints:
-            roles = frozenset(attribute(pin, "external_role", attribute(pin, "role", ())))
+            roles = frozenset(effective_roles(pin))
             if attribute(pin, "use") == "disallowed":
                 continue
             if not roles or "unchecked" in roles:

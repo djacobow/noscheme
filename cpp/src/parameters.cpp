@@ -52,9 +52,8 @@ std::optional<DefinitionKey> parent_key(const Project &project,
     if (found != symbols.end() && found->second.module == "noscheme" &&
         found->second.name == "net") {
       static const std::set<std::string> types{
-          "tristate",      "passive",  "digital",    "analog",
-          "power",         "ground",   "open_drain", "open_source",
-          "bidirectional", "unchecked"};
+          "tristate", "passive",   "digital",  "analog",        "power",
+          "ground",   "idle_high", "idle_low", "bidirectional", "unchecked"};
       if (!types.contains(base.back().text))
         fail("metadata.enum", "unknown builtin net type", base.back().span);
       return {};

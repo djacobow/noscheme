@@ -121,7 +121,8 @@ View::View(const Circuit &circuit,
     for (const auto &[part, pin] : net.endpoints)
       members.push_back(circuit.parts[part].pins.at(pin));
     for (auto declaration : net.declarations)
-      if (attribute(declaration, "external_role"))
+      if (attribute(declaration, "external_role") ||
+          attribute(declaration, "external_drive"))
         members.push_back(declaration);
     endpoints.push_back(std::move(members));
     origins.push_back(*std::ranges::find_if(net.declarations, [&](auto i) {
@@ -142,6 +143,11 @@ const MetaValue *View::attribute(std::size_t leaf,
   return meta_value(circuit.leaves[leaf].metadata, key);
 }
 std::vector<std::string> View::roles(std::size_t leaf) const {
+  bool outside =
+      attribute(leaf, "external_role") || attribute(leaf, "external_drive");
+  if (auto *drive = attribute(leaf, outside ? "external_drive" : "drive");
+      drive && drive->is<std::string>())
+    return {drive->string() == "low" ? "drive.low" : "drive.high"};
   auto *roles = attribute(leaf, "external_role");
   if (!roles)
     roles = attribute(leaf, "role");
@@ -242,7 +248,7 @@ std::string joined(const Strings &values) {
 
 const Strings PASSIVE{"passive"};
 const Strings DIGITAL{"digital_input", "digital_output",
-                      "digital_bidirectional", "open_drain", "open_source"};
+                      "digital_bidirectional", "drive.low", "drive.high"};
 const Strings ANALOG{"analog_input", "analog_output", "analog_bidirectional"};
 const Strings INPUTS{"digital_input", "analog_input", "power_input"};
 Strings unite(std::initializer_list<Strings> sets) {
@@ -260,8 +266,8 @@ const std::map<std::string, Strings> &allowed_roles() {
                          {"power_input", "power_output", "ground"}})},
       {"digital", unite({PASSIVE, DIGITAL})},
       {"bidirectional", unite({PASSIVE, DIGITAL})},
-      {"open_drain", unite({PASSIVE, {"digital_input", "open_drain"}})},
-      {"open_source", unite({PASSIVE, {"digital_input", "open_source"}})},
+      {"idle_high", unite({PASSIVE, {"digital_input", "drive.low"}})},
+      {"idle_low", unite({PASSIVE, {"digital_input", "drive.high"}})},
       {"analog", unite({PASSIVE, ANALOG})},
       {"power", unite({PASSIVE, INPUTS, {"power_output"}})},
       {"ground", unite({PASSIVE, {"digital_input", "analog_input", "ground"}})},
@@ -280,8 +286,8 @@ const std::map<std::string, Strings> &port_allowed() {
       {"power_input", unite({PASSIVE, {"power_input"}})},
       {"power_output", unite({PASSIVE, {"power_input", "power_output"}})},
       {"ground", allowed_roles().at("ground")},
-      {"open_drain", unite({PASSIVE, {"digital_input", "open_drain"}})},
-      {"open_source", unite({PASSIVE, {"digital_input", "open_source"}})},
+      {"drive.low", unite({PASSIVE, {"digital_input", "drive.low"}})},
+      {"drive.high", unite({PASSIVE, {"digital_input", "drive.high"}})},
       {"unchecked", allowed_roles().at("passive")},
   };
   return roles;
@@ -297,8 +303,8 @@ const std::map<std::string, Strings> &port_evidence() {
       {"power_input", {"power_input"}},
       {"power_output", {"power_output"}},
       {"ground", {"ground"}},
-      {"open_drain", {"open_drain"}},
-      {"open_source", {"open_source"}},
+      {"drive.low", {"drive.low"}},
+      {"drive.high", {"drive.high"}},
   };
   return evidence;
 }
@@ -340,7 +346,8 @@ const NetFacts &net_facts(const Context &ctx) {
              declaration.kind == "port" &&
              (declaration.type == "digital" ||
               declaration.type == "bidirectional" ||
-              declaration.type == "open_drain") &&
+              declaration.type == "idle_high" ||
+              declaration.type == "idle_low") &&
              role && single(meta_strings(*role), "digital_input") &&
              role->is<MetaList>();
     };
@@ -496,7 +503,7 @@ std::vector<Diagnostic> driver_results(const Context &ctx) {
     if (e.role == "digital_output" || e.role == "analog_output" ||
         e.role == "power_output")
       drivers.push_back(e);
-    if (e.role == "open_drain" || e.role == "open_source")
+    if (e.role == "drive.low" || e.role == "drive.high")
       open_drivers.push_back(e);
   }
   // A digital declaration still imposes its ordinary single-driver policy.
@@ -538,6 +545,31 @@ std::vector<Diagnostic> driver_results(const Context &ctx) {
                  "net " + python_repr(name) +
                      " connects a power source to ground",
                  origin_span);
+  for (const auto &[nettype, drive, pull, opposite] :
+       {std::tuple{"idle_high", "drive.low", "up", "down"},
+        std::tuple{"idle_low", "drive.high", "down", "up"}}) {
+    if (!facts.types.contains(nettype))
+      continue;
+    if (!std::ranges::any_of(known,
+                             [&](const Known &e) { return e.role == drive; }))
+      results.emit("missing_driver",
+                   "net " + python_repr(name) + " requires a " +
+                       std::string(drive) + " endpoint",
+                   origin_span);
+    Strings pulls;
+    for (auto pin : ctx.pins())
+      if (auto *p = text(view.attribute(pin, "pull")))
+        pulls.insert(*p);
+    if (!pulls.contains(pull))
+      results.emit("missing_pull",
+                   "net " + python_repr(name) + " requires a pull." + pull +
+                       " endpoint",
+                   origin_span);
+    if (pulls.contains(opposite))
+      results.emit("opposing_pull",
+                   "net " + python_repr(name) + " forbids pull." + opposite,
+                   origin_span);
+  }
   // Unknown or selectable endpoint roles cannot be treated as passive.
   // Bidirectional roles need an operating assumption on single-driver nets.
   bool needs_driver = types.contains("digital") || types.contains("power");
@@ -564,19 +596,18 @@ std::vector<Diagnostic> driver_results(const Context &ctx) {
                        "checking is incomplete",
                    origin_span, {}, "warning");
     else if (!matching) {
-      Strings biases;
+      Strings pulls;
       for (auto pin : ctx.pins())
-        if (auto *bias = text(view.attribute(pin, "bias"));
-            bias && *bias != "none")
-          biases.insert(*bias);
-      bool biased =
-          expected == "digital_output" &&
-          (biases == Strings{"pull_up"} || biases == Strings{"pull_down"});
-      biased = biased && std::ranges::all_of(open_drivers, [&](const Known &e) {
-                 return biases.contains(e.role == "open_drain" ? "pull_up"
-                                                               : "pull_down");
-               });
-      if (!biased)
+        if (auto *pull = text(view.attribute(pin, "pull"));
+            pull && *pull != "none")
+          pulls.insert(*pull);
+      bool has_pull = expected == "digital_output" &&
+                      (pulls == Strings{"up"} || pulls == Strings{"down"});
+      has_pull =
+          has_pull && std::ranges::all_of(open_drivers, [&](const Known &e) {
+            return pulls.contains(e.role == "drive.low" ? "up" : "down");
+          });
+      if (!has_pull)
         results.emit("missing_driver",
                      "net " + python_repr(name) + " requires a " + expected +
                          " endpoint",
@@ -621,6 +652,9 @@ void check_port(const View &view, std::size_t port,
   const auto &scope = record.scope;
   auto label = path_text(record.path);
   auto list = [&] {
+    if (auto *drive = text(view.attribute(port, "drive")))
+      return std::vector<std::string>{*drive == "low" ? "drive.low"
+                                                      : "drive.high"};
     auto *role = view.attribute(port, "role");
     return role ? meta_strings(*role) : std::vector<std::string>{};
   }();
@@ -630,7 +664,8 @@ void check_port(const View &view, std::size_t port,
   auto span = view.record_span(port);
   std::vector<std::size_t> internal, external;
   for (auto pin : endpoints)
-    (within(view.leaf(pin).scope, scope) ? internal : external).push_back(pin);
+    (within(view.leaf(pin).scope, scope) && pin != port ? internal : external)
+        .push_back(pin);
   if (policy == "disallowed") {
     if (binding == BindingState::connected)
       results.emit("do_not_connect",
@@ -837,6 +872,7 @@ aggregate_current_loads(const View &view,
     });
     if (scope.empty() || record.kind != "port" || overlap || sources ||
         record.metadata.contains("external_role") ||
+        record.metadata.contains("external_drive") ||
         !single(roles, "power_input")) {
       results.emit("aggregate_load_boundary",
                    "aggregate load " + label +
@@ -1034,17 +1070,17 @@ std::vector<Diagnostic> voltage_limits(const Context &ctx, const Params &) {
 }
 
 // erc_electrical
-std::vector<Diagnostic> bias_reference(const Context &ctx,
+std::vector<Diagnostic> pull_reference(const Context &ctx,
                                        const Params &params) {
   const auto &view = ctx.view;
   const auto &circuit = view.circuit;
   const auto &reference = params.at("pin").string();
   auto label = view.label(*ctx.pin);
-  auto *bias = text(view.attribute(*ctx.pin, "bias"));
+  auto *pull = text(view.attribute(*ctx.pin, "pull"));
   std::optional<std::string> expected;
-  if (bias && *bias == "pull_up")
+  if (pull && *pull == "up")
     expected = "power";
-  else if (bias && *bias == "pull_down")
+  else if (pull && *pull == "down")
     expected = "ground";
   const auto &part = circuit.parts[view.pins[*ctx.pin]->first];
   std::optional<std::size_t> target;
@@ -1059,7 +1095,7 @@ std::vector<Diagnostic> bias_reference(const Context &ctx,
       }
   std::optional<std::string> reason;
   if (!expected)
-    reason = "requires bias.pull_up or bias.pull_down";
+    reason = "requires pull.up or pull.down";
   else if (!target)
     reason = "unknown reference pin " + python_repr(reference) +
              " on this component";
@@ -1081,7 +1117,7 @@ std::vector<Diagnostic> bias_reference(const Context &ctx,
   Related related;
   if (target)
     related.emplace_back("reference terminal", view.record_span(*target));
-  auto d = ctx.diagnostic("bias_reference", label + ": " + *reason, {}, "error",
+  auto d = ctx.diagnostic("pull_reference", label + ": " + *reason, {}, "error",
                           std::move(related));
   d.instance_path = label;
   return {d};
@@ -1335,6 +1371,8 @@ const std::vector<std::string> &checks() {
       "unused_pin",
       "unconnected_net",
       "missing_driver",
+      "missing_pull",
+      "opposing_pull",
       "multiple_drivers",
       "power_ground_conflict",
       "incomplete_roles",
@@ -1371,6 +1409,8 @@ families() {
           {"unused_pin", {}},
           {"unconnected_net", {connections}},
           {"missing_driver", {drivers}},
+          {"missing_pull", {drivers}},
+          {"opposing_pull", {drivers}},
           {"multiple_drivers", {drivers}},
           {"power_ground_conflict", {drivers}},
           {"incomplete_roles", {drivers}},
@@ -1450,7 +1490,7 @@ const std::map<std::string, StandardRule> &standard_rules() {
                         },
                         {}};
     table["std.all"] = {all_rule, {{"where", MetaList{}}}};
-    table["std.bias_reference"] = {bias_reference, {}};
+    table["std.pull_reference"] = {pull_reference, {}};
     table["std.voltage_limits"] = {voltage_limits, {}};
     return table;
   }();
@@ -1464,11 +1504,11 @@ const std::map<std::string, Predicate> &standard_predicates() {
              {"power_source", {"power_output"}},
              {"digital_compatible",
               {"passive", "digital_input", "digital_output",
-               "digital_bidirectional", "open_drain", "open_source"}},
-             {"open_drain_compatible",
-              {"passive", "digital_input", "open_drain"}},
-             {"open_source_compatible",
-              {"passive", "digital_input", "open_source"}},
+               "digital_bidirectional", "drive.low", "drive.high"}},
+             {"idle_high_compatible",
+              {"passive", "digital_input", "drive.low"}},
+             {"idle_low_compatible",
+              {"passive", "digital_input", "drive.high"}},
          })
       table["std." + name] = [accepted](std::size_t pin, const Context &ctx) {
         return roles(ctx.view, pin, accepted);
@@ -1477,8 +1517,8 @@ const std::map<std::string, Predicate> &standard_predicates() {
       if (roles(ctx.view, pin, {"passive", "digital_input"}) == true)
         return Tri(true);
       if (roles(ctx.view, pin,
-                {"digital_output", "digital_bidirectional", "open_drain",
-                 "open_source"}) == true)
+                {"digital_output", "digital_bidirectional", "drive.low",
+                 "drive.high"}) == true)
         return Tri(attribute_true(ctx.view, pin, "tristate_capable"));
       return Tri();
     };

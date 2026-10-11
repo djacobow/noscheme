@@ -1,6 +1,7 @@
 """Grouped loads, public supply budgets, and source capacity checks."""
 
 from .erc_primitives import floating_sum
+from .erc_views import effective_roles
 from .ast import Span
 from .circuit import path_text
 from .diagnostics import Related
@@ -32,7 +33,7 @@ def grouped_current_loads(circuit, emit):
                     related=related,
                 )
                 continue
-            roles = [attribute(pin, "external_role", attribute(pin, "role", [])) for pin in pins]
+            roles = [effective_roles(pin) for pin in pins]
             if any(tuple(role) != ("power_input",) for role in roles):
                 unknown = any(len(role) != 1 or "unchecked" in role for role in roles)
                 emit(
@@ -63,19 +64,16 @@ def aggregate_current_loads(declarations, endpoints, demands, emit):
             return path[: len(scope)] == scope
 
         internal = [(name, pin) for name, pin in endpoints if inside(pin["scope"])]
-        roles = attribute(port, "external_role", attribute(port, "role", []))
+        roles = effective_roles(port)
         overlap = sum(d["scope"] == scope for d in boundaries) > 1
-        sources = [
-            pin
-            for _, pin in internal
-            if "power_output" in attribute(pin, "external_role", attribute(pin, "role", []))
-        ]
+        sources = [pin for _, pin in internal if "power_output" in effective_roles(pin)]
         if (
             not scope
             or port["kind"] != "port"
             or overlap
             or sources
             or "external_role" in port["metadata"]
+            or "external_drive" in port["metadata"]
             or tuple(roles) != ("power_input",)
         ):
             emit(
@@ -87,8 +85,7 @@ def aggregate_current_loads(declarations, endpoints, demands, emit):
             continue
         local = [(path, value) for path, value in demands if inside(path)]
         unknown_roles = any(
-            len(attribute(pin, "external_role", attribute(pin, "role", []))) != 1
-            or "unchecked" in attribute(pin, "external_role", attribute(pin, "role", []))
+            len(effective_roles(pin)) != 1 or "unchecked" in effective_roles(pin)
             for _, pin in internal
         )
         related = [
@@ -147,8 +144,7 @@ def net_results(ctx):
     demands = [
         (pin["scope"], attribute(pin, "max_load_current"))
         for label, pin in endpoints
-        if label not in grouped_pins
-        and attribute(pin, "external_role", attribute(pin, "role", [])) == ("power_input",)
+        if label not in grouped_pins and effective_roles(pin) == ("power_input",)
     ]
     demands.extend(grouped_demands.get(name, ()))
     demands = aggregate_current_loads(declarations, endpoints, demands, emit)

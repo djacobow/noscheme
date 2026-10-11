@@ -25,8 +25,8 @@ ROLE_MAP = {
     "passive": "passive",
     "power_in": "power_input",
     "power_out": "power_output",
-    "open_collector": "open_drain",
-    "open_emitter": "open_source",
+    "open_collector": "drive.low",
+    "open_emitter": "drive.high",
 }
 
 PASSIVE_QUANTITIES = {"R": "resistance", "C": "capacitance", "L": "inductance"}
@@ -297,7 +297,32 @@ def convert_library(source, output, symbols=(), footprint_roots=(), extra_footpr
             )
             if "no_connect" in types:
                 lines.append("            use: use.disallowed")
-            if len(roles) == 1:
+            directional = set(roles) & {"drive.low", "drive.high"}
+            if directional:
+                if len(directional) == 1 and set(roles) <= directional | {
+                    "passive",
+                    "digital_input",
+                }:
+                    direction = next(iter(directional))
+                    lines.append("            drive: " + direction)
+                    report.append(
+                        {
+                            "symbol": original,
+                            "pin": number,
+                            "check": "assumed_drive_direction",
+                            "message": f"KiCad convention mapped to {direction}; verify polarity against the device datasheet",
+                        }
+                    )
+                else:
+                    report.append(
+                        {
+                            "symbol": original,
+                            "pin": number,
+                            "check": "ambiguous_drive",
+                            "message": "stacked pin types have incompatible drive capabilities; annotate explicitly",
+                        }
+                    )
+            elif len(roles) == 1:
                 lines.append(f"            role: role.{roles[0]}")
             elif roles:
                 lines.append("            role: [" + ", ".join("role." + r for r in roles) + "]")
@@ -389,7 +414,7 @@ def convert_library(source, output, symbols=(), footprint_roots=(), extra_footpr
                             "identifiers": sorted(identifiers),
                         }
                     )
-    text = "from noscheme import role, use\n\n" + "\n\n".join(generated) + "\n"
+    text = "from noscheme import role, use, drive\n\n" + "\n\n".join(generated) + "\n"
     module = identifier(source.stem)
     filename = str(output / (module + ".nosch"))
     parse(text, filename)

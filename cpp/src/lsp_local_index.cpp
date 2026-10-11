@@ -66,8 +66,8 @@ void local_index(LspAnalysis &result, const Sources &sources,
       else
         module.symbols.emplace(std::move(name), std::move(symbol));
     };
-    const std::set<std::string> builtins{"role", "net",  "use",
-                                         "num",  "bias", "std"};
+    const std::set<std::string> builtins{"role",  "net",  "use", "num",
+                                         "drive", "pull", "std"};
     for (const auto &item : ast->items) {
       if (auto *definition = ast::as<ast::Definition>(item)) {
         const auto &name = definition->name.text;

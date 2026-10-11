@@ -194,7 +194,8 @@ CompletionResult scope_completion(const std::string &text, std::size_t offset,
       auto space = kind == "enum"    ? enum_namespace
                    : kind == "roles" ? "role"
                                      : kind;
-      if (space == "role" || space == "use" || space == "bias") {
+      if (space == "role" || space == "use" || space == "pull" ||
+          space == "drive") {
         for (const auto &entry : catalog)
           if (entry.kind == 20 && entry.type_kind == space &&
               !entry.shadowed(offset))

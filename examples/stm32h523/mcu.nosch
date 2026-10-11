@@ -1,6 +1,6 @@
 // STM32H523 pin roles, decoupling, crystal, and public subsystem interface.
 
-from noscheme import role, net, use, bias
+from noscheme import role, net, use, pull, drive
 from MCU_ST_STM32H5 import STM32H523VCTx
 from interfaces import I2C, SPI, USB2, SWD
 from components import Capacitor0603, CrystalHC49
@@ -12,9 +12,10 @@ extend STM32H523VCTx<"STM32H523VCT6"> STM32H523Board:
     [10, 19..20, 27, 49, 74, 99]: [role.ground, use.required]
     12: [role.analog_input, use.required]
     13: [role.analog_output, use.required]
-    14: [role.open_drain, use.required]
+    // NRST has an internal pull-up (also documented at the reset button).
+    14: [drive.low, pull.up, use.required]
     // I2C pins: firmware leaves the internal pull-ups off; board resistors set the level.
-    [66..67, 92..93]: [role.open_drain, use.required, bias.none]
+    [66..67, 92..93]: [drive.low, use.required, pull.none]
     [15..17, 25, 29..30, 32, 42..43, 45, 55, 89]: [role.digital_output, use.required]
     [18, 26, 31, 33..34, 44, 56, 76, 94]: [role.digital_input, use.required]
     [48, 98]: [role.power_output, use.required]

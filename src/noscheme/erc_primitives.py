@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from math import inf, isnan
 
+from .erc_views import effective_roles
 from .ast import Span
 from .diagnostics import Related
 from .units import format_quantity
@@ -55,7 +56,7 @@ def parallel(values):
 
 
 def roles(pin, accepted):
-    possible = pin.attributes.get("external_role", pin.attributes.get("role", ()))
+    possible = effective_roles(pin)
     if not possible or "unchecked" in possible:
         return None
     matches = [r in accepted for r in possible]
@@ -73,11 +74,11 @@ def register(registry):
             "digital_input",
             "digital_output",
             "digital_bidirectional",
-            "open_drain",
-            "open_source",
+            "drive.low",
+            "drive.high",
         },
-        "open_drain_compatible": {"passive", "digital_input", "open_drain"},
-        "open_source_compatible": {"passive", "digital_input", "open_source"},
+        "idle_high_compatible": {"passive", "digital_input", "drive.low"},
+        "idle_low_compatible": {"passive", "digital_input", "drive.high"},
     }.items():
         registry.predicate("std." + name, lambda pin, ctx, accepted=accepted: roles(pin, accepted))
     registry.predicate(
@@ -85,7 +86,7 @@ def register(registry):
         lambda pin, ctx: True
         if roles(pin, {"passive", "digital_input"}) is True
         else bool(pin.attributes.get("tristate_capable"))
-        if roles(pin, {"digital_output", "digital_bidirectional", "open_drain", "open_source"})
+        if roles(pin, {"digital_output", "digital_bidirectional", "drive.low", "drive.high"})
         is True
         else None,
     )

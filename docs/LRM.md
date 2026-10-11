@@ -98,7 +98,7 @@ Only modules reachable from the selected root's module are loaded by the compile
 
 ```nosch
 from parts.passives import Resistor, Capacitor
-from noscheme import role, net, use, bias, num, std
+from noscheme import role, net, use, pull, num, std, drive
 ```
 
 Both module-qualified imports and local aliases are supported:
@@ -127,10 +127,11 @@ errors; distinct sibling module imports may share a namespace prefix.
 
 | Import | Provides |
 |---|---|
-| `role` | Endpoint electrical roles |
+| `role` | Endpoint classifications such as input, passive, and power |
+| `drive` | Active directional digital drive (`low` or `high`) |
 | `net` | Scalar net types |
 | `use` | Connection policies |
-| `bias` | Explicit pull-up/pull-down assertions |
+| `pull` | Explicit pull-up/pull-down assertions |
 | `num` | Numeric conversion and rounding helpers |
 | `std` | Standard ERC rules and predicates for `checks` (section 12) |
 
@@ -296,7 +297,7 @@ Duplicate names, duplicate sections, and overlapping pin declarations are errors
 A component describes one physical part and its pin interface:
 
 ```nosch
-from noscheme import role, use
+from noscheme import role, use, drive
 
 component Resistor:
   params:
@@ -309,21 +310,21 @@ component Resistor:
 ```
 
 A pin entry may list builtin values instead of, or before, indented fields. Each
-value's namespace names the field it sets: `role.x` sets `role`, `bias.x` sets
-`bias`, and `use.x` sets `use`. Several values from one namespace form a
+value's namespace names the field it sets: `role.x` sets `role`, `pull.x` sets
+`pull`, `drive.x` sets `drive`, and `use.x` sets `use`. Several values from one namespace form a
 list, which only `role` accepts, as a definition's permitted roles:
 
 ```nosch
 pins:
   1: [role.ground, role.power_input, use.required]
-  2: role.open_drain
+  2: drive.low
     capacitance: 5p
 ```
 
 This also applies in [specializations](#7-specialization) and instance pin
 overlays, and follows
 import aliases. Setting a field both ways, or using a value that is not a builtin
-`role`, `bias`, or `use` value, is an error. Ports and bundle fields are
+`role`, `drive`, `pull`, or `use` value, is an error. Ports and bundle fields are
 excluded: their value position holds the net type.
 
 Physical components are the lowest-level objects in NoScheme and do not contain
@@ -593,11 +594,11 @@ component Resistor:
 
 The list accepts physical pin IDs or aliases, including bare integer spellings.
 It must resolve to at least two distinct existing pins. Their electrical metadata
-must match, including roles, connection policies, bias, numeric fields, and checks;
+must match, including roles, connection policies, pull, numeric fields, and checks;
 aliases and `custom` data may differ. This is an author assertion about the part's
 symmetry, not electrical inference. Only one group is supported. An empty list
 clears an inherited group. Specializations that give the pins different electrical
-metadata, such as putting pull-up bias on only one terminal, must clear it with
+metadata, such as putting pull-up pull on only one terminal, must clear it with
 `interchangeable: []` and use named connections.
 
 ```nosch
@@ -765,11 +766,11 @@ A required child port also needs an endpoint outside its block instance.
 ### 6.1 Bundle declarations
 
 ```nosch
-from noscheme import net, use
+from noscheme import net, use, drive
 
 bundle I2C:
-  net.open_drain scl
-  net.open_drain sda
+  net.idle_high scl
+  net.idle_high sda
 ```
 
 A bundle is a named net type with named fields. A port or net can use `I2C` as
@@ -984,7 +985,10 @@ choice mapping:
 
 `external_role` remains only for block ports, where it declares an explicitly
 modeled endpoint outside the block. Writing it on a component pin is an error that
-names `role`.
+names `role`. Likewise, use `drive` on a component pin and `external_drive`
+on a block port to describe attached directional drive. A modeled external
+endpoint counts on the caller side of that port; the port's own `drive` remains
+a promise that must be implemented inside the block.
 
 `custom` accepts nested mappings, lists, strings, finite numbers, and booleans.
 It has no built-in electrical meaning. For example, `custom.dnp` is a user
@@ -998,19 +1002,23 @@ These fields use the same registry available to project ERC extensions:
 <!-- generated:extension-fields -->
 | Scope | Field | Type |
 |---|---|---|
-| `instance_pin` | `bias` | `bias.none`, `bias.pull_down`, `bias.pull_up` |
 | `instance_pin` | `capacitance` | `capacitance` |
+| `instance_pin` | `drive` | `drive.high`, `drive.low` |
+| `instance_pin` | `external_drive` | `drive.high`, `drive.low` |
 | `instance_pin` | `max_voltage` | `voltage` |
 | `instance_pin` | `min_voltage` | `voltage` |
+| `instance_pin` | `pull` | `pull.down`, `pull.none`, `pull.up` |
 | `instance_pin` | `pull_resistance` | `resistance` |
 | `net` | `max_voltage` | `voltage` |
 | `net` | `min_voltage` | `voltage` |
 | `net` | `wiring_capacitance` | `capacitance` |
-| `pin` | `bias` | `bias.none`, `bias.pull_down`, `bias.pull_up` |
 | `pin` | `capacitance` | `capacitance` |
+| `pin` | `drive` | `drive.high`, `drive.low` |
 | `pin` | `max_voltage` | `voltage` |
 | `pin` | `min_voltage` | `voltage` |
+| `pin` | `pull` | `pull.down`, `pull.none`, `pull.up` |
 | `pin` | `pull_resistance` | `resistance` |
+| `port` | `drive` | `drive.high`, `drive.low` |
 <!-- /generated:extension-fields -->
 
 `number` accepts any finite signed number. `positive` and `nonnegative` add the
@@ -1034,11 +1042,11 @@ component Pullup:
       role: role.passive
     2:
       role: role.passive
-      bias: bias.pull_up
+      pull: pull.up
       pull_resistance: value
 ```
 
-Import `role` and `bias` from `noscheme` for this fragment. The part displays
+Import `role` and `pull` from `noscheme` for this fragment. The part displays
 `4.7kOhm`, and ERC sees 4700 ohms. Quantities are
 never inferred from display strings. Independent instance metadata overrides can
 still intentionally change the model; shared parameters eliminate duplicated
@@ -1064,14 +1072,40 @@ Import `role` and use one of:
 | `power_input` | Consumes power. Connecting to a ground net requires an explicit incompatible_role waiver. Optional max_load_current metadata contributes to current-budget checks. |
 | `power_output` | Supplies power. Optional max_source_current metadata declares its current capacity. |
 | `ground` | Ground connection; connecting a power output to ground is an ERC error. |
-| `open_drain` | Can pull a signal low or release it. Multiple open-drain drivers may share a net; a pull-up provides the high level. |
-| `open_source` | Can pull a signal high or release it. Multiple open-source drivers may share a net; a pull-down provides the low level. |
 | `unchecked` | Electrical behavior is unspecified; ERC cannot treat this endpoint as passive or prove its driver behavior. |
 <!-- /generated:roles -->
 
 An absent, unchecked, or unselected role is not silently treated as passive.
+An explicit `drive` supplies directional digital behavior even without a `role`.
 These roles do not assert voltage tolerance, logic thresholds, timing, or a
 particular operating state unless explicitly modeled by other metadata.
+
+A pin's active drive and passive pull are independent:
+
+```nosch
+from noscheme import drive, pull
+
+component ResetPin:
+  pins:
+    1: [drive.low, pull.up]
+```
+
+`drive.low` means actively pull low or release; `drive.high` means actively pull
+high or release. Neither name specifies transistor topology. The KiCad importer retains its
+conventional mapping of `open_collector` to `drive.low` and `open_emitter` to
+`drive.high`, but reports `assumed_drive_direction` for review: those imported
+names alone do not prove a particular device's polarity. Verify the datasheet
+and specialize the imported declaration if needed. A pin can provide a
+passive pull while its active driver is released, as shown above. `pull.none`
+means this pin provides no passive pull; it does not forbid pulls elsewhere on
+the net. An omitted `pull` is unknown.
+
+`drive` may stand alone or refine a digital classification. On passive connector
+pins an instance annotation describes attached equipment, just like an instance
+`role`; the elaborated attribute is `external_drive`. A declared fixed drive
+cannot be reversed by an instance. Analog, power, and ground classifications
+cannot carry directional digital drive. Ordinary `role.digital_output` retains
+its existing push-pull behavior when no `drive` is specified.
 
 ### 9.2 Scalar net types
 
@@ -1080,15 +1114,23 @@ All checked scalar types permit passive attachments. Other permitted roles are:
 | `net` member | Other permitted roles |
 |---|---|
 | `passive` | Ordinary digital, analog, power, and ground roles |
-| `digital` | Digital input/output/bidirectional, open-drain, open-source |
+| `digital` | Digital input/output/bidirectional, `drive.low`, `drive.high` |
 | `bidirectional` | Same role compatibility as `digital`, without its required active driver |
 | `tristate` | Digital inputs; digital output-capable roles explicitly marked `tristate_capable: true` |
-| `open_drain` | Digital inputs and open-drain endpoints |
-| `open_source` | Digital inputs and open-source endpoints |
+| `idle_high` | Digital inputs and `drive.low` endpoints; requires a `drive.low` and a `pull.up` contributor |
+| `idle_low` | Digital inputs and `drive.high` endpoints; requires a `drive.high` and a `pull.down` contributor |
 | `analog` | Analog input/output/bidirectional |
 | `power` | Power input/output, digital input, analog input |
 | `ground` | Ground, digital input, analog input |
 | `unchecked` | No domain restriction from this declaration |
+
+The `idle_high` and `idle_low` requirements run by default, even without an
+explicit `checks` section. One pin may satisfy both the drive and pull
+requirements; multiple matching contributors are permitted. Missing active drive
+is `erc.missing_driver`; missing passive pull is `erc.missing_pull`. An opposing
+passive pull produces `erc.opposing_pull`: these net types do not model resistor
+dividers. Opposing directional drive and push-pull outputs are incompatible.
+Resistance and capacitance budgets remain separate opt-in checks.
 
 `do_not_connect` always retains its disconnection rule. Every checked declaration
 on a flattened net contributes constraints; a caller does not erase an inner
@@ -1112,12 +1154,12 @@ An extension of a `net` builtin names reusable net metadata, typically checks, o
 builtin electrical type or another net type:
 
 ```nosch
-from noscheme import net, bias, std, use
+from noscheme import net, pull, std, use, drive
 
-extend net.open_drain I2CLine:
+extend net.idle_high I2CLine:
   wiring_capacitance: 5p
   checks:
-    pull: std.parallel(pull_resistance, where=bias.pull_up, min=1.5k, max=10k)
+    pull: std.parallel(pull_resistance, where=pull.up, min=1.5k, max=10k)
     load: std.sum(capacitance, net=wiring_capacitance, max=400p)
 
 extend I2CLine FastI2CLine:
@@ -1151,26 +1193,26 @@ type as `nettype: "module.Name"` beside its builtin `type`.
 
 ### 9.4 Public port roles
 
-A port's `role` promises behavior implemented inside the block. It adds no driver
+A port's `role` or `drive` promises behavior implemented inside the block. It adds no driver
 or load. Internal physical or modeled endpoints must implement the promise;
 caller circuitry cannot supply the evidence for an internal output.
 
 Input contracts admit inputs and passive contacts. Output contracts admit outputs,
 feedback inputs, and passive contacts in the same domain. Bidirectional contracts
-admit the corresponding directional roles. Open-drain/open-source contracts admit
+admit the corresponding directional roles. `drive.low`/`drive.high` contracts admit
 their respective drivers, digital inputs, and passive contacts. Ground contracts
 admit ground, passive, digital-input, and analog-input roles. Passive/unchecked contracts add no domain
 restriction.
 
 A directional contract requires a corresponding implementing endpoint. A
 bidirectional contract may be implemented by a bidirectional endpoint or separate
-input and output endpoints. Bias through passive components does not implement
+input and output endpoints. A passive pull does not implement
 an output contract.
 
 ### 9.5 Tri-state buses
 
 On `net.tristate`, every digital output-capable endpoint must declare
-`tristate_capable: true`, including bidirectional and open-drain/open-source roles.
+`tristate_capable: true`, including bidirectional roles and `drive.low`/`drive.high`.
 Digital inputs and passive attachments need no flag. Several capable drivers may
 share the net. Wrong-domain roles remain errors even with the flag.
 
@@ -1190,7 +1232,7 @@ instance role, its attached equipment, replaces the contact's role for
 driver/load checking. An explicitly modeled
 external endpoint on a block port counts once but creates no physical CAD pin.
 
-Digital nets require a suitable driver or explicitly declared compatible bias;
+Digital nets require a suitable driver or explicitly declared compatible pull;
 power nets require a power source. Multiple known active outputs, conflicting
 power/ground connections, and incompatible open-driver combinations are errors.
 Unknown roles produce incomplete-information warnings where they prevent a
@@ -1256,21 +1298,21 @@ checks cannot be waived and still run on unchecked nets.
 
 ### 10.4 Pull resistance and capacitance
 
-`bias` is an assertion about a signal-side endpoint. It does not verify a
+`pull` is an assertion about a signal-side endpoint. It does not verify a
 resistor's other terminal, rail, displayed resistance, or supply voltage by itself.
-Use `std.bias_reference` for the optional terminal check described below.
-Open-drain default-level checks require pull-up bias; open-source default-level
-checks require pull-down bias. Bias cannot power a rail or satisfy an output-port
-contract.
+Use `std.pull_reference` for the optional terminal check described below.
+`net.idle_high` requires `drive.low` and `pull.up`; `net.idle_low` requires
+`drive.high` and `pull.down`. A passive pull cannot power a rail or satisfy an
+output-port contract. Merely connecting a resistor to a rail does not infer a pull.
 
 Nets and public ports opt into budgets with named checks (section 12.2). For
-example, with `bias` and `std` imported:
+example, with `pull` and `std` imported:
 
 ```nosch
-net.open_drain bus:
+net.idle_high bus:
   wiring_capacitance: 2p
   checks:
-    pull_strength: std.parallel(pull_resistance, where=bias.pull_up, min=1.5k, max=10k)
+    pull_strength: std.parallel(pull_resistance, where=pull.up, min=1.5k, max=10k)
     capacitance: std.sum(capacitance, net=wiring_capacitance, max=400p)
 ```
 
@@ -1282,7 +1324,7 @@ port's assertions and its caller's assertions both run against the flattened net
 Matching pulls combine as `1/R = sum(1/R_i)`. `std.sum` adds capacitance or other
 numeric attributes. Numeric limits accept parameter expressions. Missing values
 and unknown selections remain unknown; use explicit zero for a known zero
-capacitance and `bias.none` for an endpoint known to have no pull. Known overloads
+capacitance and `pull.none` for an endpoint known to have no pull. Known overloads
 and known parallel resistance below a minimum remain errors even with missing
 contributors. Incomplete reductions also warn by default. An empty parallel
 reduction represents an open circuit: it passes a finite minimum and fails a
@@ -1294,21 +1336,21 @@ mixed reference rails, and protocol-derived limits are not automatically modeled
 #### Pull reference terminals
 
 A physical signal-side pin can check its pull's other terminal with the pin rule
-`std.bias_reference(pin)`, naming another pin ID or alias on the same component:
+`std.pull_reference(pin)`, naming another pin ID or alias on the same component:
 
 ```nosch
 pins:
   2:
     role: role.passive
-    bias: bias.pull_up
+    pull: pull.up
     checks:
-      reference: std.bias_reference("1")
+      reference: std.pull_reference("1")
 ```
 
-With `bias.pull_up`, the reference terminal must reach a net declared
-`net.power`; with `bias.pull_down`, it must reach `net.ground`. Missing
+With `pull.up`, the reference terminal must reach a net declared
+`net.power`; with `pull.down`, it must reach `net.ground`. Missing
 pins, disconnected references, conflicting rail types, and a reference tied to the
-signal net itself produce `erc.bias_reference`. The check also runs on a
+signal net itself produce `erc.pull_reference`. The check also runs on a
 disconnected signal pin. It traces no paths through other components and infers
 no voltages. To waive it for one pin, name the application with a `pins` target
 on the signal net (section 10.5); disconnected pins have no net waiver.
@@ -1419,7 +1461,7 @@ aggregate_load_boundary    aggregate_current_overload   incomplete_aggregate_loa
 current_load_group         current_overload             incomplete_budget
 waiver_scope               waiver_target                incompatible_role            tristate_capability
 port_role                  incomplete_port_role         required_port_connection
-unused_port               bias_reference               voltage_limits
+unused_port               pull_reference               voltage_limits
 ```
 
 Standard rules have qualified registry names such as `std.multiple_drivers` and
@@ -1523,7 +1565,7 @@ Explicit source applications always run, including on unchecked nets. Disabling
 defaults does not disable parsing, resolution, connection-shape validation, or
 other structural compiler checks. The standard rule set preserves the documented
 role, nettype, current, and voltage policies; pull-reference checks are explicit
-`std.bias_reference` applications.
+`std.pull_reference` applications.
 
 Each module defines `register(registry)`. Registration names are qualified strings
 such as `myboard.pin_count`. Duplicates in a registry category are errors.
@@ -1559,7 +1601,7 @@ that name source entities rather than values:
 |---|---|---|
 | `field` | A bare endpoint metadata field name, such as `capacitance` | The name as a string |
 | `net_fields` | A net field name or a list of them | A tuple of names |
-| `selector` | A predicate, `role` or `bias` value, boolean field name, or a list of them | A tuple of terms for `noscheme.erc_primitives.selected` |
+| `selector` | A predicate, `role`, `drive`, or `pull` value, boolean field name, or a list of them | A tuple of terms for `noscheme.erc_primitives.selected` |
 
 Field names are checked against core and registered fields; they are never
 evaluated as parameter expressions. `missing` is reserved for the missing-data
@@ -1579,7 +1621,7 @@ metadata overlay. Pins accept pin rules; nets and public ports accept net rules.
 Each entry names one application and calls an imported rule:
 
 ```nosch
-from noscheme import net, std, use
+from noscheme import net, std, use, drive
 
 block B:
   net.digital signal:
@@ -1595,7 +1637,7 @@ rule must be imported, there are no implicit namespaces, and a pin rule cannot
 be applied to a net or the reverse.
 
 These illustrate generic presence and count assertions. Full standard drive
-policy also accounts for selectable roles, open-drain/source bias, tri-state
+policy also accounts for selectable roles, directional drive and passive pulls, tri-state
 capability, and public-boundary contracts; replacing it requires choosing those
 policies explicitly.
 
@@ -1681,10 +1723,11 @@ A selector chooses endpoints. Each term is one of:
 - a registered predicate, such as `std.active_digital_driver`;
 - a `role` value, which tests the endpoint's effective role, including the
   equipment attached to a connector contact;
-- a `bias` value, which compares the endpoint's `bias` field;
+- a `drive` value, which tests effective drive capability, including attached equipment;
+- a `pull` value, which compares the endpoint's `pull` field;
 - the name of a boolean field, such as `tristate_capable`, which must be `true`.
 
-A list such as `[bias.pull_up, std.digital_compatible]` requires every term.
+A list such as `[pull.up, std.digital_compatible]` requires every term.
 Selection is three-valued: missing attributes, unselected role alternatives, and
 predicates returning `None` make it unknown. An empty list selects every endpoint.
 
@@ -1694,14 +1737,14 @@ Every registered reducer is also a net rule with parameters
 `(field, where=(), net=(), min, max)`. It reduces `field` over the endpoints
 selected by `where`, adds the outermost-net quantities named by `net`, and asserts
 `min` and/or `max`. For example, `std.sum(capacitance, max=400p)` and
-`std.parallel(pull_resistance, where=bias.pull_up, min=1.5k)`.
+`std.parallel(pull_resistance, where=pull.up, min=1.5k)`.
 
 `std.count(what, min, max)` requires at least one bound and counts endpoints
 matching `what`. `std.any(what)` asserts at least one match. `std.all(what,
 where=())` asserts that every endpoint selected by `where` matches `what`. Empty
 count is zero, empty any is false, and empty all is true. Available predicates
 include `std.active_digital_driver`, `std.power_source`, `std.digital_compatible`,
-`std.open_drain_compatible`, `std.open_source_compatible`, and
+`std.idle_high_compatible`, `std.idle_low_compatible`, and
 `std.tristate_capable`. Active drive and the capability to tri-state are separate
 facts; runtime enable states are not inferred.
 
@@ -1882,7 +1925,7 @@ This two-part test board connects a resistor between an external digital signal
 and ground. `main.nosch`:
 
 ```nosch
-from noscheme import role, net, use
+from noscheme import role, net, use, drive
 
 component Resistor:
   params:

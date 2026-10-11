@@ -114,7 +114,7 @@ def extract(netlist, source, output):
         "passive": "passive",
         "power_in": "power_input",
         "power_out": "power_output",
-        "open_collector": "open_drain",
+        "open_collector": "drive.low",
     }
     component_types, ref_types = {}, {}
     for ref, c in sorted(components.items()):
@@ -133,7 +133,7 @@ def extract(netlist, source, output):
         ref_types[ref] = key
     part_lines = [
         "// Generated from KiCad's XML netlist; see ../README.md.",
-        "from noscheme import role, use",
+        "from noscheme import role, use, drive",
         "",
     ]
     for key, (c, singletons) in sorted(component_types.items()):
@@ -141,7 +141,8 @@ def extract(netlist, source, output):
         if c["pins"]:
             part_lines += ["    pins:"]
         for num, pin in sorted(c["pins"].items()):
-            values = [f"role.{roles[pin['type']]}"] + (
+            behavior = roles[pin["type"]]
+            values = [behavior if behavior.startswith("drive.") else f"role.{behavior}"] + (
                 ["use.optional"] if num in singletons else []
             )
             shown = values[0] if len(values) == 1 else "[" + ", ".join(values) + "]"
@@ -271,7 +272,7 @@ def extract(netlist, source, output):
     (output / "main.nosch").write_text(format_source("\n".join(lines)))
     (output / "instance_map.json").write_text(json.dumps(mapping, indent=2, sort_keys=True) + "\n")
     (output / "noscheme.toml").write_text(
-        'language_version = "0.1"\nboard = "main.WrenFull"\nsource_paths = ["."]\nlibrary_paths = []\noutput_dir = "build"\n'
+        'language_version = "0.1"\nsource_paths = ["."]\nlibrary_paths = []\noutput_dir = "build"\n\n[targets.default]\nroot = "main.WrenFull"\noutput_dir = "build"\n'
     )
     print(
         f"{len(components)} parts; {len(nets)} connected nets; {len(no_connect)} no-connect pins; {len(definitions)} sheet definitions"

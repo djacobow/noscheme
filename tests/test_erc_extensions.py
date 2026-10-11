@@ -9,24 +9,24 @@ from noscheme.erc import apply_erc, check_circuit
 from noscheme.resolve import resolve_project
 from test_circuit import compile_source, make
 
-SOURCE = """from noscheme import bias, std
+SOURCE = """from noscheme import pull, std, drive
 component Pull:
   pins:
     1:
       role: role.passive
-      bias: bias.pull_up
+      pull: pull.up
       pull_resistance: 4700
       capacitance: 2p
 component Device:
   pins:
     1:
-      role: role.open_drain
-      bias: bias.none
+      drive: drive.low
+      pull: pull.none
       capacitance: 10p
 block B:
-  net.open_drain bus:
+  net.idle_high bus:
     checks:
-      pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=2500, max=5000)
+      up: std.parallel(pull_resistance, where=pull.up, min=2500, max=5000)
       capacitance: std.sum(capacitance, net=wiring_capacitance, max=20p)
     wiring_capacitance: 2p
   Pull pull[2]:
@@ -49,7 +49,7 @@ def test_parallel_pulls_count_each_physical_pin_once(tmp_path):
 
 def test_capacitance_and_resistance_overload(tmp_path):
     result = check(tmp_path, SOURCE.replace("max=20p", "max=15p"))
-    assert {d.application for d in result} == {"net:bus:pull_up", "net:bus:capacitance"}
+    assert {d.application for d in result} == {"net:bus:up", "net:bus:capacitance"}
 
 
 def test_no_limits_means_no_budget_warnings(tmp_path):
@@ -78,19 +78,23 @@ def test_known_minimum_violation_with_unknown_additional_pull(tmp_path):
   pins:
     1:
       role: role.passive
-      bias: bias.pull_up
+      pull: pull.up
       capacitance: 0p
 block B:
   Unknown unknown:
     1: bus
 """,
     )
-    result = [d for d in check(tmp_path, source) if d.application.endswith(":pull_up")]
+    result = [d for d in check(tmp_path, source) if d.application.endswith(":up")]
     assert {d.severity for d in result} == {"error", "warning"}
 
 
-def test_open_source_and_pulldown_symmetry(tmp_path):
-    source = SOURCE.replace("open_drain", "open_source").replace("pull_up", "pull_down")
+def test_pull_high_and_pulldown_symmetry(tmp_path):
+    source = (
+        SOURCE.replace("idle_high", "idle_low")
+        .replace("drive.low", "drive.high")
+        .replace("pull.up", "pull.down")
+    )
     assert [d.code for d in check(tmp_path, source)] == ["erc.std.parallel"]
 
 
@@ -99,7 +103,7 @@ def test_open_source_and_pulldown_symmetry(tmp_path):
     [
         ("pull_resistance: 4700", "pull_resistance: 0"),
         ("capacitance: 10p", "capacitance: -1p"),
-        ("bias: bias.pull_up", "bias: bias.typo"),
+        ("pull: pull.up", "pull: pull.typo"),
     ],
 )
 def test_invalid_builtin_metadata(tmp_path, field, bad):
@@ -109,8 +113,8 @@ def test_invalid_builtin_metadata(tmp_path, field, bad):
 
 def test_bias_satisfies_digital_idle_without_becoming_output(tmp_path):
     source = (
-        SOURCE.replace("net.open_drain", "net.digital")
-        .replace("role.open_drain", "role.digital_input")
+        SOURCE.replace("net.idle_high", "net.digital")
+        .replace("drive: drive.low", "role: role.digital_input")
         .replace("min=2500", "min=2000")
     )
     assert check(tmp_path, source) == ()
@@ -141,8 +145,8 @@ def project(tmp_path, plugin=PLUGIN, source=SOURCE):
 
 def test_extension_schema_and_check_without_grammar_changes(tmp_path):
     source = SOURCE.replace(
-        "  net.open_drain bus:\n",
-        "  net.open_drain bus:\n    demo:\n      max_pins: 2\n",
+        "  net.idle_high bus:\n",
+        "  net.idle_high bus:\n    demo:\n      max_pins: 2\n",
     )
     circuit = project(tmp_path, source=source)
     result = apply_erc(circuit)
@@ -163,8 +167,8 @@ event("load")
         "def register(registry):", 'def register(registry):\n  event("register")'
     ).replace("def check(ctx):", 'def check(ctx):\n  event("check")')
     source = SOURCE.replace(
-        "  net.open_drain bus:\n",
-        "  net.open_drain bus:\n    demo:\n      max_pins: 2\n",
+        "  net.idle_high bus:\n",
+        "  net.idle_high bus:\n    demo:\n      max_pins: 2\n",
     )
     project(tmp_path, plugin=plugin, source=source)
     log = tmp_path / "events.txt"
@@ -191,16 +195,16 @@ def test_plugin_unknown_nested_fields_rejected(tmp_path):
         project(
             tmp_path,
             source=SOURCE.replace(
-                "  net.open_drain bus:\n",
-                "  net.open_drain bus:\n    demo:\n      max_pnis: 2\n",
+                "  net.idle_high bus:\n",
+                "  net.idle_high bus:\n    demo:\n      max_pnis: 2\n",
             ),
         )
 
 
 def test_registered_check_waiver(tmp_path):
     source = SOURCE.replace(
-        "  net.open_drain bus:\n",
-        """  net.open_drain bus:
+        "  net.idle_high bus:\n",
+        """  net.idle_high bus:
     demo:
       max_pins: 2
     waivers:
@@ -283,7 +287,7 @@ def test_inner_port_capacitance_limit_counts_physical_pins_once(tmp_path):
         "block B:",
         """block Receiver:
   ports:
-    net.open_drain bus:
+    net.idle_high bus:
       checks:
         capacitance: std.sum(capacitance, net=wiring_capacitance, max=20p)
   Device inner:

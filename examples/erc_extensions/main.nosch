@@ -1,5 +1,5 @@
 // Electrical-check example; simplified pin models, not a fabrication design.
-from noscheme import role, net, bias, std
+from noscheme import role, net, pull, std, drive
 import demo
 
 // Pull models only the bus-side electrical contribution of a pull-up.
@@ -10,22 +10,22 @@ component Pull:
   pins:
     1:
       role: role.passive
-      bias: bias.pull_up
+      pull: pull.up
       pull_resistance: 4.7k
       capacitance: 2p
 
 component Device:
   pins:
     1:
-      role: role.open_drain
-      bias: bias.none
+      drive: drive.low
+      pull: pull.none
       capacitance: 10p
 
 block B:
-  net.open_drain bus:
+  net.idle_high bus:
     checks:
       pin_count: demo.pin_count(max_pins=3)
-      pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=2k, max=5k)
+      up: std.parallel(pull_resistance, where=pull.up, min=2k, max=5k)
       capacitance: std.sum(capacitance, net=wiring_capacitance, max=20p)
     wiring_capacitance: 2p
   Pull pull[2](1: bus)

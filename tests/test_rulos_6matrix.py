@@ -208,7 +208,7 @@ def test_power_configuration_detects_two_external_sources(tmp_path):
 @pytest.mark.parametrize(
     ("old", "new", "code"),
     [
-        ('    "2": vcc\n\n  Cap0805', '    "2": gnd\n\n  Cap0805', "erc.bias_reference"),
+        ('    "2": vcc\n\n  Cap0805', '    "2": gnd\n\n  Cap0805', "erc.pull_reference"),
         ("I2CPullup<2k>", "I2CPullup<1k>", "erc.std.parallel"),
         ("voltage: 5 ± 5%", "voltage: 4.75..7", "erc.voltage_limits"),
     ],

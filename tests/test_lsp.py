@@ -772,7 +772,7 @@ def test_net_type_navigation_hover_and_checks(tmp_path):
     use = source.index("I2CLine scl")
     assert result.reference_at(path, use).target.start_pos == declaration
     hover = result.hover_at(path, declaration).description
-    assert "nettype main.I2CLine" in hover and "Electrical type: net.open_drain" in hover
+    assert "nettype main.I2CLine" in hover and "Electrical type: net.idle_high" in hover
     call = source.index("std.parallel(pull_resistance")
     assert result.hover_at(path, call).description.startswith("net rule std.parallel(")
 

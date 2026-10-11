@@ -544,6 +544,9 @@ void elaborate_hover(std::vector<LspReference> &references,
       }
       auto net = pin.net ? brief(circuit.nets[*pin.net].name) : "(unconnected)";
       auto detail = "Effective role: " + role + "; net: " + net;
+      for (const auto &field : {"drive", "external_drive", "pull"})
+        if (auto *value = meta_value(pin.metadata, field))
+          detail += "; " + std::string(field) + ": " + shown(to_json(*value));
       if (seen.insert(detail).second)
         reference.description += "\n\n" + detail;
       if (seen.size() == 4)

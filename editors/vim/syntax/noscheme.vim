@@ -17,7 +17,7 @@ syntax keyword noschemeType number string
 syntax keyword noschemeConstant true false no_connect
 syntax match noschemeField /^\s*\zs[A-Za-z_#][A-Za-z0-9_#]*\ze\s*:/
 syntax match noschemeSection /^\s*\zs\%(pins\|ports\|params\|metadata\|elements\|checks\)\ze\s*:/
-syntax match noschemeBuiltin /\<\%(role\|net\|use\|bias\|std\)\.[A-Za-z_#][A-Za-z0-9_#]*\>/
+syntax match noschemeBuiltin /\<\%(role\|drive\|net\|use\|pull\|std\)\.[A-Za-z_#][A-Za-z0-9_#]*\>/
 syntax match noschemeFunction /\<num\.[A-Za-z_#][A-Za-z0-9_#]*\>/
 syntax match noschemeFunction /\.\zsformat\ze\s*(/
 " `<` and `>` hold parameters; `<<` and `>>` are shifts.

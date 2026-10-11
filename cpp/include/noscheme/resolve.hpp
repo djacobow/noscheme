@@ -53,6 +53,7 @@ const Definition *type_definition(const Project &project,
                                   const Definitions &definitions,
                                   const ScopedExpression &type);
 std::set<std::string> possible_selections(const Meta &wrapped);
+void validate_drive(const MetaFields &metadata);
 bool attached_role(const Definition &definition, const std::string &pin);
 std::vector<std::string>
 metadata_field_order(const MetaFields &values,

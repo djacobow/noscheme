@@ -6,14 +6,14 @@ from noscheme.diagnostics import DiagnosticError
 from noscheme.erc import check_circuit
 from test_circuit import compile_source
 
-SOURCE = """from noscheme import bias, std
+SOURCE = """from noscheme import pull, std, drive
 component Pull:
   params:
     resistance resistance = 4.7k
   pins:
     1:
       role: role.passive
-      bias: bias.pull_up
+      pull: pull.up
       pull_resistance: resistance
       capacitance: resistance * 1f
   metadata:
@@ -21,12 +21,12 @@ component Pull:
 component Device:
   pins:
     1:
-      role: role.open_drain
-      bias: bias.none
+      drive: drive.low
+      pull: pull.none
 block B:
-  net.open_drain bus:
+  net.idle_high bus:
     checks:
-      pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=1k + 1k)
+      up: std.parallel(pull_resistance, where=pull.up, min=1k + 1k)
   Pull<resistance: 3.3k> pull:
     1: bus
   Device device:

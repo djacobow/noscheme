@@ -48,7 +48,7 @@ def compare(
         else "  metadata:\n" + "\n".join("    " + line for line in text.splitlines())
     )
     source = (
-        "from noscheme import role, use, bias, num, std\nfrom noscheme import role as r\ncomponent Part:\n"
+        "from noscheme import role, use, pull, num, std, drive\nfrom noscheme import role as r\ncomponent Part:\n"
         + body
         + "\nblock B:\n  Part p\n"
     )
@@ -140,7 +140,7 @@ def test_values(probe, tmp_path, text, scope):
 @pytest.mark.parametrize(
     "text,scope,locals",
     [
-        ("[role.open_drain, bias.none, use.optional]", "pin", ()),
+        ("[drive.low, pull.none, use.optional]", "pin", ()),
         ("[role.passive, role.digital_input]", "pin", ()),
         ("[]", "pin", ()),
         ("role.passive\n      role: role.passive", "pin", ()),
@@ -159,7 +159,7 @@ def test_pin_shorthand(probe, tmp_path, text, scope, locals):
 PLUGIN = """def register(r):
     r.fields("component", {
         "ratings": {"volts": "voltage", "amps": "current"},
-        "mode": ("bias", {"none", "pull_up"}),
+        "mode": ("pull", {"none", "up"}),
         "flags": "attributes", "resistance": "resistance",
     })
 """
@@ -171,12 +171,12 @@ PLUGIN = """def register(r):
         "ratings:\n  volts: -3\n  amps: budget * 2",
         'ratings:\n  volts: "bad"',
         "ratings: 1",
-        'mode: "pull_up"',
-        "mode: bias.none",
-        "mode: bias.bad",
+        'mode: "up"',
+        "mode: pull.none",
+        "mode: pull.bad",
         "resistance: 0",
         "resistance: 4.7k",
-        "flags:\n  role: role.passive\n  nested:\n    mode: bias.none",
+        "flags:\n  role: role.passive\n  nested:\n    mode: pull.none",
         "flags:\n  role: role.bad",
     ],
 )
@@ -261,13 +261,13 @@ def test_specialized_forms(probe, tmp_path, scope, text):
     "scope,text",
     [
         ("net", 'checks:\n  cap: std.sum(capacitance, max=limit * 2, missing="error")'),
-        ("net", "checks:\n  any: std.any([role.open_drain, bias.pull_up, tristate_capable])"),
+        ("net", "checks:\n  any: std.any([drive.low, pull.up, tristate_capable])"),
         ("net", "checks:\n  any: std.any([])"),
         ("net", "checks:\n  cap: std.sum()"),
-        ("pin", 'checks:\n  ref: std.bias_reference("1")'),
+        ("pin", 'checks:\n  ref: std.pull_reference("1")'),
         ("port", "checks:\n  cap: std.sum(capacitance, max=400p)"),
         ("pin", "checks:\n  cap: std.sum(capacitance, max=400p)"),
-        ("net", 'checks:\n  ref: std.bias_reference("1")'),
+        ("net", 'checks:\n  ref: std.pull_reference("1")'),
         ("net", "checks:\n  bad: 1"),
         ("net", "checks:\n  bad: std.unknown()"),
         ("net", "checks:\n  bad: std.any(role.passive, role.passive)"),
@@ -279,7 +279,7 @@ def test_specialized_forms(probe, tmp_path, scope, text):
         ("net", 'checks:\n  bad: std.sum("capacitance", max=2)'),
         ("net", "checks:\n  bad: std.any(123)"),
         ("net", "checks:\n  bad: std.any(role.bad)"),
-        ("net", "checks:\n  bad: std.any(bias.bad)"),
+        ("net", "checks:\n  bad: std.any(pull.bad)"),
         ("net", "checks: 1"),
         ("net", "checks:\n  bad:\n    value: 1"),
         ("block", 'erc_choices:\n  supply#: ["usb", "header"]'),
@@ -338,7 +338,7 @@ def test_forms_and_diagnostics(probe, tmp_path, scope, text):
     [
         ("checks:\n  x: std.any(role.passive)", {"std"}),
         ("checks:\n  x: std.any(role.passive)", {"role"}),
-        ("checks:\n  x: std.any(bias.none)", {"bias"}),
+        ("checks:\n  x: std.any(pull.none)", {"pull"}),
         ("checks:\n  x: std.any(tristate_capable)", {"tristate_capable"}),
     ],
 )
@@ -351,7 +351,7 @@ RULE_PLUGIN = """def register(r):
     r.fields("net", {"budget": "current"})
     r.predicate("demo.active", lambda endpoint: True)
     r.net_rule("demo.check", lambda ctx, **kw: None,
-               parameters={"z": "field", "a": "net_fields", "where": "selector", "mode": ("bias", ("none", "pull_up"))})
+               parameters={"z": "field", "a": "net_fields", "where": "selector", "mode": ("pull", ("none", "up"))})
 """
 
 
@@ -359,7 +359,7 @@ RULE_PLUGIN = """def register(r):
     "call",
     [
         'check(load, [budget], [active, enabled], "none")',
-        "check(load, budget, [], bias.pull_up)",
+        "check(load, budget, [], pull.up)",
         'check(load, [budget, budget], active, "none")',
         'check(load, [max_load_current], active, "none")',
         'check(load, "budget", active, "none")',
@@ -401,7 +401,7 @@ def test_inherited_application(probe, tmp_path, parent_call, child_call):
     config = make_project(
         tmp_path,
         {
-            "src/main.nosch": f"""from noscheme import std, role
+            "src/main.nosch": f"""from noscheme import std, role, drive
 component Parent:
   metadata:
     checks:

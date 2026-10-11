@@ -36,7 +36,7 @@
     },
     {
       "name": "support.constant.noscheme",
-      "match": "(?<![\\w#])(?:role|net|use|bias|std)\\.[A-Za-z_#][A-Za-z0-9_#]*"
+      "match": "(?<![\\w#])(?:role|drive|net|use|pull|std)\\.[A-Za-z_#][A-Za-z0-9_#]*"
     },
     {
       "name": "constant.numeric.noscheme",

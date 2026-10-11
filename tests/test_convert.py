@@ -210,13 +210,14 @@ def test_footprint_filter_globs(name, pattern, expected):
 
 
 @pytest.mark.parametrize(
-    "kind,role", [("open_emitter", "open_source"), ("open_collector", "open_drain")]
+    "kind,role", [("open_emitter", "pull_high"), ("open_collector", "pull_low")]
 )
 def test_open_output_conversion(tmp_path, kind, role):
     source = library(tmp_path / "Test.kicad_sym", symbol("C", [pin("1", "OUT", kind)]))
     report = convert_library(source, tmp_path / "out")
     assert not any(i["check"] == "unmapped_pin_type" for i in report["issues"])
-    assert f"role: role.{role}" in (tmp_path / "out/Test.nosch").read_text()
+    assert any(i["check"] == "assumed_drive_direction" for i in report["issues"])
+    assert f"drive: drive.{role.removeprefix('pull_')}" in (tmp_path / "out/Test.nosch").read_text()
 
 
 def test_free_pin_type_does_not_silently_disable_erc(tmp_path):
@@ -224,3 +225,18 @@ def test_free_pin_type_does_not_silently_disable_erc(tmp_path):
     report = convert_library(source, tmp_path / "out")
     assert any(i["check"] == "unmapped_pin_type" for i in report["issues"])
     assert "role: role.unchecked" not in (tmp_path / "out/Test.nosch").read_text()
+
+
+@pytest.mark.parametrize(
+    "other,ambiguous", [("input", False), ("output", True), ("open_emitter", True)]
+)
+def test_stacked_directional_pins_do_not_emit_invalid_roles(tmp_path, other, ambiguous):
+    source = library(
+        tmp_path / "Test.kicad_sym",
+        symbol("C", [pin("1", "OUT", "open_collector"), pin("1", "OTHER", other)]),
+    )
+    report = convert_library(source, tmp_path / "out")
+    text = (tmp_path / "out/Test.nosch").read_text()
+    assert ("drive: drive.low" in text) != ambiguous
+    assert "role.drive" not in text
+    assert any(i["check"] == "ambiguous_drive" for i in report["issues"]) == ambiguous

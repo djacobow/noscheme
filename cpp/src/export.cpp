@@ -306,10 +306,13 @@ std::string pin_kind(const Json &pin) {
       {"power_input", "power_in"},
       {"ground", "power_in"},
       {"power_output", "power_out"},
-      {"open_drain", "open_collector"},
-      {"open_source", "open_emitter"},
+      {"drive.low", "open_collector"},
+      {"drive.high", "open_emitter"},
       {"unchecked", "unspecified"}};
   auto roles = attribute(pin, "role", Json::array());
+  auto drive = attribute(pin, "drive", Json());
+  if (!drive.is_null())
+    roles = Json::array({drive == "low" ? "drive.low" : "drive.high"});
   std::string kind = "unspecified";
   if (roles.size() == 1 && types.contains(roles[0]))
     kind = types.at(roles[0]);

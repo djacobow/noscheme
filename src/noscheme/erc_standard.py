@@ -12,6 +12,8 @@ NET_FAMILIES = {
     "unused_pin": (),  # Retained registry name; only physical-pin applications emit it.
     "unconnected_net": (erc_connections,),
     "missing_driver": (erc_drivers,),
+    "missing_pull": (erc_drivers,),
+    "opposing_pull": (erc_drivers,),
     "multiple_drivers": (erc_drivers,),
     "power_ground_conflict": (erc_drivers,),
     "incomplete_roles": (erc_drivers,),

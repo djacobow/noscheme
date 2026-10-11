@@ -1,5 +1,6 @@
 """Public port connection policies and aggregate role contracts."""
 
+from .erc_views import effective_roles
 from .ast import Span
 from .circuit import path_text
 from .diagnostics import Related
@@ -11,11 +12,19 @@ def check_port(port, endpoints, emit, connection):
     """Check the block side of a public boundary without inventing endpoints."""
     scope = port["scope"]
     label = path_text(port["path"])
-    roles = set(attribute(port, "role", []))
+    roles = set(effective_roles(port, external=False))
     policy = attribute(port, "use", "explicit")
     binding = port["binding"]
-    internal = [(name, pin) for name, pin in endpoints if pin["scope"][: len(scope)] == scope]
-    external = [(name, pin) for name, pin in endpoints if pin["scope"][: len(scope)] != scope]
+    internal = [
+        (name, pin)
+        for name, pin in endpoints
+        if pin["scope"][: len(scope)] == scope and name != label
+    ]
+    external = [
+        (name, pin)
+        for name, pin in endpoints
+        if pin["scope"][: len(scope)] != scope or name == label
+    ]
     if policy == "disallowed":
         if binding == "connected":
             emit("do_not_connect", f"port {label} must not connect to a caller net", port, label)
@@ -48,7 +57,7 @@ def check_port(port, endpoints, emit, connection):
         return
     known, unknown, alternatives = set(), False, []
     for _, pin in internal:
-        possible = set(attribute(pin, "external_role", attribute(pin, "role", [])))
+        possible = set(effective_roles(pin))
         if len(possible) != 1 or "unchecked" in possible:
             unknown = True
         else:

@@ -424,7 +424,8 @@ block B:
 
 # Python tests whose projects exercise ERC rules, waivers, and configurations.
 CORPUS_TESTS = [
-    "test_bias_reference.py",
+    "test_pull_reference.py",
+    "test_drive_pull.py",
     "test_current_loads.py",
     "test_erc.py",
     "test_erc_applications.py",

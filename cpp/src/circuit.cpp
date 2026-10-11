@@ -531,12 +531,14 @@ class Elaborator {
             for (const auto &key : physical_keys(f.key)) {
               auto pin = definition.aliases.at(key);
               auto attrs = values;
-              if (auto role = attrs.find("role");
-                  role != attrs.end() && attached_role(definition, pin)) {
-                auto moved = role->second;
-                attrs.erase(role);
-                attrs.insert_or_assign("external_role", std::move(moved));
-              }
+              for (const auto &field : {"role", "drive"})
+                if (auto role = attrs.find(field);
+                    role != attrs.end() && attached_role(definition, pin)) {
+                  auto moved = role->second;
+                  attrs.erase(role);
+                  attrs.insert_or_assign(std::string("external_") + field,
+                                         std::move(moved));
+                }
               annotations[pin] = merge_metadata(annotations[pin], attrs);
             }
           }

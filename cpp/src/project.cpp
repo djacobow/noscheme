@@ -36,8 +36,8 @@ bool is_identifier(std::string_view text) {
 namespace {
 const std::regex
     qualified(R"([A-Za-z_#][A-Za-z0-9_#]*(\.[A-Za-z_#][A-Za-z0-9_#]*)*)");
-const std::set<std::string> builtins{"role", "net",  "use",
-                                     "num",  "bias", "std"};
+const std::set<std::string> builtins{"role",  "net",  "use", "num",
+                                     "drive", "pull", "std"};
 fs::path resolved(const fs::path &path) {
   return fs::weakly_canonical(fs::absolute(path));
 }

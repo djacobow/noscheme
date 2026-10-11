@@ -1,17 +1,17 @@
 // Adapted from Jeremy Elson / rulos. See README.md.
-from noscheme import net, role, bias, std
+from noscheme import net, role, pull, std
 
 // PCA9600 SX/SY can source 1mA internally; reserve only 2mA of a
 // standard 3mA sink budget for external pull-ups. 3.6V / 2mA = 1.8k.
 // This checks nominal resistance, not rise time or resistor tolerance.
-extend net.open_drain LocalI2C:
+extend net.idle_high LocalI2C:
   checks:
     capacitance: std.sum(capacitance, net=wiring_capacitance, max=400p)
-    pull_up: std.parallel(pull_resistance, where=[role.passive, bias.pull_up], min=1.8k)
+    up: std.parallel(pull_resistance, where=[role.passive, pull.up], min=1.8k)
 
 // Buffered cable side: distinct from the 400pF local I2C limit.
 // Caller supplies wiring and per-port connector/cable/downstream allowances.
-extend net.open_drain BufferedI2C:
+extend net.idle_high BufferedI2C:
   checks:
     capacitance: std.sum(capacitance, net=wiring_capacitance, max=4n)
 

@@ -8,6 +8,8 @@ transaction.
 
 from copy import deepcopy
 import hashlib
+from ..erc_views import effective_roles
+
 import json
 import os
 from pathlib import Path
@@ -220,8 +222,8 @@ KICAD_PIN_TYPES = {
     "power_input": "power_in",
     "ground": "power_in",
     "power_output": "power_out",
-    "open_drain": "open_collector",
-    "open_source": "open_emitter",
+    "drive.low": "open_collector",
+    "drive.high": "open_emitter",
     "unchecked": "unspecified",
 }
 
@@ -234,7 +236,7 @@ def libpart_pins(parts):
         aliases = attribute(records[0], "aliases", [])
         kinds = set()
         for record in records:
-            roles = attribute(record, "role", [])
+            roles = effective_roles(record, external=False)
             kind = (
                 KICAD_PIN_TYPES.get(roles[0], "unspecified") if len(roles) == 1 else "unspecified"
             )

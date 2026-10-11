@@ -1,5 +1,5 @@
 // Electrical-model demonstration, not a fabrication design.
-from noscheme import role, use, net, bias, std
+from noscheme import role, use, net, pull, std, drive
 
 component Pullup:
   params:
@@ -11,9 +11,9 @@ component Pullup:
     2 (signal):
       role: role.passive
       use: use.required
-      bias: bias.pull_up
+      pull: pull.up
       checks:
-        reference: std.bias_reference("supply")
+        reference: std.pull_reference("supply")
       pull_resistance: value
   metadata:
     ref_prefix: "R"
@@ -22,8 +22,8 @@ component Pullup:
 component Endpoint:
   pins:
     1:
-      role: role.open_drain
-      bias: bias.none
+      drive: drive.low
+      pull: pull.none
       min_voltage: -0.3
       max_voltage: 3.6
       use: use.required
@@ -36,11 +36,11 @@ block Demo:
   net.power supply:
     min_voltage: 3.3 * 0.95
     max_voltage: 3.3 * 1.05
-  net.open_drain bus:
+  net.idle_high bus:
     min_voltage: 0
     max_voltage: 3.3 * 1.05
     checks:
-      pull_up: std.parallel(pull_resistance, where=bias.pull_up, min=1k)
+      up: std.parallel(pull_resistance, where=pull.up, min=1k)
   Pullup pulls[2](supply: supply, signal: bus):
     elements:
       [0]:

@@ -9,7 +9,7 @@ from .formatter import INDENT
 from .parser import parse
 from .lsp_bundles import BundleLookup
 from .erc_registry import namespace, signature
-from .metadata import MISSING, NETTYPES, PIN_SCOPES, ROLES, endpoint_fields
+from .metadata import MISSING, NETTYPES, PIN_SCOPES, endpoint_fields
 from .project import ERC_MODULE, IDENTIFIER, load_project, net_type
 from .resolve import Resolver
 from .syntax import comment_lexer
@@ -647,7 +647,7 @@ def completion_items(path, config, sources, offset):
     masked = masked_source(source, offset)
     if masked is None or config is None:
         return []
-    from .lsp_scope_completion import ancestors, scope_completion
+    from .lsp_scope_completion import VALUES, ancestors, scope_completion
 
     for complete in (scope_completion, parameter_completion, inline_completion, bundle_completion):
         if found := complete(path, config, sources, offset, masked):
@@ -691,16 +691,9 @@ def completion_items(path, config, sources, offset):
         if namespace:
             name = namespace[1]
             imported = module.symbols.get(name)
-            if (
-                imported is None
-                or imported.module != "noscheme"
-                or imported.name not in {"role", "net"}
-            ):
+            if imported is None or imported.module != "noscheme" or imported.name not in VALUES:
                 return []
-            choices = [
-                (v, v, f"{name}.{v}", "enum")
-                for v in (ROLES if imported.name == "role" else NETTYPES)
-            ]
+            choices = [(v, v, f"{name}.{v}", "enum") for v in VALUES[imported.name]]
         elif base_type:
             choices = type_choices(module, {"component", "block", "nettype"}, builtin_nets=True)
         elif declared_type:

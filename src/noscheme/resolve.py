@@ -317,6 +317,8 @@ class Resolver:
             if parent
             else tuple(n for n in source.body if isinstance(n, (a.Net, a.Instance)))
         )
+        for pin in interface.values():
+            validate_drive(pin.metadata)
         combined = merge(parent.metadata, metadata) if parent else metadata
         if source.kind == "component":
             combined = validate_current_loads(combined, interface, aliases)
@@ -856,12 +858,15 @@ class Resolver:
                 for key in ("role", "external_role"):
                     if key in values:
                         validate_selection(values[key], choices)
-                if "external_role" in values and target.kind == "component":
+                if (
+                    any(k in values for k in ("external_role", "external_drive"))
+                    and target.kind == "component"
+                ):
                     fail(
                         "metadata.role",
                         "write role on a component pin: on a passive or undeclared contact it "
                         "describes the attached equipment",
-                        values["external_role"].span,
+                        values.get("external_role", values.get("external_drive")).span,
                     )
                 for name in self.keys(field.key):
                     pin = target.aliases.get(name)
@@ -875,6 +880,18 @@ class Resolver:
                             related=[Related("previous annotation", seen[pin])],
                         )
                     seen[pin] = field.span
+                    validate_drive(merge(target.interface[pin].metadata, values))
+                    declared_drive = target.interface[pin].metadata.get("drive")
+                    if (
+                        "drive" in values
+                        and declared_drive is not None
+                        and values["drive"].value != declared_drive.value
+                    ):
+                        fail(
+                            "metadata.constraint",
+                            "instance drive differs from the definition drive",
+                            values["drive"].span,
+                        )
                     permitted = target.interface[pin].metadata.get("role")
                     if (
                         "role" in values
@@ -889,6 +906,17 @@ class Resolver:
                         )
 
 
+def validate_drive(metadata):
+    """Directional digital drive cannot relabel an analog or power endpoint."""
+    allowed = {"passive", "digital_input", "digital_output", "digital_bidirectional", "unchecked"}
+    for prefix in ("", "external_"):
+        drive, role = metadata.get(prefix + "drive"), metadata.get(prefix + "role")
+        if drive is not None and role is not None and not possible_selections(role) <= allowed:
+            fail(
+                "metadata.drive", "directional drive requires a digital or passive role", drive.span
+            )
+
+
 def attached_role(definition, pin):
     """Whether an instance's role for a component pin describes attached equipment.
 
@@ -898,16 +926,20 @@ def attached_role(definition, pin):
     instance role selects among the declared roles.
     """
     declared = definition.interface[pin].metadata.get("role")
-    return definition.kind == "component" and (
-        declared is None or set(possible_selections(declared)) <= {"passive"}
+    return (
+        definition.kind == "component"
+        and "drive" not in definition.interface[pin].metadata
+        and (declared is None or set(possible_selections(declared)) <= {"passive"})
     )
 
 
 def instance_roles(definition, pin, values):
-    """Store an attached-equipment role as the elaborated external_role attribute."""
-    if "role" in values and attached_role(definition, pin):
+    """Store attached-equipment role/drive as external_role/external_drive attributes."""
+    if attached_role(definition, pin):
         values = dict(values)
-        values["external_role"] = values.pop("role")
+        for key in ("role", "drive"):
+            if key in values:
+                values["external_" + key] = values.pop(key)
     return values
 
 

@@ -8,7 +8,7 @@ of a pull-up. The STM32 example's `I2CPullup` shows a real two-terminal resistor
 numeric `max_pins` parameter. `main.nosch` imports that namespace with
 `import demo` and applies `demo.pin_count(max_pins=3)` alongside two generic
 reductions: `std.parallel` for pull resistance and `std.sum` for capacitance.
-The device declares `bias.none`; it is known not to contribute a pull.
+The device declares `pull.none`; it is known not to contribute a pull.
 
 Run `uv run --locked noscheme check --project examples/erc_extensions` from the repository
 root. Lower a limit to see an application-specific diagnostic, or remove a

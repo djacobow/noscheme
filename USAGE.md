@@ -391,8 +391,10 @@ and fails if a file would change; `--diff` prints the changes instead of writing
 them. Files it cannot format are reported, and the command then fails.
 `load`, `resolve`, and `evaluate` are inspection stages, not electrical validation.
 
-Conversion maps KiCad `open_collector` to `role.open_drain` and `open_emitter`
-to `role.open_source`. `free` and `unspecified` remain unmapped, retain their
+Conversion maps KiCad `open_collector` to `drive.low` and `open_emitter`
+to `drive.high`, reporting `assumed_drive_direction` so the device datasheet
+can be checked for polarity. Conflicting stacked directional types require an
+explicit annotation and produce `ambiguous_drive`. `free` and `unspecified` remain unmapped, retain their
 original type in custom metadata, and produce conversion issues. They do not
 silently become unchecked endpoints.
 

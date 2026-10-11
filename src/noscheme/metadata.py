@@ -10,7 +10,9 @@ from .erc_rules import WAIVABLE, CHECKS
 from .units import constraint, number_value
 from .integers import MIN_INTEGER, MAX_INTEGER
 
-BIAS_VALUES = {"pull_up", "pull_down", "none"}
+DRIVE_VALUES = frozenset({"low", "high"})
+
+PULL_VALUES = frozenset({"up", "down", "none"})
 
 ROLES = frozenset(
     {
@@ -24,8 +26,6 @@ ROLES = frozenset(
         "power_input",
         "power_output",
         "ground",
-        "open_drain",
-        "open_source",
         "unchecked",
     }
 )
@@ -37,8 +37,8 @@ NETTYPES = frozenset(
         "analog",
         "power",
         "ground",
-        "open_drain",
-        "open_source",
+        "idle_high",
+        "idle_low",
         "bidirectional",
         "unchecked",
     }
@@ -462,7 +462,8 @@ def read_value(key, kind, expr, scope, project, module, local_names=()):
         if scope == "attributes" and isinstance(expr, a.Member):
             symbol = project.modules[module].symbols.get(expression_path(expr.base))
             alternatives = {
-                "bias": BIAS_VALUES,
+                "pull": PULL_VALUES,
+                "drive": DRIVE_VALUES,
                 "role": ROLES,
                 "net": NETTYPES,
                 "use": USE_POLICIES,
@@ -487,13 +488,13 @@ def read_value(key, kind, expr, scope, project, module, local_names=()):
 
 
 # Builtin namespaces whose values may stand alone in a pin entry, and the field each sets.
-SHORTHAND = {"role": "role", "bias": "bias", "use": "use"}
+SHORTHAND = {"drive": "drive", "role": "role", "pull": "pull", "use": "use"}
 
 
 def pin_metadata(field, scope, project, module, local_names=()):
     """Read a pin entry: builtin values in its value position, then indented fields.
 
-    `3: [role.open_drain, bias.none]` sets role and bias; several values from one
+    `3: [drive.low, pull.none]` sets drive and pull; several values from one
     namespace form a list, such as a definition's permitted roles.
     """
     result = read_metadata(field.fields, scope, project, module, local_names)
@@ -525,7 +526,7 @@ def pin_metadata(field, scope, project, module, local_names=()):
         if symbol is None or symbol.module != "noscheme" or symbol.name not in SHORTHAND:
             fail(
                 "metadata.shorthand",
-                "a pin entry's value lists builtin role, bias, or use values",
+                "a pin entry's value lists builtin role, drive, pull, or use values",
                 item.span,
             )
         groups.setdefault(SHORTHAND[symbol.name], []).append(item)
@@ -654,7 +655,7 @@ def declared_choices(definition):
 def registered_name(expr, project, module, local_names=()):
     """Resolve an imported rule or predicate reference to its registered name, or None.
 
-    `from noscheme import std` exposes std.NAME; an import of a project ERC
+    `from noscheme import std` exposes std.NAME; an import of a project ERC, drive
     namespace binds its registered names like module members.
     """
     path = expression_path(expr)
@@ -681,7 +682,7 @@ def endpoint_fields(project, scopes=PIN_SCOPES):
 
 
 def read_selector(expr, project, module, local_names=()):
-    """Read a predicate, role or bias value, boolean field name, or a list of them."""
+    """Read a predicate, role or pull value, boolean field name, or a list of them."""
     symbols = project.modules[module].symbols
     fields = endpoint_fields(project)
     terms = []
@@ -692,15 +693,24 @@ def read_selector(expr, project, module, local_names=()):
             terms.append(("predicate", name))
         elif base is not None and base.module == "noscheme" and base.name == "role":
             terms.append(("role", enum(item, "role", ROLES, project, module, local_names)))
-        elif base is not None and base.module == "noscheme" and base.name == "bias":
-            value = enum(item, "bias", BIAS_VALUES, project, module, local_names)
-            terms.append(("field", "bias", value))
+        elif base is not None and base.module == "noscheme" and base.name in {"pull", "drive"}:
+            value = enum(
+                item,
+                base.name,
+                PULL_VALUES if base.name == "pull" else DRIVE_VALUES,
+                project,
+                module,
+                local_names,
+            )
+            terms.append(
+                ("role", "drive." + value) if base.name == "drive" else ("field", "pull", value)
+            )
         elif isinstance(item, a.Name) and fields.get(item.text) == "bool":
             terms.append(("field", item.text, True))
         else:
             fail(
                 "erc.application",
-                "a selector is a predicate, a role or bias value, a boolean field name, "
+                "a selector is a predicate, a role or pull value, a boolean field name, "
                 "or a list of them",
                 item.span,
             )

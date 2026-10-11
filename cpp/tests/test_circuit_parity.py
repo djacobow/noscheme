@@ -580,7 +580,7 @@ def test_named_net_type_metadata(probe, tmp_path):
         probe,
         tmp_path,
         """from noscheme import std
-extend net.open_drain Bus:
+extend net.idle_high Bus:
   checks:
     capacitance: std.sum(capacitance, max=400p)
 extend Bus Child:

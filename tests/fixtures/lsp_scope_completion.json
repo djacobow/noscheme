@@ -211,11 +211,11 @@
     ]
   },
   {
-    "name": "enum-bias",
-    "source": "from noscheme import role as r, net, use as u, num as n, std, bias as b\ncomponent Part:\n  params:\n    number value = 1\n  pins:\n    1:\n      role: r.passive\n      bias: |\nblock B:\n  global net.power vcc\nblock Unit:\n  params:\n    number count = 2\n    number resistance = 4700\n  ports:\n    net.passive signal\n  net.passive wire\n",
+    "name": "enum-pull",
+    "source": "from noscheme import role as r, net, use as u, num as n, std, pull as b\ncomponent Part:\n  params:\n    number value = 1\n  pins:\n    1:\n      role: r.passive\n      pull: |\nblock B:\n  global net.power vcc\nblock Unit:\n  params:\n    number count = 2\n    number resistance = 4700\n  ports:\n    net.passive signal\n  net.passive wire\n",
     "include": [
-      "b.pull_up",
-      "b.pull_down"
+      "b.up",
+      "b.down"
     ],
     "exclude": [
       "count",
@@ -319,6 +319,30 @@
       "Unit",
       "wire",
       "signal"
+    ]
+  },
+  {
+    "name": "enum-drive",
+    "source": "from noscheme import role as r, net, use as u, num as n, std, drive as d\ncomponent Part:\n  params:\n    number value = 1\n  pins:\n    1:\n      role: r.passive\n      drive: |\nblock B:\n  global net.power vcc\nblock Unit:\n  params:\n    number count = 2\n    number resistance = 4700\n  ports:\n    net.passive signal\n  net.passive wire\n",
+    "include": [
+      "d.low",
+      "d.high"
+    ],
+    "exclude": [
+      "r.open_drain",
+      "r.open_source"
+    ]
+  },
+  {
+    "name": "pin-drive-shorthand",
+    "source": "from noscheme import drive, pull, net\ncomponent Part:\n  pins:\n    1: drive.|\nblock B:\n  net.passive wire\n",
+    "include": [
+      "low",
+      "high"
+    ],
+    "exclude": [
+      "open_drain",
+      "open_source"
     ]
   }
 ]

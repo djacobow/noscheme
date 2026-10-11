@@ -263,6 +263,7 @@ Definitions resolve_interfaces(const Project &project,
     }
     for (const auto &pin : result.interface_order) {
       const auto &metadata = result.interface.at(pin).metadata;
+      validate_drive(metadata);
       auto found = metadata.find("aliases");
       if (found == metadata.end())
         continue;

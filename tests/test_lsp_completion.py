@@ -228,7 +228,7 @@ block B:
   net.passive bus
 """
     assert set(complete(tmp_path, pin)) == {
-        "bias_reference",
+        "pull_reference",
         "current_groups",
         "pin_do_not_connect",
         "pin_required_connection",

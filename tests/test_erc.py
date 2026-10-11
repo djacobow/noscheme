@@ -8,10 +8,15 @@ from test_circuit import compile_source, make, ROOT
 
 
 def component(role="passive", use="explicit", extra=""):
+    field = (
+        "drive: drive." + role.removeprefix("pull_")
+        if role in {"pull_low", "pull_high"}
+        else "role: role." + role
+    )
     return f"""component P:
   pins:
     1:
-      role: role.{role}
+      {field}
       use: use.{use}
 {extra}  metadata:
     footprint: "Test:P"
@@ -85,7 +90,9 @@ def test_placeholder_cannot_satisfy_required_pin(tmp_path):
 
 
 def pair(tmp_path, role1, role2, nettype="digital", metadata1="", metadata2=""):
-    parts = component(role1, extra=metadata1).replace("component P:", "component A:")
+    parts = "from noscheme import drive\n" + component(role1, extra=metadata1).replace(
+        "component P:", "component A:"
+    )
     parts += component(role2, extra=metadata2).replace("component P:", "component Z:")
     return compile_source(
         tmp_path,
@@ -162,7 +169,7 @@ def test_uart_and_button_draft_connectivity(tmp_path, stm32_libraries):
     )
     c = compile_source(
         tmp_path,
-        source.replace("from noscheme import role, net, bias", "from noscheme import bias"),
+        source.replace("from noscheme import role, net, pull", "from noscheme import pull"),
     )
     parts = {tuple(p["path"]): p for p in c["parts"]}
     for i in range(2):

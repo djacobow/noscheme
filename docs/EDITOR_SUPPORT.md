@@ -606,7 +606,7 @@ Use `:LspHover` on a declaration or use. Hover includes:
 - Nets and bundle fields: declared types, field metadata, and net endpoint counts.
 - Builtin `role`, `net`, and `use` members: explanations of their electrical
   meaning and ERC behavior. This also works with import aliases and qualified
-  names such as `noscheme.role.open_drain`.
+  names such as `noscheme.drive.low`.
 
 Hover uses a bold heading and bullet lists when the client prefers Markdown
 (including vim-lsp), with spacing between elaborated instances. Clients that

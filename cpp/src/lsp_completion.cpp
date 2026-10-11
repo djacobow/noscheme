@@ -389,7 +389,8 @@ CompletionCatalog completion_catalog(const Project &project,
     for (const auto &entry : entries)
       if (entry.description.starts_with("ERC predicate ") ||
           (entry.kind == 20 && (entry.description.starts_with("role.") ||
-                                entry.description.starts_with("bias."))))
+                                entry.description.starts_with("pull.") ||
+                                entry.description.starts_with("drive."))))
         values["selector"].push_back(entry.name);
     for (const auto *scope : {"pin", "instance_pin", "port", "net"})
       for (const auto &field : registry.data.at("schemas").at(scope)) {

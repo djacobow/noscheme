@@ -354,7 +354,7 @@ def test_net_type_rename_updates_extensions_and_uses(tmp_path):
     s = session(tmp_path, source)
     path = tmp_path / "main.nosch"
     result = apply(s.rename(path, source.index("I2CLine:"), "BusLine"), s.sources)[path]
-    assert "extend net.open_drain BusLine" in result
+    assert "extend net.idle_high BusLine" in result
     assert "extend BusLine FastI2CLine" in result
     assert "BusLine scl" in result and "BusLine extra" in result
     assert "I2CLine" not in result.replace("FastI2CLine", "")

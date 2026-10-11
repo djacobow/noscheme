@@ -86,26 +86,26 @@ def test_reductions_optional_members_and_empty_sets():
 
 
 def test_unknown_selector_does_not_turn_optional_resistor_into_short(tmp_path):
-    source = """from noscheme import bias, std
+    source = """from noscheme import pull, std
 component Pull:
   pins:
     1:
       role: role.passive
-      bias: bias.pull_up
+      pull: pull.up
       pull_resistance: 4700
 extend Pull Maybe:
   pins:
     1:
-      bias: bias.none
+      pull: pull.none
 block B:
   net.passive bus:
     checks:
-      strength: std.parallel(pull_resistance, where=bias.pull_up, min=2000)
+      strength: std.parallel(pull_resistance, where=pull.up, min=2000)
   Pull known(1: bus)
   Maybe maybe(1: bus)
 """
     c = circuit(tmp_path, source)
-    del c["parts"][1]["pins"]["1"]["metadata"]["bias"]
+    del c["parts"][1]["pins"]["1"]["metadata"]["pull"]
     result = check_circuit(c)
     assert [d.severity for d in result] == ["warning"]
 
@@ -144,8 +144,8 @@ def test_disconnected_pin_context_and_shared_immutable_graph(tmp_path):
         ("max=1", 'max=1, missing="never"'),
         ("std.any(std.active_digital_driver)", "std.any(std.active_digital_driver, 1)"),
         ("std.any(std.active_digital_driver)", "std.parallel(no_such_field, max=1)"),
-        ("std.any(std.active_digital_driver)", "std.sum(capacitance, net=bias, max=1)"),
-        ("std.any(std.active_digital_driver)", "std.bias_reference()"),
+        ("std.any(std.active_digital_driver)", "std.sum(capacitance, net=pull, max=1)"),
+        ("std.any(std.active_digital_driver)", "std.pull_reference()"),
         ("std.any(std.active_digital_driver)", "std.any"),
     ],
 )

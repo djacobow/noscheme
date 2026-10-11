@@ -1,6 +1,6 @@
 // Adapted from Jeremy Elson / rulos, 6-Line Matrix Rev B. See README.md.
 // Preserve source connectivity, including unused nets and unspecified values.
-from noscheme import net, role
+from noscheme import pull, net, role, drive
 import matrix
 from interfaces import Rows, LocalI2C, BufferedI2C
 from display import TwoColumns
@@ -17,7 +17,7 @@ block SixLineMatrix:
   net.passive bootstrap, feedback, switch_node
   net.ground gnd:
     voltage: 0..0
-  net.open_drain reset#
+  net.idle_high reset#
   net.bidirectional swdio
   LocalI2C scl, sda:
     wiring_capacitance: 50p
@@ -107,7 +107,7 @@ block SixLineMatrix:
         2: role.digital_bidirectional
         4: role.digital_output
         6: role.digital_input
-        10: role.open_drain
+        10: drive.low
 
   I2CBuffer<"PCA9600SO8"> bus_buffer:
     "1": sda
@@ -184,7 +184,9 @@ block SixLineMatrix:
     metadata:
       pins:
         [1, 3]:
-          role: role.open_drain
+          drive: drive.low
+          // Attached bus equipment supplies passive pull-ups; resistance is unknown.
+          pull: pull.up
           // Per port, per signal: connector + cable + downstream devices.
           // All three branches count simultaneously; see README.
           capacitance: 1n

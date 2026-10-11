@@ -17,7 +17,7 @@ def net_results(ctx):
     known, uncertain, types = facts.known, facts.uncertain, facts.types
     _, compatibility_uncertain = compatibility(ctx)
     drivers = [e for e in known if e[0] in {"digital_output", "analog_output", "power_output"}]
-    open_drivers = [e for e in known if e[0] in {"open_drain", "open_source"}]
+    open_drivers = [e for e in known if e[0] in {"drive.low", "drive.high"}]
     # A digital declaration still imposes its ordinary single-driver policy.
     if "tristate" in types and "digital" not in types:
         drivers = [
@@ -42,6 +42,19 @@ def net_results(ctx):
         "ground" in types or any(e[0] == "ground" for e in known)
     ):
         emit("power_ground_conflict", f"net {name!r} connects a power source to ground", origin)
+    for nettype, drive, pull, opposite in (
+        ("idle_high", "drive.low", "up", "down"),
+        ("idle_low", "drive.high", "down", "up"),
+    ):
+        if nettype not in types:
+            continue
+        if not any(e[0] == drive for e in known):
+            emit("missing_driver", f"net {name!r} requires a {drive} endpoint", origin)
+        pulls = {attribute(pin, "pull") for _, pin in endpoints}
+        if pull not in pulls:
+            emit("missing_pull", f"net {name!r} requires a pull.{pull} endpoint", origin)
+        if opposite in pulls:
+            emit("opposing_pull", f"net {name!r} forbids pull.{opposite}", origin)
     # Unknown or selectable endpoint roles cannot be treated as passive.
     # Bidirectional roles need an operating assumption on single-driver nets.
     needs_driver = bool(types & {"digital", "power"})
@@ -66,11 +79,11 @@ def net_results(ctx):
                 severity="warning",
             )
         elif not matching:
-            biases = {attribute(pin, "bias") for _, pin in endpoints} - {None, "none"}
-            biased = expected == "digital_output" and biases in ({"pull_up"}, {"pull_down"})
-            biased = biased and all(
-                ("pull_up" if e[0] == "open_drain" else "pull_down") in biases for e in open_drivers
+            pulls = {attribute(pin, "pull") for _, pin in endpoints} - {None, "none"}
+            has_pull = expected == "digital_output" and pulls in ({"up"}, {"down"})
+            has_pull = has_pull and all(
+                ("up" if e[0] == "drive.low" else "down") in pulls for e in open_drivers
             )
-            if not biased:
+            if not has_pull:
                 emit("missing_driver", f"net {name!r} requires a {expected} endpoint", origin)
     return tuple(results.diagnostics)

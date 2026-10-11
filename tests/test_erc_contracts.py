@@ -17,10 +17,10 @@ from test_erc import component, pair, codes
         ("digital", "power_output", False),
         ("analog", "analog_bidirectional", True),
         ("analog", "digital_output", False),
-        ("open_drain", "open_drain", True),
-        ("open_drain", "digital_input", True),
-        ("open_drain", "digital_output", False),
-        ("open_drain", "digital_bidirectional", False),
+        ("idle_high", "pull_low", True),
+        ("idle_high", "digital_input", True),
+        ("idle_high", "digital_output", False),
+        ("idle_high", "digital_bidirectional", False),
         ("bidirectional", "digital_output", True),
         ("bidirectional", "analog_input", False),
         ("power", "power_input", True),
@@ -44,15 +44,15 @@ def test_electrical_domain_cases(tmp_path, nettype, role, allowed):
 
 
 @pytest.mark.parametrize(
-    "nettype", ["digital", "analog", "open_drain", "bidirectional", "power", "ground", "passive"]
+    "nettype", ["digital", "analog", "idle_high", "bidirectional", "power", "ground", "passive"]
 )
 def test_passive_contacts_do_not_impose_a_domain(tmp_path, nettype):
     assert "incompatible_role" not in codes(pair(tmp_path, "passive", "passive", nettype))
 
 
-def test_open_drain_does_not_conflict_with_other_open_drain(tmp_path):
-    assert codes(pair(tmp_path, "open_drain", "open_drain", "open_drain")) == []
-    assert "multiple_drivers" in codes(pair(tmp_path, "digital_output", "open_drain"))
+def test_pull_low_does_not_conflict_with_other_pull_low(tmp_path):
+    assert codes(pair(tmp_path, "pull_low", "pull_low", "idle_high")) == ["missing_pull"]
+    assert "multiple_drivers" in codes(pair(tmp_path, "digital_output", "pull_low"))
 
 
 def test_selectable_roles_are_not_guessed(tmp_path):

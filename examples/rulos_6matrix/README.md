@@ -142,7 +142,7 @@ still need validation before fabrication.
 
 - Ground and supply rails now use `ground`/`power` net types. Control signals,
   UART, and the serial chain use `digital`; SWDIO uses `bidirectional`; reset
-  and both sides of the I²C buffer use `open_drain`. `TwoColumns` supply, ground,
+  and both sides of the I²C buffer use `idle_high`. `TwoColumns` supply, ground,
   and digital ports have matching types and explicit interface roles.
 - Connector roles model the UART adapter, debug probe, and open-drain bus
   peers. The debug probe senses VCC and drives SWCLK/reset. SWO is explicitly
@@ -196,7 +196,24 @@ The internal current source is accounted for in this budget, not treated as
 a resistor. The installed 2 kΩ values pass. Firmware must disable MCU internal
 pull-ups. This uses nominal resistance and does not establish rise time,
 capacitance, or resistor-tolerance compliance. The high-side bus needs its
-external pull-up values and voltage before an equivalent check can be added.
+external pull-up values and voltage before an equivalent resistance check can be
+added. The connector annotations explicitly assume that attached equipment
+provides pull-ups on SDA and SCL; their resistance remains unknown. Both active
+low drive and passive pull-up are allowed on the same modeled endpoint.
+
+The fitted part is a **PCA9600**, not a PCA9615 differential buffer. Its TX/TY
+outputs need external pull-ups. The SX/SY low-voltage current contribution is
+not modeled as a passive pull-up establishing the high level: the local 2 kΩ
+resistors provide that function. The PCA9600 datasheet's input-current table
+specifies that contribution for SX/SY at or below 1 V, and only leakage above
+1.4 V. By comparison, the [PCA9615 datasheet](https://www.nxp.com/docs/en/data-sheet/PCA9615.pdf)
+requires external single-ended SDA/SCL pull-ups and a differential termination
+and bias network.
+
+NRST is annotated with both `drive.low` and `pull.up`; the
+[STM32F303x6/x8 datasheet](https://www.st.com/resource/en/datasheet/stm32f303r6.pdf),
+section 6.3.15, specifies its permanent internal pull-up. No nominal resistance
+is invented for an unchecked reset resistance budget.
 
 Rail declarations assume steady-state ±5% envelopes around 5 V, 12 V, 10 V,
 3.3 V, and the approximately 2.5 V LED supply. Ground is 0 V; local SDA/SCL

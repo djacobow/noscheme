@@ -1,5 +1,5 @@
 // Generated from KiCad's XML netlist; see ../README.md.
-from noscheme import role, use
+from noscheme import role, use, drive
 
 component Part_00f812a8749c2f46:
   pins:
@@ -370,7 +370,7 @@ component Part_1ee281693363d3dd:
     "2": role.power_input
     "20": role.power_input
     "21": role.power_input
-    "22": role.open_drain
+    "22": drive.low
     "23": role.power_input
     "24": role.passive
     "25": role.digital_input
@@ -2926,7 +2926,7 @@ component Part_f954fe6104bfa36b:
     "41": role.digital_input
     "42": role.digital_input
     "43": role.digital_input
-    "44": role.open_drain
+    "44": drive.low
     "45": role.power_input
     "5": role.digital_input
     "6": role.digital_input

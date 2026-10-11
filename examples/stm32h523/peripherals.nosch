@@ -1,6 +1,6 @@
 // USB-C power/data, regulator, microSD, and SWD subsystems.
 
-from noscheme import role, net
+from noscheme import role, net, drive
 from interfaces import SPI, USB2, SWD
 from components import Resistor0603, InputBias0603, InputPullup0603, Capacitor0603
 
@@ -93,7 +93,7 @@ block MicroSD:
         7: role.digital_output
   // DAT1/DAT2 are unused by SPI but each has a physical pull-up to supply.
   // These passive nets have no resistance budget; their two-terminal wiring
-  // is explicit even though no bias metadata is needed for current checks.
+  // is explicit even though no pull metadata is needed for current checks.
   InputBias0603 unused_dat_pullups[2](supply, unused_dat)
   InputPullup0603 cs_pullup(1: supply, 2: bus.cs#)
   InputPullup0603 miso_pullup(1: supply, 2: bus.miso)
@@ -126,4 +126,4 @@ block CortexDebug:
         3: role.ground
         4: role.digital_output
         6: role.digital_input
-        10: role.open_drain
+        10: drive.low

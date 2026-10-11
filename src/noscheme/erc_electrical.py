@@ -6,25 +6,28 @@ from .diagnostics import Related
 from .ast import Span
 from .erc_registry import value
 
-BIASES = frozenset({"pull_up", "pull_down", "none"})
+from .metadata import DRIVE_VALUES, PULL_VALUES
 
 
 def register(registry):
     pin_fields = {
-        "bias": ("bias", BIASES),
+        "pull": ("pull", PULL_VALUES),
         "pull_resistance": "resistance",
         "capacitance": "capacitance",
     }
     for scope in ("pin", "instance_pin"):
         registry.fields(scope, pin_fields)
+    for scope in ("pin", "instance_pin", "port"):
+        registry.fields(scope, {"drive": ("drive", DRIVE_VALUES)})
+    registry.fields("instance_pin", {"external_drive": ("drive", DRIVE_VALUES)})
     registry.fields("net", {"wiring_capacitance": "capacitance"})
-    registry.pin_rule("std.bias_reference", bias_reference, parameters={"pin": "string"})
+    registry.pin_rule("std.pull_reference", pull_reference, parameters={"pin": "string"})
 
 
-def bias_reference(ctx, *, pin):
+def pull_reference(ctx, *, pin):
     """Check that a pull's reference terminal reaches a power (pull-up) or ground (pull-down) net."""
     reference, label = pin, ctx.pin.label
-    expected = {"pull_up": "power", "pull_down": "ground"}.get(value(ctx.pin, "bias"))
+    expected = {"up": "power", "down": "ground"}.get(value(ctx.pin, "pull"))
     part = next(
         (p for p in ctx.circuit["parts"] if tuple(p["path"]) == tuple(ctx.pin.get("scope", ()))),
         None,
@@ -35,7 +38,7 @@ def bias_reference(ctx, *, pin):
     )
     reason = None
     if expected is None:
-        reason = "requires bias.pull_up or bias.pull_down"
+        reason = "requires pull.up or pull.down"
     elif target is None:
         reason = f"unknown reference pin {reference!r} on this component"
     elif target["net"] is None:
@@ -59,6 +62,6 @@ def bias_reference(ctx, *, pin):
             )
         )
         yield replace(
-            ctx.diagnostic("bias_reference", f"{label}: {reason}", related=related),
+            ctx.diagnostic("pull_reference", f"{label}: {reason}", related=related),
             instance_path=label,
         )

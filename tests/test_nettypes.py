@@ -7,11 +7,11 @@ from noscheme.erc import apply_erc
 from noscheme.parser import parse
 from test_circuit import compile_source
 
-SOURCE = """from noscheme import std, bias
-extend net.open_drain I2CLine:
+SOURCE = """from noscheme import std, pull, drive
+extend net.idle_high I2CLine:
   wiring_capacitance: 5p
   checks:
-    pull: std.parallel(pull_resistance, where=bias.pull_up, min=1500, max=10000)
+    pull: std.parallel(pull_resistance, where=pull.up, min=1500, max=10000)
     load: std.sum(capacitance, net=wiring_capacitance, max=400p)
 extend I2CLine FastI2CLine:
   checks:
@@ -23,14 +23,14 @@ component Pull:
   pins:
     1:
       role: role.passive
-      bias: bias.pull_up
+      pull: pull.up
       pull_resistance: 4700
       capacitance: 2p
 component Dev:
   pins:
     1..2:
-      role: role.open_drain
-      bias: bias.none
+      drive: drive.low
+      pull: pull.none
       capacitance: 10p
 block B:
   I2C bus
@@ -57,7 +57,7 @@ def test_net_types_attach_checks_through_bundles_inheritance_and_overrides(tmp_p
     circuit = compile_source(tmp_path, SOURCE)
     assert failures(circuit) == [("net:bus.sda:load", "error"), ("net:extra:pull", "error")]
     declarations = {d["path"][-1]: d for n in circuit["nets"] for d in n["declarations"]}
-    assert declarations["sda"]["type"] == "open_drain"
+    assert declarations["sda"]["type"] == "idle_high"
     assert declarations["sda"]["nettype"] == "main.FastI2CLine"
     assert declarations["extra"]["metadata"]["wiring_capacitance"]["value"] == 5e-12
 
@@ -96,8 +96,8 @@ block B:""",
 @pytest.mark.parametrize(
     "edit,code",
     [
-        (("extend net.open_drain I2CLine", "extend net I2CLine"), "resolve.missing-definition"),
-        (("extend net.open_drain I2CLine", "extend net.sideways I2CLine"), "metadata.enum"),
+        (("extend net.idle_high I2CLine", "extend net I2CLine"), "resolve.missing-definition"),
+        (("extend net.idle_high I2CLine", "extend net.sideways I2CLine"), "metadata.enum"),
         (("extend I2CLine FastI2CLine", "extend I2C FastI2CLine"), "syntax.inheritance-context"),
         (("extend I2CLine FastI2CLine", "extend I2CLine<1> FastI2CLine"), "resolve.parameter"),
         (("load: std.sum(max=10p)", "load: std.parallel(max=10)"), "erc.application_checker"),
@@ -118,7 +118,7 @@ def test_invalid_net_types(tmp_path, edit, code):
 
 
 def test_net_type_inheritance_cycle(tmp_path):
-    source = SOURCE.replace("extend net.open_drain I2CLine", "extend FastI2CLine I2CLine")
+    source = SOURCE.replace("extend net.idle_high I2CLine", "extend FastI2CLine I2CLine")
     with pytest.raises(DiagnosticError, match="inheritance cycle"):
         compile_source(tmp_path, source)
 

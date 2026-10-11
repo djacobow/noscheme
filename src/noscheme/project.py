@@ -17,7 +17,7 @@ from .parser import Builder, classify, kind_errors, parse
 
 IDENTIFIER = r"[A-Za-z_#][A-Za-z0-9_#]*"
 QUALIFIED = re.compile(rf"{IDENTIFIER}(?:\.{IDENTIFIER})*\Z")
-BUILTINS = frozenset({"role", "net", "use", "num", "bias", "std"})
+BUILTINS = frozenset({"role", "net", "use", "num", "pull", "drive", "std"})
 # Symbol.module for a rule or predicate imported from a project ERC namespace.
 ERC_MODULE = "<erc>"
 

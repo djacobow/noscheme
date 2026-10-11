@@ -89,14 +89,14 @@ def test_specialization_can_clear_an_inherited_group(tmp_path):
     pull = """extend R Pull:
   pins:
     2:
-      bias: bias.pull_up
+      pull: pull.up
 block B:"""
-    source = "from noscheme import bias\n" + SOURCE.replace("block B:", pull)
+    source = "from noscheme import pull\n" + SOURCE.replace("block B:", pull)
     with pytest.raises(DiagnosticError, match="interchangeable: \\[\\]"):
         compile_source(tmp_path, source)
     cleared = source.replace(
-        "      bias: bias.pull_up\n",
-        "      bias: bias.pull_up\n  metadata:\n    interchangeable: []\n",
+        "      pull: pull.up\n",
+        "      pull: pull.up\n  metadata:\n    interchangeable: []\n",
     )
     compile_source(tmp_path, cleared)
 

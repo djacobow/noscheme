@@ -1,6 +1,6 @@
 // Common passives, LEDs, buttons, and small connectors.
 
-from noscheme import role, net, use, bias, std
+from noscheme import role, net, use, pull, std
 import Device
 
 // KiCad supplies pins, passive roles, reference prefix, and footprint hints.
@@ -21,10 +21,10 @@ extend Resistor0603<1k> LedResistor
 extend Resistor0603 Pullup0603:
   pins:
     2:
-      bias: bias.pull_up
+      pull: pull.up
       pull_resistance: value
       checks:
-        reference: std.bias_reference("1")
+        reference: std.pull_reference("1")
   metadata:
     interchangeable: []
 
@@ -39,10 +39,10 @@ extend Pullup0603<10k> InputPullup0603
 extend Resistor0603<10k> InputPulldown0603:
   pins:
     1:
-      bias: bias.pull_down
+      pull: pull.down
       pull_resistance: value
       checks:
-        reference: std.bias_reference("2")
+        reference: std.pull_reference("2")
   metadata:
     interchangeable: []
 
