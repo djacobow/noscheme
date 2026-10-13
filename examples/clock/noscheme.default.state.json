@@ -1,5 +1,69 @@
 {
   "entries": {
+    "annunciators[0].led": {
+      "active": true,
+      "reference": "D12",
+      "reserved_references": [
+        "D12"
+      ],
+      "uuid": "91e48416-f7d7-5b2a-b0ad-75dddbfd2dd9"
+    },
+    "annunciators[0].resistor": {
+      "active": true,
+      "reference": "R56",
+      "reserved_references": [
+        "R56"
+      ],
+      "uuid": "96da1ef6-4cbf-5aae-a06a-5be801e9aee9"
+    },
+    "annunciators[1].led": {
+      "active": true,
+      "reference": "D13",
+      "reserved_references": [
+        "D13"
+      ],
+      "uuid": "b449dab7-eb32-5c31-98e4-182c39631b7b"
+    },
+    "annunciators[1].resistor": {
+      "active": true,
+      "reference": "R57",
+      "reserved_references": [
+        "R57"
+      ],
+      "uuid": "2cae33b0-06d3-5c4b-acc7-c7d5f6437bd8"
+    },
+    "annunciators[2].led": {
+      "active": true,
+      "reference": "D14",
+      "reserved_references": [
+        "D14"
+      ],
+      "uuid": "7904d8c9-6758-59a7-839b-bbeb19bcaaf1"
+    },
+    "annunciators[2].resistor": {
+      "active": true,
+      "reference": "R58",
+      "reserved_references": [
+        "R58"
+      ],
+      "uuid": "875b3c84-c184-5b41-adcf-fc5d915f07a9"
+    },
+    "annunciators[3].led": {
+      "active": true,
+      "reference": "D15",
+      "reserved_references": [
+        "D15"
+      ],
+      "uuid": "626f0592-2ea9-5ad9-a5b2-a22159f261fb"
+    },
+    "annunciators[3].resistor": {
+      "active": true,
+      "reference": "R59",
+      "reserved_references": [
+        "R59"
+      ],
+      "uuid": "d375c5b7-5a8b-5f02-8b16-6e77a675c955"
+    },
     "buck_3v3.passives.bootstrap_cap": {
       "active": true,
       "reference": "C1",
@@ -641,7 +705,7 @@
       "uuid": "cc16105e-9de6-5abc-aed7-bb30515fff2b"
     },
     "status[0].led": {
-      "active": true,
+      "active": false,
       "reference": "D1",
       "reserved_references": [
         "D1"
@@ -649,7 +713,7 @@
       "uuid": "aace1ffe-d0da-5036-9142-b033f8ccaa0e"
     },
     "status[0].resistor": {
-      "active": true,
+      "active": false,
       "reference": "R18",
       "reserved_references": [
         "R18"
@@ -657,7 +721,7 @@
       "uuid": "b784ae38-3db5-582a-b751-9e1b4ee5af00"
     },
     "status[1].led": {
-      "active": true,
+      "active": false,
       "reference": "D2",
       "reserved_references": [
         "D2"
@@ -665,7 +729,7 @@
       "uuid": "c8d3e329-6202-54c0-a724-bc877b4619cb"
     },
     "status[1].resistor": {
-      "active": true,
+      "active": false,
       "reference": "R19",
       "reserved_references": [
         "R19"
@@ -681,7 +745,7 @@
       "uuid": "584732ac-cdca-570e-bd10-9b7f957a484f"
     },
     "time_display.colons.annunciators[0]": {
-      "active": true,
+      "active": false,
       "reference": "D3",
       "reserved_references": [
         "D3"
@@ -689,7 +753,7 @@
       "uuid": "eceff689-fad2-5717-b3fc-d3971c384d42"
     },
     "time_display.colons.annunciators[1]": {
-      "active": true,
+      "active": false,
       "reference": "D4",
       "reserved_references": [
         "D4"
@@ -697,7 +761,7 @@
       "uuid": "fea7d412-5f09-513f-8f8c-8af7644f9db2"
     },
     "time_display.colons.annunciators[2]": {
-      "active": true,
+      "active": false,
       "reference": "D5",
       "reserved_references": [
         "D5"
@@ -705,7 +769,7 @@
       "uuid": "c48c63e0-6f85-5930-b1d5-eff1f05f07d9"
     },
     "time_display.colons.annunciators[3]": {
-      "active": true,
+      "active": false,
       "reference": "D6",
       "reserved_references": [
         "D6"
@@ -713,7 +777,7 @@
       "uuid": "73c7f425-4741-5a62-b5ed-7db603ba5879"
     },
     "time_display.colons.core.current_resistor": {
-      "active": true,
+      "active": false,
       "reference": "R21",
       "reserved_references": [
         "R21"
@@ -721,7 +785,7 @@
       "uuid": "feedbd0f-96ba-51ee-885c-88c13ab0ec9a"
     },
     "time_display.colons.core.decouple": {
-      "active": true,
+      "active": false,
       "reference": "C44",
       "reserved_references": [
         "C44"
@@ -729,7 +793,7 @@
       "uuid": "72c99854-d23d-5b08-9628-bf5614950023"
     },
     "time_display.colons.core.driver": {
-      "active": true,
+      "active": false,
       "reference": "U7",
       "reserved_references": [
         "U7"
@@ -737,7 +801,7 @@
       "uuid": "811ffb59-1403-5338-9fab-90a30cb20629"
     },
     "time_display.colons.dots[0]": {
-      "active": true,
+      "active": false,
       "reference": "D7",
       "reserved_references": [
         "D7"
@@ -745,7 +809,7 @@
       "uuid": "0ae18516-2e6e-5c10-b073-e968e214a463"
     },
     "time_display.colons.dots[1]": {
-      "active": true,
+      "active": false,
       "reference": "D8",
       "reserved_references": [
         "D8"
@@ -753,7 +817,7 @@
       "uuid": "3e028f15-fe3d-5f60-8b3a-7b3363924778"
     },
     "time_display.colons.dots[2]": {
-      "active": true,
+      "active": false,
       "reference": "D9",
       "reserved_references": [
         "D9"
@@ -761,7 +825,7 @@
       "uuid": "406b43a6-e61f-523b-b650-04849fa2b233"
     },
     "time_display.colons.dots[3]": {
-      "active": true,
+      "active": false,
       "reference": "D10",
       "reserved_references": [
         "D10"
@@ -769,7 +833,7 @@
       "uuid": "03324ceb-e40a-57d8-bfcc-e8e78b1b0149"
     },
     "time_display.digits[0].core.current_resistor": {
-      "active": true,
+      "active": false,
       "reference": "R22",
       "reserved_references": [
         "R22"
@@ -777,7 +841,7 @@
       "uuid": "d384a894-94f4-5d00-9791-64d0f1278a2a"
     },
     "time_display.digits[0].core.decouple": {
-      "active": true,
+      "active": false,
       "reference": "C45",
       "reserved_references": [
         "C45"
@@ -785,12 +849,28 @@
       "uuid": "5366cc15-0368-56b7-8cc4-6452e2a09014"
     },
     "time_display.digits[0].core.driver": {
-      "active": true,
+      "active": false,
       "reference": "U8",
       "reserved_references": [
         "U8"
       ],
       "uuid": "3cfb1ea7-ed73-55c5-8062-946681a725e8"
+    },
+    "time_display.digits[0].current_resistor": {
+      "active": true,
+      "reference": "R47",
+      "reserved_references": [
+        "R47"
+      ],
+      "uuid": "6039d85f-57af-54d9-9df1-3f3eb439c262"
+    },
+    "time_display.digits[0].decouple": {
+      "active": true,
+      "reference": "C73",
+      "reserved_references": [
+        "C73"
+      ],
+      "uuid": "8fddd5ff-1cd4-51ab-9d9e-838286d06c26"
     },
     "time_display.digits[0].display": {
       "active": true,
@@ -800,8 +880,16 @@
       ],
       "uuid": "d3b91df9-1778-5ad5-88a3-da46de3a03d0"
     },
-    "time_display.digits[1].core.current_resistor": {
+    "time_display.digits[0].driver": {
       "active": true,
+      "reference": "U26",
+      "reserved_references": [
+        "U26"
+      ],
+      "uuid": "96bc245a-7bfd-5706-8d21-cbc134b176da"
+    },
+    "time_display.digits[1].core.current_resistor": {
+      "active": false,
       "reference": "R23",
       "reserved_references": [
         "R23"
@@ -809,7 +897,7 @@
       "uuid": "e959b68e-ed8b-554f-a93a-85085cd521be"
     },
     "time_display.digits[1].core.decouple": {
-      "active": true,
+      "active": false,
       "reference": "C46",
       "reserved_references": [
         "C46"
@@ -817,12 +905,28 @@
       "uuid": "6db72ff9-7696-5757-a9d2-d082511e7d7b"
     },
     "time_display.digits[1].core.driver": {
-      "active": true,
+      "active": false,
       "reference": "U9",
       "reserved_references": [
         "U9"
       ],
       "uuid": "30f59fbc-25b3-5d59-84f2-763fc64efce1"
+    },
+    "time_display.digits[1].current_resistor": {
+      "active": true,
+      "reference": "R48",
+      "reserved_references": [
+        "R48"
+      ],
+      "uuid": "5cd2c0f8-5575-5484-960a-691dcfd65aaf"
+    },
+    "time_display.digits[1].decouple": {
+      "active": true,
+      "reference": "C74",
+      "reserved_references": [
+        "C74"
+      ],
+      "uuid": "9343c102-b4ab-5661-abe5-9b1e367e5247"
     },
     "time_display.digits[1].display": {
       "active": true,
@@ -832,8 +936,16 @@
       ],
       "uuid": "c44e57d5-7858-54a1-a8d0-89de2afdde91"
     },
-    "time_display.digits[2].core.current_resistor": {
+    "time_display.digits[1].driver": {
       "active": true,
+      "reference": "U27",
+      "reserved_references": [
+        "U27"
+      ],
+      "uuid": "e4342690-9dd5-5428-8a97-42f96ebec865"
+    },
+    "time_display.digits[2].core.current_resistor": {
+      "active": false,
       "reference": "R24",
       "reserved_references": [
         "R24"
@@ -841,7 +953,7 @@
       "uuid": "dd2c8d20-9c81-5497-980c-dc67dbade539"
     },
     "time_display.digits[2].core.decouple": {
-      "active": true,
+      "active": false,
       "reference": "C47",
       "reserved_references": [
         "C47"
@@ -849,12 +961,28 @@
       "uuid": "403df0aa-7765-51a0-a3fa-a9ececbcd668"
     },
     "time_display.digits[2].core.driver": {
-      "active": true,
+      "active": false,
       "reference": "U10",
       "reserved_references": [
         "U10"
       ],
       "uuid": "e21f6d5c-bb3e-579f-80da-2adb68e70ffb"
+    },
+    "time_display.digits[2].current_resistor": {
+      "active": true,
+      "reference": "R49",
+      "reserved_references": [
+        "R49"
+      ],
+      "uuid": "82996862-7a78-53e9-bad7-8ff004dd585c"
+    },
+    "time_display.digits[2].decouple": {
+      "active": true,
+      "reference": "C75",
+      "reserved_references": [
+        "C75"
+      ],
+      "uuid": "900960c3-f7ca-5a84-959b-280d2d36f1a3"
     },
     "time_display.digits[2].display": {
       "active": true,
@@ -864,8 +992,16 @@
       ],
       "uuid": "f6e44e29-18e4-5b4f-a722-f20e868a4476"
     },
-    "time_display.digits[3].core.current_resistor": {
+    "time_display.digits[2].driver": {
       "active": true,
+      "reference": "U28",
+      "reserved_references": [
+        "U28"
+      ],
+      "uuid": "09b626cf-02b3-5f7f-b2f8-8db4266f82a3"
+    },
+    "time_display.digits[3].core.current_resistor": {
+      "active": false,
       "reference": "R25",
       "reserved_references": [
         "R25"
@@ -873,7 +1009,7 @@
       "uuid": "52b4f24d-ab73-57d1-b77a-cd0c694205db"
     },
     "time_display.digits[3].core.decouple": {
-      "active": true,
+      "active": false,
       "reference": "C48",
       "reserved_references": [
         "C48"
@@ -881,12 +1017,28 @@
       "uuid": "7e7bf674-3d45-5aca-86d5-806fc39fe438"
     },
     "time_display.digits[3].core.driver": {
-      "active": true,
+      "active": false,
       "reference": "U11",
       "reserved_references": [
         "U11"
       ],
       "uuid": "3c25413e-018b-58f7-a8da-9b3f7ad31f19"
+    },
+    "time_display.digits[3].current_resistor": {
+      "active": true,
+      "reference": "R50",
+      "reserved_references": [
+        "R50"
+      ],
+      "uuid": "ac0f351e-1f3e-59d3-b637-359797b0384a"
+    },
+    "time_display.digits[3].decouple": {
+      "active": true,
+      "reference": "C76",
+      "reserved_references": [
+        "C76"
+      ],
+      "uuid": "c148f655-4e94-57d7-b5cd-2ca03f03c49e"
     },
     "time_display.digits[3].display": {
       "active": true,
@@ -896,8 +1048,16 @@
       ],
       "uuid": "7351cfb5-a6b4-513a-a61f-ee761984262f"
     },
-    "time_display.digits[4].core.current_resistor": {
+    "time_display.digits[3].driver": {
       "active": true,
+      "reference": "U29",
+      "reserved_references": [
+        "U29"
+      ],
+      "uuid": "dd48a556-eb9d-53d2-8698-63926212b159"
+    },
+    "time_display.digits[4].core.current_resistor": {
+      "active": false,
       "reference": "R26",
       "reserved_references": [
         "R26"
@@ -905,7 +1065,7 @@
       "uuid": "78086621-b72e-50dc-b05f-c497d1e416b6"
     },
     "time_display.digits[4].core.decouple": {
-      "active": true,
+      "active": false,
       "reference": "C49",
       "reserved_references": [
         "C49"
@@ -913,12 +1073,28 @@
       "uuid": "46b135b5-9109-53bd-9aa3-7c99bd8d9c02"
     },
     "time_display.digits[4].core.driver": {
-      "active": true,
+      "active": false,
       "reference": "U12",
       "reserved_references": [
         "U12"
       ],
       "uuid": "1b3ccf62-43f6-5d67-9f91-4915d68835a5"
+    },
+    "time_display.digits[4].current_resistor": {
+      "active": true,
+      "reference": "R51",
+      "reserved_references": [
+        "R51"
+      ],
+      "uuid": "756617db-3c36-586b-a8e1-ffff4dd46025"
+    },
+    "time_display.digits[4].decouple": {
+      "active": true,
+      "reference": "C77",
+      "reserved_references": [
+        "C77"
+      ],
+      "uuid": "739cefb2-8077-5445-a10f-a69d2087807b"
     },
     "time_display.digits[4].display": {
       "active": true,
@@ -928,8 +1104,16 @@
       ],
       "uuid": "57fda8d2-3036-5bb1-b7e0-b6212d1ab391"
     },
-    "time_display.digits[5].core.current_resistor": {
+    "time_display.digits[4].driver": {
       "active": true,
+      "reference": "U30",
+      "reserved_references": [
+        "U30"
+      ],
+      "uuid": "3cef2699-941d-569c-abc3-77eb31bb04b6"
+    },
+    "time_display.digits[5].core.current_resistor": {
+      "active": false,
       "reference": "R27",
       "reserved_references": [
         "R27"
@@ -937,7 +1121,7 @@
       "uuid": "8be3c387-46cd-573d-a471-4bbe39153aa6"
     },
     "time_display.digits[5].core.decouple": {
-      "active": true,
+      "active": false,
       "reference": "C50",
       "reserved_references": [
         "C50"
@@ -945,12 +1129,28 @@
       "uuid": "5936aec9-e4cc-5648-8bcf-c349d65926d1"
     },
     "time_display.digits[5].core.driver": {
-      "active": true,
+      "active": false,
       "reference": "U13",
       "reserved_references": [
         "U13"
       ],
       "uuid": "7896adb9-3a5b-5a70-80f3-d0468ccc041a"
+    },
+    "time_display.digits[5].current_resistor": {
+      "active": true,
+      "reference": "R52",
+      "reserved_references": [
+        "R52"
+      ],
+      "uuid": "99d09f2f-8fae-59d9-b1ce-e7ea388faafd"
+    },
+    "time_display.digits[5].decouple": {
+      "active": true,
+      "reference": "C78",
+      "reserved_references": [
+        "C78"
+      ],
+      "uuid": "de2a6c8d-b56b-5d0d-96b5-cbf323356911"
     },
     "time_display.digits[5].display": {
       "active": true,
@@ -960,8 +1160,16 @@
       ],
       "uuid": "5614b53a-9650-5c28-a70e-4d26bfc6b3b8"
     },
-    "time_display.digits[6].core.current_resistor": {
+    "time_display.digits[5].driver": {
       "active": true,
+      "reference": "U31",
+      "reserved_references": [
+        "U31"
+      ],
+      "uuid": "a9db95aa-a232-53dd-b41c-46e9d2b563f3"
+    },
+    "time_display.digits[6].core.current_resistor": {
+      "active": false,
       "reference": "R28",
       "reserved_references": [
         "R28"
@@ -969,7 +1177,7 @@
       "uuid": "89742663-1b52-5db1-a056-e4ccbdc1072f"
     },
     "time_display.digits[6].core.decouple": {
-      "active": true,
+      "active": false,
       "reference": "C51",
       "reserved_references": [
         "C51"
@@ -977,12 +1185,28 @@
       "uuid": "fbd54154-5364-5823-ad7d-5d11b9d14889"
     },
     "time_display.digits[6].core.driver": {
-      "active": true,
+      "active": false,
       "reference": "U14",
       "reserved_references": [
         "U14"
       ],
       "uuid": "d1f2d8ea-d7c6-5757-b0b4-af51bfa3a130"
+    },
+    "time_display.digits[6].current_resistor": {
+      "active": true,
+      "reference": "R53",
+      "reserved_references": [
+        "R53"
+      ],
+      "uuid": "be086a3c-b7ec-51df-993f-0d3284d4955a"
+    },
+    "time_display.digits[6].decouple": {
+      "active": true,
+      "reference": "C79",
+      "reserved_references": [
+        "C79"
+      ],
+      "uuid": "6ef83249-d970-5d51-b7f9-0f6d2c4c0834"
     },
     "time_display.digits[6].display": {
       "active": true,
@@ -992,8 +1216,16 @@
       ],
       "uuid": "55d394a8-1f47-515c-89b0-b23e130da1d2"
     },
-    "time_display.digits[7].core.current_resistor": {
+    "time_display.digits[6].driver": {
       "active": true,
+      "reference": "U32",
+      "reserved_references": [
+        "U32"
+      ],
+      "uuid": "0db09fd7-26e4-5555-b7b1-060906570d1b"
+    },
+    "time_display.digits[7].core.current_resistor": {
+      "active": false,
       "reference": "R29",
       "reserved_references": [
         "R29"
@@ -1001,7 +1233,7 @@
       "uuid": "c29f0206-db15-5ff8-8f33-18ee1dcec2ec"
     },
     "time_display.digits[7].core.decouple": {
-      "active": true,
+      "active": false,
       "reference": "C52",
       "reserved_references": [
         "C52"
@@ -1009,12 +1241,28 @@
       "uuid": "46610688-6821-521e-a33b-2f7384974fdf"
     },
     "time_display.digits[7].core.driver": {
-      "active": true,
+      "active": false,
       "reference": "U15",
       "reserved_references": [
         "U15"
       ],
       "uuid": "839e6d3d-4901-572c-bd0c-d885a869f0af"
+    },
+    "time_display.digits[7].current_resistor": {
+      "active": true,
+      "reference": "R54",
+      "reserved_references": [
+        "R54"
+      ],
+      "uuid": "0b18223b-b4b8-5a75-818b-251fa20607b5"
+    },
+    "time_display.digits[7].decouple": {
+      "active": true,
+      "reference": "C80",
+      "reserved_references": [
+        "C80"
+      ],
+      "uuid": "ca2103d8-631a-575d-8a00-c6b2d4019c22"
     },
     "time_display.digits[7].display": {
       "active": true,
@@ -1024,8 +1272,16 @@
       ],
       "uuid": "9c7c7cba-eabe-58c1-b55a-c44218f6a479"
     },
-    "time_display.digits[8].core.current_resistor": {
+    "time_display.digits[7].driver": {
       "active": true,
+      "reference": "U33",
+      "reserved_references": [
+        "U33"
+      ],
+      "uuid": "7d1a5d18-f7ab-5c94-91fc-ab26e8173086"
+    },
+    "time_display.digits[8].core.current_resistor": {
+      "active": false,
       "reference": "R30",
       "reserved_references": [
         "R30"
@@ -1033,7 +1289,7 @@
       "uuid": "746974fb-78b5-5823-9966-2cbb9a7a4927"
     },
     "time_display.digits[8].core.decouple": {
-      "active": true,
+      "active": false,
       "reference": "C53",
       "reserved_references": [
         "C53"
@@ -1041,12 +1297,28 @@
       "uuid": "a73096e6-288b-5a23-9f70-37a6590b4416"
     },
     "time_display.digits[8].core.driver": {
-      "active": true,
+      "active": false,
       "reference": "U16",
       "reserved_references": [
         "U16"
       ],
       "uuid": "98e15bed-cecf-5bb8-9707-a77f87c0c1b4"
+    },
+    "time_display.digits[8].current_resistor": {
+      "active": true,
+      "reference": "R55",
+      "reserved_references": [
+        "R55"
+      ],
+      "uuid": "28fe2ba7-ea6b-54e0-b071-e03fb0b73293"
+    },
+    "time_display.digits[8].decouple": {
+      "active": true,
+      "reference": "C81",
+      "reserved_references": [
+        "C81"
+      ],
+      "uuid": "3fb32623-065d-5e5f-8926-496bd481cd5b"
     },
     "time_display.digits[8].display": {
       "active": true,
@@ -1055,6 +1327,14 @@
         "DS9"
       ],
       "uuid": "efec5786-9f53-5f70-8a23-bca3b236fc7f"
+    },
+    "time_display.digits[8].driver": {
+      "active": true,
+      "reference": "U34",
+      "reserved_references": [
+        "U34"
+      ],
+      "uuid": "30ee649a-8d95-52e1-8ef4-9da11319c6a3"
     },
     "timebase.clock_jumper": {
       "active": true,
@@ -1466,8 +1746,144 @@
     }
   },
   "namespace": "552bea5f-7b81-466c-aaa8-d028b427bf2f",
-  "netlist_sha256": "5e99455a218dd3b3ef27f1c2e3d2385c43341c1d7991cbf16eeb37020efa7521",
+  "netlist_sha256": "f395bb5282cf8afe6249354c4707185fa97405cb6afe4f4a39f34a82d31fac41",
   "previous_parts": {
+    "annunciators[0].led": {
+      "footprint": "LED_SMD:LED_0603_1608Metric",
+      "path": [
+        "annunciators",
+        0,
+        "led"
+      ],
+      "pins": {
+        "1": "annunciators[0].cathode",
+        "2": "v3v3"
+      },
+      "reference": "D12",
+      "value": {
+        "type": "string",
+        "value": "Green"
+      }
+    },
+    "annunciators[0].resistor": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "annunciators",
+        0,
+        "resistor"
+      ],
+      "pins": {
+        "1": "annunciators#[0]",
+        "2": "annunciators[0].cathode"
+      },
+      "reference": "R56",
+      "value": {
+        "type": "string",
+        "value": "330Ohm"
+      }
+    },
+    "annunciators[1].led": {
+      "footprint": "LED_SMD:LED_0603_1608Metric",
+      "path": [
+        "annunciators",
+        1,
+        "led"
+      ],
+      "pins": {
+        "1": "annunciators[1].cathode",
+        "2": "v3v3"
+      },
+      "reference": "D13",
+      "value": {
+        "type": "string",
+        "value": "Green"
+      }
+    },
+    "annunciators[1].resistor": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "annunciators",
+        1,
+        "resistor"
+      ],
+      "pins": {
+        "1": "annunciators#[1]",
+        "2": "annunciators[1].cathode"
+      },
+      "reference": "R57",
+      "value": {
+        "type": "string",
+        "value": "330Ohm"
+      }
+    },
+    "annunciators[2].led": {
+      "footprint": "LED_SMD:LED_0603_1608Metric",
+      "path": [
+        "annunciators",
+        2,
+        "led"
+      ],
+      "pins": {
+        "1": "annunciators[2].cathode",
+        "2": "v3v3"
+      },
+      "reference": "D14",
+      "value": {
+        "type": "string",
+        "value": "Green"
+      }
+    },
+    "annunciators[2].resistor": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "annunciators",
+        2,
+        "resistor"
+      ],
+      "pins": {
+        "1": "annunciators#[2]",
+        "2": "annunciators[2].cathode"
+      },
+      "reference": "R58",
+      "value": {
+        "type": "string",
+        "value": "330Ohm"
+      }
+    },
+    "annunciators[3].led": {
+      "footprint": "LED_SMD:LED_0603_1608Metric",
+      "path": [
+        "annunciators",
+        3,
+        "led"
+      ],
+      "pins": {
+        "1": "annunciators[3].cathode",
+        "2": "v3v3"
+      },
+      "reference": "D15",
+      "value": {
+        "type": "string",
+        "value": "Green"
+      }
+    },
+    "annunciators[3].resistor": {
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "path": [
+        "annunciators",
+        3,
+        "resistor"
+      ],
+      "pins": {
+        "1": "annunciators#[3]",
+        "2": "annunciators[3].cathode"
+      },
+      "reference": "R59",
+      "value": {
+        "type": "string",
+        "value": "330Ohm"
+      }
+    },
     "buck_3v3.passives.bootstrap_cap": {
       "footprint": "Capacitor_SMD:C_0603_1608Metric",
       "path": [
@@ -1895,11 +2311,11 @@
         "34": null,
         "35": null,
         "36": null,
-        "37": "status#[0]",
-        "38": "status#[1]",
-        "39": null,
+        "37": "annunciators#[0]",
+        "38": "annunciators#[1]",
+        "39": "annunciators#[2]",
         "4": "leds.data_out",
-        "40": null,
+        "40": "annunciators#[3]",
         "41": null,
         "42": null,
         "43": null,
@@ -2990,74 +3406,6 @@
         "value": "MAX-M10S-00B"
       }
     },
-    "status[0].led": {
-      "footprint": "LED_SMD:LED_0603_1608Metric",
-      "path": [
-        "status",
-        0,
-        "led"
-      ],
-      "pins": {
-        "1": "status[0].cathode",
-        "2": "v3v3"
-      },
-      "reference": "D1",
-      "value": {
-        "type": "string",
-        "value": "Green"
-      }
-    },
-    "status[0].resistor": {
-      "footprint": "Resistor_SMD:R_0603_1608Metric",
-      "path": [
-        "status",
-        0,
-        "resistor"
-      ],
-      "pins": {
-        "1": "status#[0]",
-        "2": "status[0].cathode"
-      },
-      "reference": "R18",
-      "value": {
-        "type": "string",
-        "value": "1kOhm"
-      }
-    },
-    "status[1].led": {
-      "footprint": "LED_SMD:LED_0603_1608Metric",
-      "path": [
-        "status",
-        1,
-        "led"
-      ],
-      "pins": {
-        "1": "status[1].cathode",
-        "2": "v3v3"
-      },
-      "reference": "D2",
-      "value": {
-        "type": "string",
-        "value": "Green"
-      }
-    },
-    "status[1].resistor": {
-      "footprint": "Resistor_SMD:R_0603_1608Metric",
-      "path": [
-        "status",
-        1,
-        "resistor"
-      ],
-      "pins": {
-        "1": "status#[1]",
-        "2": "status[1].cathode"
-      },
-      "reference": "R19",
-      "value": {
-        "type": "string",
-        "value": "1kOhm"
-      }
-    },
     "time_display.blank_pullup": {
       "footprint": "Resistor_SMD:R_0603_1608Metric",
       "path": [
@@ -3074,287 +3422,40 @@
         "value": "10kOhm"
       }
     },
-    "time_display.colons.annunciators[0]": {
-      "footprint": "LED_SMD:LED_0805_2012Metric",
-      "path": [
-        "time_display",
-        "colons",
-        "annunciators",
-        0
-      ],
-      "pins": {
-        "1": "time_display.colons.sinks[4]",
-        "2": "v5"
-      },
-      "reference": "D3",
-      "value": {
-        "type": "string",
-        "value": "Green"
-      }
-    },
-    "time_display.colons.annunciators[1]": {
-      "footprint": "LED_SMD:LED_0805_2012Metric",
-      "path": [
-        "time_display",
-        "colons",
-        "annunciators",
-        1
-      ],
-      "pins": {
-        "1": "time_display.colons.sinks[5]",
-        "2": "v5"
-      },
-      "reference": "D4",
-      "value": {
-        "type": "string",
-        "value": "Green"
-      }
-    },
-    "time_display.colons.annunciators[2]": {
-      "footprint": "LED_SMD:LED_0805_2012Metric",
-      "path": [
-        "time_display",
-        "colons",
-        "annunciators",
-        2
-      ],
-      "pins": {
-        "1": "time_display.colons.sinks[6]",
-        "2": "v5"
-      },
-      "reference": "D5",
-      "value": {
-        "type": "string",
-        "value": "Green"
-      }
-    },
-    "time_display.colons.annunciators[3]": {
-      "footprint": "LED_SMD:LED_0805_2012Metric",
-      "path": [
-        "time_display",
-        "colons",
-        "annunciators",
-        3
-      ],
-      "pins": {
-        "1": "time_display.colons.sinks[7]",
-        "2": "v5"
-      },
-      "reference": "D6",
-      "value": {
-        "type": "string",
-        "value": "Green"
-      }
-    },
-    "time_display.colons.core.current_resistor": {
+    "time_display.digits[0].current_resistor": {
       "footprint": "Resistor_SMD:R_0603_1608Metric",
       "path": [
         "time_display",
-        "colons",
-        "core",
+        "digits",
+        0,
         "current_resistor"
       ],
       "pins": {
-        "1": "time_display.colons.core.current_set",
+        "1": "time_display.digits[0].current_set",
         "2": "gnd"
       },
-      "reference": "R21",
+      "reference": "R47",
       "value": {
         "type": "string",
         "value": "1.8kOhm"
       }
     },
-    "time_display.colons.core.decouple": {
+    "time_display.digits[0].decouple": {
       "footprint": "Capacitor_SMD:C_0603_1608Metric",
       "path": [
         "time_display",
-        "colons",
-        "core",
+        "digits",
+        0,
         "decouple"
       ],
       "pins": {
         "1": "v3v3",
         "2": "gnd"
       },
-      "reference": "C44",
+      "reference": "C73",
       "value": {
         "type": "string",
         "value": "100nF"
-      }
-    },
-    "time_display.colons.core.driver": {
-      "footprint": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
-      "path": [
-        "time_display",
-        "colons",
-        "core",
-        "driver"
-      ],
-      "pins": {
-        "1": "gnd",
-        "10": "time_display.colons.sinks[5]",
-        "11": "time_display.colons.sinks[6]",
-        "12": "time_display.colons.sinks[7]",
-        "13": "leds.blank#",
-        "14": "leds.data_out",
-        "15": "time_display.colons.core.current_set",
-        "16": "v3v3",
-        "2": "time_display.link[8]",
-        "3": "leds.clock",
-        "4": "leds.latch",
-        "5": "time_display.colons.sinks[0]",
-        "6": "time_display.colons.sinks[1]",
-        "7": "time_display.colons.sinks[2]",
-        "8": "time_display.colons.sinks[3]",
-        "9": "time_display.colons.sinks[4]"
-      },
-      "reference": "U7",
-      "value": {
-        "type": "string",
-        "value": "TLC5916IDR"
-      }
-    },
-    "time_display.colons.dots[0]": {
-      "footprint": "LED_SMD:LED_0805_2012Metric",
-      "path": [
-        "time_display",
-        "colons",
-        "dots",
-        0
-      ],
-      "pins": {
-        "1": "time_display.colons.sinks[0]",
-        "2": "v5"
-      },
-      "reference": "D7",
-      "value": {
-        "type": "string",
-        "value": "Green"
-      }
-    },
-    "time_display.colons.dots[1]": {
-      "footprint": "LED_SMD:LED_0805_2012Metric",
-      "path": [
-        "time_display",
-        "colons",
-        "dots",
-        1
-      ],
-      "pins": {
-        "1": "time_display.colons.sinks[1]",
-        "2": "v5"
-      },
-      "reference": "D8",
-      "value": {
-        "type": "string",
-        "value": "Green"
-      }
-    },
-    "time_display.colons.dots[2]": {
-      "footprint": "LED_SMD:LED_0805_2012Metric",
-      "path": [
-        "time_display",
-        "colons",
-        "dots",
-        2
-      ],
-      "pins": {
-        "1": "time_display.colons.sinks[2]",
-        "2": "v5"
-      },
-      "reference": "D9",
-      "value": {
-        "type": "string",
-        "value": "Green"
-      }
-    },
-    "time_display.colons.dots[3]": {
-      "footprint": "LED_SMD:LED_0805_2012Metric",
-      "path": [
-        "time_display",
-        "colons",
-        "dots",
-        3
-      ],
-      "pins": {
-        "1": "time_display.colons.sinks[3]",
-        "2": "v5"
-      },
-      "reference": "D10",
-      "value": {
-        "type": "string",
-        "value": "Green"
-      }
-    },
-    "time_display.digits[0].core.current_resistor": {
-      "footprint": "Resistor_SMD:R_0603_1608Metric",
-      "path": [
-        "time_display",
-        "digits",
-        0,
-        "core",
-        "current_resistor"
-      ],
-      "pins": {
-        "1": "time_display.digits[0].core.current_set",
-        "2": "gnd"
-      },
-      "reference": "R22",
-      "value": {
-        "type": "string",
-        "value": "1.8kOhm"
-      }
-    },
-    "time_display.digits[0].core.decouple": {
-      "footprint": "Capacitor_SMD:C_0603_1608Metric",
-      "path": [
-        "time_display",
-        "digits",
-        0,
-        "core",
-        "decouple"
-      ],
-      "pins": {
-        "1": "v3v3",
-        "2": "gnd"
-      },
-      "reference": "C45",
-      "value": {
-        "type": "string",
-        "value": "100nF"
-      }
-    },
-    "time_display.digits[0].core.driver": {
-      "footprint": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
-      "path": [
-        "time_display",
-        "digits",
-        0,
-        "core",
-        "driver"
-      ],
-      "pins": {
-        "1": "gnd",
-        "10": "time_display.digits[0].segments[5]",
-        "11": "time_display.digits[0].segments[6]",
-        "12": "time_display.digits[0].segments[7]",
-        "13": "leds.blank#",
-        "14": "time_display.link[0]",
-        "15": "time_display.digits[0].core.current_set",
-        "16": "v3v3",
-        "2": "leds.data_in",
-        "3": "leds.clock",
-        "4": "leds.latch",
-        "5": "time_display.digits[0].segments[0]",
-        "6": "time_display.digits[0].segments[1]",
-        "7": "time_display.digits[0].segments[2]",
-        "8": "time_display.digits[0].segments[3]",
-        "9": "time_display.digits[0].segments[4]"
-      },
-      "reference": "U8",
-      "value": {
-        "type": "string",
-        "value": "TLC5916IDR"
       }
     },
     "time_display.digits[0].display": {
@@ -3383,75 +3484,72 @@
         "value": "LSHD-5601"
       }
     },
-    "time_display.digits[1].core.current_resistor": {
+    "time_display.digits[0].driver": {
+      "footprint": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
+      "path": [
+        "time_display",
+        "digits",
+        0,
+        "driver"
+      ],
+      "pins": {
+        "1": "gnd",
+        "10": "time_display.digits[0].segments[5]",
+        "11": "time_display.digits[0].segments[6]",
+        "12": "time_display.digits[0].segments[7]",
+        "13": "leds.blank#",
+        "14": "time_display.link[0]",
+        "15": "time_display.digits[0].current_set",
+        "16": "v3v3",
+        "2": "leds.data_in",
+        "3": "leds.clock",
+        "4": "leds.latch",
+        "5": "time_display.digits[0].segments[0]",
+        "6": "time_display.digits[0].segments[1]",
+        "7": "time_display.digits[0].segments[2]",
+        "8": "time_display.digits[0].segments[3]",
+        "9": "time_display.digits[0].segments[4]"
+      },
+      "reference": "U26",
+      "value": {
+        "type": "string",
+        "value": "TLC5916IDR"
+      }
+    },
+    "time_display.digits[1].current_resistor": {
       "footprint": "Resistor_SMD:R_0603_1608Metric",
       "path": [
         "time_display",
         "digits",
         1,
-        "core",
         "current_resistor"
       ],
       "pins": {
-        "1": "time_display.digits[1].core.current_set",
+        "1": "time_display.digits[1].current_set",
         "2": "gnd"
       },
-      "reference": "R23",
+      "reference": "R48",
       "value": {
         "type": "string",
         "value": "1.8kOhm"
       }
     },
-    "time_display.digits[1].core.decouple": {
+    "time_display.digits[1].decouple": {
       "footprint": "Capacitor_SMD:C_0603_1608Metric",
       "path": [
         "time_display",
         "digits",
         1,
-        "core",
         "decouple"
       ],
       "pins": {
         "1": "v3v3",
         "2": "gnd"
       },
-      "reference": "C46",
+      "reference": "C74",
       "value": {
         "type": "string",
         "value": "100nF"
-      }
-    },
-    "time_display.digits[1].core.driver": {
-      "footprint": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
-      "path": [
-        "time_display",
-        "digits",
-        1,
-        "core",
-        "driver"
-      ],
-      "pins": {
-        "1": "gnd",
-        "10": "time_display.digits[1].segments[5]",
-        "11": "time_display.digits[1].segments[6]",
-        "12": "time_display.digits[1].segments[7]",
-        "13": "leds.blank#",
-        "14": "time_display.link[1]",
-        "15": "time_display.digits[1].core.current_set",
-        "16": "v3v3",
-        "2": "time_display.link[0]",
-        "3": "leds.clock",
-        "4": "leds.latch",
-        "5": "time_display.digits[1].segments[0]",
-        "6": "time_display.digits[1].segments[1]",
-        "7": "time_display.digits[1].segments[2]",
-        "8": "time_display.digits[1].segments[3]",
-        "9": "time_display.digits[1].segments[4]"
-      },
-      "reference": "U9",
-      "value": {
-        "type": "string",
-        "value": "TLC5916IDR"
       }
     },
     "time_display.digits[1].display": {
@@ -3480,75 +3578,72 @@
         "value": "LSHD-5601"
       }
     },
-    "time_display.digits[2].core.current_resistor": {
+    "time_display.digits[1].driver": {
+      "footprint": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
+      "path": [
+        "time_display",
+        "digits",
+        1,
+        "driver"
+      ],
+      "pins": {
+        "1": "gnd",
+        "10": "time_display.digits[1].segments[5]",
+        "11": "time_display.digits[1].segments[6]",
+        "12": "time_display.digits[1].segments[7]",
+        "13": "leds.blank#",
+        "14": "time_display.link[1]",
+        "15": "time_display.digits[1].current_set",
+        "16": "v3v3",
+        "2": "time_display.link[0]",
+        "3": "leds.clock",
+        "4": "leds.latch",
+        "5": "time_display.digits[1].segments[0]",
+        "6": "time_display.digits[1].segments[1]",
+        "7": "time_display.digits[1].segments[2]",
+        "8": "time_display.digits[1].segments[3]",
+        "9": "time_display.digits[1].segments[4]"
+      },
+      "reference": "U27",
+      "value": {
+        "type": "string",
+        "value": "TLC5916IDR"
+      }
+    },
+    "time_display.digits[2].current_resistor": {
       "footprint": "Resistor_SMD:R_0603_1608Metric",
       "path": [
         "time_display",
         "digits",
         2,
-        "core",
         "current_resistor"
       ],
       "pins": {
-        "1": "time_display.digits[2].core.current_set",
+        "1": "time_display.digits[2].current_set",
         "2": "gnd"
       },
-      "reference": "R24",
+      "reference": "R49",
       "value": {
         "type": "string",
         "value": "1.8kOhm"
       }
     },
-    "time_display.digits[2].core.decouple": {
+    "time_display.digits[2].decouple": {
       "footprint": "Capacitor_SMD:C_0603_1608Metric",
       "path": [
         "time_display",
         "digits",
         2,
-        "core",
         "decouple"
       ],
       "pins": {
         "1": "v3v3",
         "2": "gnd"
       },
-      "reference": "C47",
+      "reference": "C75",
       "value": {
         "type": "string",
         "value": "100nF"
-      }
-    },
-    "time_display.digits[2].core.driver": {
-      "footprint": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
-      "path": [
-        "time_display",
-        "digits",
-        2,
-        "core",
-        "driver"
-      ],
-      "pins": {
-        "1": "gnd",
-        "10": "time_display.digits[2].segments[5]",
-        "11": "time_display.digits[2].segments[6]",
-        "12": "time_display.digits[2].segments[7]",
-        "13": "leds.blank#",
-        "14": "time_display.link[2]",
-        "15": "time_display.digits[2].core.current_set",
-        "16": "v3v3",
-        "2": "time_display.link[1]",
-        "3": "leds.clock",
-        "4": "leds.latch",
-        "5": "time_display.digits[2].segments[0]",
-        "6": "time_display.digits[2].segments[1]",
-        "7": "time_display.digits[2].segments[2]",
-        "8": "time_display.digits[2].segments[3]",
-        "9": "time_display.digits[2].segments[4]"
-      },
-      "reference": "U10",
-      "value": {
-        "type": "string",
-        "value": "TLC5916IDR"
       }
     },
     "time_display.digits[2].display": {
@@ -3577,75 +3672,72 @@
         "value": "LSHD-5601"
       }
     },
-    "time_display.digits[3].core.current_resistor": {
+    "time_display.digits[2].driver": {
+      "footprint": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
+      "path": [
+        "time_display",
+        "digits",
+        2,
+        "driver"
+      ],
+      "pins": {
+        "1": "gnd",
+        "10": "time_display.digits[2].segments[5]",
+        "11": "time_display.digits[2].segments[6]",
+        "12": "time_display.digits[2].segments[7]",
+        "13": "leds.blank#",
+        "14": "time_display.link[2]",
+        "15": "time_display.digits[2].current_set",
+        "16": "v3v3",
+        "2": "time_display.link[1]",
+        "3": "leds.clock",
+        "4": "leds.latch",
+        "5": "time_display.digits[2].segments[0]",
+        "6": "time_display.digits[2].segments[1]",
+        "7": "time_display.digits[2].segments[2]",
+        "8": "time_display.digits[2].segments[3]",
+        "9": "time_display.digits[2].segments[4]"
+      },
+      "reference": "U28",
+      "value": {
+        "type": "string",
+        "value": "TLC5916IDR"
+      }
+    },
+    "time_display.digits[3].current_resistor": {
       "footprint": "Resistor_SMD:R_0603_1608Metric",
       "path": [
         "time_display",
         "digits",
         3,
-        "core",
         "current_resistor"
       ],
       "pins": {
-        "1": "time_display.digits[3].core.current_set",
+        "1": "time_display.digits[3].current_set",
         "2": "gnd"
       },
-      "reference": "R25",
+      "reference": "R50",
       "value": {
         "type": "string",
         "value": "1.8kOhm"
       }
     },
-    "time_display.digits[3].core.decouple": {
+    "time_display.digits[3].decouple": {
       "footprint": "Capacitor_SMD:C_0603_1608Metric",
       "path": [
         "time_display",
         "digits",
         3,
-        "core",
         "decouple"
       ],
       "pins": {
         "1": "v3v3",
         "2": "gnd"
       },
-      "reference": "C48",
+      "reference": "C76",
       "value": {
         "type": "string",
         "value": "100nF"
-      }
-    },
-    "time_display.digits[3].core.driver": {
-      "footprint": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
-      "path": [
-        "time_display",
-        "digits",
-        3,
-        "core",
-        "driver"
-      ],
-      "pins": {
-        "1": "gnd",
-        "10": "time_display.digits[3].segments[5]",
-        "11": "time_display.digits[3].segments[6]",
-        "12": "time_display.digits[3].segments[7]",
-        "13": "leds.blank#",
-        "14": "time_display.link[3]",
-        "15": "time_display.digits[3].core.current_set",
-        "16": "v3v3",
-        "2": "time_display.link[2]",
-        "3": "leds.clock",
-        "4": "leds.latch",
-        "5": "time_display.digits[3].segments[0]",
-        "6": "time_display.digits[3].segments[1]",
-        "7": "time_display.digits[3].segments[2]",
-        "8": "time_display.digits[3].segments[3]",
-        "9": "time_display.digits[3].segments[4]"
-      },
-      "reference": "U11",
-      "value": {
-        "type": "string",
-        "value": "TLC5916IDR"
       }
     },
     "time_display.digits[3].display": {
@@ -3674,75 +3766,72 @@
         "value": "LSHD-5601"
       }
     },
-    "time_display.digits[4].core.current_resistor": {
+    "time_display.digits[3].driver": {
+      "footprint": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
+      "path": [
+        "time_display",
+        "digits",
+        3,
+        "driver"
+      ],
+      "pins": {
+        "1": "gnd",
+        "10": "time_display.digits[3].segments[5]",
+        "11": "time_display.digits[3].segments[6]",
+        "12": "time_display.digits[3].segments[7]",
+        "13": "leds.blank#",
+        "14": "time_display.link[3]",
+        "15": "time_display.digits[3].current_set",
+        "16": "v3v3",
+        "2": "time_display.link[2]",
+        "3": "leds.clock",
+        "4": "leds.latch",
+        "5": "time_display.digits[3].segments[0]",
+        "6": "time_display.digits[3].segments[1]",
+        "7": "time_display.digits[3].segments[2]",
+        "8": "time_display.digits[3].segments[3]",
+        "9": "time_display.digits[3].segments[4]"
+      },
+      "reference": "U29",
+      "value": {
+        "type": "string",
+        "value": "TLC5916IDR"
+      }
+    },
+    "time_display.digits[4].current_resistor": {
       "footprint": "Resistor_SMD:R_0603_1608Metric",
       "path": [
         "time_display",
         "digits",
         4,
-        "core",
         "current_resistor"
       ],
       "pins": {
-        "1": "time_display.digits[4].core.current_set",
+        "1": "time_display.digits[4].current_set",
         "2": "gnd"
       },
-      "reference": "R26",
+      "reference": "R51",
       "value": {
         "type": "string",
         "value": "1.8kOhm"
       }
     },
-    "time_display.digits[4].core.decouple": {
+    "time_display.digits[4].decouple": {
       "footprint": "Capacitor_SMD:C_0603_1608Metric",
       "path": [
         "time_display",
         "digits",
         4,
-        "core",
         "decouple"
       ],
       "pins": {
         "1": "v3v3",
         "2": "gnd"
       },
-      "reference": "C49",
+      "reference": "C77",
       "value": {
         "type": "string",
         "value": "100nF"
-      }
-    },
-    "time_display.digits[4].core.driver": {
-      "footprint": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
-      "path": [
-        "time_display",
-        "digits",
-        4,
-        "core",
-        "driver"
-      ],
-      "pins": {
-        "1": "gnd",
-        "10": "time_display.digits[4].segments[5]",
-        "11": "time_display.digits[4].segments[6]",
-        "12": "time_display.digits[4].segments[7]",
-        "13": "leds.blank#",
-        "14": "time_display.link[4]",
-        "15": "time_display.digits[4].core.current_set",
-        "16": "v3v3",
-        "2": "time_display.link[3]",
-        "3": "leds.clock",
-        "4": "leds.latch",
-        "5": "time_display.digits[4].segments[0]",
-        "6": "time_display.digits[4].segments[1]",
-        "7": "time_display.digits[4].segments[2]",
-        "8": "time_display.digits[4].segments[3]",
-        "9": "time_display.digits[4].segments[4]"
-      },
-      "reference": "U12",
-      "value": {
-        "type": "string",
-        "value": "TLC5916IDR"
       }
     },
     "time_display.digits[4].display": {
@@ -3771,75 +3860,72 @@
         "value": "LSHD-5601"
       }
     },
-    "time_display.digits[5].core.current_resistor": {
+    "time_display.digits[4].driver": {
+      "footprint": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
+      "path": [
+        "time_display",
+        "digits",
+        4,
+        "driver"
+      ],
+      "pins": {
+        "1": "gnd",
+        "10": "time_display.digits[4].segments[5]",
+        "11": "time_display.digits[4].segments[6]",
+        "12": "time_display.digits[4].segments[7]",
+        "13": "leds.blank#",
+        "14": "time_display.link[4]",
+        "15": "time_display.digits[4].current_set",
+        "16": "v3v3",
+        "2": "time_display.link[3]",
+        "3": "leds.clock",
+        "4": "leds.latch",
+        "5": "time_display.digits[4].segments[0]",
+        "6": "time_display.digits[4].segments[1]",
+        "7": "time_display.digits[4].segments[2]",
+        "8": "time_display.digits[4].segments[3]",
+        "9": "time_display.digits[4].segments[4]"
+      },
+      "reference": "U30",
+      "value": {
+        "type": "string",
+        "value": "TLC5916IDR"
+      }
+    },
+    "time_display.digits[5].current_resistor": {
       "footprint": "Resistor_SMD:R_0603_1608Metric",
       "path": [
         "time_display",
         "digits",
         5,
-        "core",
         "current_resistor"
       ],
       "pins": {
-        "1": "time_display.digits[5].core.current_set",
+        "1": "time_display.digits[5].current_set",
         "2": "gnd"
       },
-      "reference": "R27",
+      "reference": "R52",
       "value": {
         "type": "string",
         "value": "1.8kOhm"
       }
     },
-    "time_display.digits[5].core.decouple": {
+    "time_display.digits[5].decouple": {
       "footprint": "Capacitor_SMD:C_0603_1608Metric",
       "path": [
         "time_display",
         "digits",
         5,
-        "core",
         "decouple"
       ],
       "pins": {
         "1": "v3v3",
         "2": "gnd"
       },
-      "reference": "C50",
+      "reference": "C78",
       "value": {
         "type": "string",
         "value": "100nF"
-      }
-    },
-    "time_display.digits[5].core.driver": {
-      "footprint": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
-      "path": [
-        "time_display",
-        "digits",
-        5,
-        "core",
-        "driver"
-      ],
-      "pins": {
-        "1": "gnd",
-        "10": "time_display.digits[5].segments[5]",
-        "11": "time_display.digits[5].segments[6]",
-        "12": "time_display.digits[5].segments[7]",
-        "13": "leds.blank#",
-        "14": "time_display.link[5]",
-        "15": "time_display.digits[5].core.current_set",
-        "16": "v3v3",
-        "2": "time_display.link[4]",
-        "3": "leds.clock",
-        "4": "leds.latch",
-        "5": "time_display.digits[5].segments[0]",
-        "6": "time_display.digits[5].segments[1]",
-        "7": "time_display.digits[5].segments[2]",
-        "8": "time_display.digits[5].segments[3]",
-        "9": "time_display.digits[5].segments[4]"
-      },
-      "reference": "U13",
-      "value": {
-        "type": "string",
-        "value": "TLC5916IDR"
       }
     },
     "time_display.digits[5].display": {
@@ -3868,75 +3954,72 @@
         "value": "LSHD-5601"
       }
     },
-    "time_display.digits[6].core.current_resistor": {
+    "time_display.digits[5].driver": {
+      "footprint": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
+      "path": [
+        "time_display",
+        "digits",
+        5,
+        "driver"
+      ],
+      "pins": {
+        "1": "gnd",
+        "10": "time_display.digits[5].segments[5]",
+        "11": "time_display.digits[5].segments[6]",
+        "12": "time_display.digits[5].segments[7]",
+        "13": "leds.blank#",
+        "14": "time_display.link[5]",
+        "15": "time_display.digits[5].current_set",
+        "16": "v3v3",
+        "2": "time_display.link[4]",
+        "3": "leds.clock",
+        "4": "leds.latch",
+        "5": "time_display.digits[5].segments[0]",
+        "6": "time_display.digits[5].segments[1]",
+        "7": "time_display.digits[5].segments[2]",
+        "8": "time_display.digits[5].segments[3]",
+        "9": "time_display.digits[5].segments[4]"
+      },
+      "reference": "U31",
+      "value": {
+        "type": "string",
+        "value": "TLC5916IDR"
+      }
+    },
+    "time_display.digits[6].current_resistor": {
       "footprint": "Resistor_SMD:R_0603_1608Metric",
       "path": [
         "time_display",
         "digits",
         6,
-        "core",
         "current_resistor"
       ],
       "pins": {
-        "1": "time_display.digits[6].core.current_set",
+        "1": "time_display.digits[6].current_set",
         "2": "gnd"
       },
-      "reference": "R28",
+      "reference": "R53",
       "value": {
         "type": "string",
         "value": "1.8kOhm"
       }
     },
-    "time_display.digits[6].core.decouple": {
+    "time_display.digits[6].decouple": {
       "footprint": "Capacitor_SMD:C_0603_1608Metric",
       "path": [
         "time_display",
         "digits",
         6,
-        "core",
         "decouple"
       ],
       "pins": {
         "1": "v3v3",
         "2": "gnd"
       },
-      "reference": "C51",
+      "reference": "C79",
       "value": {
         "type": "string",
         "value": "100nF"
-      }
-    },
-    "time_display.digits[6].core.driver": {
-      "footprint": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
-      "path": [
-        "time_display",
-        "digits",
-        6,
-        "core",
-        "driver"
-      ],
-      "pins": {
-        "1": "gnd",
-        "10": "time_display.digits[6].segments[5]",
-        "11": "time_display.digits[6].segments[6]",
-        "12": "time_display.digits[6].segments[7]",
-        "13": "leds.blank#",
-        "14": "time_display.link[6]",
-        "15": "time_display.digits[6].core.current_set",
-        "16": "v3v3",
-        "2": "time_display.link[5]",
-        "3": "leds.clock",
-        "4": "leds.latch",
-        "5": "time_display.digits[6].segments[0]",
-        "6": "time_display.digits[6].segments[1]",
-        "7": "time_display.digits[6].segments[2]",
-        "8": "time_display.digits[6].segments[3]",
-        "9": "time_display.digits[6].segments[4]"
-      },
-      "reference": "U14",
-      "value": {
-        "type": "string",
-        "value": "TLC5916IDR"
       }
     },
     "time_display.digits[6].display": {
@@ -3965,75 +4048,72 @@
         "value": "LSHD-5601"
       }
     },
-    "time_display.digits[7].core.current_resistor": {
+    "time_display.digits[6].driver": {
+      "footprint": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
+      "path": [
+        "time_display",
+        "digits",
+        6,
+        "driver"
+      ],
+      "pins": {
+        "1": "gnd",
+        "10": "time_display.digits[6].segments[5]",
+        "11": "time_display.digits[6].segments[6]",
+        "12": "time_display.digits[6].segments[7]",
+        "13": "leds.blank#",
+        "14": "time_display.link[6]",
+        "15": "time_display.digits[6].current_set",
+        "16": "v3v3",
+        "2": "time_display.link[5]",
+        "3": "leds.clock",
+        "4": "leds.latch",
+        "5": "time_display.digits[6].segments[0]",
+        "6": "time_display.digits[6].segments[1]",
+        "7": "time_display.digits[6].segments[2]",
+        "8": "time_display.digits[6].segments[3]",
+        "9": "time_display.digits[6].segments[4]"
+      },
+      "reference": "U32",
+      "value": {
+        "type": "string",
+        "value": "TLC5916IDR"
+      }
+    },
+    "time_display.digits[7].current_resistor": {
       "footprint": "Resistor_SMD:R_0603_1608Metric",
       "path": [
         "time_display",
         "digits",
         7,
-        "core",
         "current_resistor"
       ],
       "pins": {
-        "1": "time_display.digits[7].core.current_set",
+        "1": "time_display.digits[7].current_set",
         "2": "gnd"
       },
-      "reference": "R29",
+      "reference": "R54",
       "value": {
         "type": "string",
         "value": "1.8kOhm"
       }
     },
-    "time_display.digits[7].core.decouple": {
+    "time_display.digits[7].decouple": {
       "footprint": "Capacitor_SMD:C_0603_1608Metric",
       "path": [
         "time_display",
         "digits",
         7,
-        "core",
         "decouple"
       ],
       "pins": {
         "1": "v3v3",
         "2": "gnd"
       },
-      "reference": "C52",
+      "reference": "C80",
       "value": {
         "type": "string",
         "value": "100nF"
-      }
-    },
-    "time_display.digits[7].core.driver": {
-      "footprint": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
-      "path": [
-        "time_display",
-        "digits",
-        7,
-        "core",
-        "driver"
-      ],
-      "pins": {
-        "1": "gnd",
-        "10": "time_display.digits[7].segments[5]",
-        "11": "time_display.digits[7].segments[6]",
-        "12": "time_display.digits[7].segments[7]",
-        "13": "leds.blank#",
-        "14": "time_display.link[7]",
-        "15": "time_display.digits[7].core.current_set",
-        "16": "v3v3",
-        "2": "time_display.link[6]",
-        "3": "leds.clock",
-        "4": "leds.latch",
-        "5": "time_display.digits[7].segments[0]",
-        "6": "time_display.digits[7].segments[1]",
-        "7": "time_display.digits[7].segments[2]",
-        "8": "time_display.digits[7].segments[3]",
-        "9": "time_display.digits[7].segments[4]"
-      },
-      "reference": "U15",
-      "value": {
-        "type": "string",
-        "value": "TLC5916IDR"
       }
     },
     "time_display.digits[7].display": {
@@ -4062,75 +4142,72 @@
         "value": "LSHD-5601"
       }
     },
-    "time_display.digits[8].core.current_resistor": {
+    "time_display.digits[7].driver": {
+      "footprint": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
+      "path": [
+        "time_display",
+        "digits",
+        7,
+        "driver"
+      ],
+      "pins": {
+        "1": "gnd",
+        "10": "time_display.digits[7].segments[5]",
+        "11": "time_display.digits[7].segments[6]",
+        "12": "time_display.digits[7].segments[7]",
+        "13": "leds.blank#",
+        "14": "time_display.link[7]",
+        "15": "time_display.digits[7].current_set",
+        "16": "v3v3",
+        "2": "time_display.link[6]",
+        "3": "leds.clock",
+        "4": "leds.latch",
+        "5": "time_display.digits[7].segments[0]",
+        "6": "time_display.digits[7].segments[1]",
+        "7": "time_display.digits[7].segments[2]",
+        "8": "time_display.digits[7].segments[3]",
+        "9": "time_display.digits[7].segments[4]"
+      },
+      "reference": "U33",
+      "value": {
+        "type": "string",
+        "value": "TLC5916IDR"
+      }
+    },
+    "time_display.digits[8].current_resistor": {
       "footprint": "Resistor_SMD:R_0603_1608Metric",
       "path": [
         "time_display",
         "digits",
         8,
-        "core",
         "current_resistor"
       ],
       "pins": {
-        "1": "time_display.digits[8].core.current_set",
+        "1": "time_display.digits[8].current_set",
         "2": "gnd"
       },
-      "reference": "R30",
+      "reference": "R55",
       "value": {
         "type": "string",
         "value": "1.8kOhm"
       }
     },
-    "time_display.digits[8].core.decouple": {
+    "time_display.digits[8].decouple": {
       "footprint": "Capacitor_SMD:C_0603_1608Metric",
       "path": [
         "time_display",
         "digits",
         8,
-        "core",
         "decouple"
       ],
       "pins": {
         "1": "v3v3",
         "2": "gnd"
       },
-      "reference": "C53",
+      "reference": "C81",
       "value": {
         "type": "string",
         "value": "100nF"
-      }
-    },
-    "time_display.digits[8].core.driver": {
-      "footprint": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
-      "path": [
-        "time_display",
-        "digits",
-        8,
-        "core",
-        "driver"
-      ],
-      "pins": {
-        "1": "gnd",
-        "10": "time_display.digits[8].segments[5]",
-        "11": "time_display.digits[8].segments[6]",
-        "12": "time_display.digits[8].segments[7]",
-        "13": "leds.blank#",
-        "14": "time_display.link[8]",
-        "15": "time_display.digits[8].core.current_set",
-        "16": "v3v3",
-        "2": "time_display.link[7]",
-        "3": "leds.clock",
-        "4": "leds.latch",
-        "5": "time_display.digits[8].segments[0]",
-        "6": "time_display.digits[8].segments[1]",
-        "7": "time_display.digits[8].segments[2]",
-        "8": "time_display.digits[8].segments[3]",
-        "9": "time_display.digits[8].segments[4]"
-      },
-      "reference": "U16",
-      "value": {
-        "type": "string",
-        "value": "TLC5916IDR"
       }
     },
     "time_display.digits[8].display": {
@@ -4157,6 +4234,38 @@
       "value": {
         "type": "string",
         "value": "LSHD-5601"
+      }
+    },
+    "time_display.digits[8].driver": {
+      "footprint": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
+      "path": [
+        "time_display",
+        "digits",
+        8,
+        "driver"
+      ],
+      "pins": {
+        "1": "gnd",
+        "10": "time_display.digits[8].segments[5]",
+        "11": "time_display.digits[8].segments[6]",
+        "12": "time_display.digits[8].segments[7]",
+        "13": "leds.blank#",
+        "14": "leds.data_out",
+        "15": "time_display.digits[8].current_set",
+        "16": "v3v3",
+        "2": "time_display.link[7]",
+        "3": "leds.clock",
+        "4": "leds.latch",
+        "5": "time_display.digits[8].segments[0]",
+        "6": "time_display.digits[8].segments[1]",
+        "7": "time_display.digits[8].segments[2]",
+        "8": "time_display.digits[8].segments[3]",
+        "9": "time_display.digits[8].segments[4]"
+      },
+      "reference": "U34",
+      "value": {
+        "type": "string",
+        "value": "TLC5916IDR"
       }
     },
     "timebase.clock_jumper": {

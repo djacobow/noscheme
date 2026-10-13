@@ -1,12 +1,12 @@
-// Nine non-multiplexed 7-segment digits (HH MM SS mmm) and the colon dots,
-// each group behind one TLC5916 constant-current sink driver. The ten drivers
-// form one shift chain. Firmware shifts the next time in just after each
-// millisecond and pulses the shared latch exactly on the next boundary.
+// Nine non-multiplexed 7-segment digits (HH MM SS mmm), each behind its own
+// TLC5916 constant-current sink driver, one driver output per segment and one
+// for the decimal point. The nine drivers form one shift chain. Firmware
+// shifts the next time in just after each millisecond and pulses the shared
+// latch exactly on the next boundary.
 
 from noscheme import role, net, use, pull, drive
 from interfaces import LedChain
-from components import Resistor0603, Pullup0603, Capacitor0603
-from components import SevenSegmentDigit, ColonLed0805
+from components import Resistor0603, Pullup0603, Capacitor0603, SevenSegmentDigit
 import Driver_LED
 
 // Logic runs from 3.3 V so the MCU's outputs meet VIH; the sinks tolerate
@@ -26,31 +26,7 @@ extend Driver_LED.TLC5916<"TLC5916IDR"> LedDriver:
       supplier_part_number: "C90107"
 
 // R-EXT sets each output: I = 15 * 1.25 V / R, about 10.4 mA at 1.8 k.
-block DriverCore:
-  ports:
-    net.power logic
-    net.ground ground
-    net.digital clock
-    net.digital latch
-    net.digital blank#
-    net.digital data_in
-    net.digital data_out
-    net.passive sinks[8]
-  net.passive current_set
-  LedDriver driver:
-    "1": ground
-    "2": data_in
-    "3": clock
-    "4": latch
-    5..12: sinks
-    "13": blank#
-    "14": data_out
-    "15": current_set
-    "16": logic
-  Resistor0603<1.8k> current_resistor(current_set, ground)
-  Capacitor0603<100n> decouple(logic, ground)
-
-// Driver outputs 0-7 are segments a-g then the decimal point.
+// Driver outputs 0-7 are segments a-g, then the decimal point.
 block Digit:
   ports:
     net.power logic
@@ -62,45 +38,22 @@ block Digit:
     net.digital data_in
     net.digital data_out
   net.passive segments[8]
-  DriverCore core(
-    logic: logic,
-    ground: ground,
-    clock: clock,
-    latch: latch,
-    blank#: blank#,
-    data_in: data_in,
-    data_out: data_out,
-    sinks: segments,
-  )
+  net.passive current_set
+  LedDriver driver:
+    "1": ground
+    "2": data_in
+    "3": clock
+    "4": latch
+    5..12: segments
+    "13": blank#
+    "14": data_out
+    "15": current_set
+    "16": logic
+  Resistor0603<1.8k> current_resistor(current_set, ground)
+  Capacitor0603<100n> decouple(logic, ground)
   SevenSegmentDigit display:
     [a, b, c, d, e, f, g, dp]: segments
     [3, 8]: led_supply
-
-// Outputs 0-3 light the two colons' four dots; 4-7 light front-panel
-// annunciators (GPS lock, NTP, holdover, PD fault), latched with the time.
-block Colons:
-  ports:
-    net.power logic
-    net.power led_supply
-    net.ground ground
-    net.digital clock
-    net.digital latch
-    net.digital blank#
-    net.digital data_in
-    net.digital data_out
-  net.passive sinks[8]
-  DriverCore core(
-    logic: logic,
-    ground: ground,
-    clock: clock,
-    latch: latch,
-    blank#: blank#,
-    data_in: data_in,
-    data_out: data_out,
-    sinks: sinks,
-  )
-  ColonLed0805 dots[4](K: sinks[0:4], A: led_supply)
-  ColonLed0805 annunciators[4](K: sinks[4:8], A: led_supply)
 
 block Display:
   ports:
@@ -108,9 +61,10 @@ block Display:
     net.power led_supply
     net.ground ground
     LedChain chain
-  net.digital link[9]
+  net.digital link[8]
 
   // digits[0] is the hours tens digit; digits[8] is the millisecond units.
+  // Each driver's SDO feeds the next driver's SDI.
   Digit digits[9]:
     logic: logic
     led_supply: led_supply
@@ -119,17 +73,8 @@ block Display:
     latch: chain.latch
     blank#: chain.blank#
     [0].data_in: chain.data_in
-    [1:9].data_in: link[0:8]
-    data_out: link
-  Colons colons(
-    logic: logic,
-    led_supply: led_supply,
-    ground: ground,
-    clock: chain.clock,
-    latch: chain.latch,
-    blank#: chain.blank#,
-    data_in: link[8],
-    data_out: chain.data_out,
-  )
+    [1:9].data_in: link
+    [0:8].data_out: link
+    [8].data_out: chain.data_out
   // Blank (OE# high) from reset until firmware has loaded a valid time.
   Pullup0603<10k> blank_pullup(1: logic, 2: chain.blank#)

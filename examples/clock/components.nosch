@@ -91,11 +91,6 @@ extend Led<"Green"> GreenLed0603:
   metadata:
     footprint: "LED_SMD:LED_0603_1608Metric"
 
-// Colon dots between HH:MM:SS, matched to the green digits.
-extend Led<"Green"> ColonLed0805:
-  metadata:
-    footprint: "LED_SMD:LED_0805_2012Metric"
-
 block Indicator:
   params:
     resistance resistance = 1k

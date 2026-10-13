@@ -18,17 +18,23 @@ network status.
 
 The second display is nine 0.56" common-anode 7-segment digits (Lite-On
 LSHD-5601, green) showing HH:MM:SS.mmm. The digits are not multiplexed: each
-digit has its own TI TLC5916 8-bit constant-current sink driver, and a tenth
-TLC5916 drives the four colon dots and four front-panel annunciators (GPS lock,
-NTP, holdover, PD fault). The ten drivers form one 80-bit shift chain:
+digit has its own TI TLC5916 8-bit constant-current sink driver, one output per
+segment plus the decimal point, so drivers and digits map one to one. There are
+no separate colon LEDs: firmware uses the decimal points as separators (for
+example `12.34.56.789`). The nine drivers form one 72-bit shift chain:
 
 - Immediately _after_ each millisecond boundary, firmware shifts the next
-  millisecond's 80 bits in over SPI4 (8 µs at 10 MHz).
+  millisecond's 72 bits in over SPI4 (7.2 µs at 10 MHz).
 - A timer output-compare pulses the shared LE (latch) line at the exact next
   boundary, so every digit changes at once.
 - The chain's last SDO returns to the MCU, so firmware can verify the chain.
 - OE# is a timer PWM output for brightness control, pulled high (blank) until
   firmware has loaded a valid time.
+
+Four front-panel annunciators (GPS lock, NTP serving, holdover, PD fault) sit
+on their own MCU GPIOs (PE7–PE10). Each is active low through 330 Ω, so firmware
+can switch them independently of the latched digits, or PWM them to match the
+digits' brightness.
 
 A 1.8 kΩ R-EXT sets about 10.4 mA per segment. The drivers' logic runs at
 3.3 V (so the MCU meets VIH); the LED anodes run from 5 V.
@@ -155,15 +161,15 @@ Hand power budget (the NoScheme sources do not yet carry per-pin load data):
 
 | Load | Rail | Worst case |
 |---|---|---|
-| 80 LED outputs at 10.4 mA | 5 V | 0.83 A (all segments lit) |
+| 72 LED outputs at 10.4 mA | 5 V | 0.75 A (all segments lit) |
 | MCU at 550 MHz with Ethernet | 3.3 V | about 0.15 A |
 | DP83848C at 100 Mb/s | 3.3 V | about 0.08 A |
 | MAX-M10S plus active antenna | 3.3 V | about 0.05 A |
-| Ten TLC5916 (logic), OLED, oscillators, logic | 3.3 V | about 0.15 A |
+| Nine TLC5916 (logic), OLED, oscillators, logic | 3.3 V | about 0.15 A |
 | OCXO warm-up (option) | 12 V or 5 V | 2–3 W |
 
-That is about 5 W on 5 V and 1.5 W on 3.3 V. With the OCXO warming up, the
-total stays near 10 W, or 0.85 A at 12 V, within common 12 V / 1.5 A PD
+That is about 4 W on 5 V and 1.5 W on 3.3 V. With the OCXO warming up, the
+total stays under 10 W, about 0.8 A at 12 V, within common 12 V / 1.5 A PD
 profiles.
 
 ## Design Constraints

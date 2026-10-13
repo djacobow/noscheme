@@ -53,7 +53,7 @@ block HonestClock:
   net.analog efc
   net.analog light
   net.idle_high buttons#[2]
-  net.digital status#[2]
+  net.digital annunciators#[4]
 
   power.UsbPower usb_power(vbus: vbus, logic: v3v3, ground: gnd, usb: usb, pd_good#: pd_good#)
   power.Buck5v buck_5v(input: vbus, output: v5, ground: gnd)
@@ -84,7 +84,7 @@ block HonestClock:
     pd_good#: pd_good#,
     direction: direction,
     buttons#: buttons#,
-    status#: status#,
+    annunciators#: annunciators#,
   )
 
   timebase.Timebase timebase(
@@ -149,8 +149,10 @@ block HonestClock:
         1: drive.low
   Pullup0603<10k> button_pullups[2](1: v3v3, 2: buttons#)
 
-  // status#[0]: GPS lock, status#[1]: NTP serving. Active low.
-  Indicator status[2](supply: v3v3, drive: status#)
+  // Front-panel annunciators, active low: GPS lock, NTP serving, holdover,
+  // PD fault. 330 ohm gives about 3.5 mA from 3.3 V; firmware may PWM them to
+  // track the digits' brightness.
+  Indicator<330> annunciators[4](supply: v3v3, drive: annunciators#)
 
   // Probe header for rails and timing signals.
   Header2x8 probes:

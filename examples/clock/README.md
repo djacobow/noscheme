@@ -17,7 +17,7 @@ exports a KiCad netlist and BOM. No PCB has been laid out or built.
 | `timebase.nosch` | VCTCXO/OCXO, 16-bit EFC chain, 10 MHz SMA in/out, direction and clock jumpers |
 | `gps.nosch` | MAX-M10S with active-antenna bias |
 | `ethernet.nosch` | DP83848C RMII PHY, 50 MHz reference, HR911105A MagJack |
-| `display.nosch` | TLC5916 drivers, digits, colons, and annunciators in one shift chain |
+| `display.nosch` | Nine digits, each with its own TLC5916 driver, in one shift chain |
 | `interfaces.nosch` | Shared bundles |
 | `components.nosch` | Passives, connectors, and handwritten parts |
 | `kicad_lib/` | Converted KiCad symbols and the footprint snapshot; see its [README](kicad_lib/README.md) |
@@ -27,8 +27,9 @@ The display chain uses the instance-array slice pattern for a daisy chain:
 ```nosch
 Digit digits[9]:
   [0].data_in: chain.data_in
-  [1:9].data_in: link[0:8]
-  data_out: link
+  [1:9].data_in: link
+  [0:8].data_out: link
+  [8].data_out: chain.data_out
 ```
 
 ## Build

@@ -22,7 +22,7 @@ extend MCU_ST_STM32H7.STM32H723VGTx<"STM32H723VGT6"> Stm32H723:
     [12, 77, 23, 46]: role.digital_input
     15: role.analog_input
     // SPI4/SPI3 clocks and data out, TIM2_CH4 latch, TIM4_CH1 blanking, GPIO.
-    [1, 5, 25, 59, 78, 80, 81, 82, 83, 85, 86, 37, 38, 57, 58]: role.digital_output
+    [1, 5, 25, 37, 38, 39, 40, 57, 58, 59, 78, 80, 81, 82, 83, 85, 86]: role.digital_output
     // Ethernet MAC: MDC, TX_EN, TXD0, TXD1 out; CRS_DV, RXD0, RXD1 in.
     [16, 47, 51, 52]: role.digital_output
     [31, 32, 33]: role.digital_input
@@ -77,7 +77,7 @@ block Mcu:
     net.idle_high pd_good#
     net.passive direction
     net.idle_high buttons#[2]
-    net.digital status#[2]
+    net.digital annunciators#[4]
 
   SWD debug
   net.passive osc_out
@@ -132,9 +132,11 @@ block Mcu:
     PE4: direction
     PE0: buttons#[0]
     PE1: buttons#[1]
-    PE7: status#[0]
-    PE8: status#[1]
-    [7..9, 17..18, 22, 28..30, 34..36, 39..45, 53..54, 60..69, 79, 84, 88, 90..93, 95..96]: no_connect
+    PE7: annunciators#[0]
+    PE8: annunciators#[1]
+    PE9: annunciators#[2]
+    PE10: annunciators#[3]
+    [7..9, 17..18, 22, 28..30, 34..36, 41..45, 53..54, 60..69, 79, 84, 88, 90..93, 95..96]: no_connect
 
   // One 100 nF per supply pin, beside its pad.
   Capacitor0603<100n> decouple[8]:
