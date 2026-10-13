@@ -1,0 +1,63 @@
+{
+  "issues": [
+    {
+      "check": "assumed_drive_direction",
+      "message": "KiCad convention mapped to drive.low; verify polarity against the device datasheet",
+      "pin": "10",
+      "symbol": "TLC5916"
+    },
+    {
+      "check": "assumed_drive_direction",
+      "message": "KiCad convention mapped to drive.low; verify polarity against the device datasheet",
+      "pin": "11",
+      "symbol": "TLC5916"
+    },
+    {
+      "check": "assumed_drive_direction",
+      "message": "KiCad convention mapped to drive.low; verify polarity against the device datasheet",
+      "pin": "12",
+      "symbol": "TLC5916"
+    },
+    {
+      "check": "assumed_drive_direction",
+      "message": "KiCad convention mapped to drive.low; verify polarity against the device datasheet",
+      "pin": "5",
+      "symbol": "TLC5916"
+    },
+    {
+      "check": "assumed_drive_direction",
+      "message": "KiCad convention mapped to drive.low; verify polarity against the device datasheet",
+      "pin": "6",
+      "symbol": "TLC5916"
+    },
+    {
+      "check": "assumed_drive_direction",
+      "message": "KiCad convention mapped to drive.low; verify polarity against the device datasheet",
+      "pin": "7",
+      "symbol": "TLC5916"
+    },
+    {
+      "check": "assumed_drive_direction",
+      "message": "KiCad convention mapped to drive.low; verify polarity against the device datasheet",
+      "pin": "8",
+      "symbol": "TLC5916"
+    },
+    {
+      "check": "assumed_drive_direction",
+      "message": "KiCad convention mapped to drive.low; verify polarity against the device datasheet",
+      "pin": "9",
+      "symbol": "TLC5916"
+    },
+    {
+      "check": "unspecified_footprint",
+      "symbol": "TLC5916"
+    }
+  ],
+  "module": "Driver_LED",
+  "schema_version": 1,
+  "source": "/usr/share/kicad/symbols/Driver_LED.kicad_sym",
+  "source_sha256": "33215de5404dd5022f949edf1113bac6e6ab1aff8c7dd464cb3f8b91254fb127",
+  "symbols": {
+    "TLC5916": "TLC5916"
+  }
+}

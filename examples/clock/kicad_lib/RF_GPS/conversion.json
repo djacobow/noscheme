@@ -1,0 +1,22 @@
+{
+  "issues": [
+    {
+      "alias": "GND",
+      "check": "ambiguous_alias",
+      "message": "alias omitted; physical pin IDs retained",
+      "pins": [
+        "1",
+        "10",
+        "12"
+      ],
+      "symbol": "MAX-M10S"
+    }
+  ],
+  "module": "RF_GPS",
+  "schema_version": 1,
+  "source": "/usr/share/kicad/symbols/RF_GPS.kicad_sym",
+  "source_sha256": "757b2bd164e5ed03e03ab3b6861e2503650b314236092e9bacb992e442410fb2",
+  "symbols": {
+    "MAX-M10S": "MAX_M10S"
+  }
+}

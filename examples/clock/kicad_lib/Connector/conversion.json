@@ -1,0 +1,86 @@
+{
+  "issues": [
+    {
+      "alias": "D+",
+      "check": "ambiguous_alias",
+      "message": "alias omitted; physical pin IDs retained",
+      "pins": [
+        "A6",
+        "B6"
+      ],
+      "symbol": "USB_C_Receptacle_USB2.0_16P"
+    },
+    {
+      "alias": "D-",
+      "check": "ambiguous_alias",
+      "message": "alias omitted; physical pin IDs retained",
+      "pins": [
+        "A7",
+        "B7"
+      ],
+      "symbol": "USB_C_Receptacle_USB2.0_16P"
+    },
+    {
+      "alias": "GND",
+      "check": "ambiguous_alias",
+      "message": "alias omitted; physical pin IDs retained",
+      "pins": [
+        "3",
+        "5"
+      ],
+      "symbol": "Conn_ARM_JTAG_SWD_10"
+    },
+    {
+      "alias": "GND",
+      "check": "ambiguous_alias",
+      "message": "alias omitted; physical pin IDs retained",
+      "pins": [
+        "A1",
+        "A12",
+        "B1",
+        "B12"
+      ],
+      "symbol": "USB_C_Receptacle_USB2.0_16P"
+    },
+    {
+      "alias": "VBUS",
+      "check": "ambiguous_alias",
+      "message": "alias omitted; physical pin IDs retained",
+      "pins": [
+        "A4",
+        "A9",
+        "B4",
+        "B9"
+      ],
+      "symbol": "USB_C_Receptacle_USB2.0_16P"
+    },
+    {
+      "check": "assumed_drive_direction",
+      "message": "KiCad convention mapped to drive.low; verify polarity against the device datasheet",
+      "pin": "10",
+      "symbol": "Conn_ARM_JTAG_SWD_10"
+    },
+    {
+      "check": "unspecified_footprint",
+      "symbol": "Conn_ARM_JTAG_SWD_10"
+    },
+    {
+      "check": "unspecified_footprint",
+      "symbol": "Conn_Coaxial"
+    },
+    {
+      "check": "unspecified_footprint",
+      "symbol": "USB_C_Receptacle_USB2.0_16P"
+    }
+  ],
+  "module": "Connector",
+  "schema_version": 1,
+  "source": "/usr/share/kicad/symbols/Connector.kicad_sym",
+  "source_sha256": "50b42bf755009d3d459c310182dca1c37e1ff1a01fa6ae23846b416fafffc914",
+  "symbols": {
+    "Conn_ARM_JTAG_SWD_10": "Conn_ARM_JTAG_SWD_10",
+    "Conn_Coaxial": "Conn_Coaxial",
+    "RJ45_Hanrun_HR911105A_Horizontal": "RJ45_Hanrun_HR911105A_Horizontal",
+    "USB_C_Receptacle_USB2.0_16P": "USB_C_Receptacle_USB2_0_16P"
+  }
+}

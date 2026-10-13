@@ -1,0 +1,311 @@
+from noscheme import role, use, drive
+
+component Conn_ARM_JTAG_SWD_10:
+  params:
+    string value = "Conn_ARM_JTAG_SWD_10"
+  pins:
+    "1" (VTref):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "10" ("~{RESET}"):
+      drive: drive.low
+      custom:
+        kicad_pin_types: ["open_collector"]
+    "2" ("SWDIO/TMS"):
+      role: role.digital_bidirectional
+      custom:
+        kicad_pin_types: ["bidirectional"]
+    "3":
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "4" ("SWCLK/TCK"):
+      role: role.digital_output
+      custom:
+        kicad_pin_types: ["output"]
+    "5":
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "6" ("SWO/TDO"):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "7" (KEY):
+      use: use.disallowed
+      custom:
+        kicad_pin_types: ["no_connect"]
+    "8" ("NC/TDI"):
+      role: role.digital_output
+      custom:
+        kicad_pin_types: ["output"]
+    "9" (GNDDetect):
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+  metadata:
+    ref_prefix: "J"
+    custom:
+      kicad_symbol: "Connector:Conn_ARM_JTAG_SWD_10"
+      kicad_duplicate_pin_numbers_are_jumpers: "no"
+      kicad_footprint_candidates: [
+        "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Horizontal",
+        "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical",
+        "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD",
+      ]
+      kicad_properties:
+        "Datasheet": "http://infocenter.arm.com/help/topic/com.arm.doc.ddi0314h/DDI0314H_coresight_components_trm.pdf"
+        "Description": "Cortex Debug Connector, standard ARM Cortex-M SWD and JTAG interface"
+        "Footprint": ""
+        "Reference": "J"
+        "Value": "Conn_ARM_JTAG_SWD_10"
+        "ki_fp_filters": "PinHeader?2x05?P1.27mm*"
+        "ki_keywords": "Cortex Debug Connector ARM SWD JTAG"
+
+component Conn_Coaxial:
+  params:
+    string value = "Conn_Coaxial"
+  pins:
+    "1" (In):
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "2" (Ext):
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+  metadata:
+    ref_prefix: "J"
+    custom:
+      kicad_symbol: "Connector:Conn_Coaxial"
+      kicad_duplicate_pin_numbers_are_jumpers: "no"
+      kicad_footprint_candidates: [
+        "Connector_Coaxial:BNC_Amphenol_031-5539_Vertical",
+        "Connector_Coaxial:BNC_Amphenol_B6252HB-NPP3G-50_Horizontal",
+        "Connector_Coaxial:BNC_PanelMountable_Vertical",
+        "Connector_Coaxial:BNC_TEConnectivity_1478035_Horizontal",
+        "Connector_Coaxial:BNC_TEConnectivity_1478204_Vertical",
+        "Connector_Coaxial:LEMO-EPL.00.250.NTN",
+        "Connector_Coaxial:MMCX_Molex_73415-0961_Horizontal_0.8mm-PCB",
+        "Connector_Coaxial:MMCX_Molex_73415-0961_Horizontal_1.0mm-PCB",
+        "Connector_Coaxial:MMCX_Molex_73415-0961_Horizontal_1.6mm-PCB",
+        "Connector_Coaxial:MMCX_Molex_73415-1471_Vertical",
+        "Connector_Coaxial:SMA_Amphenol_132134-10_Vertical",
+        "Connector_Coaxial:SMA_Amphenol_132134-11_Vertical",
+        "Connector_Coaxial:SMA_Amphenol_132134-14_Vertical",
+        "Connector_Coaxial:SMA_Amphenol_132134-16_Vertical",
+        "Connector_Coaxial:SMA_Amphenol_132134_Vertical",
+        "Connector_Coaxial:SMA_Amphenol_132203-12_Horizontal",
+        "Connector_Coaxial:SMA_Amphenol_132289_EdgeMount",
+        "Connector_Coaxial:SMA_Amphenol_132291-12_Vertical",
+        "Connector_Coaxial:SMA_Amphenol_132291_Vertical",
+        "Connector_Coaxial:SMA_Amphenol_901-143_Horizontal",
+        "Connector_Coaxial:SMA_Amphenol_901-144_Vertical",
+        "Connector_Coaxial:SMA_BAT_Wireless_BWSMA-KWE-Z001",
+        "Connector_Coaxial:SMA_Molex_73251-1153_EdgeMount_Horizontal",
+        "Connector_Coaxial:SMA_Molex_73251-2120_EdgeMount_Horizontal",
+        "Connector_Coaxial:SMA_Molex_73251-2200_Horizontal",
+        "Connector_Coaxial:SMA_Samtec_SMA-J-P-H-ST-EM1_EdgeMount",
+        "Connector_Coaxial:SMA_Wurth_60312002114503_Vertical",
+        "Connector_Coaxial:SMA_Wurth_60312102114405_Vertical",
+        "Connector_Coaxial:SMB_Jack_Vertical",
+        "Connector_Coaxial:U.FL_Hirose_U.FL-R-SMT-1_Vertical",
+        "Connector_Coaxial:U.FL_Molex_MCRF_73412-0110_Vertical",
+        "Connector_Coaxial:WR-MMCX_Wuerth_66011102111302_Horizontal",
+        "Connector_Coaxial:WR-MMCX_Wuerth_66012102111404_Vertical",
+        "Diode_SMD:D_SMA",
+        "Diode_SMD:D_SMA-SMB_Universal_Handsoldering",
+        "Diode_SMD:D_SMA_Handsoldering",
+        "Diode_SMD:D_SMB",
+        "Diode_SMD:D_SMB-SMC_Universal_Handsoldering",
+        "Diode_SMD:D_SMB_Handsoldering",
+        "Diode_SMD:D_SMC",
+        "Diode_SMD:D_SMC-RM10_Universal_Handsoldering",
+        "Diode_SMD:D_SMC_Handsoldering",
+        "Diode_SMD:ST_D_SMC",
+        "Inductor_THT:L_Axial_L9.5mm_D4.0mm_P12.70mm_Horizontal_Fastron_SMCC",
+        "Inductor_THT:L_Axial_L9.5mm_D4.0mm_P15.24mm_Horizontal_Fastron_SMCC",
+        "Inductor_THT:L_Axial_L9.5mm_D4.0mm_P2.54mm_Vertical_Fastron_SMCC",
+        "Inductor_THT:L_Axial_L9.5mm_D4.0mm_P5.08mm_Vertical_Fastron_SMCC",
+      ]
+      kicad_properties:
+        "Datasheet": ""
+        "Description": "coaxial connector (BNC, SMA, SMB, SMC, Cinch/RCA, LEMO, ...)"
+        "Footprint": ""
+        "Reference": "J"
+        "Value": "Conn_Coaxial"
+        "ki_fp_filters": "*BNC* *SMA* *SMB* *SMC* *Cinch* *LEMO* *UMRF* *MCX* *U.FL*"
+        "ki_keywords": "BNC SMA SMB SMC LEMO coaxial connector CINCH RCA MCX MMCX U.FL UMRF"
+
+component RJ45_Hanrun_HR911105A_Horizontal:
+  params:
+    string value = "RJ45_Hanrun_HR911105A_Horizontal"
+  pins:
+    "1" ("TD+"):
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "10":
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "11":
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "12":
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "2" ("TD-"):
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "3" ("RD+"):
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "4" (TCT):
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "5" (RCT):
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "6" ("RD-"):
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "7" (NC):
+      use: use.disallowed
+      custom:
+        kicad_pin_types: ["no_connect"]
+    "8":
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "9":
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "SH":
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+  metadata:
+    ref_prefix: "J"
+    footprint: "Connector_RJ:RJ45_Hanrun_HR911105A_Horizontal"
+    custom:
+      kicad_symbol: "Connector:RJ45_Hanrun_HR911105A_Horizontal"
+      kicad_duplicate_pin_numbers_are_jumpers: "no"
+      kicad_footprint_candidates: ["Connector_RJ:RJ45_Hanrun_HR911105A_Horizontal"]
+      kicad_properties:
+        "Datasheet": "https://datasheet.lcsc.com/lcsc/1811141815_HANRUN-Zhongshan-HanRun-Elec-HR911105A_C12074.pdf"
+        "Description": "1 Port RJ45 Magjack Connector Through Hole 10/100 Base-T, AutoMDIX"
+        "Footprint": "Connector_RJ:RJ45_Hanrun_HR911105A_Horizontal"
+        "Reference": "J"
+        "Value": "RJ45_Hanrun_HR911105A_Horizontal"
+        "ki_fp_filters": "RJ45*Hanrun*HR911105A*"
+        "ki_keywords": "RJ45 Magjack Socket"
+
+component USB_C_Receptacle_USB2_0_16P:
+  params:
+    string value = "USB_C_Receptacle_USB2.0_16P"
+  pins:
+    "A1":
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "A12":
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "A4":
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "A5" (CC1):
+      role: role.digital_bidirectional
+      custom:
+        kicad_pin_types: ["bidirectional"]
+    "A6":
+      role: role.digital_bidirectional
+      custom:
+        kicad_pin_types: ["bidirectional"]
+    "A7":
+      role: role.digital_bidirectional
+      custom:
+        kicad_pin_types: ["bidirectional"]
+    "A8" (SBU1):
+      role: role.digital_bidirectional
+      custom:
+        kicad_pin_types: ["bidirectional"]
+    "A9":
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "B1":
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "B12":
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "B4":
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "B5" (CC2):
+      role: role.digital_bidirectional
+      custom:
+        kicad_pin_types: ["bidirectional"]
+    "B6":
+      role: role.digital_bidirectional
+      custom:
+        kicad_pin_types: ["bidirectional"]
+    "B7":
+      role: role.digital_bidirectional
+      custom:
+        kicad_pin_types: ["bidirectional"]
+    "B8" (SBU2):
+      role: role.digital_bidirectional
+      custom:
+        kicad_pin_types: ["bidirectional"]
+    "B9":
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "SH" (SHIELD):
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+  metadata:
+    ref_prefix: "J"
+    custom:
+      kicad_symbol: "Connector:USB_C_Receptacle_USB2.0_16P"
+      kicad_duplicate_pin_numbers_are_jumpers: "no"
+      kicad_footprint_candidates: [
+        "Connector_USB:USB_C_Receptacle_Amphenol_12401948E412A",
+        "Connector_USB:USB_C_Receptacle_Amphenol_124019772112A",
+        "Connector_USB:USB_C_Receptacle_G-Switch_GT-USB-7010ASV",
+        "Connector_USB:USB_C_Receptacle_G-Switch_GT-USB-7051x",
+        "Connector_USB:USB_C_Receptacle_GCT_USB4085",
+        "Connector_USB:USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal",
+        "Connector_USB:USB_C_Receptacle_GCT_USB4110",
+        "Connector_USB:USB_C_Receptacle_HCTL_HC-TYPE-C-16P-01A",
+        "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12",
+        "Connector_USB:USB_C_Receptacle_JAE_DX07S016JA1R1500",
+        "Connector_USB:USB_C_Receptacle_Palconn_UTC16-G",
+        "Connector_USB:USB_C_Receptacle_XKB_U262-16XN-4BVC11",
+      ]
+      kicad_properties:
+        "Datasheet": "https://www.usb.org/sites/default/files/documents/usb_type-c.zip"
+        "Description": "USB 2.0-only 16P Type-C Receptacle connector"
+        "Footprint": ""
+        "Reference": "J"
+        "Value": "USB_C_Receptacle_USB2.0_16P"
+        "ki_fp_filters": "USB*C*Receptacle*"
+        "ki_keywords": "usb universal serial bus type-C USB2.0"

@@ -1,0 +1,75 @@
+{
+  "footprints": {
+    "Oscillator:Oscillator_DIP-14": {
+      "exists": true,
+      "name": "Oscillator:Oscillator_DIP-14",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "7",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "8",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "14",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "14",
+        "7",
+        "8"
+      ],
+      "path": "/usr/share/kicad/footprints/Oscillator.pretty/Oscillator_DIP-14.kicad_mod",
+      "sha256": "69a6eaabe3dc22b4081711c57c53b23062b4366129a27554a2dca1b230760e37",
+      "unnumbered_pads": 0
+    },
+    "Oscillator:Oscillator_DIP-14_LargePads": {
+      "exists": true,
+      "name": "Oscillator:Oscillator_DIP-14_LargePads",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "7",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "8",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "14",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "14",
+        "7",
+        "8"
+      ],
+      "path": "/usr/share/kicad/footprints/Oscillator.pretty/Oscillator_DIP-14_LargePads.kicad_mod",
+      "sha256": "a590dc1d46c117f0270a3e05a77d37c2d614112ac5f3facc5b63f38a8318ac33",
+      "unnumbered_pads": 0
+    }
+  },
+  "schema_version": 1
+}

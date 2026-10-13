@@ -1,0 +1,10 @@
+{
+  "issues": [],
+  "module": "Oscillator",
+  "schema_version": 1,
+  "source": "/usr/share/kicad/symbols/Oscillator.kicad_sym",
+  "source_sha256": "0f588841de07c25f775008768b0360cc9f22eaa84922e9d30adfccbb3255b3c9",
+  "symbols": {
+    "OCXO-14": "OCXO_14"
+  }
+}

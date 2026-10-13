@@ -1,0 +1,171 @@
+/*
+Honest Millisecond Clock. See HMS.md for the design and README.md for build
+notes and part sourcing.
+
+A GPS-disciplined 10 MHz timebase drives an STM32H723. The MCU latches nine
+non-multiplexed 7-segment digits on each millisecond boundary, serves NTP over
+10/100 Ethernet with hardware timestamps, and reports status on an OLED.
+*/
+
+from noscheme import role, net, pull, drive
+from interfaces import SpiOut, USB2, Uart, Rmii, Mdio, LedChain
+from components import Resistor0603, Pullup0603, Capacitor0603, Capacitor0805
+from components import PushButton, Indicator, AmbientLightSensor, Header1x7, Header2x8
+import power
+import mcu
+import timebase
+import gps
+import ethernet
+import display
+
+block HonestClock:
+  // 5 V until the PD contract is made; 12 V afterwards.
+  net.power vbus:
+    voltage: 5..12.6
+  net.power v5:
+    voltage: 5 ± 5%
+  net.power v3v3:
+    voltage: 3.3 ± 5%
+  net.power v3v3_quiet:
+    voltage: 3.3 ± 3%
+  net.ground gnd:
+    voltage: 0..0
+
+  USB2 usb
+  SpiOut peripherals
+  LedChain leds
+  Rmii rmii
+  Mdio mdio
+  Uart gps_uart
+  net.idle_high pd_good#
+  net.digital phy_reset#
+  net.idle_high phy_interrupt#
+  net.digital dac_sync#
+  net.digital oled_cs#
+  net.digital oled_dc
+  net.digital oled_reset#
+  net.digital gps_reset#
+  net.digital gps_extint
+  net.digital pps
+  net.passive osc_in
+  net.passive timer_clock
+  net.passive direction
+  net.analog efc
+  net.analog light
+  net.idle_high buttons#[2]
+  net.digital status#[2]
+
+  power.UsbPower usb_power(vbus: vbus, logic: v3v3, ground: gnd, usb: usb, pd_good#: pd_good#)
+  power.Buck5v buck_5v(input: vbus, output: v5, ground: gnd)
+  power.Buck3v3 buck_3v3(input: vbus, output: v3v3, ground: gnd)
+  power.QuietRail quiet_rail(input: v5, output: v3v3_quiet, ground: gnd)
+
+  mcu.Mcu mcu(
+    supply: v3v3,
+    ground: gnd,
+    usb: usb,
+    rmii: rmii,
+    mdio: mdio,
+    phy_reset#: phy_reset#,
+    phy_interrupt#: phy_interrupt#,
+    leds: leds,
+    peripherals: peripherals,
+    dac_sync#: dac_sync#,
+    oled_cs#: oled_cs#,
+    oled_dc: oled_dc,
+    oled_reset#: oled_reset#,
+    gps: gps_uart,
+    gps_reset#: gps_reset#,
+    gps_extint: gps_extint,
+    pps: pps,
+    osc_in: osc_in,
+    timer_clock: timer_clock,
+    light: light,
+    pd_good#: pd_good#,
+    direction: direction,
+    buttons#: buttons#,
+    status#: status#,
+  )
+
+  timebase.Timebase timebase(
+    quiet: v3v3_quiet,
+    logic: v3v3,
+    led_supply: v5,
+    input_supply: vbus,
+    ground: gnd,
+    spi: peripherals,
+    dac_sync#: dac_sync#,
+    direction: direction,
+    osc_in: osc_in,
+    timer_clock: timer_clock,
+    efc: efc,
+  )
+
+  gps.Gps receiver(
+    supply: v3v3,
+    ground: gnd,
+    uart: gps_uart,
+    reset#: gps_reset#,
+    extint: gps_extint,
+    pps: pps,
+  )
+
+  ethernet.Ethernet network(
+    supply: v3v3,
+    ground: gnd,
+    rmii: rmii,
+    mdio: mdio,
+    reset#: phy_reset#,
+    interrupt#: phy_interrupt#,
+  )
+
+  display.Display time_display(logic: v3v3, led_supply: v5, ground: gnd, chain: leds)
+
+  // 2.42 inch SSD1309 module, SPI wiring, in the module's header order.
+  Header1x7 oled:
+    1: gnd
+    2: v3v3
+    3: peripherals.sck
+    4: peripherals.mosi
+    5: oled_reset#
+    6: oled_dc
+    7: oled_cs#
+    metadata:
+      pins:
+        1: role.ground
+        2: role.power_input
+        [3..7]: role.digital_input
+  Capacitor0603<100n> oled_decouple(v3v3, gnd)
+  Capacitor0805<10u> oled_bulk(v3v3, gnd)
+
+  // Ambient light: phototransistor current into 10 k gives the ADC voltage.
+  AmbientLightSensor light_sensor(C: v3v3, E: light)
+  Resistor0603<10k> light_load(light, gnd)
+  Capacitor0603<100n> light_filter(light, gnd)
+
+  PushButton buttons[2](buttons#, gnd):
+    metadata:
+      pins:
+        1: drive.low
+  Pullup0603<10k> button_pullups[2](1: v3v3, 2: buttons#)
+
+  // status#[0]: GPS lock, status#[1]: NTP serving. Active low.
+  Indicator status[2](supply: v3v3, drive: status#)
+
+  // Probe header for rails and timing signals.
+  Header2x8 probes:
+    [1, 16]: gnd
+    2: vbus
+    3: v5
+    4: v3v3
+    5: v3v3_quiet
+    6: pps
+    7: efc
+    8: leds.latch
+    9: leds.blank#
+    10: leds.data_in
+    11: leds.clock
+    12: gps_uart.tx
+    13: gps_uart.rx
+    14: pd_good#
+    15: direction

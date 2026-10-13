@@ -1,0 +1,176 @@
+// STM32H723VGT6 core: supplies, VCAP, reset, boot, SWD, and the pin map.
+// Every alternate function used here appears in the KiCad symbol's pin
+// alternates; confirm the final assignment in STM32CubeMX before layout.
+
+from noscheme import role, net, use, pull, drive
+from interfaces import SpiOut, USB2, SWD, Uart, Rmii, Mdio, LedChain
+from components import Capacitor0603, Pulldown0603, HseCrystal, PushButton
+import Connector
+import MCU_ST_STM32H7
+
+// LDO supply configuration: the LQFP-100 H723 has no SMPS (AN5419).
+extend MCU_ST_STM32H7.STM32H723VGTx<"STM32H723VGT6"> Stm32H723:
+  pins:
+    [6, 11, 21, 27, 50, 75, 100]: [role.power_input, use.required]
+    [10, 19, 26, 49, 74, 99]: [role.ground, use.required]
+    20: [role.power_input, use.required]
+    [48, 73]: [role.power_output, use.required]
+    // NRST has an internal pull-up.
+    14: [drive.low, pull.up, use.required]
+    94: [role.digital_input, use.required]
+    // Clock inputs: OSC_IN (HSE bypass), TIM2_ETR, ETH_REF_CLK, TIM2_CH3 (PPS).
+    [12, 77, 23, 46]: role.digital_input
+    15: role.analog_input
+    // SPI4/SPI3 clocks and data out, TIM2_CH4 latch, TIM4_CH1 blanking, GPIO.
+    [1, 5, 25, 59, 78, 80, 81, 82, 83, 85, 86, 37, 38, 57, 58]: role.digital_output
+    // Ethernet MAC: MDC, TX_EN, TXD0, TXD1 out; CRS_DV, RXD0, RXD1 in.
+    [16, 47, 51, 52]: role.digital_output
+    [31, 32, 33]: role.digital_input
+    // USART3, SPI MISO lines, buttons, status inputs, PHY interrupt.
+    55: role.digital_output
+    [56, 4, 97, 98, 87]: role.digital_input
+    // PD power-good is open-drain into a pulled-up input; PE4 reads the
+    // direction jumper.
+    [2, 3]: role.digital_input
+    89: role.digital_output
+    76: role.digital_input
+  metadata:
+    footprint: "Package_QFP:LQFP-100_14x14mm_P0.5mm"
+    bom:
+      manufacturer: "ST"
+      mpn: "STM32H723VGT6"
+      supplier: "LCSC"
+      supplier_part_number: "C730142"
+
+extend Connector.Conn_ARM_JTAG_SWD_10<"Cortex debug 2x05 1.27mm"> CortexHeader:
+  pins:
+    1: role.power_input
+    [3, 5, 9]: role.ground
+    2: role.digital_bidirectional
+    4: role.digital_output
+    6: role.digital_input
+  metadata:
+    footprint: "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD"
+
+block Mcu:
+  ports:
+    net.power supply
+    net.ground ground
+    USB2 usb
+    Rmii rmii
+    Mdio mdio
+    net.digital phy_reset#
+    net.idle_high phy_interrupt#
+    LedChain leds
+    SpiOut peripherals
+    net.digital dac_sync#
+    net.digital oled_cs#
+    net.digital oled_dc
+    net.digital oled_reset#
+    Uart gps
+    net.digital gps_reset#
+    net.digital gps_extint
+    net.digital pps
+    net.passive osc_in
+    net.passive timer_clock
+    net.analog light
+    net.idle_high pd_good#
+    net.passive direction
+    net.idle_high buttons#[2]
+    net.digital status#[2]
+
+  SWD debug
+  net.passive osc_out
+  net.power vcap:
+    waivers:
+      multiple_drivers: "VCAP pins 48 and 73 belong to one internal regulator (AN5419)."
+  net.digital boot0
+
+  Stm32H723 chip:
+    [6, 11, 20, 21, 27, 50, 75, 100]: supply
+    [10, 19, 26, 49, 74, 99]: ground
+    [48, 73]: vcap
+    NRST: debug.reset#
+    BOOT0: boot0
+    PH0: osc_in
+    PH1: osc_out
+    77: timer_clock
+    PB10: pps
+    PE2: leds.clock
+    PE6: leds.data_in
+    PE5: leds.data_out
+    PA3: leds.latch
+    PD12: leds.blank#
+    PC10: peripherals.sck
+    PC12: peripherals.mosi
+    PD4: dac_sync#
+    PD0: oled_cs#
+    PD1: oled_dc
+    PD2: oled_reset#
+    PA1: rmii.ref_clk
+    PA7: rmii.crs_dv
+    PC4: rmii.rxd[0]
+    PC5: rmii.rxd[1]
+    PB11: rmii.tx_en
+    PB12: rmii.txd[0]
+    PB13: rmii.txd[1]
+    PC1: mdio.mdc
+    PA2: mdio.mdio
+    PD5: phy_reset#
+    PD6: phy_interrupt#
+    PD8: gps.tx
+    PD9: gps.rx
+    PD10: gps_reset#
+    PD11: gps_extint
+    PA11: usb.dm
+    PA12: usb.dp
+    72: debug.swdio
+    76: debug.swclk
+    89: debug.swo
+    PC0: light
+    PE3: pd_good#
+    PE4: direction
+    PE0: buttons#[0]
+    PE1: buttons#[1]
+    PE7: status#[0]
+    PE8: status#[1]
+    [7..9, 17..18, 22, 28..30, 34..36, 39..45, 53..54, 60..69, 79, 84, 88, 90..93, 95..96]: no_connect
+
+  // One 100 nF per supply pin, beside its pad.
+  Capacitor0603<100n> decouple[8]:
+    1: supply
+    2: ground
+  Capacitor0603<4.7u> supply_bulk(supply, ground)
+  Capacitor0603<1u> analog_bulk(supply, ground)
+  Capacitor0603<2.2u> vcap_caps[2]:
+    1: vcap
+    2: ground
+    metadata:
+      custom:
+        placement: "One beside each VCAP pad (48, 73); low ESR; never tie VCAP to 3.3 V."
+
+  // Do-not-fit: fit only when the clock jumper selects the timer input.
+  HseCrystal crystal:
+    "1": osc_in
+    "3": osc_out
+    ["2", "4"]: ground
+  Capacitor0603<12p> crystal_load[2]:
+    [0].1: osc_in
+    [1].1: osc_out
+    2: ground
+    metadata:
+      bom:
+        dnp: true
+
+  Pulldown0603<10k> boot_pulldown(1: boot0, 2: ground)
+  Capacitor0603<100n> reset_cap(debug.reset#, ground)
+  PushButton reset_button(debug.reset#, ground)
+
+  CortexHeader swd:
+    1: supply
+    2: debug.swdio
+    [3, 5, 9]: ground
+    4: debug.swclk
+    6: debug.swo
+    [7, 8]: no_connect
+    10: debug.reset#

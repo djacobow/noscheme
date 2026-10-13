@@ -1,0 +1,19 @@
+{
+  "issues": [
+    {
+      "check": "pad_without_pin",
+      "footprint": "Package_SON:VSON-8-1EP_3x3mm_P0.65mm_EP1.65x2.4mm",
+      "identifiers": [
+        "9"
+      ],
+      "symbol": "DAC8551IxDGK"
+    }
+  ],
+  "module": "Analog_DAC",
+  "schema_version": 1,
+  "source": "/usr/share/kicad/symbols/Analog_DAC.kicad_sym",
+  "source_sha256": "5a6a737fd1ac82362fa66ec6221b1f3d0f704c16a7a2fbd46107bd8fa58c6280",
+  "symbols": {
+    "DAC8551IxDGK": "DAC8551IxDGK"
+  }
+}

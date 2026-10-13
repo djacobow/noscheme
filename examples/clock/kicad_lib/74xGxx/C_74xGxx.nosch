@@ -1,0 +1,150 @@
+from noscheme import role, use, drive
+
+component C_74LVC1G125:
+  params:
+    string value = "74LVC1G125"
+  pins:
+    "1":
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "2":
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "3" (GND):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "4":
+      role: role.digital_output
+      tristate_capable: true
+      custom:
+        kicad_pin_types: ["tri_state"]
+    "5" (VCC):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+  metadata:
+    ref_prefix: "U"
+    custom:
+      kicad_symbol: "74xGxx:74LVC1G125"
+      kicad_duplicate_pin_numbers_are_jumpers: "no"
+      kicad_footprint_candidates: [
+        "Package_SON:Texas_X2SON-5_0.8x0.8mm_P0.48mm",
+        "Package_SON:Texas_X2SON-5_0.8x0.8mm_P0.48mm_RoutingVia",
+        "Package_TO_SOT_SMD:SOT-23-5",
+        "Package_TO_SOT_SMD:SOT-23-5_HandSoldering",
+        "Package_TO_SOT_SMD:Texas_R-PDSO-G5_DCK-5",
+        "Package_TO_SOT_SMD:Texas_R-PDSO-N5_DRL-5",
+      ]
+      kicad_properties:
+        "Datasheet": "https://www.ti.com/lit/ds/symlink/sn74lvc1g125.pdf"
+        "Description": "Single Buffer Gate Tri-State, Low-Voltage CMOS"
+        "Footprint": ""
+        "Reference": "U"
+        "Value": "74LVC1G125"
+        "ki_fp_filters": "SOT?23* Texas?R-PDSO-G5?DCK* Texas?R-PDSO-N5?DRL* Texas?X2SON*0.8x0.8mm*P0.48mm*"
+        "ki_keywords": "Single Gate Buff Tri-State LVC CMOS"
+
+component C_74LVC1G17:
+  params:
+    string value = "74LVC1G17"
+  pins:
+    "1" (NC):
+      use: use.disallowed
+      custom:
+        kicad_pin_types: ["no_connect"]
+    "2":
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "3" (GND):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "4":
+      role: role.digital_output
+      custom:
+        kicad_pin_types: ["output"]
+    "5" (VCC):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+  metadata:
+    ref_prefix: "U"
+    custom:
+      kicad_symbol: "74xGxx:74LVC1G17"
+      kicad_duplicate_pin_numbers_are_jumpers: "no"
+      kicad_footprint_candidates: [
+        "Package_SON:Texas_X2SON-5_0.8x0.8mm_P0.48mm",
+        "Package_SON:Texas_X2SON-5_0.8x0.8mm_P0.48mm_RoutingVia",
+        "Package_TO_SOT_SMD:SOT-23-5",
+        "Package_TO_SOT_SMD:SOT-23-5_HandSoldering",
+        "Package_TO_SOT_SMD:SOT-553",
+        "Package_TO_SOT_SMD:Texas_R-PDSO-G5_DCK-5",
+        "Package_TO_SOT_SMD:Texas_R-PDSO-N5_DRL-5",
+      ]
+      kicad_properties:
+        "Datasheet": "https://www.ti.com/lit/ds/symlink/sn74lvc1g17.pdf"
+        "Description": "Single Schmitt Buffer Gate, Low-Voltage CMOS"
+        "Footprint": ""
+        "Reference": "U"
+        "Value": "74LVC1G17"
+        "ki_fp_filters": "SOT?23* SOT?553* Texas?R-PDSO-G5?DCK* Texas?R-PDSO-N5?DRL* Texas?X2SON*0.8x0.8mm*P0.48mm*"
+        "ki_keywords": "Single Gate Buff Schmitt LVC CMOS"
+
+component C_74LVC1G3157:
+  params:
+    string value = "74LVC1G3157"
+  pins:
+    "1":
+      role: role.digital_bidirectional
+      custom:
+        kicad_pin_types: ["bidirectional"]
+    "2" (GND):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "3":
+      role: role.digital_bidirectional
+      custom:
+        kicad_pin_types: ["bidirectional"]
+    "4":
+      role: role.digital_bidirectional
+      custom:
+        kicad_pin_types: ["bidirectional"]
+    "5" (VCC):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "6":
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+  metadata:
+    ref_prefix: "U"
+    custom:
+      kicad_symbol: "74xGxx:74LVC1G3157"
+      kicad_duplicate_pin_numbers_are_jumpers: "no"
+      kicad_footprint_candidates: [
+        "Package_TO_SOT_SMD:SC-74-6_1.55x2.9mm_P0.95mm",
+        "Package_TO_SOT_SMD:SOT-223-6",
+        "Package_TO_SOT_SMD:SOT-23-6",
+        "Package_TO_SOT_SMD:SOT-23-6_Handsoldering",
+        "Package_TO_SOT_SMD:SOT-363_SC-70-6",
+        "Package_TO_SOT_SMD:SOT-457T",
+        "Package_TO_SOT_SMD:SOT-563",
+        "Package_TO_SOT_SMD:SOT-666",
+        "Package_TO_SOT_SMD:SOT-886",
+        "Package_TO_SOT_SMD:SOT-963",
+      ]
+      kicad_properties:
+        "Datasheet": "http://www.ti.com/lit/sg/scyt129e/scyt129e.pdf"
+        "Description": "SPDT Analog Switch, Low-Voltage CMOS"
+        "Footprint": ""
+        "Reference": "U"
+        "Value": "74LVC1G3157"
+        "ki_fp_filters": "SOT* SC*"
+        "ki_keywords": "SPDT Analog Switch CMOS"
+        "ki_locked": ""

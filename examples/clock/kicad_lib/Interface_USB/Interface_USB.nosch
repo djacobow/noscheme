@@ -1,0 +1,68 @@
+from noscheme import role, use, drive
+
+component CH224K:
+  params:
+    string value = "CH224K"
+  pins:
+    "1" (VDD):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "10" (PG):
+      drive: drive.low
+      custom:
+        kicad_pin_types: ["open_collector"]
+    "11" (GND):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "2" (CFG2):
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "3" (CFG3):
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "4" (DP):
+      role: role.digital_bidirectional
+      custom:
+        kicad_pin_types: ["bidirectional"]
+    "5" (DM):
+      role: role.digital_bidirectional
+      custom:
+        kicad_pin_types: ["bidirectional"]
+    "6" (CC2):
+      role: role.digital_bidirectional
+      custom:
+        kicad_pin_types: ["bidirectional"]
+    "7" (CC1):
+      role: role.digital_bidirectional
+      custom:
+        kicad_pin_types: ["bidirectional"]
+    "8" (VBUS):
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "9" (CFG1):
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+  metadata:
+    ref_prefix: "U"
+    footprint: "Package_SO:SSOP-10-1EP_3.9x4.9mm_P1mm_EP2.1x3.3mm"
+    custom:
+      kicad_symbol: "Interface_USB:CH224K"
+      kicad_duplicate_pin_numbers_are_jumpers: "no"
+      kicad_footprint_candidates: [
+        "Package_SO:SSOP-10-1EP_3.9x4.9mm_P1mm_EP2.1x3.3mm",
+        "Package_SO:SSOP-10-1EP_3.9x4.9mm_P1mm_EP2.1x3.3mm_ThermalVias",
+      ]
+      kicad_properties:
+        "Datasheet": "https://www.wch.cn/downloads/file/301.html"
+        "Description": "100W USB Type-C PD3.0/2.0, BC1.2 Sink Controller, SSOP-10"
+        "Footprint": "Package_SO:SSOP-10-1EP_3.9x4.9mm_P1mm_EP2.1x3.3mm"
+        "Reference": "U"
+        "Value": "CH224K"
+        "ki_fp_filters": "SSOP*3.9x4.9mm*P1mm*EP2.1x3.3mm*"
+        "ki_keywords": "USB-C WCH powered-device"

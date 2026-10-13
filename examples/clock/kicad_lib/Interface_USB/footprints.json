@@ -1,0 +1,184 @@
+{
+  "footprints": {
+    "Package_SO:SSOP-10-1EP_3.9x4.9mm_P1mm_EP2.1x3.3mm": {
+      "exists": true,
+      "name": "Package_SO:SSOP-10-1EP_3.9x4.9mm_P1mm_EP2.1x3.3mm",
+      "pad_records": [
+        {
+          "number": "",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "10",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "11",
+          "shape": "rect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "10",
+        "11",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_SO.pretty/SSOP-10-1EP_3.9x4.9mm_P1mm_EP2.1x3.3mm.kicad_mod",
+      "sha256": "91c269bc24db2786e936714caf7715fad912fd2190e2de6814878fb37bb249ac",
+      "unnumbered_pads": 1
+    },
+    "Package_SO:SSOP-10-1EP_3.9x4.9mm_P1mm_EP2.1x3.3mm_ThermalVias": {
+      "exists": true,
+      "name": "Package_SO:SSOP-10-1EP_3.9x4.9mm_P1mm_EP2.1x3.3mm_ThermalVias",
+      "pad_records": [
+        {
+          "number": "",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "10",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "11",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "11",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "11",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "11",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "10",
+        "11",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_SO.pretty/SSOP-10-1EP_3.9x4.9mm_P1mm_EP2.1x3.3mm_ThermalVias.kicad_mod",
+      "sha256": "ceaf568fa342bd84b0fea7843940e65d4998ed8fd8e1b83947f37852c48c40d9",
+      "unnumbered_pads": 1
+    }
+  },
+  "schema_version": 1
+}

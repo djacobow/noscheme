@@ -1,0 +1,10 @@
+{
+  "issues": [],
+  "module": "Regulator_Linear",
+  "schema_version": 1,
+  "source": "/usr/share/kicad/symbols/Regulator_Linear.kicad_sym",
+  "source_sha256": "09d0d95dbe5040452c683015077fcdff881b87112c1610008347f5be0df1eaea",
+  "symbols": {
+    "LP5907MFX-3.3": "LP5907MFX_3_3"
+  }
+}

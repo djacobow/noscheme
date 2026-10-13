@@ -1,0 +1,40 @@
+from noscheme import role, use, drive
+
+component OCXO_14:
+  params:
+    string value = "OCXO-14"
+  pins:
+    "1" (Vcontrol):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "14" (Vcc):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "7" (GND):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "8" (OUT):
+      role: role.digital_output
+      custom:
+        kicad_pin_types: ["output"]
+  metadata:
+    ref_prefix: "Y"
+    footprint: "Oscillator:Oscillator_DIP-14"
+    custom:
+      kicad_symbol: "Oscillator:OCXO-14"
+      kicad_duplicate_pin_numbers_are_jumpers: "no"
+      kicad_footprint_candidates: [
+        "Oscillator:Oscillator_DIP-14",
+        "Oscillator:Oscillator_DIP-14_LargePads",
+      ]
+      kicad_properties:
+        "Datasheet": "http://www.petermann-technik.de/fileadmin/petermann/pdf/crystal-oscillators/OCXO-14_PETERMANN-TECHNIK.pdf"
+        "Description": "Voltage-Controlled Crystal Clock Oscillator, DIP14-style metal package"
+        "Footprint": "Oscillator:Oscillator_DIP-14"
+        "Reference": "Y"
+        "Value": "OCXO-14"
+        "ki_fp_filters": "Oscillator*DIP*14*"
+        "ki_keywords": "Crystal Clock Oscillator"

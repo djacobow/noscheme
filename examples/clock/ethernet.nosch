@@ -1,0 +1,158 @@
+// DP83848C 10/100 PHY in RMII mode with an RJ45 MagJack. A dedicated 50 MHz
+// oscillator clocks both the PHY (X1) and the MAC (ETH_REF_CLK), so the
+// network never depends on the 10 MHz clock jumper.
+
+from noscheme import role, net, use, pull, drive
+from interfaces import Rmii, Mdio
+from components import Resistor0603, Pullup0603, Capacitor0603, Capacitor0805
+from components import ClockOscillator
+import Connector
+
+// Written by hand: the KiCad DP83848C symbol omits pads 8-12 (JTAG on the
+// DP83848I only; TI says to leave them unconnected on the C part).
+component Phy:
+  pins:
+    1 (TX_CLK): role.digital_output
+    2 (TX_EN): role.digital_input
+    3 (TXD_0): role.digital_input
+    4 (TXD_1): role.digital_input
+    5 (TXD_2): role.digital_input
+    6 (TXD_3): role.digital_input
+    // Open-drain interrupt in INT mode.
+    7 (PWR_DOWN_INT): drive.low
+    8..12: use.disallowed
+    13 (RD_N): role.passive
+    14 (RD_P): role.passive
+    [15, 19, 35, 36, 47]: role.ground
+    16 (TD_N): role.passive
+    17 (TD_P): role.passive
+    [18, 37]: role.power_input
+    [20, 21]: role.passive
+    [22, 32, 48]: role.power_input
+    23 (PFBOUT): role.power_output
+    24 (RBIAS): role.passive
+    25 (CLK_OUT): role.digital_output
+    // LED pins sink LED current and carry pulled-up strap inputs.
+    [26, 27, 28]: drive.low
+    29 (RESET_N): role.digital_input
+    30 (MDIO): role.digital_bidirectional
+    31 (MDC): role.digital_input
+    33 (X2): role.passive
+    34 (X1): role.digital_input
+    38 (RX_CLK): role.digital_output
+    39 (MII_MODE): role.passive
+    40 (CRS_DV): role.digital_output
+    [41, 42, 45, 46]: role.digital_output
+    43 (RXD_0): role.digital_output
+    44 (RXD_1): role.digital_output
+  metadata:
+    ref_prefix: "U"
+    value: "DP83848CVVX/NOPB"
+    footprint: "Package_QFP:LQFP-48_7x7mm_P0.5mm"
+    bom:
+      manufacturer: "TI"
+      mpn: "DP83848CVVX/NOPB"
+      supplier: "LCSC"
+      supplier_part_number: "C16688"
+
+extend Connector.RJ45_Hanrun_HR911105A_Horizontal<"HR911105A"> MagJack:
+  pins:
+    8: role.ground
+  metadata:
+    bom:
+      manufacturer: "HANRUN"
+      mpn: "HR911105A"
+      supplier: "LCSC"
+      supplier_part_number: "C12074"
+
+extend ClockOscillator<"50MHz"> RmiiOscillator:
+  metadata:
+    bom:
+      manufacturer: "YXC"
+      mpn: "O9322550MEDA4SI"
+      supplier: "LCSC"
+      supplier_part_number: "C496690"
+
+block Ethernet:
+  ports:
+    net.power supply
+    net.ground ground
+    Rmii rmii
+    Mdio mdio
+    net.digital reset#
+    net.idle_high interrupt#
+  net.power regulator_feedback
+  net.passive rbias
+  net.passive mii_mode
+  net.passive reserved[2]
+  // Line pairs in order TD+, TD-, RD+, RD-.
+  net.passive line[4]
+  net.passive link_led
+  net.passive activity_led
+  net.passive green_anode
+  net.passive yellow_anode
+
+  RmiiOscillator reference(oe: supply, gnd: ground, out: rmii.ref_clk, vdd: supply)
+  Capacitor0603<100n> reference_decouple(supply, ground)
+
+  Phy phy:
+    [1, 8..12, 25, 27, 33, 38, 41, 42, 45, 46]: no_connect
+    2: rmii.tx_en
+    3: rmii.txd[0]
+    4: rmii.txd[1]
+    // TXD_2/TXD_3 are unused in RMII; TXD_3 low also keeps SNI mode off.
+    [5, 6]: ground
+    7: interrupt#
+    13: line[3]
+    14: line[2]
+    16: line[1]
+    17: line[0]
+    [15, 19, 35, 36, 47]: ground
+    [18, 23, 37]: regulator_feedback
+    [20, 21]: reserved
+    [22, 32, 48]: supply
+    24: rbias
+    26: activity_led
+    28: link_led
+    29: reset#
+    30: mdio.mdio
+    31: mdio.mdc
+    34: rmii.ref_clk
+    39: mii_mode
+    40: rmii.crs_dv
+    43: rmii.rxd[0]
+    44: rmii.rxd[1]
+
+  // MII_MODE high selects RMII (with SNI_MODE low).
+  Resistor0603<2.2k> rmii_strap(supply, mii_mode)
+  // The datasheet requires 2.2 k pull-ups on both RESERVED pins.
+  Resistor0603<2.2k> reserved_pullups[2](supply, reserved)
+  Resistor0603<4.87k> bias_resistor(rbias, ground)
+  Pullup0603<1.5k> mdio_pullup(1: supply, 2: mdio.mdio)
+  Pullup0603<10k> interrupt_pullup(1: supply, 2: interrupt#)
+
+  Capacitor0805<10u> feedback_bulk(regulator_feedback, ground)
+  Capacitor0603<100n> feedback_decouple[3](regulator_feedback, ground)
+  Capacitor0805<10u> supply_bulk(supply, ground)
+  Capacitor0603<100n> supply_decouple[3](supply, ground)
+
+  // Current-mode line driver: 49.9 ohm 1% terminations and both transformer
+  // center taps return to 3.3 V, decoupled at the taps.
+  Resistor0603<49.9> line_terminations[4](supply, line)
+  Capacitor0603<100n> center_tap_decouple[2](supply, ground)
+
+  MagJack jack:
+    1: line[0]
+    2: line[1]
+    3: line[2]
+    6: line[3]
+    [4, 5]: supply
+    7: no_connect
+    [8, SH]: ground
+    9: green_anode
+    10: link_led
+    12: yellow_anode
+    11: activity_led
+  // LED strap pins read high through the LEDs, keeping auto-negotiation on.
+  Resistor0603<330> green_resistor(supply, green_anode)
+  Resistor0603<330> yellow_resistor(supply, yellow_anode)

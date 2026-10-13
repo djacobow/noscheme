@@ -1,0 +1,15 @@
+{
+  "issues": [
+    {
+      "check": "unspecified_footprint",
+      "symbol": "SW_Push"
+    }
+  ],
+  "module": "Switch",
+  "schema_version": 1,
+  "source": "/usr/share/kicad/symbols/Switch.kicad_sym",
+  "source_sha256": "aa97588ceed2c3f1be89c98ec16b3e8ee491e4354e0416c12706fc868df68bc9",
+  "symbols": {
+    "SW_Push": "SW_Push"
+  }
+}

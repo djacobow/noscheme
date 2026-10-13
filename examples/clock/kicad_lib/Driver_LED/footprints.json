@@ -1,0 +1,861 @@
+{
+  "footprints": {
+    "Package_DIP:DIP-16_W7.62mm": {
+      "exists": true,
+      "name": "Package_DIP:DIP-16_W7.62mm",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "3",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "4",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "5",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "6",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "7",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "8",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "9",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "10",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "11",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "12",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "13",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "14",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "15",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "16",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_DIP.pretty/DIP-16_W7.62mm.kicad_mod",
+      "sha256": "d9f5f5a3dbebef059800781d37575e4120e5ae5e7fd96001eda365f65de94485",
+      "unnumbered_pads": 0
+    },
+    "Package_DIP:DIP-16_W7.62mm_LongPads": {
+      "exists": true,
+      "name": "Package_DIP:DIP-16_W7.62mm_LongPads",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "3",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "4",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "5",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "6",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "7",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "8",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "9",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "10",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "11",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "12",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "13",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "14",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "15",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "16",
+          "shape": "oval",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_DIP.pretty/DIP-16_W7.62mm_LongPads.kicad_mod",
+      "sha256": "f8cc711fc0bc897370a36ffd3baabc6fa379e851cd373885d80c4de008f1a150",
+      "unnumbered_pads": 0
+    },
+    "Package_DIP:DIP-16_W7.62mm_SMDSocket_SmallPads": {
+      "exists": true,
+      "name": "Package_DIP:DIP-16_W7.62mm_SMDSocket_SmallPads",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "10",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "11",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "13",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "14",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "15",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "16",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_DIP.pretty/DIP-16_W7.62mm_SMDSocket_SmallPads.kicad_mod",
+      "sha256": "249a7357a63643c262955e119b8fccca31295ebc7afdb6f0db09d441331d0e71",
+      "unnumbered_pads": 0
+    },
+    "Package_DIP:DIP-16_W7.62mm_Socket": {
+      "exists": true,
+      "name": "Package_DIP:DIP-16_W7.62mm_Socket",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "3",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "4",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "5",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "6",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "7",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "8",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "9",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "10",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "11",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "12",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "13",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "14",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "15",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "16",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_DIP.pretty/DIP-16_W7.62mm_Socket.kicad_mod",
+      "sha256": "5f6fc9acde6f4b2e56a5c889d515cb9377d746dd15b7ab2b961f2d586ade02f1",
+      "unnumbered_pads": 0
+    },
+    "Package_DIP:DIP-16_W7.62mm_Socket_LongPads": {
+      "exists": true,
+      "name": "Package_DIP:DIP-16_W7.62mm_Socket_LongPads",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "3",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "4",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "5",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "6",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "7",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "8",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "9",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "10",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "11",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "12",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "13",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "14",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "15",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "16",
+          "shape": "oval",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_DIP.pretty/DIP-16_W7.62mm_Socket_LongPads.kicad_mod",
+      "sha256": "6f0d437cf9daa21d4f03687d193a2c5d98755e27a62490262f44affcc7ee505c",
+      "unnumbered_pads": 0
+    },
+    "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm": {
+      "exists": true,
+      "name": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "10",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "11",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "13",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "14",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "15",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "16",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_SO.pretty/SOIC-16_3.9x9.9mm_P1.27mm.kicad_mod",
+      "sha256": "f9b5075740f7816c540ae1137f025d659beaec522ed7b86b1a5274cc9a2d8a25",
+      "unnumbered_pads": 0
+    },
+    "Package_SO:TSSOP-16_4.4x5mm_P0.65mm": {
+      "exists": true,
+      "name": "Package_SO:TSSOP-16_4.4x5mm_P0.65mm",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "10",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "11",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "13",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "14",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "15",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "16",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_SO.pretty/TSSOP-16_4.4x5mm_P0.65mm.kicad_mod",
+      "sha256": "fbac79fc5f310754726589d67071a422c429216f843ecd6013bbe2e6a49e7064",
+      "unnumbered_pads": 0
+    },
+    "Socket:DIP_Socket-16_W4.3mm_W5.08mm_W7.62mm_W10.16mm_W10.9mm_3M_216-3340-00-0602J": {
+      "exists": true,
+      "name": "Socket:DIP_Socket-16_W4.3mm_W5.08mm_W7.62mm_W10.16mm_W10.9mm_3M_216-3340-00-0602J",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "3",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "4",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "5",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "6",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "7",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "8",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "9",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "10",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "11",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "12",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "13",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "14",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "15",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "16",
+          "shape": "oval",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "path": "/usr/share/kicad/footprints/Socket.pretty/DIP_Socket-16_W4.3mm_W5.08mm_W7.62mm_W10.16mm_W10.9mm_3M_216-3340-00-0602J.kicad_mod",
+      "sha256": "f5518773d297ef6c8c98468c6cca903133414f31afbc2391ef53365c43b0d505",
+      "unnumbered_pads": 0
+    }
+  },
+  "schema_version": 1
+}

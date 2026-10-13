@@ -1,0 +1,225 @@
+// USB-C input with a PD sink controller, plus the 5 V, 3.3 V, and quiet
+// 3.3 V rails. The single receptacle also carries the MCU's USB console.
+
+from noscheme import role, net, use, pull, drive
+from interfaces import USB2
+from components import Resistor0603, Pullup0603, Capacitor0603, Capacitor0805
+from components import Capacitor1206, BuckInductor, InputTvs
+import Connector
+import Interface_USB
+import Power_Protection
+import Regulator_Switching
+import Regulator_Linear
+
+extend Connector.USB_C_Receptacle_USB2_0_16P UsbCReceptacle:
+  pins:
+    [A1, A12, B1, B12]: role.ground
+    // The board sinks power; the cable's source supplies VBUS. The four
+    // VBUS pads are one conductor, so one carries the source role.
+    A4: role.power_output
+    [A6, B6, A7, B7]: role.digital_bidirectional
+    SH: role.passive
+  metadata:
+    value: "TYPE-C-31-M-12"
+    footprint: "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12"
+    bom:
+      manufacturer: "Korean Hroparts Elec"
+      mpn: "TYPE-C-31-M-12"
+      supplier: "LCSC"
+      supplier_part_number: "C165948"
+
+// Pin 8 senses VBUS through 10 k; pin 1 is the internal supply, fed through
+// 1 k. Both are within the CH224K's 13.5 V and 3.6 V pin limits only with
+// those resistors fitted.
+extend Interface_USB.CH224K<"CH224K"> PdSink:
+  pins:
+    "1": role.power_input
+    "11": role.ground
+    "8": role.analog_input
+    [2, 3, 9]: role.digital_input
+    // The DP/DM fast-charge detectors are unused; the data pair goes to the MCU.
+    [4, 5]: use.disallowed
+  metadata:
+    bom:
+      manufacturer: "WCH"
+      mpn: "CH224K"
+      supplier: "LCSC"
+      supplier_part_number: "C970725"
+
+extend Power_Protection.USBLC6_2SC6<"USBLC6-2SC6"> UsbEsd:
+  pins:
+    ["1", "3", "4", "6"]: role.digital_bidirectional
+    "2": role.ground
+    "5": role.power_input
+  metadata:
+    bom:
+      manufacturer: "ST"
+      mpn: "USBLC6-2SC6"
+      supplier: "LCSC"
+      supplier_part_number: "C7519"
+
+// Requests 12 V by I/O-level configuration (CFG1 = 0, CFG2 = 0, CFG3 = 1).
+// Without a PD source, VBUS stays at 5 V and pd_good# stays high.
+block UsbPower:
+  ports:
+    net.power vbus
+    net.power logic
+    net.ground ground
+    USB2 usb
+    net.idle_high pd_good#
+  net.passive cc[2]
+  net.passive pd_supply
+  net.passive vbus_sense
+
+  UsbCReceptacle connector:
+    [A1, A12, B1, B12, SH]: ground
+    [A4, A9, B4, B9]: vbus
+    A5: cc[0]
+    B5: cc[1]
+    [A6, B6]: usb.dp
+    [A7, B7]: usb.dm
+    [A8, B8]: no_connect
+
+  PdSink pd:
+    "1": pd_supply
+    "11": ground
+    "8": vbus_sense
+    [2, 9]: ground
+    3: pd_supply
+    7: cc[0]
+    6: cc[1]
+    10: pd_good#
+  Resistor0603<1k> pd_supply_feed(vbus, pd_supply)
+  Capacitor0603<1u> pd_supply_cap(pd_supply, ground)
+  Resistor0603<10k> pd_sense_feed(vbus, vbus_sense)
+  Pullup0603<10k> pd_good_pullup(1: logic, 2: pd_good#)
+
+  // VBUS reaches 12 V: the clamp's VBUS pin uses the 3.3 V rail instead.
+  UsbEsd esd:
+    ["1", "6"]: usb.dp
+    ["3", "4"]: usb.dm
+    "2": ground
+    "5": logic
+
+  InputTvs input_clamp(K: vbus, A: ground)
+  Capacitor1206<10u> input_bulk(vbus, ground)
+  Capacitor0603<100n> input_decouple(vbus, ground)
+
+// Shared passives for the AP6320x bucks: input and bootstrap caps, the
+// inductor, and the output caps. The fixed-output parts sense the rail on FB.
+block BuckPassives:
+  params:
+    inductance inductance
+  ports:
+    net.power input
+    net.power output
+    net.ground ground
+    net.passive switch_node
+    net.passive bootstrap
+  Capacitor1206<10u> input_bulk(input, ground)
+  Capacitor0603<100n> input_decouple(input, ground)
+  Capacitor0603<100n> bootstrap_cap(bootstrap, switch_node)
+  BuckInductor<inductance> inductor(1: switch_node, 2: output)
+  Capacitor0805<22u> output_bulk[2](output, ground)
+
+extend Regulator_Switching.AP63205WU<"AP63205WU"> Buck5vRegulator:
+  pins:
+    "3": role.power_input
+    "4": role.ground
+    "1": role.analog_input
+    "2": role.digital_input
+    "5": role.passive
+  metadata:
+    bom:
+      manufacturer: "Diodes Incorporated"
+      mpn: "AP63205WU-7"
+      supplier: "LCSC"
+      supplier_part_number: "C2071056"
+
+extend Regulator_Switching.AP63203WU<"AP63203WU"> Buck3v3Regulator:
+  pins:
+    "3": role.power_input
+    "4": role.ground
+    "1": role.analog_input
+    "2": role.digital_input
+    "5": role.passive
+  metadata:
+    bom:
+      manufacturer: "Diodes Incorporated"
+      mpn: "AP63203WU-7"
+      supplier: "LCSC"
+      supplier_part_number: "C780769"
+
+// 12 V to 5 V for the LED anodes, the OLED, and a 5 V OCXO option.
+block Buck5v:
+  ports:
+    net.power input
+    net.power output
+    net.ground ground
+  net.passive switch_node
+  net.passive bootstrap
+  // EN is rated to VIN; tie it high so the rail follows VBUS.
+  Buck5vRegulator regulator:
+    "1": output
+    "2": input
+    "3": input
+    "4": ground
+    "5": switch_node
+    "6": bootstrap
+  BuckPassives<4.7u> passives(
+    input: input,
+    output: output,
+    ground: ground,
+    switch_node: switch_node,
+    bootstrap: bootstrap,
+  )
+
+// 12 V to 3.3 V for the MCU, PHY, GPS, and logic.
+block Buck3v3:
+  ports:
+    net.power input
+    net.power output
+    net.ground ground
+  net.passive switch_node
+  net.passive bootstrap
+  Buck3v3Regulator regulator:
+    "1": output
+    "2": input
+    "3": input
+    "4": ground
+    "5": switch_node
+    "6": bootstrap
+  BuckPassives<3.3u> passives(
+    input: input,
+    output: output,
+    ground: ground,
+    switch_node: switch_node,
+    bootstrap: bootstrap,
+  )
+
+extend Regulator_Linear.LP5907MFX_3_3<"LP5907MFX-3.3"> QuietLdo:
+  pins:
+    "1": role.power_input
+    "2": role.ground
+  metadata:
+    bom:
+      manufacturer: "TI"
+      mpn: "LP5907MFX-3.3/NOPB"
+      supplier: "LCSC"
+      supplier_part_number: "C80670"
+
+// Low-noise 3.3 V for the oscillators, DAC, and reference, kept off the
+// buck-fed logic rail.
+block QuietRail:
+  ports:
+    net.power input
+    net.power output
+    net.ground ground
+  QuietLdo regulator:
+    "1": input
+    "2": ground
+    "3": input
+    "4": no_connect
+    "5": output
+  Capacitor0603<1u> input_cap(input, ground)
+  Capacitor0603<1u> output_cap(output, ground)

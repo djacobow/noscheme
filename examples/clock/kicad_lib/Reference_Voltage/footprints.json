@@ -1,0 +1,150 @@
+{
+  "footprints": {
+    "Package_TO_SOT_SMD:SOT-23": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:SOT-23",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/SOT-23.kicad_mod",
+      "sha256": "0d88c86c1b6d8c1aae4aa8c09386264c089d4451a128b6ccd63ed253f4300b15",
+      "unnumbered_pads": 0
+    },
+    "Package_TO_SOT_SMD:SOT-23-3": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:SOT-23-3",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/SOT-23-3.kicad_mod",
+      "sha256": "ab2ce7041629a2c0042ab00c2e26a6b4a78722e2451c5c855d0eecd3361adb05",
+      "unnumbered_pads": 0
+    },
+    "Package_TO_SOT_SMD:SOT-23W": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:SOT-23W",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/SOT-23W.kicad_mod",
+      "sha256": "c081a01349d28e624daa0d919fa8f0b34002484e8b52ff8ebf34a414b4e26d76",
+      "unnumbered_pads": 0
+    },
+    "Package_TO_SOT_SMD:SOT-23W_Handsoldering": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:SOT-23W_Handsoldering",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/SOT-23W_Handsoldering.kicad_mod",
+      "sha256": "fb524207566379e37f3f2d14211933f7bf7c779072e3a22b58f629fbf73a0590",
+      "unnumbered_pads": 0
+    },
+    "Package_TO_SOT_SMD:SOT-23_Handsoldering": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:SOT-23_Handsoldering",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/SOT-23_Handsoldering.kicad_mod",
+      "sha256": "02dc6b66bab8c37552276d2827997da17a6e5e84ec6b55ce77316e92982e939b",
+      "unnumbered_pads": 0
+    }
+  },
+  "schema_version": 1
+}

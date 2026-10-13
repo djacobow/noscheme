@@ -1,0 +1,99 @@
+{
+  "footprints": {
+    "Package_TO_SOT_SMD:SOT-23-6": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:SOT-23-6",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod",
+      "sha256": "f341c73aac9dcb553456f68bf3fee3d26eb14acf6d8a1cae82b50418fe1d71ca",
+      "unnumbered_pads": 0
+    },
+    "Package_TO_SOT_SMD:SOT-23-6_Handsoldering": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:SOT-23-6_Handsoldering",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/SOT-23-6_Handsoldering.kicad_mod",
+      "sha256": "a0b698d9d6661e85be21690e6585ea70d4ff7f69972a6ab8511e765ae9a25878",
+      "unnumbered_pads": 0
+    }
+  },
+  "schema_version": 1
+}

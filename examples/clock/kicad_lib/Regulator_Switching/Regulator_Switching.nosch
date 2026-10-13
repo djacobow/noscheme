@@ -1,0 +1,95 @@
+from noscheme import role, use, drive
+
+component AP63203WU:
+  params:
+    string value = "AP63203WU"
+  pins:
+    "1" (FB):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "2" (EN):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "3" (IN):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "4" (GND):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "5" (SW):
+      role: role.digital_output
+      custom:
+        kicad_pin_types: ["output"]
+    "6" (BST):
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+  metadata:
+    ref_prefix: "U"
+    footprint: "Package_TO_SOT_SMD:TSOT-23-6"
+    custom:
+      kicad_symbol: "Regulator_Switching:AP63203WU"
+      kicad_duplicate_pin_numbers_are_jumpers: "no"
+      kicad_footprint_candidates: [
+        "Package_TO_SOT_SMD:TSOT-23-6",
+        "Package_TO_SOT_SMD:TSOT-23-6_HandSoldering",
+      ]
+      kicad_properties:
+        "Datasheet": "https://www.diodes.com/assets/Datasheets/AP63200-AP63201-AP63203-AP63205.pdf"
+        "Description": "2A, 1.1MHz Buck DC/DC Converter, fixed 3.3V output voltage, TSOT-23-6"
+        "Footprint": "Package_TO_SOT_SMD:TSOT-23-6"
+        "Reference": "U"
+        "Value": "AP63203WU"
+        "ki_fp_filters": "TSOT?23*"
+        "ki_keywords": "2A Buck DC/DC"
+
+component AP63205WU:
+  params:
+    string value = "AP63205WU"
+  pins:
+    "1" (FB):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "2" (EN):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "3" (IN):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "4" (GND):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "5" (SW):
+      role: role.digital_output
+      custom:
+        kicad_pin_types: ["output"]
+    "6" (BST):
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+  metadata:
+    ref_prefix: "U"
+    footprint: "Package_TO_SOT_SMD:TSOT-23-6"
+    custom:
+      kicad_symbol: "Regulator_Switching:AP63205WU"
+      kicad_duplicate_pin_numbers_are_jumpers: "no"
+      kicad_footprint_candidates: [
+        "Package_TO_SOT_SMD:TSOT-23-6",
+        "Package_TO_SOT_SMD:TSOT-23-6_HandSoldering",
+      ]
+      kicad_properties:
+        "Datasheet": "https://www.diodes.com/assets/Datasheets/AP63200-AP63201-AP63203-AP63205.pdf"
+        "Description": "2A, 1.1MHz Buck DC/DC Converter, fixed 5.0V output voltage, TSOT-23-6"
+        "Footprint": "Package_TO_SOT_SMD:TSOT-23-6"
+        "Reference": "U"
+        "Value": "AP63205WU"
+        "ki_fp_filters": "TSOT?23*"
+        "ki_keywords": "2A Buck DC/DC"

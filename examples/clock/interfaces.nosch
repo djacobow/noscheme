@@ -1,0 +1,46 @@
+// Signal bundles shared by the clock's subsystems. Directions are named from
+// the MCU's side unless a comment says otherwise.
+
+from noscheme import net
+
+// Write-only SPI: the DAC and the OLED never drive MISO.
+bundle SpiOut:
+  net.digital sck
+  net.digital mosi
+
+bundle USB2:
+  net.bidirectional dp
+  net.bidirectional dm
+
+bundle SWD:
+  net.digital swclk
+  net.bidirectional swdio
+  net.digital swo
+  net.idle_high reset#
+
+// GPS NMEA/UBX link: tx is MCU-to-receiver.
+bundle Uart:
+  net.digital tx
+  net.digital rx
+
+// Reduced MII between the STM32 MAC and the PHY. The 50 MHz reference clock
+// comes from its own oscillator and reaches both ends.
+bundle Rmii:
+  net.digital ref_clk
+  net.digital crs_dv
+  net.digital rxd[2]
+  net.digital tx_en
+  net.digital txd[2]
+
+bundle Mdio:
+  net.digital mdc
+  net.bidirectional mdio
+
+// Constant-current LED shift-register chain. data_in enters the first driver;
+// data_out returns from the last one so firmware can verify the chain.
+bundle LedChain:
+  net.digital clock
+  net.digital data_in
+  net.digital data_out
+  net.digital latch
+  net.digital blank#

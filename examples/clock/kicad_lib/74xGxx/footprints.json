@@ -1,0 +1,807 @@
+{
+  "footprints": {
+    "Package_SON:Texas_X2SON-5_0.8x0.8mm_P0.48mm": {
+      "exists": true,
+      "name": "Package_SON:Texas_X2SON-5_0.8x0.8mm_P0.48mm",
+      "pad_records": [
+        {
+          "number": "",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "1",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "custom",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_SON.pretty/Texas_X2SON-5_0.8x0.8mm_P0.48mm.kicad_mod",
+      "sha256": "47aabe164c510b9ff3e5d54e483a146884f9f6640e6ad7f3f470090af6cbe60c",
+      "unnumbered_pads": 4
+    },
+    "Package_SON:Texas_X2SON-5_0.8x0.8mm_P0.48mm_RoutingVia": {
+      "exists": true,
+      "name": "Package_SON:Texas_X2SON-5_0.8x0.8mm_P0.48mm_RoutingVia",
+      "pad_records": [
+        {
+          "number": "",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "1",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "custom",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_SON.pretty/Texas_X2SON-5_0.8x0.8mm_P0.48mm_RoutingVia.kicad_mod",
+      "sha256": "f1b1f7b8188ad3e2430654ccffa71ae33968bdc148f0e775f698a7911d51b9d6",
+      "unnumbered_pads": 4
+    },
+    "Package_TO_SOT_SMD:SC-74-6_1.55x2.9mm_P0.95mm": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:SC-74-6_1.55x2.9mm_P0.95mm",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/SC-74-6_1.55x2.9mm_P0.95mm.kicad_mod",
+      "sha256": "eb78b1ec7cee29d4f0c367d939afe8ba0272de4674700dedfd777f3edec51863",
+      "unnumbered_pads": 0
+    },
+    "Package_TO_SOT_SMD:SOT-223-6": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:SOT-223-6",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/SOT-223-6.kicad_mod",
+      "sha256": "11dc0fc442f7ce8a34ad17987935d6cbbf5a91b8be73394c6d78b15d01b7867c",
+      "unnumbered_pads": 0
+    },
+    "Package_TO_SOT_SMD:SOT-23-5": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:SOT-23-5",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod",
+      "sha256": "455a3f7c3e5eb5b8847eaa5df23e18651e78ab9f75afd09a0883758a0d901761",
+      "unnumbered_pads": 0
+    },
+    "Package_TO_SOT_SMD:SOT-23-5_HandSoldering": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:SOT-23-5_HandSoldering",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/SOT-23-5_HandSoldering.kicad_mod",
+      "sha256": "a700dadded49eb2dde931637784b0bf5111125b840a746e0a8b8083bdcef3083",
+      "unnumbered_pads": 0
+    },
+    "Package_TO_SOT_SMD:SOT-23-6": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:SOT-23-6",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod",
+      "sha256": "f341c73aac9dcb553456f68bf3fee3d26eb14acf6d8a1cae82b50418fe1d71ca",
+      "unnumbered_pads": 0
+    },
+    "Package_TO_SOT_SMD:SOT-23-6_Handsoldering": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:SOT-23-6_Handsoldering",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/SOT-23-6_Handsoldering.kicad_mod",
+      "sha256": "a0b698d9d6661e85be21690e6585ea70d4ff7f69972a6ab8511e765ae9a25878",
+      "unnumbered_pads": 0
+    },
+    "Package_TO_SOT_SMD:SOT-363_SC-70-6": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:SOT-363_SC-70-6",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/SOT-363_SC-70-6.kicad_mod",
+      "sha256": "0659d885e00b786968c3ba29152b808777240a91c1fb49ab8d814eb03530115c",
+      "unnumbered_pads": 0
+    },
+    "Package_TO_SOT_SMD:SOT-457T": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:SOT-457T",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/SOT-457T.kicad_mod",
+      "sha256": "1bf5171d06695f919b4e45577ec8f9a35b4b80f2dd74c8332e3c43c8da4e9a75",
+      "unnumbered_pads": 0
+    },
+    "Package_TO_SOT_SMD:SOT-553": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:SOT-553",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/SOT-553.kicad_mod",
+      "sha256": "0b5f41ced1e4fcb59d6ed91fe8dbd202525114ce3bb805fc27082accc1654230",
+      "unnumbered_pads": 0
+    },
+    "Package_TO_SOT_SMD:SOT-563": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:SOT-563",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/SOT-563.kicad_mod",
+      "sha256": "787def5a43a0ae8e456265448f63b3b2e1390516eb2fda17b955a431fa722047",
+      "unnumbered_pads": 0
+    },
+    "Package_TO_SOT_SMD:SOT-666": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:SOT-666",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/SOT-666.kicad_mod",
+      "sha256": "37f1c4f7e69a11122511c6e869aba1cfcd36a43a2788b6a9f203a119410302f7",
+      "unnumbered_pads": 0
+    },
+    "Package_TO_SOT_SMD:SOT-886": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:SOT-886",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/SOT-886.kicad_mod",
+      "sha256": "7fcd67e545ff9fd273ec2863d81a9633b28385837790760ffc1dbaaa71a4df13",
+      "unnumbered_pads": 0
+    },
+    "Package_TO_SOT_SMD:SOT-963": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:SOT-963",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/SOT-963.kicad_mod",
+      "sha256": "e8c07a75ecbf953d5fa41611f20e599c1f152b7ee7930d12d4a4268ea8cf4a4d",
+      "unnumbered_pads": 0
+    },
+    "Package_TO_SOT_SMD:Texas_R-PDSO-G5_DCK-5": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:Texas_R-PDSO-G5_DCK-5",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/Texas_R-PDSO-G5_DCK-5.kicad_mod",
+      "sha256": "8e2465de33c1e4ccbf7f586477a17fcf8fef4500e03f5ca0dfcb697372181c8d",
+      "unnumbered_pads": 0
+    },
+    "Package_TO_SOT_SMD:Texas_R-PDSO-N5_DRL-5": {
+      "exists": true,
+      "name": "Package_TO_SOT_SMD:Texas_R-PDSO-N5_DRL-5",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty/Texas_R-PDSO-N5_DRL-5.kicad_mod",
+      "sha256": "ee95354558783137679b6dc24af2f30522d51ad31ffae24a68ff34cc24e23528",
+      "unnumbered_pads": 0
+    }
+  },
+  "schema_version": 1
+}

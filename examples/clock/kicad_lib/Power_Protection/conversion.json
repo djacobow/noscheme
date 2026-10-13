@@ -1,0 +1,31 @@
+{
+  "issues": [
+    {
+      "alias": "I/O1",
+      "check": "ambiguous_alias",
+      "message": "alias omitted; physical pin IDs retained",
+      "pins": [
+        "1",
+        "6"
+      ],
+      "symbol": "USBLC6-2SC6"
+    },
+    {
+      "alias": "I/O2",
+      "check": "ambiguous_alias",
+      "message": "alias omitted; physical pin IDs retained",
+      "pins": [
+        "3",
+        "4"
+      ],
+      "symbol": "USBLC6-2SC6"
+    }
+  ],
+  "module": "Power_Protection",
+  "schema_version": 1,
+  "source": "/usr/share/kicad/symbols/Power_Protection.kicad_sym",
+  "source_sha256": "9ac4f95a67353239c21a6be6ae36ada8a859e0d7b6471799240580a391b2b577",
+  "symbols": {
+    "USBLC6-2SC6": "USBLC6_2SC6"
+  }
+}

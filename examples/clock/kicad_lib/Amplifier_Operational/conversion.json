@@ -1,0 +1,10 @@
+{
+  "issues": [],
+  "module": "Amplifier_Operational",
+  "schema_version": 1,
+  "source": "/usr/share/kicad/symbols/Amplifier_Operational.kicad_sym",
+  "source_sha256": "70d51935f1e2563cf203a3d1b95657f166e140b357d3a8570f70f855a3dcd74e",
+  "symbols": {
+    "MCP6001-OT": "MCP6001_OT"
+  }
+}

@@ -1,0 +1,27 @@
+from noscheme import role, use, drive
+
+component SW_Push:
+  params:
+    string value = "SW_Push"
+  pins:
+    "1":
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "2":
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+  metadata:
+    ref_prefix: "SW"
+    custom:
+      kicad_symbol: "Switch:SW_Push"
+      kicad_duplicate_pin_numbers_are_jumpers: "no"
+      kicad_footprint_candidates: []
+      kicad_properties:
+        "Datasheet": ""
+        "Description": "Push button switch, generic, two pins"
+        "Footprint": ""
+        "Reference": "SW"
+        "Value": "SW_Push"
+        "ki_keywords": "switch normally-open pushbutton push-button"

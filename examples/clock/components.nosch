@@ -1,0 +1,251 @@
+// Passives, connectors, and small parts shared by the clock's subsystems.
+// Stock was checked on 2026-10-13; see README.md before ordering.
+
+from noscheme import role, net, use, pull, drive, std
+import Device
+import Switch
+import Jumper
+import Connector
+
+// KiCad supplies the two passive terminals and the reference prefix. Values
+// come from each specialization or instance.
+extend Device.R Resistor:
+  pins:
+    1..2: use.required
+
+extend Resistor Resistor0603:
+  metadata:
+    footprint: "Resistor_SMD:R_0603_1608Metric"
+
+// Pin 1 reaches the supply; pin 2 pulls the signal up.
+extend Resistor0603 Pullup0603:
+  pins:
+    2:
+      pull: pull.up
+      pull_resistance: value
+      checks:
+        reference: std.pull_reference("1")
+  metadata:
+    interchangeable: []
+
+// Pin 1 pulls the signal down; pin 2 reaches ground.
+extend Resistor0603 Pulldown0603:
+  pins:
+    1:
+      pull: pull.down
+      pull_resistance: value
+      checks:
+        reference: std.pull_reference("2")
+  metadata:
+    interchangeable: []
+
+extend Device.C Capacitor:
+  pins:
+    1..2: use.required
+
+extend Capacitor Capacitor0603:
+  metadata:
+    footprint: "Capacitor_SMD:C_0603_1608Metric"
+
+// Bulk ceramics: 10 uF at 25 V does not fit 0603 with useful derating.
+extend Capacitor Capacitor0805:
+  metadata:
+    footprint: "Capacitor_SMD:C_0805_2012Metric"
+
+extend Capacitor Capacitor1206:
+  metadata:
+    footprint: "Capacitor_SMD:C_1206_3216Metric"
+
+// Two-terminal inductor, written by hand: the KiCad symbol's footprint
+// candidate list is far larger than this board needs.
+component Inductor:
+  params:
+    inductance value
+  pins:
+    1..2: [role.passive, use.required]
+  metadata:
+    ref_prefix: "L"
+    interchangeable: [1, 2]
+
+// Antenna bias choke, from the u-blox active-antenna reference circuit.
+extend Inductor<27n> RfChoke0603:
+  metadata:
+    footprint: "Inductor_SMD:L_0603_1608Metric"
+
+// Pad 2 is the regulated rail: the buck's output current leaves through it.
+extend Inductor BuckInductor:
+  pins:
+    2:
+      role: role.power_output
+      // AP6320x device ceiling, subject to thermal and layout validation.
+      max_source_current: 2
+  metadata:
+    footprint: "Inductor_SMD:L_Taiyo-Yuden_NR-50xx"
+    interchangeable: []
+
+extend Device.LED Led:
+  pins:
+    1..2: use.required
+
+extend Led<"Green"> GreenLed0603:
+  metadata:
+    footprint: "LED_SMD:LED_0603_1608Metric"
+
+// Colon dots between HH:MM:SS, matched to the green digits.
+extend Led<"Green"> ColonLed0805:
+  metadata:
+    footprint: "LED_SMD:LED_0805_2012Metric"
+
+block Indicator:
+  params:
+    resistance resistance = 1k
+  ports:
+    net.power supply
+    net.digital drive
+  net.passive cathode
+
+  // Active-low: the MCU sinks LED current.
+  Resistor0603<resistance> resistor(drive, cathode)
+  GreenLed0603 led(K: cathode, A: supply)
+
+// A 15 V standoff unidirectional TVS clamps a misbehaving source above the
+// 12 V PD contract. Pin 1 is the cathode.
+component InputTvs:
+  pins:
+    1 (cathode, K): [role.passive, use.required]
+    2 (anode, A): [role.passive, use.required]
+  metadata:
+    ref_prefix: "D"
+    value: "SMAJ15A"
+    footprint: "Diode_SMD:D_SMA"
+    bom:
+      manufacturer: "MDD"
+      mpn: "SMAJ15A"
+      supplier: "LCSC"
+      supplier_part_number: "C113958"
+
+// Do-not-fit HSE crystal: the clock jumper normally drives OSC_IN instead.
+extend Device.Crystal_GND24<"25MHz CL20pF"> HseCrystal:
+  pins:
+    ["1", "3"]: use.required
+    ["2", "4"]: use.required
+  metadata:
+    footprint: "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm"
+    bom:
+      mpn: "X322525MOB4SI"
+      manufacturer: "YXC"
+      supplier: "LCSC"
+      supplier_part_number: "C9006"
+      dnp: true
+
+extend Switch.SW_Push<"TS-1187A-B-A-B"> PushButton:
+  pins:
+    1..2: use.required
+  metadata:
+    interchangeable: [1, 2]
+    footprint: "Button_Switch_SMD:SW_SPST_TL3342"
+    bom:
+      manufacturer: "XKB Connection"
+      mpn: "TS-1187A-B-A-B"
+      supplier: "LCSC"
+      supplier_part_number: "C318884"
+
+// Three-pin header with a shunt: the middle pin is the common (C).
+extend Jumper.Jumper_3_Open<"1x03 2.54mm + shunt"> ThreeWayJumper:
+  pins:
+    1..3: use.required
+  metadata:
+    footprint: "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
+
+// End-launch edge SMA. Pad 2 is the shell; tie it to ground.
+extend Connector.Conn_Coaxial<"SMA-KE"> EdgeSma:
+  pins:
+    1..2: use.required
+  metadata:
+    footprint: "Connector_Coaxial:SMA_Amphenol_132289_EdgeMount"
+    bom:
+      manufacturer: "DreamLNK"
+      mpn: "SMA-KE-P903"
+      supplier: "LCSC"
+      supplier_part_number: "C914558"
+
+// 0.56 inch common-anode digit, industry-standard 10-pin pinout. Two
+// internally common anode pins; segments sink into the LED drivers.
+component SevenSegmentDigit:
+  pins:
+    7 (a): [role.passive, use.required]
+    6 (b): [role.passive, use.required]
+    4 (c): [role.passive, use.required]
+    2 (d): [role.passive, use.required]
+    1 (e): [role.passive, use.required]
+    9 (f): [role.passive, use.required]
+    10 (g): [role.passive, use.required]
+    5 (dp): [role.passive, use.required]
+    [3, 8]: [role.power_input, use.required]
+  metadata:
+    ref_prefix: "DS"
+    value: "LSHD-5601"
+    footprint: "Display_7Segment:7SegmentLED_LTS6760_LTS6780"
+    bom:
+      manufacturer: "Lite-On"
+      mpn: "LSHD-5601"
+      supplier: "DigiKey"
+      supplier_part_number: "160-1530-5-ND"
+
+// 3.2 x 2.5 mm voltage-controlled TCXO, 4-pad: VC, GND, OUT, VDD.
+component Vctcxo:
+  pins:
+    1 (vc): [role.analog_input, use.required]
+    2 (gnd): [role.ground, use.required]
+    3 (out): [role.digital_output, use.required]
+    4 (vdd): [role.power_input, use.required]
+  metadata:
+    ref_prefix: "Y"
+    value: "10MHz VCTCXO"
+    footprint: "Oscillator:Oscillator_SMD_Abracon_ASE-4Pin_3.2x2.5mm"
+    bom:
+      manufacturer: "ECS"
+      mpn: "ECS-VC-TXO32-S3-33-100-BN-TR"
+      supplier: "DigiKey"
+
+// Plain 3.3 V CMOS oscillator, 4-pad: OE, GND, OUT, VDD.
+component ClockOscillator:
+  params:
+    string value
+  pins:
+    1 (oe): [role.digital_input, use.required]
+    2 (gnd): [role.ground, use.required]
+    3 (out): [role.digital_output, use.required]
+    4 (vdd): [role.power_input, use.required]
+  metadata:
+    ref_prefix: "Y"
+    footprint: "Oscillator:Oscillator_SMD_Abracon_ASE-4Pin_3.2x2.5mm"
+
+// Analog phototransistor ambient-light sensor, 0603-size package.
+component AmbientLightSensor:
+  pins:
+    1 (collector, C): [role.passive, use.required]
+    2 (emitter, E): [role.passive, use.required]
+  metadata:
+    ref_prefix: "Q"
+    value: "ALS-PT19"
+    footprint: "LED_SMD:LED_0603_1608Metric"
+    bom:
+      manufacturer: "Everlight"
+      mpn: "ALS-PT19-315C/L177/TR8"
+      supplier: "LCSC"
+      supplier_part_number: "C146233"
+
+component Header1x7:
+  pins:
+    1..7: [role.passive, use.required]
+  metadata:
+    ref_prefix: "J"
+    footprint: "Connector_PinHeader_2.54mm:PinHeader_1x07_P2.54mm_Vertical"
+
+component Header2x8:
+  pins:
+    1..16: [role.passive, use.required]
+  metadata:
+    ref_prefix: "J"
+    footprint: "Connector_PinHeader_2.54mm:PinHeader_2x08_P2.54mm_Vertical"

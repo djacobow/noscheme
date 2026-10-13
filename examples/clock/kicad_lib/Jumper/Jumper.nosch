@@ -1,0 +1,33 @@
+from noscheme import role, use, drive
+
+component Jumper_3_Open:
+  params:
+    string value = "Jumper_3_Open"
+  pins:
+    "1" (A):
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "2" (C):
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "3" (B):
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+  metadata:
+    ref_prefix: "JP"
+    custom:
+      kicad_symbol: "Jumper:Jumper_3_Open"
+      kicad_duplicate_pin_numbers_are_jumpers: "no"
+      kicad_footprint_candidates: []
+      kicad_properties:
+        "Datasheet": ""
+        "Description": "Jumper, 3-pole, both open"
+        "Footprint": ""
+        "Reference": "JP"
+        "Value": "Jumper_3_Open"
+        "ki_fp_filters": "Jumper* TestPoint*3Pads* TestPoint*Bridge*"
+        "ki_keywords": "Jumper SPDT"
+        "private": "KLC_S3.3"

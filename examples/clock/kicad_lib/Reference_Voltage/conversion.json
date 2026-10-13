@@ -1,0 +1,10 @@
+{
+  "issues": [],
+  "module": "Reference_Voltage",
+  "schema_version": 1,
+  "source": "/usr/share/kicad/symbols/Reference_Voltage.kicad_sym",
+  "source_sha256": "ce5bc81611adc471c71534ca00cf6807486795aeda596a62ea44d1820928cc36",
+  "symbols": {
+    "REF3025": "REF3025"
+  }
+}

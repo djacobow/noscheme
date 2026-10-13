@@ -1,0 +1,80 @@
+{
+  "footprints": {
+    "Package_SON:VSON-8-1EP_3x3mm_P0.65mm_EP1.65x2.4mm": {
+      "exists": true,
+      "name": "Package_SON:VSON-8-1EP_3x3mm_P0.65mm_EP1.65x2.4mm",
+      "pad_records": [
+        {
+          "number": "",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "9",
+          "shape": "rect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "path": "/usr/share/kicad/footprints/Package_SON.pretty/VSON-8-1EP_3x3mm_P0.65mm_EP1.65x2.4mm.kicad_mod",
+      "sha256": "29e4b74091f3b37223802e22c3629c5836fa62dffc4896bdfb713039b3788d81",
+      "unnumbered_pads": 2
+    }
+  },
+  "schema_version": 1
+}

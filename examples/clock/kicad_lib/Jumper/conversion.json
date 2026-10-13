@@ -1,0 +1,15 @@
+{
+  "issues": [
+    {
+      "check": "unspecified_footprint",
+      "symbol": "Jumper_3_Open"
+    }
+  ],
+  "module": "Jumper",
+  "schema_version": 1,
+  "source": "/usr/share/kicad/symbols/Jumper.kicad_sym",
+  "source_sha256": "6548a7155352ede1997c88e2fc104cb22078437a08bc7779552a8326ebc13e6b",
+  "symbols": {
+    "Jumper_3_Open": "Jumper_3_Open"
+  }
+}

@@ -1,0 +1,44 @@
+from noscheme import role, use, drive
+
+component MCP6001_OT:
+  params:
+    string value = "MCP6001-OT"
+  pins:
+    "1":
+      role: role.digital_output
+      custom:
+        kicad_pin_types: ["output"]
+    "2" ("V-"):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "3" ("+"):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "4" ("-"):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "5" ("V+"):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+  metadata:
+    ref_prefix: "U"
+    footprint: "Package_TO_SOT_SMD:SOT-23-5"
+    custom:
+      kicad_symbol: "Amplifier_Operational:MCP6001-OT"
+      kicad_duplicate_pin_numbers_are_jumpers: "no"
+      kicad_footprint_candidates: [
+        "Package_TO_SOT_SMD:SOT-23-5",
+        "Package_TO_SOT_SMD:SOT-23-5_HandSoldering",
+      ]
+      kicad_properties:
+        "Datasheet": "https://ww1.microchip.com/downloads/en/DeviceDoc/MCP6001-1R-1U-2-4-1-MHz-Low-Power-Op-Amp-DS20001733L.pdf"
+        "Description": "1MHz, Low-Power Op Amp, SOT-23-5"
+        "Footprint": "Package_TO_SOT_SMD:SOT-23-5"
+        "Reference": "U"
+        "Value": "MCP6001-OT"
+        "ki_fp_filters": "SOT?23*"
+        "ki_keywords": "single opamp"

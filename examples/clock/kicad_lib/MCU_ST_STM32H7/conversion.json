@@ -1,0 +1,47 @@
+{
+  "issues": [
+    {
+      "alias": "VCAP",
+      "check": "ambiguous_alias",
+      "message": "alias omitted; physical pin IDs retained",
+      "pins": [
+        "48",
+        "73"
+      ],
+      "symbol": "STM32H723VGTx"
+    },
+    {
+      "alias": "VDD",
+      "check": "ambiguous_alias",
+      "message": "alias omitted; physical pin IDs retained",
+      "pins": [
+        "100",
+        "11",
+        "27",
+        "50",
+        "75"
+      ],
+      "symbol": "STM32H723VGTx"
+    },
+    {
+      "alias": "VSS",
+      "check": "ambiguous_alias",
+      "message": "alias omitted; physical pin IDs retained",
+      "pins": [
+        "10",
+        "26",
+        "49",
+        "74",
+        "99"
+      ],
+      "symbol": "STM32H723VGTx"
+    }
+  ],
+  "module": "MCU_ST_STM32H7",
+  "schema_version": 1,
+  "source": "/usr/share/kicad/symbols/MCU_ST_STM32H7.kicad_sym",
+  "source_sha256": "6f095b497a944f57015012ea26e0da0259957673919c15471d024330e9bbc249",
+  "symbols": {
+    "STM32H723VGTx": "STM32H723VGTx"
+  }
+}

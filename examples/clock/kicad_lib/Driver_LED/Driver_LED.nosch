@@ -1,0 +1,93 @@
+from noscheme import role, use, drive
+
+component TLC5916:
+  params:
+    string value = "TLC5916"
+  pins:
+    "1" (GND):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "10" ("~{OUT5}"):
+      drive: drive.low
+      custom:
+        kicad_pin_types: ["open_collector"]
+    "11" ("~{OUT6}"):
+      drive: drive.low
+      custom:
+        kicad_pin_types: ["open_collector"]
+    "12" ("~{OUT7}"):
+      drive: drive.low
+      custom:
+        kicad_pin_types: ["open_collector"]
+    "13" ("~{OE}(ED2)"):
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "14" (SDO):
+      role: role.digital_output
+      custom:
+        kicad_pin_types: ["output"]
+    "15" ("R-EXT"):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "16" (VDD):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "2" (SDI):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "3" (CLK):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "4" ("LE(ED1)"):
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "5" ("~{OUT0}"):
+      drive: drive.low
+      custom:
+        kicad_pin_types: ["open_collector"]
+    "6" ("~{OUT1}"):
+      drive: drive.low
+      custom:
+        kicad_pin_types: ["open_collector"]
+    "7" ("~{OUT2}"):
+      drive: drive.low
+      custom:
+        kicad_pin_types: ["open_collector"]
+    "8" ("~{OUT3}"):
+      drive: drive.low
+      custom:
+        kicad_pin_types: ["open_collector"]
+    "9" ("~{OUT4}"):
+      drive: drive.low
+      custom:
+        kicad_pin_types: ["open_collector"]
+  metadata:
+    ref_prefix: "U"
+    custom:
+      kicad_symbol: "Driver_LED:TLC5916"
+      kicad_duplicate_pin_numbers_are_jumpers: "no"
+      kicad_footprint_candidates: [
+        "Package_DIP:DIP-16_W7.62mm",
+        "Package_DIP:DIP-16_W7.62mm_LongPads",
+        "Package_DIP:DIP-16_W7.62mm_SMDSocket_SmallPads",
+        "Package_DIP:DIP-16_W7.62mm_Socket",
+        "Package_DIP:DIP-16_W7.62mm_Socket_LongPads",
+        "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
+        "Package_SO:TSSOP-16_4.4x5mm_P0.65mm",
+        "Socket:DIP_Socket-16_W4.3mm_W5.08mm_W7.62mm_W10.16mm_W10.9mm_3M_216-3340-00-0602J",
+      ]
+      kicad_properties:
+        "Datasheet": "https://www.ti.com/lit/ds/symlink/tlc5916.pdf"
+        "Description": "8-Channel Constant-Current LED Sink Driver"
+        "Footprint": ""
+        "Reference": "U"
+        "Value": "TLC5916"
+        "ki_fp_filters": "DIP*W7.62mm* SOIC*3.9x9.9mm*P1.27mm* TSSOP*4.4x5mm*P0.65mm*"
+        "ki_keywords": "LED Constant-Current Driver"

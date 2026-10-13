@@ -1,0 +1,17 @@
+{
+  "issues": [
+    {
+      "check": "assumed_drive_direction",
+      "message": "KiCad convention mapped to drive.low; verify polarity against the device datasheet",
+      "pin": "10",
+      "symbol": "CH224K"
+    }
+  ],
+  "module": "Interface_USB",
+  "schema_version": 1,
+  "source": "/usr/share/kicad/symbols/Interface_USB.kicad_sym",
+  "source_sha256": "ba56c00337c0063e56ddd1a60f1ef67b62eedd589e63ab3b58c22549921db6cc",
+  "symbols": {
+    "CH224K": "CH224K"
+  }
+}

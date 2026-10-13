@@ -1,0 +1,3504 @@
+{
+  "footprints": {
+    "Connector_Coaxial:BNC_Amphenol_031-5539_Vertical": {
+      "exists": true,
+      "name": "Connector_Coaxial:BNC_Amphenol_031-5539_Vertical",
+      "pad_records": [
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/BNC_Amphenol_031-5539_Vertical.kicad_mod",
+      "sha256": "94c135716d6dabd15f6e125974c54470cb5e5f45b742134c375c34c549b2747b",
+      "unnumbered_pads": 2
+    },
+    "Connector_Coaxial:BNC_Amphenol_B6252HB-NPP3G-50_Horizontal": {
+      "exists": true,
+      "name": "Connector_Coaxial:BNC_Amphenol_B6252HB-NPP3G-50_Horizontal",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "oval",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/BNC_Amphenol_B6252HB-NPP3G-50_Horizontal.kicad_mod",
+      "sha256": "f398c6b98d42230d3c54addd38a9c65704014487fccebfe1d1f1dbee501b553f",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:BNC_PanelMountable_Vertical": {
+      "exists": true,
+      "name": "Connector_Coaxial:BNC_PanelMountable_Vertical",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/BNC_PanelMountable_Vertical.kicad_mod",
+      "sha256": "d0508ee075864c9d85c2aca723a553f7acf06bbcc1ed254b2a1656bd9f88b9ba",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:BNC_TEConnectivity_1478035_Horizontal": {
+      "exists": true,
+      "name": "Connector_Coaxial:BNC_TEConnectivity_1478035_Horizontal",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/BNC_TEConnectivity_1478035_Horizontal.kicad_mod",
+      "sha256": "af496a3c186aef3cd998bf31af79256cdf511a2a5be8c20b301c007a82943a5f",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:BNC_TEConnectivity_1478204_Vertical": {
+      "exists": true,
+      "name": "Connector_Coaxial:BNC_TEConnectivity_1478204_Vertical",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/BNC_TEConnectivity_1478204_Vertical.kicad_mod",
+      "sha256": "11118288346272aed87e999dbd50dc4123743130976340da8ce36b14783b89be",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:LEMO-EPL.00.250.NTN": {
+      "exists": true,
+      "name": "Connector_Coaxial:LEMO-EPL.00.250.NTN",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/LEMO-EPL.00.250.NTN.kicad_mod",
+      "sha256": "4f63029fda1183518b1fd344b19f5a2bbb57db6fb290020ae8f1818c5be8fef4",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:MMCX_Molex_73415-0961_Horizontal_0.8mm-PCB": {
+      "exists": true,
+      "name": "Connector_Coaxial:MMCX_Molex_73415-0961_Horizontal_0.8mm-PCB",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "custom",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/MMCX_Molex_73415-0961_Horizontal_0.8mm-PCB.kicad_mod",
+      "sha256": "73412484bcd2fdd843e81effd4a276f40af20d49d3ef10b84d460e55a945e0cc",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:MMCX_Molex_73415-0961_Horizontal_1.0mm-PCB": {
+      "exists": true,
+      "name": "Connector_Coaxial:MMCX_Molex_73415-0961_Horizontal_1.0mm-PCB",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "custom",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/MMCX_Molex_73415-0961_Horizontal_1.0mm-PCB.kicad_mod",
+      "sha256": "f93ab04e22d1511b30d26a50e0de3df1b75b3c898cee24a40ff64b268e66ef61",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:MMCX_Molex_73415-0961_Horizontal_1.6mm-PCB": {
+      "exists": true,
+      "name": "Connector_Coaxial:MMCX_Molex_73415-0961_Horizontal_1.6mm-PCB",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "custom",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/MMCX_Molex_73415-0961_Horizontal_1.6mm-PCB.kicad_mod",
+      "sha256": "7756a42d33a592c54654a84c23a04d6eb72f4db5adea202b9dc0c984b56765e8",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:MMCX_Molex_73415-1471_Vertical": {
+      "exists": true,
+      "name": "Connector_Coaxial:MMCX_Molex_73415-1471_Vertical",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/MMCX_Molex_73415-1471_Vertical.kicad_mod",
+      "sha256": "b3b72de1948f85256ae6bc8e624b35587abf0a265875cd325310001d73b617e0",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:SMA_Amphenol_132134-10_Vertical": {
+      "exists": true,
+      "name": "Connector_Coaxial:SMA_Amphenol_132134-10_Vertical",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "circle",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "custom",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/SMA_Amphenol_132134-10_Vertical.kicad_mod",
+      "sha256": "ba30dbca121fbc1e64d11933fd7bb76ddff346296d4f826a0214dd41eee81070",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:SMA_Amphenol_132134-11_Vertical": {
+      "exists": true,
+      "name": "Connector_Coaxial:SMA_Amphenol_132134-11_Vertical",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/SMA_Amphenol_132134-11_Vertical.kicad_mod",
+      "sha256": "94e1b5e8806b812abdc06dd3cb4553c952fd747cb9694e69efca4a21db86d292",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:SMA_Amphenol_132134-14_Vertical": {
+      "exists": true,
+      "name": "Connector_Coaxial:SMA_Amphenol_132134-14_Vertical",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/SMA_Amphenol_132134-14_Vertical.kicad_mod",
+      "sha256": "754a0b5b9196502ba24a8c572d218605e53b8483e13c3b8631348df626512fc0",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:SMA_Amphenol_132134-16_Vertical": {
+      "exists": true,
+      "name": "Connector_Coaxial:SMA_Amphenol_132134-16_Vertical",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/SMA_Amphenol_132134-16_Vertical.kicad_mod",
+      "sha256": "611288602bc02688488a28219499861de2a74d8df2ec55cf6f6cff9a0cd90fb2",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:SMA_Amphenol_132134_Vertical": {
+      "exists": true,
+      "name": "Connector_Coaxial:SMA_Amphenol_132134_Vertical",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/SMA_Amphenol_132134_Vertical.kicad_mod",
+      "sha256": "0c39f7b168bd12ea64f5cc3750dbb007a8cff3cbdb4e06524e460a817be4550b",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:SMA_Amphenol_132203-12_Horizontal": {
+      "exists": true,
+      "name": "Connector_Coaxial:SMA_Amphenol_132203-12_Horizontal",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/SMA_Amphenol_132203-12_Horizontal.kicad_mod",
+      "sha256": "1161f850518f5f8d79d731b12fa6e0050fa8d382522b9d73c47b7154745540c0",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:SMA_Amphenol_132289_EdgeMount": {
+      "exists": true,
+      "name": "Connector_Coaxial:SMA_Amphenol_132289_EdgeMount",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/SMA_Amphenol_132289_EdgeMount.kicad_mod",
+      "sha256": "4890dc98cac7074fff096522cf9651c62208595f7007b3ce581fc4cf1df8a57c",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:SMA_Amphenol_132291-12_Vertical": {
+      "exists": true,
+      "name": "Connector_Coaxial:SMA_Amphenol_132291-12_Vertical",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/SMA_Amphenol_132291-12_Vertical.kicad_mod",
+      "sha256": "8140489ec1fe15baa8bd7b48718357ceabdc51acd2b226f58f053852844f6e59",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:SMA_Amphenol_132291_Vertical": {
+      "exists": true,
+      "name": "Connector_Coaxial:SMA_Amphenol_132291_Vertical",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/SMA_Amphenol_132291_Vertical.kicad_mod",
+      "sha256": "91384f2f8813c0c567073ab6a537d7b9b1184a7c9f26693e573393df61036580",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:SMA_Amphenol_901-143_Horizontal": {
+      "exists": true,
+      "name": "Connector_Coaxial:SMA_Amphenol_901-143_Horizontal",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/SMA_Amphenol_901-143_Horizontal.kicad_mod",
+      "sha256": "614a0008d7fab517b8ac54f78edf82cf7e60aace5a8f84e4d0a8fd2216474ce3",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:SMA_Amphenol_901-144_Vertical": {
+      "exists": true,
+      "name": "Connector_Coaxial:SMA_Amphenol_901-144_Vertical",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/SMA_Amphenol_901-144_Vertical.kicad_mod",
+      "sha256": "b7bde0698d1105957bfa15de304be9f2827161597c86df4a7f455330cb6afcc6",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:SMA_BAT_Wireless_BWSMA-KWE-Z001": {
+      "exists": true,
+      "name": "Connector_Coaxial:SMA_BAT_Wireless_BWSMA-KWE-Z001",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/SMA_BAT_Wireless_BWSMA-KWE-Z001.kicad_mod",
+      "sha256": "0652ea2c599d14e21838b2aaf00fe412e81cf8cc147844c9ba0e30c1eb7924ef",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:SMA_Molex_73251-1153_EdgeMount_Horizontal": {
+      "exists": true,
+      "name": "Connector_Coaxial:SMA_Molex_73251-1153_EdgeMount_Horizontal",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/SMA_Molex_73251-1153_EdgeMount_Horizontal.kicad_mod",
+      "sha256": "109d98146d6d01a82932050c7c1c94acc804b4f1bd13a3911dbd7a6450f165b9",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:SMA_Molex_73251-2120_EdgeMount_Horizontal": {
+      "exists": true,
+      "name": "Connector_Coaxial:SMA_Molex_73251-2120_EdgeMount_Horizontal",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/SMA_Molex_73251-2120_EdgeMount_Horizontal.kicad_mod",
+      "sha256": "11d941878ad0fc536e19d737cd9e44c445ba98381a0b0a51a8fa5382f44af9ca",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:SMA_Molex_73251-2200_Horizontal": {
+      "exists": true,
+      "name": "Connector_Coaxial:SMA_Molex_73251-2200_Horizontal",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/SMA_Molex_73251-2200_Horizontal.kicad_mod",
+      "sha256": "af3466a543e7ff63542fbfc8cbb8892ea64497b8df4f1b72f3e8f793459d6159",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:SMA_Samtec_SMA-J-P-H-ST-EM1_EdgeMount": {
+      "exists": true,
+      "name": "Connector_Coaxial:SMA_Samtec_SMA-J-P-H-ST-EM1_EdgeMount",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/SMA_Samtec_SMA-J-P-H-ST-EM1_EdgeMount.kicad_mod",
+      "sha256": "bb2ce88b953619506e587a48a15dc0bc2a8b497f4d8f3d2ab0ac7cab37d2b873",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:SMA_Wurth_60312002114503_Vertical": {
+      "exists": true,
+      "name": "Connector_Coaxial:SMA_Wurth_60312002114503_Vertical",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/SMA_Wurth_60312002114503_Vertical.kicad_mod",
+      "sha256": "f8694b8c761587f8925b421f26b74cdd26fb2b79887cc1c66e749724737941a4",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:SMA_Wurth_60312102114405_Vertical": {
+      "exists": true,
+      "name": "Connector_Coaxial:SMA_Wurth_60312102114405_Vertical",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "circle",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "custom",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/SMA_Wurth_60312102114405_Vertical.kicad_mod",
+      "sha256": "bb57ad63617467448acc24c27dc7a0eae443c9a375a3da26dbad59746f51c01f",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:SMB_Jack_Vertical": {
+      "exists": true,
+      "name": "Connector_Coaxial:SMB_Jack_Vertical",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/SMB_Jack_Vertical.kicad_mod",
+      "sha256": "3448467635ebf3f1fea4817ddddd3db539c50d4f73de6739e02ccb80ae2e9515",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:U.FL_Hirose_U.FL-R-SMT-1_Vertical": {
+      "exists": true,
+      "name": "Connector_Coaxial:U.FL_Hirose_U.FL-R-SMT-1_Vertical",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/U.FL_Hirose_U.FL-R-SMT-1_Vertical.kicad_mod",
+      "sha256": "8f227fecc7252e97f349d06841694c60e3df4c0cb58c6c59a5123f1cd631860c",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:U.FL_Molex_MCRF_73412-0110_Vertical": {
+      "exists": true,
+      "name": "Connector_Coaxial:U.FL_Molex_MCRF_73412-0110_Vertical",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/U.FL_Molex_MCRF_73412-0110_Vertical.kicad_mod",
+      "sha256": "662450212c769de985b2f9361276effd9c9a365dc03ff4eaf49013b69e5d8143",
+      "unnumbered_pads": 0
+    },
+    "Connector_Coaxial:WR-MMCX_Wuerth_66011102111302_Horizontal": {
+      "exists": true,
+      "name": "Connector_Coaxial:WR-MMCX_Wuerth_66011102111302_Horizontal",
+      "pad_records": [
+        {
+          "number": "",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "1",
+          "shape": "circle",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "custom",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/WR-MMCX_Wuerth_66011102111302_Horizontal.kicad_mod",
+      "sha256": "7de479b1056daca08c0096e9c483f3e65a55595398aeb32c96a6bf5d630b5313",
+      "unnumbered_pads": 4
+    },
+    "Connector_Coaxial:WR-MMCX_Wuerth_66012102111404_Vertical": {
+      "exists": true,
+      "name": "Connector_Coaxial:WR-MMCX_Wuerth_66012102111404_Vertical",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "circle",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "custom",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "custom",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_Coaxial.pretty/WR-MMCX_Wuerth_66012102111404_Vertical.kicad_mod",
+      "sha256": "53dd53f261ba4bda2bd16f58ffca2881e2f65aac550007998cd7966f57c7d8a7",
+      "unnumbered_pads": 0
+    },
+    "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Horizontal": {
+      "exists": true,
+      "name": "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Horizontal",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "3",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "4",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "5",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "6",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "7",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "8",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "9",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "10",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "10",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_PinHeader_1.27mm.pretty/PinHeader_2x05_P1.27mm_Horizontal.kicad_mod",
+      "sha256": "e2cbe69a8d9045bee12acba7e26d9e2704597a075ba54dc604f3957261704c77",
+      "unnumbered_pads": 0
+    },
+    "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical": {
+      "exists": true,
+      "name": "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "3",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "4",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "5",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "6",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "7",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "8",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "9",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "10",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "10",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_PinHeader_1.27mm.pretty/PinHeader_2x05_P1.27mm_Vertical.kicad_mod",
+      "sha256": "d6a5a2be5abdc7704d0ed6c1217bb1e3cfe69fd380b42dc36f437eb9a76bcbb2",
+      "unnumbered_pads": 0
+    },
+    "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD": {
+      "exists": true,
+      "name": "Connector_PinHeader_1.27mm:PinHeader_2x05_P1.27mm_Vertical_SMD",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "7",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "8",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "9",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "10",
+          "shape": "rect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "10",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_PinHeader_1.27mm.pretty/PinHeader_2x05_P1.27mm_Vertical_SMD.kicad_mod",
+      "sha256": "51b103d65611b0c47426ebfa1859469f37e9181514a6509bf284c9c257e640e3",
+      "unnumbered_pads": 0
+    },
+    "Connector_RJ:RJ45_Hanrun_HR911105A_Horizontal": {
+      "exists": true,
+      "name": "Connector_RJ:RJ45_Hanrun_HR911105A_Horizontal",
+      "pad_records": [
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "3",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "4",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "5",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "6",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "7",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "8",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "9",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "10",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "11",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "12",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "10",
+        "11",
+        "12",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "SH"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_RJ.pretty/RJ45_Hanrun_HR911105A_Horizontal.kicad_mod",
+      "sha256": "dcebf77dc42f2e4026b20adea69340297666da12f2341eee88d8464dfaec4330",
+      "unnumbered_pads": 2
+    },
+    "Connector_USB:USB_C_Receptacle_Amphenol_12401948E412A": {
+      "exists": true,
+      "name": "Connector_USB:USB_C_Receptacle_Amphenol_12401948E412A",
+      "pad_records": [
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "A1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "A1",
+        "A12",
+        "A4",
+        "A5",
+        "A6",
+        "A7",
+        "A8",
+        "A9",
+        "B1",
+        "B12",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "SH"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_USB.pretty/USB_C_Receptacle_Amphenol_12401948E412A.kicad_mod",
+      "sha256": "3a16ca6c40b0549a622ff47e2b4605f04a95a54d1ea38d9a6898714f535eab0f",
+      "unnumbered_pads": 2
+    },
+    "Connector_USB:USB_C_Receptacle_Amphenol_124019772112A": {
+      "exists": true,
+      "name": "Connector_USB:USB_C_Receptacle_Amphenol_124019772112A",
+      "pad_records": [
+        {
+          "number": "A1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "A1",
+        "A12",
+        "A4",
+        "A5",
+        "A6",
+        "A7",
+        "A8",
+        "A9",
+        "B1",
+        "B12",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "SH"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_USB.pretty/USB_C_Receptacle_Amphenol_124019772112A.kicad_mod",
+      "sha256": "5df46885a7e1bc2dd44dab322f27764b34a7934a7e42113448b7fc1ed509e27a",
+      "unnumbered_pads": 0
+    },
+    "Connector_USB:USB_C_Receptacle_G-Switch_GT-USB-7010ASV": {
+      "exists": true,
+      "name": "Connector_USB:USB_C_Receptacle_G-Switch_GT-USB-7010ASV",
+      "pad_records": [
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "A1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "A1",
+        "A12",
+        "A4",
+        "A5",
+        "A6",
+        "A7",
+        "A8",
+        "A9",
+        "B1",
+        "B12",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "SH"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_USB.pretty/USB_C_Receptacle_G-Switch_GT-USB-7010ASV.kicad_mod",
+      "sha256": "f5b0d469bf30aead721a8f87fcc7662ce857ef13cf65be66ab09c6d7a686c5f2",
+      "unnumbered_pads": 2
+    },
+    "Connector_USB:USB_C_Receptacle_G-Switch_GT-USB-7051x": {
+      "exists": true,
+      "name": "Connector_USB:USB_C_Receptacle_G-Switch_GT-USB-7051x",
+      "pad_records": [
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "",
+          "shape": "oval",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "A1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "A1",
+        "A12",
+        "A4",
+        "A5",
+        "A6",
+        "A7",
+        "A8",
+        "A9",
+        "B1",
+        "B12",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "SH"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_USB.pretty/USB_C_Receptacle_G-Switch_GT-USB-7051x.kicad_mod",
+      "sha256": "2e8ac82427f38367ae1eee2c4930de1b3da57e1d0171acf9b6f551496760882f",
+      "unnumbered_pads": 2
+    },
+    "Connector_USB:USB_C_Receptacle_GCT_USB4085": {
+      "exists": true,
+      "name": "Connector_USB:USB_C_Receptacle_GCT_USB4085",
+      "pad_records": [
+        {
+          "number": "A1",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "A4",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "A5",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "A6",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "A7",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "A8",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "A9",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "A12",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "B1",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "B4",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "B5",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "B6",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "B7",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "B8",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "B9",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "B12",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "A1",
+        "A12",
+        "A4",
+        "A5",
+        "A6",
+        "A7",
+        "A8",
+        "A9",
+        "B1",
+        "B12",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "SH"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_USB.pretty/USB_C_Receptacle_GCT_USB4085.kicad_mod",
+      "sha256": "54200c8520ad9316ab397fb86de75b1466e565777b428f4c57326a109ef0e589",
+      "unnumbered_pads": 0
+    },
+    "Connector_USB:USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal": {
+      "exists": true,
+      "name": "Connector_USB:USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal",
+      "pad_records": [
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "A1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "A1",
+        "A12",
+        "A4",
+        "A5",
+        "A6",
+        "A7",
+        "A8",
+        "A9",
+        "B1",
+        "B12",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "SH"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_USB.pretty/USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal.kicad_mod",
+      "sha256": "3b8d7da3cae5114ec83022a759a78925113bc2eeec100ea447594f6d8687e4b8",
+      "unnumbered_pads": 2
+    },
+    "Connector_USB:USB_C_Receptacle_GCT_USB4110": {
+      "exists": true,
+      "name": "Connector_USB:USB_C_Receptacle_GCT_USB4110",
+      "pad_records": [
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "A1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "A1",
+        "A12",
+        "A4",
+        "A5",
+        "A6",
+        "A7",
+        "A8",
+        "A9",
+        "B1",
+        "B12",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "SH"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_USB.pretty/USB_C_Receptacle_GCT_USB4110.kicad_mod",
+      "sha256": "ef9bb2acbd4b01c8a998c19176bb7a00238ca32f67b5d43e3ffb198c3a792637",
+      "unnumbered_pads": 2
+    },
+    "Connector_USB:USB_C_Receptacle_HCTL_HC-TYPE-C-16P-01A": {
+      "exists": true,
+      "name": "Connector_USB:USB_C_Receptacle_HCTL_HC-TYPE-C-16P-01A",
+      "pad_records": [
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "A1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "A1",
+        "A12",
+        "A4",
+        "A5",
+        "A6",
+        "A7",
+        "A8",
+        "A9",
+        "B1",
+        "B12",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "SH"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_USB.pretty/USB_C_Receptacle_HCTL_HC-TYPE-C-16P-01A.kicad_mod",
+      "sha256": "0f7b1440328d52b86a64e49f7972133e73fe6d1b03e113320d111190aa261980",
+      "unnumbered_pads": 2
+    },
+    "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12": {
+      "exists": true,
+      "name": "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12",
+      "pad_records": [
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "A1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "A1",
+        "A12",
+        "A4",
+        "A5",
+        "A6",
+        "A7",
+        "A8",
+        "A9",
+        "B1",
+        "B12",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "SH"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_USB.pretty/USB_C_Receptacle_HRO_TYPE-C-31-M-12.kicad_mod",
+      "sha256": "c562a7f9713a8b754c4d2305a2ea15453469a1c8c48a9b17973383e8993fc750",
+      "unnumbered_pads": 2
+    },
+    "Connector_USB:USB_C_Receptacle_JAE_DX07S016JA1R1500": {
+      "exists": true,
+      "name": "Connector_USB:USB_C_Receptacle_JAE_DX07S016JA1R1500",
+      "pad_records": [
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "",
+          "shape": "oval",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "A1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "A1",
+        "A12",
+        "A4",
+        "A5",
+        "A6",
+        "A7",
+        "A8",
+        "A9",
+        "B1",
+        "B12",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "SH"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_USB.pretty/USB_C_Receptacle_JAE_DX07S016JA1R1500.kicad_mod",
+      "sha256": "6f6c1ac1efdec9479814ac5d8ea8a4453387b58099cae99fb835fc09e2a6dd00",
+      "unnumbered_pads": 4
+    },
+    "Connector_USB:USB_C_Receptacle_Palconn_UTC16-G": {
+      "exists": true,
+      "name": "Connector_USB:USB_C_Receptacle_Palconn_UTC16-G",
+      "pad_records": [
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "A1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "A1",
+        "A12",
+        "A4",
+        "A5",
+        "A6",
+        "A7",
+        "A8",
+        "A9",
+        "B1",
+        "B12",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "SH"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_USB.pretty/USB_C_Receptacle_Palconn_UTC16-G.kicad_mod",
+      "sha256": "e50ded4391aac2c7bb76fe859caa1e284f3830f7f832940ee5da508b33989803",
+      "unnumbered_pads": 2
+    },
+    "Connector_USB:USB_C_Receptacle_XKB_U262-16XN-4BVC11": {
+      "exists": true,
+      "name": "Connector_USB:USB_C_Receptacle_XKB_U262-16XN-4BVC11",
+      "pad_records": [
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "A1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "oval",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "A1",
+        "A12",
+        "A4",
+        "A5",
+        "A6",
+        "A7",
+        "A8",
+        "A9",
+        "B1",
+        "B12",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "SH"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_USB.pretty/USB_C_Receptacle_XKB_U262-16XN-4BVC11.kicad_mod",
+      "sha256": "5ff7ad4e1da6ff2eb907ffeb9e1b88105f75394a0648fd1034b509529402c9fe",
+      "unnumbered_pads": 2
+    },
+    "Diode_SMD:D_SMA": {
+      "exists": true,
+      "name": "Diode_SMD:D_SMA",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Diode_SMD.pretty/D_SMA.kicad_mod",
+      "sha256": "f7cba3b52ed8b34dce89170722de58324eac04e9e61a095e0eab37b9ca93cb7f",
+      "unnumbered_pads": 0
+    },
+    "Diode_SMD:D_SMA-SMB_Universal_Handsoldering": {
+      "exists": true,
+      "name": "Diode_SMD:D_SMA-SMB_Universal_Handsoldering",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "trapezoid",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "trapezoid",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Diode_SMD.pretty/D_SMA-SMB_Universal_Handsoldering.kicad_mod",
+      "sha256": "d35bfffba57dd5e0f45113f81bf693857377fb3a8a6d9ae92bf6606b33eb9a6d",
+      "unnumbered_pads": 0
+    },
+    "Diode_SMD:D_SMA_Handsoldering": {
+      "exists": true,
+      "name": "Diode_SMD:D_SMA_Handsoldering",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Diode_SMD.pretty/D_SMA_Handsoldering.kicad_mod",
+      "sha256": "dd068bcabec852048df08229b0e668da253fa5b59b13c7e483d390d17e4e2bb7",
+      "unnumbered_pads": 0
+    },
+    "Diode_SMD:D_SMB": {
+      "exists": true,
+      "name": "Diode_SMD:D_SMB",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Diode_SMD.pretty/D_SMB.kicad_mod",
+      "sha256": "e25e9f4acef5b55585afebc48c685e151fd0d2f33a5c3c61f9fdf0389e19ae67",
+      "unnumbered_pads": 0
+    },
+    "Diode_SMD:D_SMB-SMC_Universal_Handsoldering": {
+      "exists": true,
+      "name": "Diode_SMD:D_SMB-SMC_Universal_Handsoldering",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "trapezoid",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "trapezoid",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Diode_SMD.pretty/D_SMB-SMC_Universal_Handsoldering.kicad_mod",
+      "sha256": "83515b2bda1edebacf71b43b4189b5a1ae248988ffeb3cd0281190f2f069bfff",
+      "unnumbered_pads": 0
+    },
+    "Diode_SMD:D_SMB_Handsoldering": {
+      "exists": true,
+      "name": "Diode_SMD:D_SMB_Handsoldering",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Diode_SMD.pretty/D_SMB_Handsoldering.kicad_mod",
+      "sha256": "8f0296846d3ff1f113e877388c2c4d77ad9a6096b35fc0f70fc8aa4b7c2ee08f",
+      "unnumbered_pads": 0
+    },
+    "Diode_SMD:D_SMC": {
+      "exists": true,
+      "name": "Diode_SMD:D_SMC",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Diode_SMD.pretty/D_SMC.kicad_mod",
+      "sha256": "f17a366cbe28020fc5f12a4a5cecd11590af4d96b61ad8d82c33dc2393a3b64b",
+      "unnumbered_pads": 0
+    },
+    "Diode_SMD:D_SMC-RM10_Universal_Handsoldering": {
+      "exists": true,
+      "name": "Diode_SMD:D_SMC-RM10_Universal_Handsoldering",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Diode_SMD.pretty/D_SMC-RM10_Universal_Handsoldering.kicad_mod",
+      "sha256": "a9c895ac2861a370730f5f621c5a06117bbbb7ba18b0e1f48b33f5dd4f207131",
+      "unnumbered_pads": 0
+    },
+    "Diode_SMD:D_SMC_Handsoldering": {
+      "exists": true,
+      "name": "Diode_SMD:D_SMC_Handsoldering",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Diode_SMD.pretty/D_SMC_Handsoldering.kicad_mod",
+      "sha256": "d00a1cdf31fe20555d62ae23abeaf57e010f24d441f7a39ed9ea6e501e099c20",
+      "unnumbered_pads": 0
+    },
+    "Diode_SMD:ST_D_SMC": {
+      "exists": true,
+      "name": "Diode_SMD:ST_D_SMC",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Diode_SMD.pretty/ST_D_SMC.kicad_mod",
+      "sha256": "a1514e5959d87e57aacf32ca54a3174f328a4aee02e1e44a05c93716cd2630ba",
+      "unnumbered_pads": 0
+    },
+    "Inductor_THT:L_Axial_L9.5mm_D4.0mm_P12.70mm_Horizontal_Fastron_SMCC": {
+      "exists": true,
+      "name": "Inductor_THT:L_Axial_L9.5mm_D4.0mm_P12.70mm_Horizontal_Fastron_SMCC",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Inductor_THT.pretty/L_Axial_L9.5mm_D4.0mm_P12.70mm_Horizontal_Fastron_SMCC.kicad_mod",
+      "sha256": "35c2ab3f4559143a00a41e1ca23b0e2a8d27040d0deabaf6245376fc2a763904",
+      "unnumbered_pads": 0
+    },
+    "Inductor_THT:L_Axial_L9.5mm_D4.0mm_P15.24mm_Horizontal_Fastron_SMCC": {
+      "exists": true,
+      "name": "Inductor_THT:L_Axial_L9.5mm_D4.0mm_P15.24mm_Horizontal_Fastron_SMCC",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Inductor_THT.pretty/L_Axial_L9.5mm_D4.0mm_P15.24mm_Horizontal_Fastron_SMCC.kicad_mod",
+      "sha256": "65333989198bae6812914eb51a1a6347091d1ef433a0b7f266888cd00b46742b",
+      "unnumbered_pads": 0
+    },
+    "Inductor_THT:L_Axial_L9.5mm_D4.0mm_P2.54mm_Vertical_Fastron_SMCC": {
+      "exists": true,
+      "name": "Inductor_THT:L_Axial_L9.5mm_D4.0mm_P2.54mm_Vertical_Fastron_SMCC",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Inductor_THT.pretty/L_Axial_L9.5mm_D4.0mm_P2.54mm_Vertical_Fastron_SMCC.kicad_mod",
+      "sha256": "50cf51b3502330efeefcf643bbed5b88c7563d08676bc7712ad0378eafb9fb86",
+      "unnumbered_pads": 0
+    },
+    "Inductor_THT:L_Axial_L9.5mm_D4.0mm_P5.08mm_Vertical_Fastron_SMCC": {
+      "exists": true,
+      "name": "Inductor_THT:L_Axial_L9.5mm_D4.0mm_P5.08mm_Vertical_Fastron_SMCC",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2"
+      ],
+      "path": "/usr/share/kicad/footprints/Inductor_THT.pretty/L_Axial_L9.5mm_D4.0mm_P5.08mm_Vertical_Fastron_SMCC.kicad_mod",
+      "sha256": "4669fb1dc4aa9f0e88b317514e73ebc641d5f3814edd4d826cd4bd77458eefd4",
+      "unnumbered_pads": 0
+    }
+  },
+  "schema_version": 1
+}

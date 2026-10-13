@@ -1,0 +1,11 @@
+{
+  "issues": [],
+  "module": "Regulator_Switching",
+  "schema_version": 1,
+  "source": "/usr/share/kicad/symbols/Regulator_Switching.kicad_sym",
+  "source_sha256": "24200661f1965ca5e30e94110c4558d53f43b7c128062396999fbf515910e984",
+  "symbols": {
+    "AP63203WU": "AP63203WU",
+    "AP63205WU": "AP63205WU"
+  }
+}

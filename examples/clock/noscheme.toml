@@ -1,0 +1,25 @@
+language_version = "0.1"
+source_paths = ["."]
+library_paths = [
+  "kicad_lib/74xGxx",
+  "kicad_lib/Amplifier_Operational",
+  "kicad_lib/Analog_DAC",
+  "kicad_lib/Connector",
+  "kicad_lib/Device",
+  "kicad_lib/Driver_LED",
+  "kicad_lib/Interface_USB",
+  "kicad_lib/Jumper",
+  "kicad_lib/MCU_ST_STM32H7",
+  "kicad_lib/Oscillator",
+  "kicad_lib/Power_Protection",
+  "kicad_lib/RF_GPS",
+  "kicad_lib/Reference_Voltage",
+  "kicad_lib/Regulator_Linear",
+  "kicad_lib/Regulator_Switching",
+  "kicad_lib/Switch",
+]
+output_dir = "build"
+
+[targets.default]
+root = "main.HonestClock"
+output_dir = "build"

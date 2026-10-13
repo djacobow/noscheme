@@ -1,0 +1,39 @@
+from noscheme import role, use, drive
+
+component REF3025:
+  params:
+    string value = "REF3025"
+  pins:
+    "1" (IN):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "2" (OUT):
+      role: role.power_output
+      custom:
+        kicad_pin_types: ["power_out"]
+    "3" (GND):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+  metadata:
+    ref_prefix: "U"
+    footprint: "Package_TO_SOT_SMD:SOT-23"
+    custom:
+      kicad_symbol: "Reference_Voltage:REF3025"
+      kicad_duplicate_pin_numbers_are_jumpers: "no"
+      kicad_footprint_candidates: [
+        "Package_TO_SOT_SMD:SOT-23",
+        "Package_TO_SOT_SMD:SOT-23-3",
+        "Package_TO_SOT_SMD:SOT-23W",
+        "Package_TO_SOT_SMD:SOT-23W_Handsoldering",
+        "Package_TO_SOT_SMD:SOT-23_Handsoldering",
+      ]
+      kicad_properties:
+        "Datasheet": "http://www.ti.com/lit/ds/symlink/ref3033.pdf"
+        "Description": "2.500V 50-ppm/\u00b0C Max, 50-\u03bcA, CMOS Voltage Reference, SOT-23-3"
+        "Footprint": "Package_TO_SOT_SMD:SOT-23"
+        "Reference": "U"
+        "Value": "REF3025"
+        "ki_fp_filters": "SOT?23*"
+        "ki_keywords": "voltage reference"

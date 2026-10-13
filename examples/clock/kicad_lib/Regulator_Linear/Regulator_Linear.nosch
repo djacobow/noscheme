@@ -1,0 +1,44 @@
+from noscheme import role, use, drive
+
+component LP5907MFX_3_3:
+  params:
+    string value = "LP5907MFX-3.3"
+  pins:
+    "1" (IN):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "2" (GND):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "3" (EN):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "4" (NC):
+      use: use.disallowed
+      custom:
+        kicad_pin_types: ["no_connect"]
+    "5" (OUT):
+      role: role.power_output
+      custom:
+        kicad_pin_types: ["power_out"]
+  metadata:
+    ref_prefix: "U"
+    footprint: "Package_TO_SOT_SMD:SOT-23-5"
+    custom:
+      kicad_symbol: "Regulator_Linear:LP5907MFX-3.3"
+      kicad_duplicate_pin_numbers_are_jumpers: "no"
+      kicad_footprint_candidates: [
+        "Package_TO_SOT_SMD:SOT-23-5",
+        "Package_TO_SOT_SMD:SOT-23-5_HandSoldering",
+      ]
+      kicad_properties:
+        "Datasheet": "http://www.ti.com/lit/ds/symlink/lp5907.pdf"
+        "Description": "250-mA Ultra-Low-Noise Low-IQ LDO, 3.3V, SOT-23"
+        "Footprint": "Package_TO_SOT_SMD:SOT-23-5"
+        "Reference": "U"
+        "Value": "LP5907MFX-3.3"
+        "ki_fp_filters": "SOT?23*"
+        "ki_keywords": "Single Output LDO Low-Noise"

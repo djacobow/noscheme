@@ -82,7 +82,9 @@ board](examples/stm32h523/stm32h523.nosch) and the [Rulos six-line display
 matrix](examples/rulos_6matrix/README.md), transcribed from an existing
 schematic using nested block and component arrays. The [WREN
 examples](examples/wren/README.md) include a readable 189-component output
-subsystem and a generated 1,507-component compiler/LSP benchmark.
+subsystem and a generated 1,507-component compiler/LSP benchmark. The [Honest
+Millisecond Clock](examples/clock/README.md) is a new GPS-disciplined NTP clock
+design with parts selected for JLCPCB assembly.
 
 ## License
 

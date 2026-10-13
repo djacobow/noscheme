@@ -1,0 +1,93 @@
+from noscheme import role, use, drive
+
+component MAX_M10S:
+  params:
+    string value = "MAX-M10S"
+  pins:
+    "1":
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "10":
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "11" (RF_IN):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "12":
+      role: role.passive
+      custom:
+        kicad_pin_types: ["passive"]
+    "13" (LNA_EN):
+      role: role.digital_output
+      custom:
+        kicad_pin_types: ["output"]
+    "14" (VCC_RF):
+      role: role.power_output
+      custom:
+        kicad_pin_types: ["power_out"]
+    "15" (VIO_SEL):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "16" (SDA):
+      role: role.digital_bidirectional
+      custom:
+        kicad_pin_types: ["bidirectional"]
+    "17" (SCL):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "18" ("~{SAFEBOOT}"):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "2" (TXD):
+      role: role.digital_output
+      custom:
+        kicad_pin_types: ["output"]
+    "3" (RXD):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "4" (TIMEPULSE):
+      role: role.digital_output
+      custom:
+        kicad_pin_types: ["output"]
+    "5" (EXTINT):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "6" (V_BCKP):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "7" (VCC_IO):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "8" (VCC):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "9" ("~{RESET}"):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+  metadata:
+    ref_prefix: "U"
+    footprint: "RF_GPS:ublox_MAX"
+    custom:
+      kicad_symbol: "RF_GPS:MAX-M10S"
+      kicad_duplicate_pin_numbers_are_jumpers: "no"
+      kicad_footprint_candidates: ["RF_GPS:ublox_MAX"]
+      kicad_properties:
+        "Datasheet": "https://content.u-blox.com/sites/default/files/MAX-M10S_DataSheet_UBX-20035208.pdf"
+        "Description": "GNSS Module MAX M10, VCC 1.65V to 3.6V"
+        "Footprint": "RF_GPS:ublox_MAX"
+        "Reference": "U"
+        "Value": "MAX-M10S"
+        "ki_fp_filters": "ublox?MAX*"
+        "ki_keywords": "ublox GPS GNSS module"

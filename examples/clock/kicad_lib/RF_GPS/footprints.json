@@ -1,0 +1,124 @@
+{
+  "footprints": {
+    "RF_GPS:ublox_MAX": {
+      "exists": true,
+      "name": "RF_GPS:ublox_MAX",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "10",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "11",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "13",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "14",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "15",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "16",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "17",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "18",
+          "shape": "roundrect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "path": "/usr/share/kicad/footprints/RF_GPS.pretty/ublox_MAX.kicad_mod",
+      "sha256": "3d936eb4e6c4ec31b87b3a699d3db9658c4ed76e459f1a2793affc36677412f4",
+      "unnumbered_pads": 0
+    }
+  },
+  "schema_version": 1
+}

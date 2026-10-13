@@ -1,0 +1,53 @@
+from noscheme import role, use, drive
+
+component DAC8551IxDGK:
+  params:
+    string value = "DAC8551IxDGK"
+  pins:
+    "1" ("V_{DD}"):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+    "2" ("V_{REF}"):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "3" ("V_{FB}"):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "4" ("V_{OUT}"):
+      role: role.digital_output
+      custom:
+        kicad_pin_types: ["output"]
+    "5" ("~{SYNC}"):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "6" (SCLK):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "7" ("D_{IN}"):
+      role: role.digital_input
+      custom:
+        kicad_pin_types: ["input"]
+    "8" (GND):
+      role: [role.ground, role.power_input]
+      custom:
+        kicad_pin_types: ["power_in"]
+  metadata:
+    ref_prefix: "U"
+    footprint: "Package_SON:VSON-8-1EP_3x3mm_P0.65mm_EP1.65x2.4mm"
+    custom:
+      kicad_symbol: "Analog_DAC:DAC8551IxDGK"
+      kicad_duplicate_pin_numbers_are_jumpers: "no"
+      kicad_footprint_candidates: []
+      kicad_properties:
+        "Datasheet": "https://www.ti.com/lit/ds/symlink/dac8551.pdf"
+        "Description": "16-bit DAC, Voltage Output, Ultralow-Glitch, Rail-to-Rail Output, SPI interface, VSON-8 3x3mm package"
+        "Footprint": "Package_SON:VSON-8-1EP_3x3mm_P0.65mm_EP1.65x2.4mm"
+        "Reference": "U"
+        "Value": "DAC8551IxDGK"
+        "ki_fp_filters": "VSON*3x3mm?P0.65mm*"
+        "ki_keywords": "DAC 16-Bit  Voltage Output Rail-to-Rail SPI"

@@ -1,0 +1,52 @@
+// u-blox MAX-M10S receiver: UART, 1 PPS time pulse, and active-antenna bias.
+
+from noscheme import role, net, use, pull, drive
+from interfaces import Uart
+from components import Resistor0603, Capacitor0603, RfChoke0603, EdgeSma
+import RF_GPS
+
+extend RF_GPS.MAX_M10S<"MAX-M10S-00B"> GpsModule:
+  pins:
+    [1, 10, 12]: role.ground
+    [6, 7, 8]: role.power_input
+    11: role.passive
+    14: role.power_output
+  metadata:
+    bom:
+      manufacturer: "u-blox"
+      mpn: "MAX-M10S-00B"
+      supplier: "LCSC"
+      supplier_part_number: "C4153167"
+
+// VIO_SEL open selects 3.3 V I/O. RF_IN is DC-blocked inside the module, so
+// VCC_RF biases the antenna through the choke at the connector node.
+block Gps:
+  ports:
+    net.power supply
+    net.ground ground
+    Uart uart
+    net.digital reset#
+    net.digital extint
+    net.digital pps
+  net.passive antenna_supply
+  net.passive antenna_bias
+  net.passive rf
+
+  GpsModule receiver:
+    [1, 10, 12]: ground
+    2: uart.rx
+    3: uart.tx
+    4: pps
+    5: extint
+    [6, 7, 8]: supply
+    9: reset#
+    11: rf
+    14: antenna_supply
+    [13, 15, 16, 17, 18]: no_connect
+  Capacitor0603<100n> decouple(supply, ground)
+  Capacitor0603<4.7u> bulk(supply, ground)
+
+  // u-blox active-antenna supply: 10 ohm current sense/limit plus RF choke.
+  Resistor0603<10> antenna_feed(antenna_supply, antenna_bias)
+  RfChoke0603 antenna_choke(antenna_bias, rf)
+  EdgeSma antenna(1: rf, 2: ground)

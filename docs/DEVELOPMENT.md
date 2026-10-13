@@ -141,7 +141,8 @@ notes](PROJECT.md#reference-board) record pin assignments and hardware
 assumptions; its [library README](../examples/stm32h523/kicad_lib/README.md)
 records conversion provenance. Other worked designs and their validation limits
 are documented in [Rulos](../examples/rulos_6matrix/README.md),
-[WREN](../examples/wren/README.md), and the [ERC extension
+[WREN](../examples/wren/README.md), the [Honest Millisecond
+Clock](../examples/clock/README.md), and the [ERC extension
 example](../examples/erc_extensions/README.md).
 
 The retained [experiment harness](experiments/README.md) provides manual KiCad
