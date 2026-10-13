@@ -1926,6 +1926,33 @@ The command prints a JSON summary containing output/state paths, grouped row cou
 total physical parts, fitted parts, and DNP parts. Empty designs produce a CSV with
 only the header. Both Python and native implementations support this command.
 
+### 13.5 Hierarchy diagrams
+
+`noscheme export-hierarchy --project PATH [--target NAME]` writes `hierarchy.svg`
+in the selected target's output directory, or to `--output FILE`. It elaborates
+the design but does not run ERC or require a footprint snapshot.
+
+- Each block instance is a box nested inside its parent, labelled with its
+  instance name, definition, and total part count, in source declaration order.
+- Elements of a block array share one box labelled with the array shape, such
+  as `digits[9]`; that box shows the first element.
+- `--nets` lists each block's ports with the flattened net each binds to. A
+  bundle port shows the bundle's common net prefix and field count; hovering
+  shows every net.
+  - Power and ground nets are bold with a dark marker.
+  - A signal net bound by two or more sibling blocks gets the same colour
+    wherever it appears.
+  - Other nets are grey.
+  - Colours repeat once the palette runs out.
+- `--parts` lists each block's component instances, with arrays collapsed.
+- `--depth N` draws N levels of nested blocks below the root and names the
+  hidden ones.
+
+The diagram describes structure only. It draws no wires, and it is not a
+schematic. The command refuses to overwrite project inputs and prints a JSON
+summary with the output path and the block and part counts. It is implemented
+in Python only.
+
 ## 14. Complete example
 
 This two-part test board connects a resistor between an external digital signal

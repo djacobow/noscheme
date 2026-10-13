@@ -151,6 +151,23 @@ def main(argv=None):
     bom = sub.add_parser("export-bom", help="write a grouped CSV bill of materials")
     bom.add_argument("--project", type=Path, default=Path("."))
     bom.add_argument("--diagnostics", choices=["text", "json"], default="text")
+    hierarchy = sub.add_parser(
+        "export-hierarchy", help="draw the elaborated block hierarchy as an SVG diagram"
+    )
+    hierarchy.add_argument("--project", type=Path, default=Path("."))
+    hierarchy.add_argument(
+        "--output", type=Path, help="SVG path; default <target output_dir>/hierarchy.svg"
+    )
+    hierarchy.add_argument(
+        "--nets", action="store_true", help="list each block's ports and their nets"
+    )
+    hierarchy.add_argument(
+        "--parts", action="store_true", help="list component instances inside each block"
+    )
+    hierarchy.add_argument(
+        "--depth", type=int, help="draw this many levels of nested blocks below the root"
+    )
+    hierarchy.add_argument("--diagnostics", choices=["text", "json"], default="text")
     classes = sub.add_parser(
         "update-kicad-classes", help="merge memberships into a new KiCad project copy"
     )
@@ -171,6 +188,7 @@ def main(argv=None):
         "compile",
         "export-kicad",
         "export-bom",
+        "export-hierarchy",
     ):
         sub.choices[name].add_argument(
             "--target", help="named project target (default: default_target or sole target)"
@@ -178,6 +196,8 @@ def main(argv=None):
     args = cli.parse_args(argv)
     if getattr(args, "target", None) == "":
         cli.error("--target requires a nonempty name")
+    if getattr(args, "depth", None) is not None and args.depth < 0:
+        cli.error("--depth must be zero or more")
     if args.command == "lsp":
         return launch(args, lsp)
     if getattr(args, "native_tool", None) and args.implementation != "native":
@@ -204,6 +224,24 @@ def main(argv=None):
             if warnings or export_warnings:
                 renderer = render_json if args.diagnostics == "json" else render_text
                 print(renderer((*warnings, *export_warnings)), file=sys.stderr)
+            return 0
+        if args.command == "export-hierarchy":
+            from .hierarchy import export_hierarchy
+
+            project, definitions = resolve_project(args.project, target=args.target)
+            circuit, warnings = elaborate_project(project, definitions)
+            report = export_hierarchy(
+                project,
+                circuit,
+                args.output,
+                nets=args.nets,
+                parts=args.parts,
+                depth=args.depth,
+            )
+            print(json.dumps(report, indent=2))
+            if warnings:
+                renderer = render_json if args.diagnostics == "json" else render_text
+                print(renderer(warnings), file=sys.stderr)
             return 0
         if args.command == "export-kicad":
             project, definitions = resolve_project(args.project, target=args.target)
