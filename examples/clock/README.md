@@ -53,6 +53,14 @@ To see the block structure, with each block's ports and nets:
 uv run --locked noscheme export-hierarchy --project examples/clock --nets
 ```
 
+To draw the whole design on one sheet, with every block open:
+
+```sh
+uv run --locked noscheme export-schematic --project examples/clock
+```
+
+Either SVG converts to PNG or PDF with `rsvg-convert -f pdf -o out.pdf in.svg`.
+
 ## Fit options
 
 The BOM marks these parts do-not-fit by default:

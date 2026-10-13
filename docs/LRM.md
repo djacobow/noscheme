@@ -1953,6 +1953,61 @@ schematic. The command refuses to overwrite project inputs and prints a JSON
 summary with the output path and the block and part counts. It is implemented
 in Python only.
 
+### 13.6 Schematic sheets
+
+`noscheme export-schematic --project PATH [--target NAME] [--seed N] [--effort X]`
+writes `schematic.svg`, or `--output FILE`: the whole design on one sheet, as
+large as it needs to be. Like `export-hierarchy`, it elaborates the design but
+does not run ERC or need a footprint snapshot. The drawing is generated from
+the source, which stays the design of record.
+
+- **Blocks are drawn open.** Each block instance is a box, nested to any depth.
+  The header gives its instance name, its definition, and the rails its ports
+  carry. Signal ports sit on the edge, labelled, and wires attach there inside
+  and out. Block instances with the same definition, part values, and
+  connectivity share one layout.
+- **Placement** is annealed within each block to shorten wires, plus a cost on
+  the space the contents take up. A bundle's connection weighs more than a
+  single net, and rails only pull weakly. A greedy pass then slides items
+  together wherever that does not raise the cost. Seeded runs are
+  reproducible: the same `--seed` gives the same sheet. `--effort` scales the
+  number of annealing moves (default 1).
+- **Rotation.** Placement may turn each two-pin part instance by quarter
+  turns; it never mirrors one. Larger symbols stay upright. A part's name runs along its longer edge: above a
+  horizontal two-pin part, beside a vertical one.
+- **Rail-only parts.** Parts whose only connections are rails or no-connects,
+  such as decoupling capacitors, are not annealed. They are packed into a
+  cluster, grouped by definition, at the bottom-right corner of their block.
+- **Pin and port sides.** A pin may sit on any edge, but each component
+  definition has one arrangement, shared by all its instances before
+  rotation. Pin sides and
+  block port sides are chosen again between placement passes, from where their
+  connections lie. Along a side, pins are ordered by the mean position of the
+  pins they connect to. Definitions update one at a time, so two parts wired
+  pin for pin line their pins up and the wires run parallel. Rail pins go
+  last on their side, clear of the signal rows. Two-pin parts
+  keep their pins on opposite edges. Other parts start with power on top,
+  ground below, and outputs on the right.
+- **Wires** follow a grid in eight directions: orthogonal runs with 45- or
+  90-degree bends. A dot marks every junction; a crossing has no mark. Wires
+  avoid symbols through a high cost, not a ban. A net may cross the members of
+  an instance array it connects to.
+- **Bundles.** A bundle port is a single terminal, and its connection is one
+  thick bus. A field that meets a single pin leaves the bus through a 45-degree
+  breakout labelled with the field name. Where no 45-degree entry is free, it
+  enters square on, still labelled.
+- **Rails** (power and ground nets) are not wired. Each rail pin carries a power
+  or ground flag naming its net.
+- **Tags.** A net with one terminal in a block gets a net tag there: the net's
+  name in a pointed outline. Tags with the same name are connected. When
+  routing leaves connections unplaced, the block is routed again with the
+  failed nets first, up to four times. Whatever still fails gets tags at its
+  terminals, and the JSON summary counts these as `unrouted`.
+
+The command refuses to overwrite project inputs. It prints a JSON summary with
+the output path, the block and part counts, the number of distinct block
+layouts, and `unrouted`. It is implemented in Python only.
+
 ## 14. Complete example
 
 This two-part test board connects a resistor between an external digital signal

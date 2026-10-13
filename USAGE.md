@@ -144,6 +144,7 @@ extensible, if you want to create some rules specific to your components.
 | Inspect expanded arrays and blocks | `compile` | `circuit.json` and ERC reports |
 | Procurement review | `export-bom` | Grouped CSV, fitted/DNP quantities, part numbers |
 | Design review | `export-hierarchy` | SVG of nested blocks; `--nets` adds port nets |
+| Design review | `export-schematic` | One-sheet SVG schematic with every block drawn open |
 | PCB handoff | `export-kicad` | Footprint validation, netlist, changes, ERC reports |
 
 `compile` and `export-kicad` can succeed and publish artifacts despite
@@ -371,6 +372,7 @@ environment, prefix commands with `uv run --locked`.
 | `noscheme compile --project PATH` | Write circuit and ERC reports |
 | `noscheme export-bom --project PATH` | Write grouped CSV BOM and update reference reservations |
 | `noscheme export-hierarchy --project PATH [--nets] [--parts] [--depth N]` | Draw the block hierarchy as `hierarchy.svg` ([details](docs/LRM.md#135-hierarchy-diagrams)) |
+| `noscheme export-schematic --project PATH [--seed N] [--effort X]` | Draw the whole design on one sheet as `schematic.svg` ([details](docs/LRM.md#136-schematic-sheets)) |
 | `noscheme export-kicad --project PATH --footprints FILE` | Validate footprints, export netlist, and update state |
 | `noscheme convert-library FILE --output NEW_DIRECTORY` | Convert a KiCad symbol library |
 | `noscheme update-kicad-classes INPUT --memberships FILE --output NEW_FILE` | Update class membership in a project copy |
@@ -438,7 +440,7 @@ This is not general syntax-error recovery.
 ### 9.2 Output files
 
 Compilation produces `circuit.json`, `erc.txt`, and `erc.json`. Hierarchy export
-produces `hierarchy.svg`. KiCad export
+produces `hierarchy.svg`, and schematic export `schematic.svg`. KiCad export
 produces ERC reports, `board.net`, `names.json`, `netclasses.json`, `nets.txt`, `nets.json`,
 `changes.txt`, and `export.json`, plus persistent `noscheme.<target>.state.json` outside the
 output directory. Change reports compare against the last successful export.

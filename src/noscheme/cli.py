@@ -168,6 +168,18 @@ def main(argv=None):
         "--depth", type=int, help="draw this many levels of nested blocks below the root"
     )
     hierarchy.add_argument("--diagnostics", choices=["text", "json"], default="text")
+    schematic = sub.add_parser(
+        "export-schematic", help="draw the whole design, every block open, as one SVG sheet"
+    )
+    schematic.add_argument("--project", type=Path, default=Path("."))
+    schematic.add_argument(
+        "--output", type=Path, help="SVG path; default <target output_dir>/schematic.svg"
+    )
+    schematic.add_argument("--seed", type=int, default=0, help="placement random seed")
+    schematic.add_argument(
+        "--effort", type=float, default=1.0, help="scale placement annealing moves (default 1)"
+    )
+    schematic.add_argument("--diagnostics", choices=["text", "json"], default="text")
     classes = sub.add_parser(
         "update-kicad-classes", help="merge memberships into a new KiCad project copy"
     )
@@ -189,6 +201,7 @@ def main(argv=None):
         "export-kicad",
         "export-bom",
         "export-hierarchy",
+        "export-schematic",
     ):
         sub.choices[name].add_argument(
             "--target", help="named project target (default: default_target or sole target)"
@@ -198,6 +211,8 @@ def main(argv=None):
         cli.error("--target requires a nonempty name")
     if getattr(args, "depth", None) is not None and args.depth < 0:
         cli.error("--depth must be zero or more")
+    if getattr(args, "effort", None) is not None and args.effort <= 0:
+        cli.error("--effort must be positive")
     if args.command == "lsp":
         return launch(args, lsp)
     if getattr(args, "native_tool", None) and args.implementation != "native":
@@ -237,6 +252,19 @@ def main(argv=None):
                 nets=args.nets,
                 parts=args.parts,
                 depth=args.depth,
+            )
+            print(json.dumps(report, indent=2))
+            if warnings:
+                renderer = render_json if args.diagnostics == "json" else render_text
+                print(renderer(warnings), file=sys.stderr)
+            return 0
+        if args.command == "export-schematic":
+            from .schematic import export_schematic
+
+            project, definitions = resolve_project(args.project, target=args.target)
+            circuit, warnings = elaborate_project(project, definitions)
+            report = export_schematic(
+                project, circuit, args.output, seed=args.seed, effort=args.effort
             )
             print(json.dumps(report, indent=2))
             if warnings:
