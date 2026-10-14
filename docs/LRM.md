@@ -2028,8 +2028,8 @@ use KiCad's **Update PCB from Schematic** (F8) to update the board. It is
 written in the same atomic publication as the netlist and identity state, and
 uses the same references, values, footprints, and net names. The sheets are an
 export: the source stays the design of record. Every export rewrites them from
-scratch, deterministically, so edits made in KiCad are overwritten. Only the
-Python implementation supports it so far.
+scratch, deterministically, so edits made in KiCad are overwritten. Both
+implementations write identical sheets.
 
 - **Sheets.** Each block instance is a sheet named for its instance (such as
   `digits[0]`), and the root is the root sheet. Block instances whose parts,

@@ -97,6 +97,7 @@ native_cli = executable(
     'noscheme-native',
     'cpp/src/cli.cpp',
     'cpp/src/export.cpp',
+    'cpp/src/sheets.cpp',
     link_with: core,
     include_directories: inc,
     dependencies: [

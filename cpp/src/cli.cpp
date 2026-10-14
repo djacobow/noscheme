@@ -78,7 +78,8 @@ Json run(const Json &request) {
     auto exported = export_kicad(
         project, circuit, erc, request.at("state"), request.at("footprints"),
         request.at("records").get<std::string>(), request.at("records_text"),
-        request.value("state_warnings", Json::array()));
+        request.value("state_warnings", Json::array()),
+        request.value("schematic", std::string()));
     for (const auto &warning : exported.warnings)
       diagnostics.push_back(warning);
     return object("result", exported.summary, "diagnostics", diagnostics,

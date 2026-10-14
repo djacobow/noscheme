@@ -2,7 +2,7 @@
 	(version 20250114)
 	(generator "noscheme")
 	(generator_version "0.1")
-	(uuid "9ae2371b-f217-5826-acb1-9e5e923a9c0b")
+	(uuid "eb4dfbd0-0be1-516d-8954-a4e6d187beb6")
 	(paper "User" 380 210)
 	(title_block
 		(title "display.Display")
@@ -229,7 +229,7 @@
 		(fill
 			(color 0 0 0 0.0000)
 		)
-		(uuid "06a56c86-d7c6-511a-8960-af98800258bb")
+		(uuid "b3b6f15a-4193-5e0b-b616-ecc2ce70c6a1")
 		(property "Sheetname" "digits[0]"
 			(at 45.72 29.78 0)
 			(effects
@@ -250,7 +250,7 @@
 		)
 		(pin "blank#" passive
 			(at 45.72 33.02 180)
-			(uuid "8ee235b5-3688-540b-a87f-bd174d456879")
+			(uuid "ae140850-b7f7-5706-88e2-e599c7d43a80")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -260,7 +260,7 @@
 		)
 		(pin "clock" passive
 			(at 45.72 35.56 180)
-			(uuid "6d7519b3-f025-59be-a4b0-766c69c5f407")
+			(uuid "8dea68b1-6d63-5ca5-bf50-cdb6c891b366")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -270,7 +270,7 @@
 		)
 		(pin "data_in" passive
 			(at 45.72 38.1 180)
-			(uuid "34c8d192-cfde-5a78-81fb-df575d1bac67")
+			(uuid "529336a0-280b-5e77-ac60-ddacb2e8027f")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -280,7 +280,7 @@
 		)
 		(pin "data_out" passive
 			(at 45.72 40.64 180)
-			(uuid "9f92c2ec-fa37-5449-a684-93db37cf38d9")
+			(uuid "e744f1fd-559a-5d49-b35f-239f9270a48e")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -290,7 +290,7 @@
 		)
 		(pin "latch" passive
 			(at 45.72 43.18 180)
-			(uuid "c8fd55be-b94a-5946-9395-6d9d665419dd")
+			(uuid "c75dc452-5e9d-5498-9bf5-7aed6d87a439")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -300,7 +300,7 @@
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/e6483617-79df-5ce6-8075-bbaed551169e"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/c3897311-fbc1-522c-943e-8e0b7f355f50"
 					(page "16")
 				)
 			)
@@ -315,7 +315,7 @@
 			)
 			(justify right)
 		)
-		(uuid "06124c34-feb8-5968-a6fb-be4d5f182fc0")
+		(uuid "212e84e2-eec4-5653-95e7-a7b9cf5d547c")
 	)
 	(hierarchical_label "chain.clock"
 		(shape passive)
@@ -326,7 +326,7 @@
 			)
 			(justify right)
 		)
-		(uuid "c1c4bc16-8668-5435-8f5f-9514db766d09")
+		(uuid "afea736d-8ede-58a8-bb54-fc2c66501633")
 	)
 	(hierarchical_label "chain.data_in"
 		(shape passive)
@@ -337,7 +337,7 @@
 			)
 			(justify right)
 		)
-		(uuid "5eb92308-49f0-58a4-ae3e-d8550e0f52b2")
+		(uuid "204ed62d-4b63-5554-bb51-ce96f5b2b00d")
 	)
 	(label "link[0]"
 		(at 45.72 40.64 180)
@@ -347,7 +347,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "bdcb83a7-d64c-519d-a910-02b4fc84c6de")
+		(uuid "3c23fb71-5e0e-5968-a151-65441db4fc98")
 	)
 	(hierarchical_label "chain.latch"
 		(shape passive)
@@ -358,7 +358,7 @@
 			)
 			(justify right)
 		)
-		(uuid "735195df-4c87-59ac-b107-7a82e1b189fc")
+		(uuid "b4cce1dc-a9bf-53ae-a923-3173a7644922")
 	)
 	(sheet
 		(at 99.06 30.48)
@@ -375,7 +375,7 @@
 		(fill
 			(color 0 0 0 0.0000)
 		)
-		(uuid "188f040c-ed25-5abd-9e18-fe5f1f622c8b")
+		(uuid "819cb71a-fe02-57be-99c6-ef5a818e612f")
 		(property "Sheetname" "digits[1]"
 			(at 99.06 29.78 0)
 			(effects
@@ -396,7 +396,7 @@
 		)
 		(pin "blank#" passive
 			(at 99.06 33.02 180)
-			(uuid "db80da1b-24e3-5223-9464-684cf3005eef")
+			(uuid "b5b67714-5049-57c1-b4a2-b7d43aafa7ac")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -406,7 +406,7 @@
 		)
 		(pin "clock" passive
 			(at 99.06 35.56 180)
-			(uuid "1617bd18-8a62-585d-85b6-8d2096b4dec1")
+			(uuid "ec6eca5c-c6d5-52c8-ac80-8a4790005694")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -416,7 +416,7 @@
 		)
 		(pin "data_in" passive
 			(at 99.06 38.1 180)
-			(uuid "49f945c1-50d0-59ac-9992-04c7eef4ead5")
+			(uuid "f0130de9-d069-51ef-9037-1b058d5a97cf")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -426,7 +426,7 @@
 		)
 		(pin "data_out" passive
 			(at 99.06 40.64 180)
-			(uuid "90209696-25a7-5b4a-9cfc-fcd4218c49f4")
+			(uuid "841749b7-d25d-5137-9f3d-59b7f6ff7ce9")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -436,7 +436,7 @@
 		)
 		(pin "latch" passive
 			(at 99.06 43.18 180)
-			(uuid "150c6acf-1530-57dd-abe2-2192376489e4")
+			(uuid "c5427836-8310-5153-8f17-abeece1da8f1")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -446,7 +446,7 @@
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/e6483617-79df-5ce6-8075-bbaed551169e"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/c3897311-fbc1-522c-943e-8e0b7f355f50"
 					(page "17")
 				)
 			)
@@ -461,7 +461,7 @@
 			)
 			(justify right)
 		)
-		(uuid "38ce8d3b-a504-5a5b-ba2b-e4abf8ac2d2c")
+		(uuid "68e79402-c4ed-5fb3-9691-23104e022e76")
 	)
 	(hierarchical_label "chain.clock"
 		(shape passive)
@@ -472,7 +472,7 @@
 			)
 			(justify right)
 		)
-		(uuid "0902fe8e-65a6-5d62-ade3-90edec10255d")
+		(uuid "445f7f90-54ff-5dab-a6c9-c41f0b0ebd41")
 	)
 	(label "link[0]"
 		(at 99.06 38.1 180)
@@ -482,7 +482,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "4204429a-84fe-573a-91c4-a488baee7e11")
+		(uuid "a461a978-5902-5305-8872-5464ebfdf1e1")
 	)
 	(label "link[1]"
 		(at 99.06 40.64 180)
@@ -492,7 +492,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "09ec122f-7eb8-50f9-85c4-dafce4355ce1")
+		(uuid "d8fb5b2f-52c9-5bde-888c-b48092d9b350")
 	)
 	(hierarchical_label "chain.latch"
 		(shape passive)
@@ -503,7 +503,7 @@
 			)
 			(justify right)
 		)
-		(uuid "13f2a040-d54b-5d42-9033-aa65cfd01b3f")
+		(uuid "d16b6324-c0fd-5c4b-a048-0dd695af7cb2")
 	)
 	(sheet
 		(at 152.4 30.48)
@@ -520,7 +520,7 @@
 		(fill
 			(color 0 0 0 0.0000)
 		)
-		(uuid "7c118d57-d94c-5b30-ab69-f0061c78136d")
+		(uuid "7fb93cc6-7738-5131-ba1d-f8d244d58f65")
 		(property "Sheetname" "digits[2]"
 			(at 152.4 29.78 0)
 			(effects
@@ -541,7 +541,7 @@
 		)
 		(pin "blank#" passive
 			(at 152.4 33.02 180)
-			(uuid "7e5e6281-d8d1-513e-a901-86374a659107")
+			(uuid "ad8f3f14-b235-5410-9179-dc30bfa61f8b")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -551,7 +551,7 @@
 		)
 		(pin "clock" passive
 			(at 152.4 35.56 180)
-			(uuid "13f0c256-af62-516d-aec3-c1185fe3d26c")
+			(uuid "c9b9c9a4-15d3-533d-b602-75af2e37de97")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -561,7 +561,7 @@
 		)
 		(pin "data_in" passive
 			(at 152.4 38.1 180)
-			(uuid "44f0c09d-827a-520b-9548-0ef79a542f79")
+			(uuid "df67ae91-95e5-5c55-b223-9c1d4363d8f2")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -571,7 +571,7 @@
 		)
 		(pin "data_out" passive
 			(at 152.4 40.64 180)
-			(uuid "e8e3c193-cf65-58e2-a859-521cd2be9481")
+			(uuid "04dad7e9-dd09-57d0-aa05-3d6218b85cf2")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -581,7 +581,7 @@
 		)
 		(pin "latch" passive
 			(at 152.4 43.18 180)
-			(uuid "be93b93c-e6b4-5d75-9757-fad9ffc9adaa")
+			(uuid "18a87b7c-f2fc-5c30-b928-66a793dd4aac")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -591,7 +591,7 @@
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/e6483617-79df-5ce6-8075-bbaed551169e"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/c3897311-fbc1-522c-943e-8e0b7f355f50"
 					(page "18")
 				)
 			)
@@ -606,7 +606,7 @@
 			)
 			(justify right)
 		)
-		(uuid "c2e7996d-3e91-5113-8a8c-3efc57fef5b9")
+		(uuid "6736192b-d171-5cca-a179-0c0e8226d817")
 	)
 	(hierarchical_label "chain.clock"
 		(shape passive)
@@ -617,7 +617,7 @@
 			)
 			(justify right)
 		)
-		(uuid "a4b05170-0c89-5ff0-ad1f-1bac897b1884")
+		(uuid "bd2d4b83-0af1-5306-b217-4384f252c19a")
 	)
 	(label "link[1]"
 		(at 152.4 38.1 180)
@@ -627,7 +627,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "8d52c52a-b4e5-5b05-886d-3eedcecca4e4")
+		(uuid "8b4a700c-59fd-5f82-96b7-12be63381a3d")
 	)
 	(label "link[2]"
 		(at 152.4 40.64 180)
@@ -637,7 +637,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "680488b7-0f1b-5d91-ad64-042cdf7dd2f1")
+		(uuid "8abb4869-b259-58a0-9d45-452988c967dc")
 	)
 	(hierarchical_label "chain.latch"
 		(shape passive)
@@ -648,7 +648,7 @@
 			)
 			(justify right)
 		)
-		(uuid "1d3afcbe-45da-5803-9fc9-029d6f548099")
+		(uuid "50c4aa65-ef76-524a-99d1-74ead3a91ce8")
 	)
 	(sheet
 		(at 205.74 30.48)
@@ -665,7 +665,7 @@
 		(fill
 			(color 0 0 0 0.0000)
 		)
-		(uuid "1d8411df-0d26-5cdf-be96-bae3238d507c")
+		(uuid "5843ecfa-e3ac-5191-9bfc-5877853b8699")
 		(property "Sheetname" "digits[3]"
 			(at 205.74 29.78 0)
 			(effects
@@ -686,7 +686,7 @@
 		)
 		(pin "blank#" passive
 			(at 205.74 33.02 180)
-			(uuid "6179194c-1298-5eb2-99db-63c69c85d532")
+			(uuid "88b4ceaa-f127-5dff-964f-22c5739554e7")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -696,7 +696,7 @@
 		)
 		(pin "clock" passive
 			(at 205.74 35.56 180)
-			(uuid "2dd4eb71-1a71-5b2f-ae5b-0c39b58c4f9f")
+			(uuid "76133a05-f198-5b31-811f-c49ee2fe3b55")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -706,7 +706,7 @@
 		)
 		(pin "data_in" passive
 			(at 205.74 38.1 180)
-			(uuid "f4ef784a-6f13-5539-ae2b-8be0a1404b55")
+			(uuid "a7a77e20-21bc-5a52-87b6-19387ec4692e")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -716,7 +716,7 @@
 		)
 		(pin "data_out" passive
 			(at 205.74 40.64 180)
-			(uuid "85f67271-34f4-5c4c-a8d3-0c5a218910cd")
+			(uuid "4b8ce61a-bcdd-5b30-8cf4-3aca37e4d4bf")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -726,7 +726,7 @@
 		)
 		(pin "latch" passive
 			(at 205.74 43.18 180)
-			(uuid "0a2a65be-75cb-5f92-81bf-d7c19173254c")
+			(uuid "87577e8c-fd10-5ff2-9f9c-05466895682c")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -736,7 +736,7 @@
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/e6483617-79df-5ce6-8075-bbaed551169e"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/c3897311-fbc1-522c-943e-8e0b7f355f50"
 					(page "19")
 				)
 			)
@@ -751,7 +751,7 @@
 			)
 			(justify right)
 		)
-		(uuid "f83cd89e-19fb-5d78-bb4e-7413d9b992b4")
+		(uuid "12f80542-5e67-5f07-ab9b-7763143c9f7c")
 	)
 	(hierarchical_label "chain.clock"
 		(shape passive)
@@ -762,7 +762,7 @@
 			)
 			(justify right)
 		)
-		(uuid "af801354-03e1-5880-a654-b08fe175f2f4")
+		(uuid "cfdfaa92-056a-5c2c-af98-bd4e39997d14")
 	)
 	(label "link[2]"
 		(at 205.74 38.1 180)
@@ -772,7 +772,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "8ddb52dd-8296-5371-9529-a1ba846bf6db")
+		(uuid "dd0205d6-0648-507c-999b-db4db2ceeff9")
 	)
 	(label "link[3]"
 		(at 205.74 40.64 180)
@@ -782,7 +782,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "d10b9baf-6874-51b5-ac12-99a18a5e1bfc")
+		(uuid "55543dff-ede1-5ef7-9913-129e5aa6857e")
 	)
 	(hierarchical_label "chain.latch"
 		(shape passive)
@@ -793,7 +793,7 @@
 			)
 			(justify right)
 		)
-		(uuid "bee1b4ab-a0c5-55d9-a407-f2a2c51dfbe4")
+		(uuid "b0056d01-0fcc-57b4-acd7-058312a87316")
 	)
 	(sheet
 		(at 259.08 30.48)
@@ -810,7 +810,7 @@
 		(fill
 			(color 0 0 0 0.0000)
 		)
-		(uuid "0d7fc99b-cf2e-503b-bb0d-4f00079cdf39")
+		(uuid "00891967-5916-58de-bcc6-e4be07e372db")
 		(property "Sheetname" "digits[4]"
 			(at 259.08 29.78 0)
 			(effects
@@ -831,7 +831,7 @@
 		)
 		(pin "blank#" passive
 			(at 259.08 33.02 180)
-			(uuid "ed116fd1-b8a3-5ba4-b09d-e3cf5c0f6b90")
+			(uuid "aeb3e0f0-6194-5f07-bdb1-6ad5d4d81d76")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -841,7 +841,7 @@
 		)
 		(pin "clock" passive
 			(at 259.08 35.56 180)
-			(uuid "7b10269e-046e-5ddc-9899-bbc9fef51372")
+			(uuid "4a8db5cc-2692-5b29-8b36-f664539cb16c")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -851,7 +851,7 @@
 		)
 		(pin "data_in" passive
 			(at 259.08 38.1 180)
-			(uuid "3f0c0f8b-0555-5b43-b2f3-4efc041470d6")
+			(uuid "b2fe55e5-20fa-585c-b3b8-aa27ad651891")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -861,7 +861,7 @@
 		)
 		(pin "data_out" passive
 			(at 259.08 40.64 180)
-			(uuid "7ce87124-71d9-555c-8794-56161d661598")
+			(uuid "658f45a6-b1da-5c64-8b05-907af0a5f480")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -871,7 +871,7 @@
 		)
 		(pin "latch" passive
 			(at 259.08 43.18 180)
-			(uuid "6c160325-b92d-54fa-8404-308e4f019357")
+			(uuid "c9ccce7d-238f-5851-b956-ab8fbedc6f97")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -881,7 +881,7 @@
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/e6483617-79df-5ce6-8075-bbaed551169e"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/c3897311-fbc1-522c-943e-8e0b7f355f50"
 					(page "20")
 				)
 			)
@@ -896,7 +896,7 @@
 			)
 			(justify right)
 		)
-		(uuid "d1afa25c-f9a7-5afa-b537-058ddae73ad4")
+		(uuid "3c2bed42-8135-5b3a-90bd-65c8fdc9bf1e")
 	)
 	(hierarchical_label "chain.clock"
 		(shape passive)
@@ -907,7 +907,7 @@
 			)
 			(justify right)
 		)
-		(uuid "7128c3a9-e20a-5aad-8fc3-95011aad71a2")
+		(uuid "5102761d-aa3d-587e-920e-8dabed94475c")
 	)
 	(label "link[3]"
 		(at 259.08 38.1 180)
@@ -917,7 +917,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "fb797ccd-8ec9-5a28-9503-b98bd16318ad")
+		(uuid "21afa11e-8331-5707-b403-33035ef9b741")
 	)
 	(label "link[4]"
 		(at 259.08 40.64 180)
@@ -927,7 +927,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "50cf53a5-277d-5616-996a-70bcef24fc93")
+		(uuid "3b22dab0-79f3-569c-8873-aa34d840d92c")
 	)
 	(hierarchical_label "chain.latch"
 		(shape passive)
@@ -938,7 +938,7 @@
 			)
 			(justify right)
 		)
-		(uuid "63637040-c4c3-506d-9d61-7f4fc9b8dbf9")
+		(uuid "34984237-a0dc-56f9-9e91-d5fb9df92ebe")
 	)
 	(sheet
 		(at 312.42 30.48)
@@ -955,7 +955,7 @@
 		(fill
 			(color 0 0 0 0.0000)
 		)
-		(uuid "8fc1f00a-ac76-5d54-8c15-7ede792961b2")
+		(uuid "530182eb-d15f-535f-96f7-c1fb379fcf39")
 		(property "Sheetname" "digits[5]"
 			(at 312.42 29.78 0)
 			(effects
@@ -976,7 +976,7 @@
 		)
 		(pin "blank#" passive
 			(at 312.42 33.02 180)
-			(uuid "bbd627d6-23a7-5f68-a77b-f14c97bdaa06")
+			(uuid "d8560063-9c19-5f3b-9da0-0d0f212f1187")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -986,7 +986,7 @@
 		)
 		(pin "clock" passive
 			(at 312.42 35.56 180)
-			(uuid "b9165162-49fd-52ac-8237-e9216408af88")
+			(uuid "04c8c7b1-e2f2-5591-84d7-d97fb7199f35")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -996,7 +996,7 @@
 		)
 		(pin "data_in" passive
 			(at 312.42 38.1 180)
-			(uuid "b5c7cefc-cbef-5700-9459-31a54928dd6d")
+			(uuid "dca61244-bdd9-5a07-b5e3-c7451d132609")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1006,7 +1006,7 @@
 		)
 		(pin "data_out" passive
 			(at 312.42 40.64 180)
-			(uuid "affd0e5a-3a30-5ff0-9a8c-aec52c7d786d")
+			(uuid "f6824c17-f58d-5be5-aa24-5835caa2921e")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1016,7 +1016,7 @@
 		)
 		(pin "latch" passive
 			(at 312.42 43.18 180)
-			(uuid "ae7fd8a1-26b6-5d7a-aabb-a5c0ddba2e41")
+			(uuid "2d693dfe-f3f4-5efe-94b7-5f754bef4c14")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1026,7 +1026,7 @@
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/e6483617-79df-5ce6-8075-bbaed551169e"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/c3897311-fbc1-522c-943e-8e0b7f355f50"
 					(page "21")
 				)
 			)
@@ -1041,7 +1041,7 @@
 			)
 			(justify right)
 		)
-		(uuid "6fc7b6da-bbdd-502c-a1eb-6fbf93bc0ad6")
+		(uuid "6ca867a0-e4a4-5644-a05c-80f93c770a03")
 	)
 	(hierarchical_label "chain.clock"
 		(shape passive)
@@ -1052,7 +1052,7 @@
 			)
 			(justify right)
 		)
-		(uuid "a3477f0f-dfb2-5eb2-b82f-d5600afcf816")
+		(uuid "30c1efc1-85c7-560e-92fe-cef90cfce7e4")
 	)
 	(label "link[4]"
 		(at 312.42 38.1 180)
@@ -1062,7 +1062,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "137bba27-375c-55de-93e7-11ec6f6d3691")
+		(uuid "97c811ef-fbfb-5823-81b0-3cbd94ee9339")
 	)
 	(label "link[5]"
 		(at 312.42 40.64 180)
@@ -1072,7 +1072,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "fc23b307-1a78-548b-ae7e-30f6c952bdfe")
+		(uuid "b21b4d83-6c77-5d1d-8502-dc95484832b7")
 	)
 	(hierarchical_label "chain.latch"
 		(shape passive)
@@ -1083,7 +1083,7 @@
 			)
 			(justify right)
 		)
-		(uuid "fa597b99-cf7c-5357-a4ce-fd1d6e89c0ee")
+		(uuid "b543d880-7cb8-5f2c-8443-03aff52b9228")
 	)
 	(sheet
 		(at 45.72 60.96)
@@ -1100,7 +1100,7 @@
 		(fill
 			(color 0 0 0 0.0000)
 		)
-		(uuid "6d4c0e01-9715-565d-8555-47ff12d0ee4f")
+		(uuid "96313424-bdb5-5d3b-821c-7132ca502f72")
 		(property "Sheetname" "digits[6]"
 			(at 45.72 60.26 0)
 			(effects
@@ -1121,7 +1121,7 @@
 		)
 		(pin "blank#" passive
 			(at 45.72 63.5 180)
-			(uuid "617fed8e-d59f-59da-8951-6d057632676e")
+			(uuid "40b2cba7-af70-5ef0-9de3-2d4e1af46fdd")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1131,7 +1131,7 @@
 		)
 		(pin "clock" passive
 			(at 45.72 66.04 180)
-			(uuid "1a6f63a0-d3dd-510f-89b1-f4f5e0e26f7d")
+			(uuid "a9978cb1-0cf3-5a6e-ab2c-b846336e102b")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1141,7 +1141,7 @@
 		)
 		(pin "data_in" passive
 			(at 45.72 68.58 180)
-			(uuid "9bbd3f89-39dd-5bfb-a338-2dfd186dc003")
+			(uuid "54252d26-c04d-59c3-a49b-f40f18753426")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1151,7 +1151,7 @@
 		)
 		(pin "data_out" passive
 			(at 45.72 71.12 180)
-			(uuid "25cfa298-b084-54d0-9136-4781c4627579")
+			(uuid "d43dea47-4097-523b-b7d1-0cfdd167fc92")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1161,7 +1161,7 @@
 		)
 		(pin "latch" passive
 			(at 45.72 73.66 180)
-			(uuid "1307ae3f-0c7b-51b2-8eb5-8ad2cf323f82")
+			(uuid "2b1af481-963a-5a5f-8344-3fa7b46bbe4c")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1171,7 +1171,7 @@
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/e6483617-79df-5ce6-8075-bbaed551169e"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/c3897311-fbc1-522c-943e-8e0b7f355f50"
 					(page "22")
 				)
 			)
@@ -1186,7 +1186,7 @@
 			)
 			(justify right)
 		)
-		(uuid "cfa4c9cc-f3c6-577c-8c14-bfcc0f473f1f")
+		(uuid "fdf3dcdf-2467-5231-9f40-99f5a94d8a96")
 	)
 	(hierarchical_label "chain.clock"
 		(shape passive)
@@ -1197,7 +1197,7 @@
 			)
 			(justify right)
 		)
-		(uuid "0c980fc0-6d14-5069-8de6-68dd1d481487")
+		(uuid "c91ac003-85e7-5ca1-9b40-c6aa2254ea96")
 	)
 	(label "link[5]"
 		(at 45.72 68.58 180)
@@ -1207,7 +1207,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "ed86687e-f81e-564b-8391-047e76dc01a8")
+		(uuid "b63cb97e-ade5-5d77-9082-8b0247c01f53")
 	)
 	(label "link[6]"
 		(at 45.72 71.12 180)
@@ -1217,7 +1217,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "c953aa02-328c-5605-be1d-42061502f5df")
+		(uuid "47eb4035-7cb5-5221-9b8e-9db5c137c0a7")
 	)
 	(hierarchical_label "chain.latch"
 		(shape passive)
@@ -1228,7 +1228,7 @@
 			)
 			(justify right)
 		)
-		(uuid "9ea1a28b-40c5-5819-ba85-cd1ad384dacb")
+		(uuid "7124e0b1-2509-5bdf-8efd-f790ff4ae71b")
 	)
 	(sheet
 		(at 99.06 60.96)
@@ -1245,7 +1245,7 @@
 		(fill
 			(color 0 0 0 0.0000)
 		)
-		(uuid "898e3533-d3e0-5c40-becf-c0abdfb3534a")
+		(uuid "9752c948-e4ea-506a-a424-9aa335ebd567")
 		(property "Sheetname" "digits[7]"
 			(at 99.06 60.26 0)
 			(effects
@@ -1266,7 +1266,7 @@
 		)
 		(pin "blank#" passive
 			(at 99.06 63.5 180)
-			(uuid "ada5f534-fdaf-58e0-a30c-96b9d5a808e5")
+			(uuid "04a9568d-a629-5cf8-82a5-8f2209f6e76f")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1276,7 +1276,7 @@
 		)
 		(pin "clock" passive
 			(at 99.06 66.04 180)
-			(uuid "8cdce3ba-2716-56fd-8c9b-099ff2fa1b45")
+			(uuid "3b7e6ab3-81fe-5a2a-95f0-2ba5707e7061")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1286,7 +1286,7 @@
 		)
 		(pin "data_in" passive
 			(at 99.06 68.58 180)
-			(uuid "6bc92a41-f32d-5ec5-be74-3ed8b8c18e30")
+			(uuid "7d3a6211-2ac7-5d6f-81c1-234d6b776ba9")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1296,7 +1296,7 @@
 		)
 		(pin "data_out" passive
 			(at 99.06 71.12 180)
-			(uuid "e5e0ea28-57e5-5c21-b505-c9ab5c853e0a")
+			(uuid "cf9015d2-e4b8-5818-81f4-57a2b7a5eb51")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1306,7 +1306,7 @@
 		)
 		(pin "latch" passive
 			(at 99.06 73.66 180)
-			(uuid "947cd89c-84c7-5a96-a976-f12fc958c4a1")
+			(uuid "73edac3b-aebe-56b7-b740-dec406f1b735")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1316,7 +1316,7 @@
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/e6483617-79df-5ce6-8075-bbaed551169e"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/c3897311-fbc1-522c-943e-8e0b7f355f50"
 					(page "23")
 				)
 			)
@@ -1331,7 +1331,7 @@
 			)
 			(justify right)
 		)
-		(uuid "fad1f1b7-ab23-52e8-97db-f0c22aa77ba7")
+		(uuid "38715593-2d01-5373-b35d-77795e8b1f55")
 	)
 	(hierarchical_label "chain.clock"
 		(shape passive)
@@ -1342,7 +1342,7 @@
 			)
 			(justify right)
 		)
-		(uuid "7a361ba3-7455-5535-b10a-3d2b4efa30a5")
+		(uuid "8bd5daa0-a4f5-51e7-827f-b3e1f9d00f06")
 	)
 	(label "link[6]"
 		(at 99.06 68.58 180)
@@ -1352,7 +1352,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "ae89cc80-da3d-5529-933c-c5e8306f8bc7")
+		(uuid "951fcdde-c33a-57ac-a3b5-98877e9232ce")
 	)
 	(label "link[7]"
 		(at 99.06 71.12 180)
@@ -1362,7 +1362,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "0255f279-5ae3-52cc-ac34-c166225aac9e")
+		(uuid "66bfa4a5-eba0-52fc-b211-52b936a069dc")
 	)
 	(hierarchical_label "chain.latch"
 		(shape passive)
@@ -1373,7 +1373,7 @@
 			)
 			(justify right)
 		)
-		(uuid "318f4d41-ea08-5178-9dae-237d8c29993c")
+		(uuid "a80bd6dd-d0ed-5b39-a712-5ed70152b0d5")
 	)
 	(sheet
 		(at 154.94 60.96)
@@ -1390,7 +1390,7 @@
 		(fill
 			(color 0 0 0 0.0000)
 		)
-		(uuid "910f0146-924a-56ed-9b3b-b1afe7964086")
+		(uuid "32ce407d-15ca-5a86-a744-44e257ce5749")
 		(property "Sheetname" "digits[8]"
 			(at 154.94 60.26 0)
 			(effects
@@ -1411,7 +1411,7 @@
 		)
 		(pin "blank#" passive
 			(at 154.94 63.5 180)
-			(uuid "e3cecb2d-c940-5333-b6b0-c20903ad3535")
+			(uuid "b3413c44-f020-5211-9a50-09458133440d")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1421,7 +1421,7 @@
 		)
 		(pin "clock" passive
 			(at 154.94 66.04 180)
-			(uuid "5a680df9-c8f4-5fb2-8bd0-eec1074c3230")
+			(uuid "211e638a-14fe-532c-b7c2-ea6758fea744")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1431,7 +1431,7 @@
 		)
 		(pin "data_in" passive
 			(at 154.94 68.58 180)
-			(uuid "bcfa09ef-00c0-5d5f-8b57-579bef8c9de1")
+			(uuid "61452d49-8ea0-5232-9f0b-257b8e09e6b6")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1441,7 +1441,7 @@
 		)
 		(pin "data_out" passive
 			(at 154.94 71.12 180)
-			(uuid "858892e1-558b-5b44-a3f6-70cd9867ab25")
+			(uuid "b3c320a5-11a7-5267-8d3c-a2d9842e60a6")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1451,7 +1451,7 @@
 		)
 		(pin "latch" passive
 			(at 154.94 73.66 180)
-			(uuid "c0ea06f3-e7a5-55ec-a510-c7e9eb11ffdd")
+			(uuid "9ded40b8-7690-587c-b82d-e21b77e42e5c")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1461,7 +1461,7 @@
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/e6483617-79df-5ce6-8075-bbaed551169e"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/c3897311-fbc1-522c-943e-8e0b7f355f50"
 					(page "24")
 				)
 			)
@@ -1476,7 +1476,7 @@
 			)
 			(justify right)
 		)
-		(uuid "5f1a23f7-de44-51a2-b140-68db63a3bee5")
+		(uuid "cbfecc0b-3e1f-5a4a-a5e3-16bbb4e16bdb")
 	)
 	(hierarchical_label "chain.clock"
 		(shape passive)
@@ -1487,7 +1487,7 @@
 			)
 			(justify right)
 		)
-		(uuid "daffff4e-f376-5153-b975-788b6d1afd67")
+		(uuid "868af5e6-1a3f-5194-98c0-d060dd1629b4")
 	)
 	(label "link[7]"
 		(at 154.94 68.58 180)
@@ -1497,7 +1497,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "d18385f1-d7e0-5878-a022-c38d9a42c97d")
+		(uuid "8ea52a06-7353-57df-818d-bf3c1a7917c7")
 	)
 	(hierarchical_label "chain.data_out"
 		(shape passive)
@@ -1508,7 +1508,7 @@
 			)
 			(justify right)
 		)
-		(uuid "cb801608-efdd-52d2-84ef-c42f9c635cef")
+		(uuid "00cf3c76-f9e3-544d-87e1-955388da8db2")
 	)
 	(hierarchical_label "chain.latch"
 		(shape passive)
@@ -1519,7 +1519,7 @@
 			)
 			(justify right)
 		)
-		(uuid "d979263c-d10f-51e9-84b1-7c01236a72b2")
+		(uuid "97533e60-b29e-5f0a-82e3-3ff5e4150a83")
 	)
 	(symbol
 		(lib_id "noscheme:components.Pullup0603")
@@ -1529,7 +1529,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "1b0e7fe6-9e44-546e-80f5-5a94190f0445")
+		(uuid "7f23ee61-8260-5cfc-8de6-5f1e944c6c71")
 		(property "Reference" "R20"
 			(at 203.2 55.88 0)
 			(effects
@@ -1576,14 +1576,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "0f129b0c-2c06-52c5-a91a-73c35caf9745")
+			(uuid "ad1b66a6-c53f-5bd8-9a14-6dc375954fe5")
 		)
 		(pin "2"
-			(uuid "7b8f9a1c-748c-588e-aa50-de7e24da2321")
+			(uuid "a0c03db0-05f4-5275-b0b2-894d31d781bc")
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/e6483617-79df-5ce6-8075-bbaed551169e"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/c3897311-fbc1-522c-943e-8e0b7f355f50"
 					(reference "R20")
 					(unit 1)
 				)
@@ -1600,7 +1600,7 @@
 			)
 			(justify right)
 		)
-		(uuid "cecb0268-8192-5c64-b57a-445f3b529b2b")
+		(uuid "6d82f403-fac7-5c55-ba49-dba79ec016af")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 198.12 58.42 0)
 			(effects
@@ -1620,7 +1620,7 @@
 			)
 			(justify left)
 		)
-		(uuid "a977d2f4-7fca-5c7f-9ed1-b627822e222f")
+		(uuid "972f2d33-bc57-5f2f-94d5-1774d3110144")
 	)
 	(embedded_fonts no)
 )

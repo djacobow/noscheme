@@ -509,6 +509,31 @@ def change_lines(changes):
     return lines
 
 
+def schematic_upkeep(root, rendered):
+    """Project files the sheets need besides themselves, and sheets now stale.
+
+    Returns the `sym-lib-table` with the `noscheme` library registered, and the
+    `.kicad_sch` files an earlier export wrote beside `root` that `rendered`
+    no longer includes. Both implementations' exports share this.
+    """
+    from .sheets import generated, library_table
+
+    table = Path(root).parent / "sym-lib-table"
+    extra = {table: library_table(table.read_text() if table.exists() else None)}
+    stale = sorted(
+        p for p in Path(root).parent.glob("*.kicad_sch") if p not in rendered and generated(p)
+    )
+    return extra, stale
+
+
+def before_state(files, state_path, added):
+    """`files` with `added` inserted ahead of the identity state, which stays last."""
+    out = {path: text for path, text in files.items() if path != state_path}
+    out.update(added)
+    out[state_path] = files[state_path]
+    return out
+
+
 def export_project(
     project, circuit, footprint_records, *, configurations=None, warnings=None, schematic=None
 ):
@@ -616,25 +641,19 @@ def export_project(
         + "\n",
         state_path: json.dumps(updated, indent=2, sort_keys=True) + "\n",
     }
-    sheets = []
+    sheets, stale = [], []
     if schematic is not None:
-        from .sheets import generated, library_table, render_schematic
+        from .sheets import render_schematic
 
         schematic = Path(schematic)
         try:
             rendered = render_schematic(circuit, updated, schematic.stem, schematic.stem)
         except ValueError as exc:
             fail(project.config.path, "export.schematic", str(exc))
-        for name, text in rendered.items():
-            files[schematic.parent / name] = text
-            sheets.append(str(schematic.parent / name))
-        table = schematic.parent / "sym-lib-table"
-        files[table] = library_table(table.read_text() if table.exists() else None)
-        stale = [
-            path
-            for path in schematic.parent.glob("*.kicad_sch")
-            if path not in files and generated(path)
-        ]
+        rendered = {schematic.parent / name: text for name, text in rendered.items()}
+        sheets = sorted(str(p) for p in rendered)
+        extra, stale = schematic_upkeep(schematic, rendered)
+        files = before_state(files, state_path, {**rendered, **extra})
     validate_export_paths(project, files, (footprint_records,))
     publish(files)
     result = {"output": str(out / "board.net"), "state": str(state_path), **report}
@@ -642,6 +661,6 @@ def export_project(
         # Sheets an earlier export wrote and this one no longer needs.
         for path in stale:
             path.unlink()
-        result["schematic"] = sorted(sheets)
-        result["schematic_removed"] = sorted(str(p) for p in stale)
+        result["schematic"] = sheets
+        result["schematic_removed"] = [str(p) for p in stale]
     return result

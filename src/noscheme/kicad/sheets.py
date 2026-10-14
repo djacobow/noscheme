@@ -25,6 +25,7 @@ placed on their ends, never wires:
 A deliberate no-connect pin gets a no-connect flag.
 """
 
+import json
 import math
 from uuid import UUID, uuid5
 import zlib
@@ -302,7 +303,9 @@ class Sheets:
         self.symbols()
 
     def uid(self, *parts):
-        return str(uuid5(self.namespace, "kicad-schematic:" + "\x1f".join(map(str, parts))))
+        """Stable UUID for a sheet item, from its parts as compact JSON."""
+        text = json.dumps(parts, separators=(",", ":"), ensure_ascii=False)
+        return str(uuid5(self.namespace, "kicad-schematic:" + text))
 
     def fitted(self, part):
         return bool(attribute(part, "footprint"))
@@ -317,7 +320,10 @@ class Sheets:
         that would trip KiCad's pin-conflict matrix is demoted to passive, and a
         net with power inputs but no power output gets a PWR_FLAG.
         """
-        parts = [p for p in self.circuit["parts"] if self.fitted(p)]
+        parts = sorted(
+            (p for p in self.circuit["parts"] if self.fitted(p)), key=lambda p: p["identity"]
+        )
+        self.parts = parts
         self.boxes, self.kinds = {}, {}
         for part in parts:
             definition = part["definition"]
@@ -333,13 +339,13 @@ class Sheets:
                     kinds[key] = "passive"
         by_net = {}
         for part in parts:
-            for key, pin in part["pins"].items():
+            for key, pin in sorted(part["pins"].items()):
                 if pin["net"] is not None:
                     by_net.setdefault(pin["net"], []).append((part["definition"], key))
         changed = True
         while changed:
             changed = False
-            for pins in by_net.values():
+            for _, pins in sorted(by_net.items()):
                 pair = conflict([(d, k, self.kinds[d][k]) for d, k in pins])
                 if pair:
                     d, k = pair
@@ -355,7 +361,7 @@ class Sheets:
         self.single = {net for net, pins in by_net.items() if len(pins) == 1}
 
     def prefix(self, definition):
-        part = next(p for p in self.circuit["parts"] if p["definition"] == definition)
+        part = next(p for p in self.parts if p["definition"] == definition)
         return attribute(part, "ref_prefix", "U")
 
     def lib_symbols(self, definitions, prefix=""):
@@ -424,7 +430,7 @@ class Sheets:
     def ports(self, node):
         """Non-rail net -> port field label, first field wins."""
         out = {}
-        for port, entries in node.ports.items():
+        for port, entries in sorted(node.ports.items()):
             for entry in entries:
                 net = entry["net"]
                 if net is not None and net not in self.rail:
@@ -500,7 +506,7 @@ class Sheets:
         """
         used = self.used(child)
         pins = []
-        for port, entries in child.ports.items():
+        for port, entries in sorted(child.ports.items()):
             for entry in entries:
                 net, field = entry["net"], show_path(relative(entry["path"], child.path))
                 if net is not None and net not in self.rail and field in used:

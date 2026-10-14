@@ -2,7 +2,7 @@
 	(version 20250114)
 	(generator "noscheme")
 	(generator_version "0.1")
-	(uuid "33706d9a-8cf3-5008-a91c-29530670bf85")
+	(uuid "eb06e124-7334-5d8f-95eb-88c0552b151e")
 	(paper "User" 297 210)
 	(title_block
 		(title "timebase.ClockSquarer")
@@ -488,7 +488,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "18f4cab7-d650-5357-b6ad-2f4ac7327836")
+		(uuid "4015f602-b35a-5bca-83d2-9cc713676c6b")
 		(property "Reference" "C54"
 			(at 40.64 25.4 0)
 			(effects
@@ -535,14 +535,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "808a25fe-87d2-5bf5-9693-2b4283314e12")
+			(uuid "f0517af8-ea52-5aa7-beb7-62857775bbff")
 		)
 		(pin "2"
-			(uuid "ba220ce3-8b6f-5c51-ab25-165ecea2ef83")
+			(uuid "1c2b0f28-b89e-56b9-b7aa-92890e65926c")
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/570ec9ae-e9f7-5345-94a3-2be83587ad90/99fca684-327b-569b-b492-a55434de9a4a"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/340c823e-808a-5015-aa1f-061861ccd0a0/78911513-3158-5b60-a852-9eef6ce3554c"
 					(reference "C54")
 					(unit 1)
 				)
@@ -558,7 +558,7 @@
 			)
 			(justify right)
 		)
-		(uuid "e88c2e77-33f1-5cde-9e3d-5ad78ee17ab1")
+		(uuid "0be44cf0-cb2d-56a9-8f0a-3204b3f0313f")
 	)
 	(label "biased"
 		(at 45.72 27.94 0)
@@ -568,7 +568,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "41187865-2327-5d38-b513-79881b8d52a2")
+		(uuid "e7991457-e293-5835-84a0-c3e1175e62e4")
 	)
 	(symbol
 		(lib_id "noscheme:components.Resistor0603")
@@ -578,7 +578,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "e28bda6d-e93c-5e51-9536-2c03aaf1e491")
+		(uuid "46a7a960-1720-5e44-91e5-c1da0ea68834")
 		(property "Reference" "R32"
 			(at 78.74 25.4 0)
 			(effects
@@ -625,14 +625,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "02aae07e-c641-569d-ab72-35df600f5b19")
+			(uuid "7fb082bc-d347-5094-89bf-1c9080cc4378")
 		)
 		(pin "2"
-			(uuid "6a930842-d8c1-5afd-a661-20c8803e8abe")
+			(uuid "9d56ba6b-1174-5210-b36e-5e600ddaeffd")
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/570ec9ae-e9f7-5345-94a3-2be83587ad90/99fca684-327b-569b-b492-a55434de9a4a"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/340c823e-808a-5015-aa1f-061861ccd0a0/78911513-3158-5b60-a852-9eef6ce3554c"
 					(reference "R32")
 					(unit 1)
 				)
@@ -649,7 +649,7 @@
 			)
 			(justify right)
 		)
-		(uuid "7ae5ec20-404c-51c8-8865-059b2ab29d50")
+		(uuid "286b88f1-9906-5229-81d5-a5577e33f39a")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 73.66 27.94 0)
 			(effects
@@ -668,7 +668,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "8e5eeba2-6a94-5b88-89a8-b33758f4c59d")
+		(uuid "4bd6c86f-eb7a-5ba4-b0e1-544f8f577359")
 	)
 	(symbol
 		(lib_id "noscheme:components.Resistor0603")
@@ -678,7 +678,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "f0d72a1f-98f7-5ff8-b02e-dc588422f8ee")
+		(uuid "64b0cc57-b7e3-5222-b3db-478d28abb165")
 		(property "Reference" "R33"
 			(at 116.84 25.4 0)
 			(effects
@@ -725,14 +725,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "ba5e0fbe-3f96-570a-bdf8-7511e832ddf8")
+			(uuid "9c326560-326b-5214-abc0-333c894c27ee")
 		)
 		(pin "2"
-			(uuid "5561490b-c709-5943-bf6b-06cceadebb38")
+			(uuid "6484a1ed-7427-5fbe-ae29-4f95946022f6")
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/570ec9ae-e9f7-5345-94a3-2be83587ad90/99fca684-327b-569b-b492-a55434de9a4a"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/340c823e-808a-5015-aa1f-061861ccd0a0/78911513-3158-5b60-a852-9eef6ce3554c"
 					(reference "R33")
 					(unit 1)
 				)
@@ -747,7 +747,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "f0a000fa-8779-5fae-afdc-381441cea161")
+		(uuid "0643b106-e683-51f5-a90c-e3915cdc1d3f")
 	)
 	(global_label "gnd"
 		(shape passive)
@@ -759,7 +759,7 @@
 			)
 			(justify left)
 		)
-		(uuid "dd9edd81-08e4-5166-b0b2-81e2610e5175")
+		(uuid "0fafeef7-8d3d-53b6-b118-d149b2abe85f")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 121.92 27.94 0)
 			(effects
@@ -778,7 +778,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "644475ca-6de5-5f4d-82b2-f3b310b4fef4")
+		(uuid "b3298769-45b3-5ee8-b012-3127fccf1143")
 		(property "Reference" "U17"
 			(at 160.02 24.13 0)
 			(effects
@@ -861,23 +861,23 @@
 			)
 		)
 		(pin "1"
-			(uuid "019fb3fa-52e4-53ec-afcf-23ed02c6b6b8")
+			(uuid "4c2aa4b4-9a01-5f6a-8c66-db4d2b1ffade")
 		)
 		(pin "2"
-			(uuid "be93eb94-25b5-5516-9ed7-1e99e3a1fbaf")
+			(uuid "2bafa18a-a1ab-59ff-8550-29b3aa69a8ad")
 		)
 		(pin "3"
-			(uuid "5b9c9085-3a44-58cd-b286-874bbf6778c4")
+			(uuid "9b27df37-8ad8-50d4-b210-2f34acd3b6dc")
 		)
 		(pin "4"
-			(uuid "58e6d85c-b467-5004-a69d-42fba9ab6e7d")
+			(uuid "88103f63-e97e-5a6a-a387-355ff10cc3ad")
 		)
 		(pin "5"
-			(uuid "72cdeef9-8f76-5f11-a554-f26bc53e8063")
+			(uuid "71ddd5dc-b18c-50f9-8d14-1afb0a3438ef")
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/570ec9ae-e9f7-5345-94a3-2be83587ad90/99fca684-327b-569b-b492-a55434de9a4a"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/340c823e-808a-5015-aa1f-061861ccd0a0/78911513-3158-5b60-a852-9eef6ce3554c"
 					(reference "U17")
 					(unit 1)
 				)
@@ -886,7 +886,7 @@
 	)
 	(no_connect
 		(at 149.86 27.94)
-		(uuid "f41dc04b-8958-5c92-9db4-818eb5fc3065")
+		(uuid "8fd33e36-c5b2-5b74-aeb5-aef23ef97504")
 	)
 	(label "biased"
 		(at 149.86 30.48 180)
@@ -896,7 +896,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "00dc4f23-02b7-5c74-b5f5-e53d82de80a4")
+		(uuid "bd8b461b-6318-5e2a-bec8-f460ecb8e3d5")
 	)
 	(global_label "gnd"
 		(shape passive)
@@ -908,7 +908,7 @@
 			)
 			(justify right)
 		)
-		(uuid "81c23b39-2043-5f67-8481-efad4336b4db")
+		(uuid "e2af6686-8c1c-5170-9e51-0ab23c24b490")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 149.86 33.02 0)
 			(effects
@@ -928,7 +928,7 @@
 			)
 			(justify left)
 		)
-		(uuid "681e2b37-6df3-5baa-9069-48a3aba44f54")
+		(uuid "a2cf3bc8-9f7f-54b4-99d0-3df2bf321186")
 	)
 	(global_label "v3v3"
 		(shape passive)
@@ -940,7 +940,7 @@
 			)
 			(justify left)
 		)
-		(uuid "f027c541-8a34-58a4-8458-3e813cd97996")
+		(uuid "c6b3b9fb-551f-5ebc-8052-9ecee2d3558f")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 170.18 30.48 0)
 			(effects
@@ -959,7 +959,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "343a3f3a-f825-52f4-9ef2-cc5f19e84ef7")
+		(uuid "359282ad-260a-50e0-bc0a-3c0113997c3a")
 		(property "Reference" "C55"
 			(at 205.74 25.4 0)
 			(effects
@@ -1006,14 +1006,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "d844b732-2198-5155-80b7-46b79c2fbb21")
+			(uuid "87b852e4-c0b4-5271-b65e-ca9c07a45acb")
 		)
 		(pin "2"
-			(uuid "0fd07d0b-fd1d-5842-a043-136698082607")
+			(uuid "78eff694-9b2d-5a4f-b60f-87270df06b92")
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/570ec9ae-e9f7-5345-94a3-2be83587ad90/99fca684-327b-569b-b492-a55434de9a4a"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/340c823e-808a-5015-aa1f-061861ccd0a0/78911513-3158-5b60-a852-9eef6ce3554c"
 					(reference "C55")
 					(unit 1)
 				)
@@ -1030,7 +1030,7 @@
 			)
 			(justify right)
 		)
-		(uuid "1ba99a62-6212-57e0-a458-f06402095f2b")
+		(uuid "d5f4cd84-254c-5261-882b-6aeb43e75c7b")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 200.66 27.94 0)
 			(effects
@@ -1051,7 +1051,7 @@
 			)
 			(justify left)
 		)
-		(uuid "9962f794-409b-5389-bdf8-0a822502b1bb")
+		(uuid "bd85735f-3376-5a19-af3a-2330b545f4ee")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 210.82 27.94 0)
 			(effects

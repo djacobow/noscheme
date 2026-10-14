@@ -221,8 +221,6 @@ def main(argv=None):
         cli.error("--effort must be positive")
     if args.command == "lsp":
         return launch(args, lsp)
-    if getattr(args, "schematic", None) and getattr(args, "implementation", "python") == "native":
-        cli.error("--schematic is not supported by --implementation native yet")
     if getattr(args, "native_tool", None) and args.implementation != "native":
         cli.error("--native-tool requires --implementation native")
     try:

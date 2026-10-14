@@ -1,4 +1,5 @@
 #include "noscheme/export.hpp"
+#include "noscheme/kicad.hpp"
 #include "noscheme/validation.hpp"
 #include <algorithm>
 #include <array>
@@ -608,10 +609,31 @@ ExportResult export_bom(const Project &project, const Circuit &circuit,
   return result;
 }
 
+namespace kicad {
+std::string uuid5(const std::string &space, const std::string &identity) {
+  return noscheme::uuid5(space, identity);
+}
+Json attribute(const Json &item, const std::string &name, Json fallback) {
+  return noscheme::attribute(item, name, std::move(fallback));
+}
+std::string part_value(const Json &part) { return noscheme::part_value(part); }
+std::string pin_kind(const Json &pin) { return noscheme::pin_kind(pin); }
+std::vector<std::string> segments(const Json &path, size_t begin, size_t end) {
+  return noscheme::segments(path, begin, end);
+}
+std::string joined(const std::vector<std::string> &parts, const char *sep) {
+  return noscheme::joined(parts, sep);
+}
+std::string net_name(const Json &path, const std::set<Json> &blocks) {
+  return noscheme::net_name(path, blocks);
+}
+} // namespace kicad
+
 ExportResult export_kicad(const Project &project, const Circuit &circuit,
                           const ErcResult &erc, Json state,
                           const Json &footprints, const fs::path &records,
-                          const std::string &records_text, Json warnings) {
+                          const std::string &records_text, Json warnings,
+                          const fs::path &schematic) {
   auto state_path = project.config.state_path();
   validate_state(state, state_path);
   auto data = to_json(circuit);
@@ -769,11 +791,29 @@ ExportResult export_kicad(const Project &project, const Circuit &circuit,
     add(out / name, value.dump(2, ' ', true) + "\n");
   add(out / "nets.txt", nets_text);
   add(out / "changes.txt", changes_text);
+  auto sheets = Json::array();
+  if (!schematic.empty()) {
+    std::vector<std::pair<std::string, std::string>> rendered_sheets;
+    try {
+      rendered_sheets = kicad::render_schematic(
+          data, updated, schematic.stem().string(), schematic.stem().string());
+    } catch (const std::invalid_argument &error) {
+      fail(project.config.path, "export.schematic", error.what());
+    }
+    for (const auto &[name, text] : rendered_sheets) {
+      add(schematic.parent_path() / name, text);
+      sheets.push_back((schematic.parent_path() / name).string());
+    }
+  }
   add(state_path, updated.dump(2, ' ', true) + "\n");
   validate_export_paths(project, result.files, {records});
   result.summary = report;
   result.summary["output"] = (out / "board.net").string();
   result.summary["state"] = state_path.string();
+  if (!schematic.empty()) {
+    std::sort(sheets.begin(), sheets.end());
+    result.summary["schematic"] = sheets;
+  }
   return result;
 }
 } // namespace noscheme

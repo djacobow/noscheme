@@ -10,7 +10,6 @@ from pathlib import Path
 import pytest
 
 from noscheme.circuit import elaborate_project
-from noscheme.cli import main
 from noscheme.kicad.export import export_project, net_classes
 from noscheme.kicad.sheets import library_table
 from noscheme.resolve import resolve_project
@@ -246,21 +245,3 @@ def test_net_classes_reach_kicad(clock, tmp_path):
     assert {n: classes[n] for n in ("gnd", "v3v3", "v3v3_quiet", "v5", "vbus")} == dict.fromkeys(
         ("gnd", "v3v3", "v3v3_quiet", "v5", "vbus"), "Power"
     )
-
-
-def test_native_implementation_refuses_schematic(tmp_path, capsys):
-    with pytest.raises(SystemExit):
-        main(
-            [
-                "export-kicad",
-                "--project",
-                str(tmp_path),
-                "--footprints",
-                str(tmp_path / "f.json"),
-                "--schematic",
-                str(tmp_path / "x.kicad_sch"),
-                "--implementation",
-                "native",
-            ]
-        )
-    assert "--schematic is not supported by --implementation native" in capsys.readouterr().err

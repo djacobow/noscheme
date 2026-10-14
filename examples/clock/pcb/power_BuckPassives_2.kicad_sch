@@ -2,7 +2,7 @@
 	(version 20250114)
 	(generator "noscheme")
 	(generator_version "0.1")
-	(uuid "fdfd27e3-05d8-5a95-95f6-d4d0bb3356bc")
+	(uuid "d9167df0-7bc6-5110-9d2c-c0f8d2265608")
 	(paper "User" 300 210)
 	(title_block
 		(title "power.BuckPassives")
@@ -546,7 +546,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "76c1b34a-81c4-5cdf-86ef-6c54c92d861f")
+		(uuid "5a970af3-795b-5b5f-b5cd-653b95aedef9")
 		(property "Reference" "C2"
 			(at 40.64 25.4 0)
 			(effects
@@ -593,14 +593,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "348234fc-6520-5bdd-8b02-e7e3c5e6bcda")
+			(uuid "d83eaf8c-943c-59f1-9a12-1787571e3514")
 		)
 		(pin "2"
-			(uuid "b0ff5d6d-e582-53f7-8db2-aaf3246df83c")
+			(uuid "25dc11d0-6880-5d76-9509-f32bb1fa92cc")
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/5973f325-1bda-5098-a004-b05b6f0c8d8d/46856f53-d63a-5a7d-ac1f-78b4afb14a7c"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/2b0df941-8756-5c46-a1a2-35d00a53fe70/d7151130-9ecc-5989-ad47-46a193e22ec5"
 					(reference "C2")
 					(unit 1)
 				)
@@ -617,7 +617,7 @@
 			)
 			(justify right)
 		)
-		(uuid "f2fa613a-9d8b-59ef-a491-dabb69ed232f")
+		(uuid "1ed64702-6ab9-54ec-9acb-44605fd3c656")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 35.56 27.94 0)
 			(effects
@@ -638,7 +638,7 @@
 			)
 			(justify left)
 		)
-		(uuid "e6b0b033-b9a2-5a1a-bcba-6a046038b3b0")
+		(uuid "8953e1e8-3661-5599-aabe-e1adb398e562")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 45.72 27.94 0)
 			(effects
@@ -657,7 +657,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "7c32bc88-3660-5b94-bf66-511b08d2bd4e")
+		(uuid "0f8f8d74-eb22-5c68-9184-55d23a5904da")
 		(property "Reference" "C3"
 			(at 78.74 25.4 0)
 			(effects
@@ -704,14 +704,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "d43257e8-e5e3-577b-886f-e6f6f47e0715")
+			(uuid "444280ff-05f0-5fcc-adc3-357ed80755a7")
 		)
 		(pin "2"
-			(uuid "25eb4c2c-bda5-5ef3-b40a-6911968ad38d")
+			(uuid "87c4ecb5-a038-522b-ba80-5d2029981ca4")
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/5973f325-1bda-5098-a004-b05b6f0c8d8d/46856f53-d63a-5a7d-ac1f-78b4afb14a7c"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/2b0df941-8756-5c46-a1a2-35d00a53fe70/d7151130-9ecc-5989-ad47-46a193e22ec5"
 					(reference "C3")
 					(unit 1)
 				)
@@ -728,7 +728,7 @@
 			)
 			(justify right)
 		)
-		(uuid "37642727-d4ae-5346-a3c7-1dcaa6751e89")
+		(uuid "ce8010f9-ea2b-5689-91dc-525d374697c6")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 73.66 27.94 0)
 			(effects
@@ -749,7 +749,7 @@
 			)
 			(justify left)
 		)
-		(uuid "781b4ddd-6048-5f4a-80f3-9fa95359e650")
+		(uuid "07ca2bfb-b43b-5e71-94ef-79771647b1a4")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 83.82 27.94 0)
 			(effects
@@ -768,7 +768,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "0bf14d4a-8167-5409-af6c-eef0be995411")
+		(uuid "05185711-a8e8-53b3-8508-70f1c4a8db39")
 		(property "Reference" "C1"
 			(at 121.92 25.4 0)
 			(effects
@@ -815,14 +815,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "47bceb6d-12cf-5f12-bc2e-6f8f7ea87c61")
+			(uuid "644aea8d-5dbb-54fb-ba0f-da996fe451c3")
 		)
 		(pin "2"
-			(uuid "a3e218aa-e149-5b18-907d-e29223c5ade8")
+			(uuid "7689064d-2cc9-5363-9568-cef659ddbbc5")
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/5973f325-1bda-5098-a004-b05b6f0c8d8d/46856f53-d63a-5a7d-ac1f-78b4afb14a7c"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/2b0df941-8756-5c46-a1a2-35d00a53fe70/d7151130-9ecc-5989-ad47-46a193e22ec5"
 					(reference "C1")
 					(unit 1)
 				)
@@ -838,7 +838,7 @@
 			)
 			(justify right)
 		)
-		(uuid "95fcecd4-8230-52fd-9cdb-c874a9460965")
+		(uuid "1ea7cb24-5607-5738-a486-601d8fec16c5")
 	)
 	(hierarchical_label "switch_node"
 		(shape passive)
@@ -849,7 +849,7 @@
 			)
 			(justify left)
 		)
-		(uuid "4405f3c8-c783-5cb8-a38e-bb71eaa0f0c0")
+		(uuid "6b84899c-28a1-5b6b-97e5-ecfefe4ba8c6")
 	)
 	(symbol
 		(lib_id "noscheme:components.BuckInductor")
@@ -859,7 +859,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "81728759-abd4-547b-9d95-1c2222371dd2")
+		(uuid "caa89d4c-770e-5490-9adc-483855a262c9")
 		(property "Reference" "L1"
 			(at 175.26 25.4 0)
 			(effects
@@ -906,14 +906,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "a9c7d58a-99d2-54fb-8f86-ccfab1d71388")
+			(uuid "948ab63d-8e44-5433-8111-785506ed8e52")
 		)
 		(pin "2"
-			(uuid "1795938f-7c0b-5cf5-b8c8-5ce21da85273")
+			(uuid "6b41b4e2-30ee-539f-a779-015f60914242")
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/5973f325-1bda-5098-a004-b05b6f0c8d8d/46856f53-d63a-5a7d-ac1f-78b4afb14a7c"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/2b0df941-8756-5c46-a1a2-35d00a53fe70/d7151130-9ecc-5989-ad47-46a193e22ec5"
 					(reference "L1")
 					(unit 1)
 				)
@@ -929,7 +929,7 @@
 			)
 			(justify right)
 		)
-		(uuid "aeaf998f-2cfd-5da4-88c7-befd0b9363ef")
+		(uuid "fe89d5e4-5cff-5fe0-aa9d-76ee2f90fc89")
 	)
 	(global_label "v3v3"
 		(shape passive)
@@ -941,7 +941,7 @@
 			)
 			(justify left)
 		)
-		(uuid "50ee1b2b-892b-51b7-b5fd-55332dda1c96")
+		(uuid "42fdac9f-8a60-51d9-8734-639fa541fce0")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 180.34 27.94 0)
 			(effects
@@ -960,7 +960,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "ba3d9154-bde3-5d9e-a755-2fae84af0c24")
+		(uuid "a5a18a42-9847-58a6-87e5-1dd62aa2eb98")
 		(property "Reference" "C4"
 			(at 213.36 25.4 0)
 			(effects
@@ -1007,14 +1007,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "6d63a774-4079-52f3-9b1b-0de8a8f91d8b")
+			(uuid "e62015a5-b77b-5860-8299-a6bf4e226be0")
 		)
 		(pin "2"
-			(uuid "a8a703d4-a5f8-50f4-a560-1f26c837b207")
+			(uuid "4f9ace5f-1475-5269-9b4f-7179132bcd7e")
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/5973f325-1bda-5098-a004-b05b6f0c8d8d/46856f53-d63a-5a7d-ac1f-78b4afb14a7c"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/2b0df941-8756-5c46-a1a2-35d00a53fe70/d7151130-9ecc-5989-ad47-46a193e22ec5"
 					(reference "C4")
 					(unit 1)
 				)
@@ -1031,7 +1031,7 @@
 			)
 			(justify right)
 		)
-		(uuid "502fb4f5-a9a8-5550-942c-c84acdc38373")
+		(uuid "d6a82c13-79eb-5767-955d-328734ecc323")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 208.28 27.94 0)
 			(effects
@@ -1052,7 +1052,7 @@
 			)
 			(justify left)
 		)
-		(uuid "fa5b5f1f-deb0-5e5d-b88f-82a2031f5fcf")
+		(uuid "7afc2d40-2d9f-520c-ae8f-03837eee18c1")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 218.44 27.94 0)
 			(effects
@@ -1071,7 +1071,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "84cd701a-0925-503a-bfe2-75509e327a54")
+		(uuid "5f7cacb7-209b-5413-990a-9f3d6f63d027")
 		(property "Reference" "C5"
 			(at 251.46 25.4 0)
 			(effects
@@ -1118,14 +1118,14 @@
 			)
 		)
 		(pin "1"
-			(uuid "2562c887-a0e5-5136-964f-6f8aab240b3d")
+			(uuid "09f27c04-fe87-59a0-a49c-d4029334ef42")
 		)
 		(pin "2"
-			(uuid "81f0f19e-1766-580c-903d-66227ac9e5b0")
+			(uuid "4eba3b49-b720-5406-9cb5-c53375fa80e0")
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/5973f325-1bda-5098-a004-b05b6f0c8d8d/46856f53-d63a-5a7d-ac1f-78b4afb14a7c"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/2b0df941-8756-5c46-a1a2-35d00a53fe70/d7151130-9ecc-5989-ad47-46a193e22ec5"
 					(reference "C5")
 					(unit 1)
 				)
@@ -1142,7 +1142,7 @@
 			)
 			(justify right)
 		)
-		(uuid "e9885f26-967b-5a93-b0f0-7b4c2f23a8a6")
+		(uuid "e6966ef2-87a6-542e-87a2-dfbbd147f0b2")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 246.38 27.94 0)
 			(effects
@@ -1163,7 +1163,7 @@
 			)
 			(justify left)
 		)
-		(uuid "912d2dc7-dad2-51f6-a2be-83e18dd5537f")
+		(uuid "ed099804-d103-5b62-945b-66abbe9acb15")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 256.54 27.94 0)
 			(effects

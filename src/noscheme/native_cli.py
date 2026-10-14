@@ -193,6 +193,8 @@ def run(args, parser):
                 records=str(args.footprints),
                 records_text=args.footprints.read_bytes().decode("utf-8"),
             )
+            if args.schematic:
+                request["schematic"] = str(args.schematic)
         response = worker.request(args.command, **request)
         if args.command == "resolve":
             from .native_bridge import decode_metadata
@@ -215,7 +217,19 @@ def run(args, parser):
             return 0
         # The worker validates protected paths; the shared publisher stages all
         # artifacts and rolls back on ordinary replacement failures. State is last.
-        publish({Path(path): text for path, text in response.get("files", [])})
+        files = {Path(path): text for path, text in response.get("files", [])}
+        stale = []
+        if getattr(args, "schematic", None) and "schematic" in response["result"]:
+            from .kicad.export import before_state, schematic_upkeep
+
+            rendered = {Path(p) for p in response["result"]["schematic"]}
+            extra, stale = schematic_upkeep(args.schematic, rendered)
+            files = before_state(files, Path(response["result"]["state"]), extra)
+        publish(files)
+        for path in stale:
+            path.unlink()
+        if getattr(args, "schematic", None) and "schematic" in response["result"]:
+            response["result"]["schematic_removed"] = [str(p) for p in stale]
         print(json.dumps(response["result"], indent=2))
         if response["diagnostics"]:
             renderer = render_json if args.diagnostics == "json" else render_text

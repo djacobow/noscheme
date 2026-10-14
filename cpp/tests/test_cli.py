@@ -556,3 +556,88 @@ def test_empty_native_bom(tmp_path, capsys):
     before = (tmp_path / "build/main/bom.csv").read_bytes()
     assert json_output(invoke(capsys, args, True)) == expected
     assert (tmp_path / "build/main/bom.csv").read_bytes() == before
+
+
+def example_targets():
+    import tomllib
+
+    out = []
+    for config in sorted((ROOT / "examples").glob("*/noscheme.toml")):
+        for target in tomllib.loads(config.read_text())["targets"]:
+            out.append((config.parent.name, target))
+    return out
+
+
+@pytest.mark.parametrize(("example", "target"), example_targets())
+def test_schematic_export_parity(tmp_path, capsys, example, target):
+    """Both implementations write byte-identical KiCad sheets for every example."""
+    outputs = {}
+    for native in (False, True):
+        examples = tmp_path / ("native" if native else "python")
+        shutil.copytree(
+            ROOT / "examples",
+            examples,
+            ignore=shutil.ignore_patterns("build", "pcb", ".history", "__pycache__"),
+        )
+        project = examples / example
+        snapshot = project / "kicad_lib/footprints.json"
+        records = tmp_path / f"{example}-footprints.json"
+        if not records.exists():
+            if snapshot.exists():
+                shutil.copyfile(snapshot, records)
+            else:
+                loaded, definitions = resolve_project(project, target=target)
+                circuit, _ = elaborate_project(loaded, definitions)
+                records.write_text(
+                    json.dumps(
+                        {
+                            "schema_version": 1,
+                            "footprints": {
+                                p["metadata"]["footprint"]["value"]: {
+                                    "exists": True,
+                                    "pads": sorted(p["pins"]),
+                                }
+                                for p in circuit["parts"]
+                                if "footprint" in p["metadata"]
+                            },
+                        }
+                    )
+                )
+        # Both runs start from the same identity state, so UUIDs can match.
+        state = project / (
+            "noscheme.default.state.json"
+            if target == "default"
+            else f"noscheme.{target}.state.json"
+        )
+        if not state.exists():
+            state.write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "namespace": "e7470314-8517-4cfa-af45-4ef937843c87",
+                        "entries": {},
+                        "previous_parts": {},
+                    }
+                )
+            )
+        kicad = project / "kicad"
+        kicad.mkdir()
+        args = [
+            "export-kicad",
+            "--project",
+            str(project),
+            "--target",
+            target,
+            "--footprints",
+            str(records),
+            "--schematic",
+            str(kicad / f"{example}.kicad_sch"),
+        ]
+        code, out, err = invoke(capsys, args, native)
+        assert code == 0, err
+        files = {p.name: p.read_bytes() for p in kicad.iterdir()}
+        files["board.net"] = next((project / "build").rglob("board.net")).read_bytes()
+        outputs[native] = files
+    assert outputs[True].keys() == outputs[False].keys()
+    for name in outputs[False]:
+        assert outputs[True][name] == outputs[False][name], name

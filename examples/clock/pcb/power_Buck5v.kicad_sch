@@ -2,7 +2,7 @@
 	(version 20250114)
 	(generator "noscheme")
 	(generator_version "0.1")
-	(uuid "6dcfeb16-da66-53ac-9653-235ca6bdeed8")
+	(uuid "f623ec9e-89b1-5914-bcf8-bbb416a9e73b")
 	(paper "User" 297 210)
 	(title_block
 		(title "power.Buck5v")
@@ -290,7 +290,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "3706a450-36bc-5171-ad17-fe2691a33ec9")
+		(uuid "37b4a8b0-59f6-5697-9423-60f399c7ef14")
 		(property "Reference" "U2"
 			(at 45.72 24.13 0)
 			(effects
@@ -373,26 +373,26 @@
 			)
 		)
 		(pin "1"
-			(uuid "e31515b3-9630-5e8b-8e76-4aa40616f828")
+			(uuid "d48a4f55-21c8-5475-b97a-d02844dee45e")
 		)
 		(pin "2"
-			(uuid "5e9668ac-c3a4-53be-b74d-0c977be06bb2")
+			(uuid "c8fbebac-956f-5f69-902f-116db1bd8fe4")
 		)
 		(pin "3"
-			(uuid "4286e322-2e91-5400-8987-4610398f6841")
+			(uuid "58776cff-830b-5ed4-894e-bdb93af4d0a2")
 		)
 		(pin "4"
-			(uuid "bf18c2e7-ce2b-58f0-9d78-a83122032608")
+			(uuid "e93fef8e-1bf9-5ee7-a7e5-1b7b87a84ade")
 		)
 		(pin "5"
-			(uuid "9781d452-64c9-5fff-afd6-0f6a21e50605")
+			(uuid "852c46a4-14b6-5b1b-a597-e897a46e8a25")
 		)
 		(pin "6"
-			(uuid "b1712932-5f9b-59cb-9c2b-6391d8442e3f")
+			(uuid "c781e6e5-0f9a-557e-93a0-80013f70a01b")
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/0ed6ca5e-eec6-5f5f-9765-07bc4561e6ea"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/24bffbe8-1186-5e27-b0d5-69b6cca68990"
 					(reference "U2")
 					(unit 1)
 				)
@@ -409,7 +409,7 @@
 			)
 			(justify right)
 		)
-		(uuid "420ba467-3a47-5714-b395-634ed6beddd9")
+		(uuid "b8b16d9b-fce3-57be-88b5-37aafdc9e557")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 35.56 27.94 0)
 			(effects
@@ -430,7 +430,7 @@
 			)
 			(justify right)
 		)
-		(uuid "d080c35e-862a-56e5-b7b9-566aa13568af")
+		(uuid "3021db68-fed5-5ad0-8392-109df8f38f09")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 35.56 30.48 0)
 			(effects
@@ -451,7 +451,7 @@
 			)
 			(justify right)
 		)
-		(uuid "8dbdacde-967c-50c2-bcee-6e33c33e182e")
+		(uuid "6a4d2777-5572-50a0-883b-42a2b6feffca")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 35.56 33.02 0)
 			(effects
@@ -472,7 +472,7 @@
 			)
 			(justify left)
 		)
-		(uuid "0f453025-0979-5685-bad8-51ecb376a31e")
+		(uuid "873ff541-f5c4-5340-9f54-5ca221b6f5be")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 55.88 27.94 0)
 			(effects
@@ -491,7 +491,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "4bddd4d7-d388-5bf3-a789-2e9855519261")
+		(uuid "354c8ef0-eb47-5317-9465-e555197c49e3")
 	)
 	(label "bootstrap"
 		(at 55.88 33.02 0)
@@ -501,7 +501,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "5967e6c9-55c9-5084-8e45-d1ab162de05c")
+		(uuid "5fdde288-c7c9-58d2-af47-5a3ce1a2e62e")
 	)
 	(sheet
 		(at 96.52 30.48)
@@ -518,7 +518,7 @@
 		(fill
 			(color 0 0 0 0.0000)
 		)
-		(uuid "299de312-a9f0-50e1-8e93-0b238d1a197a")
+		(uuid "dc47c8b5-5a70-5e38-a5e2-baf0ac8c658d")
 		(property "Sheetname" "passives"
 			(at 96.52 29.78 0)
 			(effects
@@ -539,7 +539,7 @@
 		)
 		(pin "bootstrap" passive
 			(at 96.52 33.02 180)
-			(uuid "c7cae6cf-0709-53c5-8b7d-aa0183c40822")
+			(uuid "c1b7284b-63a0-5a5e-b9ad-0d07df86e7de")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -549,7 +549,7 @@
 		)
 		(pin "switch_node" passive
 			(at 96.52 35.56 180)
-			(uuid "ddc9db9b-90c8-51f6-aae1-7ae232fc6a98")
+			(uuid "18d9c11a-56b7-53c8-9db9-b40e12f96b9d")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -559,7 +559,7 @@
 		)
 		(instances
 			(project "honest_clock"
-				(path "/9d6ead36-7b03-53e1-b2a4-59a6564620c4/0ed6ca5e-eec6-5f5f-9765-07bc4561e6ea"
+				(path "/b006db85-c72b-5f4e-a90d-136f1afc36dd/24bffbe8-1186-5e27-b0d5-69b6cca68990"
 					(page "4")
 				)
 			)
@@ -573,7 +573,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "86a962a8-d198-5ce3-8f0a-29afa5b5c283")
+		(uuid "34e42238-1d14-5ad8-925f-d34114721a48")
 	)
 	(label "switch_node"
 		(at 96.52 35.56 180)
@@ -583,7 +583,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "b4a2278f-119d-5f9c-9852-083487733344")
+		(uuid "efc0df85-3528-5340-bceb-388d72aa9242")
 	)
 	(embedded_fonts no)
 )
