@@ -10,7 +10,8 @@ non-multiplexed 7-segment digits on each millisecond boundary, serves NTP over
 from noscheme import role, net, pull, drive
 from interfaces import SpiOut, USB2, Uart, Rmii, Mdio, LedChain
 from components import Resistor0603, Pullup0603, Capacitor0603, Capacitor0805
-from components import PushButton, Indicator, AmbientLightSensor, Header1x7, Header2x8
+from components import PushButton, Indicator, AmbientLightSensor, Ssd1309Module
+from components import Header2x2, Header1x5, Header2x3
 import power
 import mcu
 import timebase
@@ -20,16 +21,23 @@ import display
 
 block HonestClock:
   // 5 V until the PD contract is made; 12 V afterwards.
+  // Rails take the KiCad "Power" net class (8 mil tracks); the class's
+  // widths and clearances live in pcb/honest_clock.kicad_pro.
   net.power vbus:
     voltage: 5..12.6
+    net_class: "Power"
   net.power v5:
     voltage: 5 ± 5%
+    net_class: "Power"
   net.power v3v3:
     voltage: 3.3 ± 5%
+    net_class: "Power"
   net.power v3v3_quiet:
     voltage: 3.3 ± 3%
+    net_class: "Power"
   net.ground gnd:
     voltage: 0..0
+    net_class: "Power"
 
   USB2 usb
   SpiOut peripherals
@@ -121,20 +129,15 @@ block HonestClock:
 
   display.Display time_display(logic: v3v3, led_supply: v5, ground: gnd, chain: leds)
 
-  // 2.42 inch SSD1309 module, SPI wiring, in the module's header order.
-  Header1x7 oled:
-    1: gnd
-    2: v3v3
-    3: peripherals.sck
-    4: peripherals.mosi
-    5: oled_reset#
-    6: oled_dc
-    7: oled_cs#
-    metadata:
-      pins:
-        1: role.ground
-        2: role.power_input
-        [3..7]: role.digital_input
+  // 2.42 inch SSD1309 module on SPI; its footprint is the whole module.
+  Ssd1309Module oled:
+    GND: gnd
+    VCC: v3v3
+    SCL: peripherals.sck
+    SDA: peripherals.mosi
+    RES: oled_reset#
+    DC: oled_dc
+    CS: oled_cs#
   Capacitor0603<100n> oled_decouple(v3v3, gnd)
   Capacitor0805<10u> oled_bulk(v3v3, gnd)
 
@@ -154,20 +157,28 @@ block HonestClock:
   // track the digits' brightness.
   Indicator<330> annunciators[4](supply: v3v3, drive: annunciators#)
 
-  // Probe header for rails and timing signals.
-  Header2x8 probes:
-    [1, 16]: gnd
+  // Probe headers, each with ground on pin 1, placed near their signals'
+  // sources so no probe wiring crosses the board.
+  Header2x3 power_probe:
+    [1, 6]: gnd
     2: vbus
     3: v5
     4: v3v3
-    5: v3v3_quiet
-    6: pps
-    7: efc
-    8: leds.latch
-    9: leds.blank#
-    10: leds.data_in
-    11: leds.clock
-    12: gps_uart.tx
-    13: gps_uart.rx
-    14: pd_good#
-    15: direction
+    5: pd_good#
+  Header2x2 gps_probe:
+    1: gnd
+    2: gps_uart.tx
+    3: gps_uart.rx
+    4: pps
+  // The quiet rail feeds only the timebase, so it is probed there.
+  Header2x2 trim_probe:
+    1: gnd
+    2: efc
+    3: direction
+    4: v3v3_quiet
+  Header1x5 led_probe:
+    1: gnd
+    2: leds.data_in
+    3: leds.clock
+    4: leds.latch
+    5: leds.blank#

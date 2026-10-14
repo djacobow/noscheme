@@ -19,14 +19,16 @@ extend Connector.USB_C_Receptacle_USB2_0_16P UsbCReceptacle:
     A4: role.power_output
     [A6, B6, A7, B7]: role.digital_bidirectional
     SH: role.passive
+  // Vertical (180 degree) SMD receptacle on the back, so the cable leaves
+  // through the rear like the Ethernet and SMA cables.
   metadata:
-    value: "TYPE-C-31-M-12"
-    footprint: "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12"
+    value: "HX-TYPE-C 16P 180 LT H10.0"
+    footprint: "HonestClock:USB_C_Receptacle_Hanxia_HX-TYPE-C-16P-180-LT-H10.0_Vertical"
     bom:
-      manufacturer: "Korean Hroparts Elec"
-      mpn: "TYPE-C-31-M-12"
+      manufacturer: "hanxia"
+      mpn: "HX-TYPE-C 16P 180 LT H10.0"
       supplier: "LCSC"
-      supplier_part_number: "C165948"
+      supplier_part_number: "C49261569"
 
 // Pin 8 senses VBUS through 10 k; pin 1 is the internal supply, fed through
 // 1 k. Both are within the CH224K's 13.5 V and 3.6 V pin limits only with

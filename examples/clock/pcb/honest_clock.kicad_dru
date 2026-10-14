@@ -1,0 +1,7 @@
+(version 1)
+
+# The bottom 3/8 in (9.525 mm) stands in a slotted base: no components on
+# either side, except the mounting holes that can screw the board down.
+(rule "Stand band: no components"
+	(constraint disallow footprint)
+	(condition "A.intersectsArea('stand band') && A.Reference != 'H*'"))

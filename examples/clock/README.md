@@ -5,7 +5,8 @@ non-multiplexed 7-segment digits and serves NTP over Ethernet. The design
 rationale, timing path, and power budget are in [HMS.md](HMS.md).
 
 This is a design example, not a validated board: it compiles, passes ERC, and
-exports a KiCad netlist and BOM. No PCB has been laid out or built.
+exports a KiCad netlist and BOM. The PCB in `pcb/` is set up but not yet laid
+out, and nothing has been built.
 
 ## Files
 
@@ -16,11 +17,12 @@ exports a KiCad netlist and BOM. No PCB has been laid out or built.
 | `mcu.nosch` | STM32H723VGT6 pin map, decoupling, VCAP, reset, SWD header, do-not-fit HSE crystal |
 | `timebase.nosch` | VCTCXO/OCXO, 16-bit EFC chain, 10 MHz SMA in/out, direction and clock jumpers |
 | `gps.nosch` | MAX-M10S with active-antenna bias |
-| `ethernet.nosch` | DP83848C RMII PHY, 50 MHz reference, HR911105A MagJack |
+| `ethernet.nosch` | DP83848C RMII PHY, 50 MHz reference, HY951180A vertical MagJack |
 | `display.nosch` | Nine digits, each with its own TLC5916 driver, in one shift chain |
 | `interfaces.nosch` | Shared bundles |
 | `components.nosch` | Passives, connectors, and handwritten parts |
 | `kicad_lib/` | Converted KiCad symbols and the footprint snapshot; see its [README](kicad_lib/README.md) |
+| `pcb/` | KiCad 10 board: outline, holes, 4-layer JLCPCB stackup, planes, 6/6/6 rules; see its [README](pcb/README.md) |
 
 The display chain uses the instance-array slice pattern for a daisy chain:
 
@@ -92,7 +94,7 @@ and JLCPCB part pages and web search; recheck before ordering.
   - **LSHD-5601 digits:** DigiKey, through-hole.
   - **VCTCXO:** DigiKey; consign it or fit it by hand.
   - **OCXO:** user-supplied.
-  - **RJ45, SMAs, headers:** through-hole or edge-mount.
+  - **RJ45, SMAs, headers:** through-hole.
 
 Pin assignments use the alternate functions listed in the KiCad STM32H723VGTx
 symbol. Confirm them in STM32CubeMX before layout.

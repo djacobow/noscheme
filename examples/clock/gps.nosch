@@ -2,7 +2,7 @@
 
 from noscheme import role, net, use, pull, drive
 from interfaces import Uart
-from components import Resistor0603, Capacitor0603, RfChoke0603, EdgeSma
+from components import Resistor0603, Capacitor0603, RfChoke0603, VerticalSma
 import RF_GPS
 
 extend RF_GPS.MAX_M10S<"MAX-M10S-00B"> GpsModule:
@@ -49,4 +49,4 @@ block Gps:
   // u-blox active-antenna supply: 10 ohm current sense/limit plus RF choke.
   Resistor0603<10> antenna_feed(antenna_supply, antenna_bias)
   RfChoke0603 antenna_choke(antenna_bias, rf)
-  EdgeSma antenna(1: rf, 2: ground)
+  VerticalSma antenna(1: rf, 2: ground)

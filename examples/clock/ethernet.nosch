@@ -6,7 +6,6 @@ from noscheme import role, net, use, pull, drive
 from interfaces import Rmii, Mdio
 from components import Resistor0603, Pullup0603, Capacitor0603, Capacitor0805
 from components import ClockOscillator
-import Connector
 
 // Written by hand: the KiCad DP83848C symbol omits pads 8-12 (JTAG on the
 // DP83848I only; TI says to leave them unconnected on the C part).
@@ -55,15 +54,35 @@ component Phy:
       supplier: "LCSC"
       supplier_part_number: "C16688"
 
-extend Connector.RJ45_Hanrun_HR911105A_Horizontal<"HR911105A"> MagJack:
+// Written by hand: KiCad has no symbol for this vertical (tab-up) MagJack.
+// It mounts on the back so the cable leaves through the rear. Pinout from
+// the HanRun HY951180A datasheet; it differs from the HR911105A (RD+ is
+// pin 6, the center taps are 3 and 5, pin 4 is unused). Pin 8 is the chassis
+// ground behind the internal 1000 pF Bob Smith capacitor; SH is the shield.
+component VerticalMagJack:
   pins:
-    8: role.ground
+    "1" ("TD+"): role.passive
+    "2" ("TD-"): role.passive
+    "3" (TCT): role.passive
+    "4" (NC): use.disallowed
+    "5" (RCT): role.passive
+    "6" ("RD+"): role.passive
+    "7" ("RD-"): role.passive
+    "8" (CHS_GND): role.ground
+    "9" (GREEN_A): role.passive
+    "10" (GREEN_K): role.passive
+    "11" (YELLOW_K): role.passive
+    "12" (YELLOW_A): role.passive
+    "SH": role.passive
   metadata:
+    ref_prefix: "J"
+    value: "HY951180A"
+    footprint: "HonestClock:RJ45_HanRun_HY951180A_Vertical"
     bom:
       manufacturer: "HANRUN"
-      mpn: "HR911105A"
+      mpn: "HY951180A"
       supplier: "LCSC"
-      supplier_part_number: "C12074"
+      supplier_part_number: "C34677"
 
 extend ClockOscillator<"50MHz"> RmiiOscillator:
   metadata:
@@ -141,13 +160,13 @@ block Ethernet:
   Resistor0603<49.9> line_terminations[4](supply, line)
   Capacitor0603<100n> center_tap_decouple[2](supply, ground)
 
-  MagJack jack:
+  VerticalMagJack jack:
     1: line[0]
     2: line[1]
-    3: line[2]
-    6: line[3]
-    [4, 5]: supply
-    7: no_connect
+    6: line[2]
+    7: line[3]
+    [3, 5]: supply
+    4: no_connect
     [8, SH]: ground
     9: green_anode
     10: link_led

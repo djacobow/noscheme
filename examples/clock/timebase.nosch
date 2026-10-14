@@ -4,7 +4,7 @@
 from noscheme import role, net, use, pull, drive
 from interfaces import SpiOut
 from components import Resistor0603, Pulldown0603, Capacitor0603, Capacitor0805
-from components import Vctcxo, EdgeSma, ThreeWayJumper
+from components import Vctcxo, VerticalSma, ThreeWayJumper
 import Oscillator
 import Analog_DAC
 import Reference_Voltage
@@ -236,7 +236,7 @@ block Timebase:
 
   ClockSquarer local_squarer(supply: quiet, ground: ground, input: oscillator, output: local_clock)
 
-  EdgeSma sma(1: sma_center, 2: ground)
+  VerticalSma sma(1: sma_center, 2: ground)
   // Fit for a 50 ohm terminated input; leave out when driving the output.
   Resistor0603<49.9> sma_termination(sma_center, ground):
     metadata:

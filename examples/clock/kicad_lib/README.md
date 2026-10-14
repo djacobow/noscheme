@@ -38,6 +38,11 @@ Some parts are handwritten in the example sources instead:
   symbols carry roughly 900 footprint candidates each.
 - **Digit, VCTCXO, 50 MHz oscillator, light sensor, and headers:** no matching
   KiCad symbol exists.
+- **OLED module:** no KiCad symbol or footprint exists. Its footprint lives in
+  `../pcb/HonestClock.pretty`; the combined `footprints.json` records it with a
+  repository-relative path. Refresh that record with
+  `footprint_record("HonestClock:<name>", [Path("examples/clock/pcb")])` after
+  editing the footprint.
 
 The DAC8551 specialization replaces the symbol's VSON footprint with VSSOP-8,
 which is what the DGK package suffix means.

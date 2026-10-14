@@ -26,7 +26,12 @@ extend Driver_LED.TLC5916<"TLC5916IDR"> LedDriver:
       supplier_part_number: "C90107"
 
 // R-EXT sets each output: I = 15 * 1.25 V / R, about 10.4 mA at 1.8 k.
-// Driver outputs 0-7 are segments a-g, then the decimal point.
+// The driver sits on the back between the digit's two pin rows, long axis
+// along the rows, pin 1 to the left as seen from the front, so outputs 0-3
+// (pins 5-8) face the top cathode row and outputs 4-7 (pins 12-9) the bottom.
+// Each output takes the cathode it faces, so the segment traces fan straight
+// out on one layer without crossing. Driver outputs 0-7 are therefore
+// segments g, f, a, b, dp, c, d, e.
 block Digit:
   ports:
     net.power logic
@@ -52,7 +57,7 @@ block Digit:
   Resistor0603<1.8k> current_resistor(current_set, ground)
   Capacitor0603<100n> decouple(logic, ground)
   SevenSegmentDigit display:
-    [a, b, c, d, e, f, g, dp]: segments
+    [g, f, a, b, dp, c, d, e]: segments
     [3, 8]: led_supply
 
 block Display:

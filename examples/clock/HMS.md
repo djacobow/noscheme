@@ -19,7 +19,10 @@ network status.
 The second display is nine 0.56" common-anode 7-segment digits (Lite-On
 LSHD-5601, green) showing HH:MM:SS.mmm. The digits are not multiplexed: each
 digit has its own TI TLC5916 8-bit constant-current sink driver, one output per
-segment plus the decimal point, so drivers and digits map one to one. There are
+segment plus the decimal point, so drivers and digits map one to one. Outputs
+are assigned to segments for routing, not alphabetically: OUT0-OUT7 drive
+segments g, f, a, b, dp, c, d, e, so each output's trace runs straight to the
+cathode pin it faces. Firmware's segment font must use that bit order. There are
 no separate colon LEDs: firmware uses the decimal points as separators (for
 example `12.34.56.789`). The nine drivers form one 72-bit shift chain:
 
@@ -114,15 +117,16 @@ It runs in the LDO supply configuration (the LQFP-100 H723 has no SMPS), with
 
 No STM32 has a gigabit MAC suited to this, and NTP needs no more than 10/100
 anyway. The MAC connects over RMII to a TI DP83848C PHY (LQFP-48, so no QFN)
-and a HanRun HR911105A RJ45 with integrated magnetics. The jack's green LED
+and a HanRun HY951180A vertical (tab-up) RJ45 with integrated magnetics,
+mounted on the back so the cable leaves through the rear. The jack's green LED
 shows link and its yellow LED shows activity. A dedicated 50 MHz oscillator
 clocks both the PHY's X1 and the MAC's ETH_REF_CLK, so the network never
 depends on the clock jumper.
 
 ### Connections
 
-- **GPS antenna:** an edge-mount SMA with active-antenna bias.
-- **10 MHz:** an edge-mount SMA. A three-pin direction jumper selects:
+- **GPS antenna:** a vertical SMA on the back with active-antenna bias.
+- **10 MHz:** a vertical SMA on the back. A three-pin direction jumper selects:
   - **Output (shunt 1–2, also the default with no shunt):** a 74LVC1G125
     drives the local 10 MHz through 33 Ω.
   - **Input (shunt 2–3):** the buffer goes high-impedance, and a 74LVC1G3157
@@ -131,13 +135,18 @@ depends on the clock jumper.
 
   A 49.9 Ω termination footprint is provided for terminated input use.
 - **SWD:** the standard 10-pin 0.05" Cortex debug header.
-- **Probe header (2×8, 0.1"):** ground, every rail, PPS, EFC, the display
-  latch, blank, data and clock, the GPS UART, PD power-good, and the 10 MHz
-  direction.
+- **Probe headers (0.1", surface mount):** four small headers, each with
+  ground on pin 1 and each placed near its signals' source so probing adds
+  only short stubs:
+  - **Power (2×3):** VBUS, 5 V, 3.3 V, PD power-good, and a second ground.
+  - **GPS (2×2):** the GPS UART TX and RX, and PPS.
+  - **Trim (2×2):** EFC, the 10 MHz direction, and the quiet 3.3 V rail.
+  - **Display (1×5):** the LED chain's data, clock, latch, and blank.
 
 ### Power
 
-One USB-C receptacle carries both power and the debug console.
+One vertical USB-C receptacle on the back carries both power and the debug
+console.
 
 - A WCH CH224K PD sink controller requests **12 V** using I/O-level
   configuration (CFG1 = 0, CFG2 = 0, CFG3 = 1). Its DP/DM fast-charge pins are

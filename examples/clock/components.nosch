@@ -145,24 +145,28 @@ extend Switch.SW_Push<"TS-1187A-B-A-B"> PushButton:
       supplier: "LCSC"
       supplier_part_number: "C318884"
 
-// Three-pin header with a shunt: the middle pin is the common (C).
+// Three-pin surface-mount header with a shunt: the middle pin is the common
+// (C).
 extend Jumper.Jumper_3_Open<"1x03 2.54mm + shunt"> ThreeWayJumper:
   pins:
     1..3: use.required
   metadata:
-    footprint: "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
+    footprint: "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical_SMD_Pin1Left"
 
-// End-launch edge SMA. Pad 2 is the shell; tie it to ground.
-extend Connector.Conn_Coaxial<"SMA-KE"> EdgeSma:
+// Straight (vertical) through-hole SMA jack, mounted on the back so the
+// cable leaves through the rear. Pad 2 is the shell; tie it to ground. The
+// KE901's 0.9 mm square legs sit on a 4.9 mm square, inside the 132134
+// footprint's 1.7 mm holes on 5.08 mm.
+extend Connector.Conn_Coaxial<"SMA-KE901"> VerticalSma:
   pins:
     1..2: use.required
   metadata:
-    footprint: "Connector_Coaxial:SMA_Amphenol_132289_EdgeMount"
+    footprint: "Connector_Coaxial:SMA_Amphenol_132134_Vertical"
     bom:
       manufacturer: "DreamLNK"
-      mpn: "SMA-KE-P903"
+      mpn: "SMA-KE901"
       supplier: "LCSC"
-      supplier_part_number: "C914558"
+      supplier_part_number: "C914559"
 
 // 0.56 inch common-anode digit, industry-standard 10-pin pinout. Two
 // internally common anode pins; segments sink into the LED drivers.
@@ -231,16 +235,44 @@ component AmbientLightSensor:
       supplier: "LCSC"
       supplier_part_number: "C146233"
 
-component Header1x7:
+// 2.42 inch 128x64 SSD1309 OLED module (QDtech MC242GX outline, SPI
+// variant): 72 x 43 mm, M2 holes on 68 x 39 mm, 7-pin 2.54 mm header on the
+// left edge. The footprint carries the full outline and mounting holes; see
+// pcb/scripts/make_footprints.py for its dimensions and source.
+component Ssd1309Module:
   pins:
-    1..7: [role.passive, use.required]
+    1 (GND): [role.ground, use.required]
+    2 (VCC): [role.power_input, use.required]
+    3 (SCL): [role.digital_input, use.required]
+    4 (SDA): [role.digital_input, use.required]
+    5 (RES): [role.digital_input, use.required]
+    6 (DC): [role.digital_input, use.required]
+    7 (CS): [role.digital_input, use.required]
   metadata:
     ref_prefix: "J"
-    footprint: "Connector_PinHeader_2.54mm:PinHeader_1x07_P2.54mm_Vertical"
+    value: "SSD1309 2.42in OLED"
+    footprint: "HonestClock:OLED_SSD1309_2.42in_Module"
 
-component Header2x8:
+// Probe headers, 0.1 inch, surface mount so nothing pokes through to the
+// front; even pin counts use two rows to save length. Parameters cannot
+// select a footprint, so each size is its own component.
+component Header2x2:
   pins:
-    1..16: [role.passive, use.required]
+    1..4: [role.passive, use.required]
   metadata:
     ref_prefix: "J"
-    footprint: "Connector_PinHeader_2.54mm:PinHeader_2x08_P2.54mm_Vertical"
+    footprint: "Connector_PinHeader_2.54mm:PinHeader_2x02_P2.54mm_Vertical_SMD"
+
+component Header1x5:
+  pins:
+    1..5: [role.passive, use.required]
+  metadata:
+    ref_prefix: "J"
+    footprint: "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical_SMD_Pin1Left"
+
+component Header2x3:
+  pins:
+    1..6: [role.passive, use.required]
+  metadata:
+    ref_prefix: "J"
+    footprint: "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical_SMD"

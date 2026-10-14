@@ -208,6 +208,22 @@
       ],
       "uuid": "620e4c71-a0a0-5e24-88ab-0f95fa2d4e4a"
     },
+    "gps_probe": {
+      "active": true,
+      "reference": "J8",
+      "reserved_references": [
+        "J8"
+      ],
+      "uuid": "752e52fa-b9c0-5de4-8bd5-36fab2361322"
+    },
+    "led_probe": {
+      "active": true,
+      "reference": "J9",
+      "reserved_references": [
+        "J9"
+      ],
+      "uuid": "a39ccc72-df31-5b67-9fec-ef192bdaf299"
+    },
     "light_filter": {
       "active": true,
       "reference": "C11",
@@ -624,8 +640,16 @@
       ],
       "uuid": "dc2f5320-65d1-5162-8d16-d70fb246d06e"
     },
-    "probes": {
+    "power_probe": {
       "active": true,
+      "reference": "J10",
+      "reserved_references": [
+        "J10"
+      ],
+      "uuid": "c0c2fabd-930a-5c50-9b8b-57d888cd7746"
+    },
+    "probes": {
+      "active": false,
       "reference": "J4",
       "reserved_references": [
         "J4"
@@ -1664,6 +1688,14 @@
       ],
       "uuid": "538fc672-4676-5ed5-8d0c-d332e3eab64b"
     },
+    "trim_probe": {
+      "active": true,
+      "reference": "J11",
+      "reserved_references": [
+        "J11"
+      ],
+      "uuid": "32b6fdfb-5a10-596b-b50f-3469afe0402a"
+    },
     "usb_power.connector": {
       "active": true,
       "reference": "J7",
@@ -1746,7 +1778,7 @@
     }
   },
   "namespace": "552bea5f-7b81-466c-aaa8-d028b427bf2f",
-  "netlist_sha256": "f395bb5282cf8afe6249354c4707185fa97405cb6afe4f4a39f34a82d31fac41",
+  "netlist_sha256": "b074eeeba1175abc80c46fc596967a9635b32fa5157d7367157d8457932f8f26",
   "previous_parts": {
     "annunciators[0].led": {
       "footprint": "LED_SMD:LED_0603_1608Metric",
@@ -2195,6 +2227,35 @@
         "type": "string",
         "value": "TS-1187A-B-A-B"
       }
+    },
+    "gps_probe": {
+      "footprint": "Connector_PinHeader_2.54mm:PinHeader_2x02_P2.54mm_Vertical_SMD",
+      "path": [
+        "gps_probe"
+      ],
+      "pins": {
+        "1": "gnd",
+        "2": "gps_uart.tx",
+        "3": "gps_uart.rx",
+        "4": "pps"
+      },
+      "reference": "J8",
+      "value": null
+    },
+    "led_probe": {
+      "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical_SMD_Pin1Left",
+      "path": [
+        "led_probe"
+      ],
+      "pins": {
+        "1": "gnd",
+        "2": "leds.data_in",
+        "3": "leds.clock",
+        "4": "leds.latch",
+        "5": "leds.blank#"
+      },
+      "reference": "J9",
+      "value": null
     },
     "light_filter": {
       "footprint": "Capacitor_SMD:C_0603_1608Metric",
@@ -2831,7 +2892,7 @@
       }
     },
     "network.jack": {
-      "footprint": "Connector_RJ:RJ45_Hanrun_HR911105A_Horizontal",
+      "footprint": "HonestClock:RJ45_HanRun_HY951180A_Vertical",
       "path": [
         "network",
         "jack"
@@ -2842,11 +2903,11 @@
         "11": "network.activity_led",
         "12": "network.yellow_anode",
         "2": "network.line[1]",
-        "3": "network.line[2]",
-        "4": "v3v3",
+        "3": "v3v3",
+        "4": null,
         "5": "v3v3",
-        "6": "network.line[3]",
-        "7": null,
+        "6": "network.line[2]",
+        "7": "network.line[3]",
         "8": "gnd",
         "9": "network.green_anode",
         "SH": "gnd"
@@ -2854,7 +2915,7 @@
       "reference": "J2",
       "value": {
         "type": "string",
-        "value": "HR911105A"
+        "value": "HY951180A"
       }
     },
     "network.line_terminations[0]": {
@@ -3171,7 +3232,7 @@
       }
     },
     "oled": {
-      "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x07_P2.54mm_Vertical",
+      "footprint": "HonestClock:OLED_SSD1309_2.42in_Module",
       "path": [
         "oled"
       ],
@@ -3185,7 +3246,10 @@
         "7": "oled_cs#"
       },
       "reference": "J3",
-      "value": null
+      "value": {
+        "type": "string",
+        "value": "SSD1309 2.42in OLED"
+      }
     },
     "oled_bulk": {
       "footprint": "Capacitor_SMD:C_0805_2012Metric",
@@ -3217,30 +3281,20 @@
         "value": "100nF"
       }
     },
-    "probes": {
-      "footprint": "Connector_PinHeader_2.54mm:PinHeader_2x08_P2.54mm_Vertical",
+    "power_probe": {
+      "footprint": "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical_SMD",
       "path": [
-        "probes"
+        "power_probe"
       ],
       "pins": {
         "1": "gnd",
-        "10": "leds.data_in",
-        "11": "leds.clock",
-        "12": "gps_uart.tx",
-        "13": "gps_uart.rx",
-        "14": "pd_good#",
-        "15": "direction",
-        "16": "gnd",
         "2": "vbus",
         "3": "v5",
         "4": "v3v3",
-        "5": "v3v3_quiet",
-        "6": "pps",
-        "7": "efc",
-        "8": "leds.latch",
-        "9": "leds.blank#"
+        "5": "pd_good#",
+        "6": "gnd"
       },
-      "reference": "J4",
+      "reference": "J10",
       "value": null
     },
     "quiet_rail.input_cap": {
@@ -3295,7 +3349,7 @@
       }
     },
     "receiver.antenna": {
-      "footprint": "Connector_Coaxial:SMA_Amphenol_132289_EdgeMount",
+      "footprint": "Connector_Coaxial:SMA_Amphenol_132134_Vertical",
       "path": [
         "receiver",
         "antenna"
@@ -3307,7 +3361,7 @@
       "reference": "J5",
       "value": {
         "type": "string",
-        "value": "SMA-KE"
+        "value": "SMA-KE901"
       }
     },
     "receiver.antenna_choke": {
@@ -3467,16 +3521,16 @@
         "display"
       ],
       "pins": {
-        "1": "time_display.digits[0].segments[4]",
-        "10": "time_display.digits[0].segments[6]",
-        "2": "time_display.digits[0].segments[3]",
+        "1": "time_display.digits[0].segments[7]",
+        "10": "time_display.digits[0].segments[0]",
+        "2": "time_display.digits[0].segments[6]",
         "3": "v5",
-        "4": "time_display.digits[0].segments[2]",
-        "5": "time_display.digits[0].segments[7]",
-        "6": "time_display.digits[0].segments[1]",
-        "7": "time_display.digits[0].segments[0]",
+        "4": "time_display.digits[0].segments[5]",
+        "5": "time_display.digits[0].segments[4]",
+        "6": "time_display.digits[0].segments[3]",
+        "7": "time_display.digits[0].segments[2]",
         "8": "v5",
-        "9": "time_display.digits[0].segments[5]"
+        "9": "time_display.digits[0].segments[1]"
       },
       "reference": "DS1",
       "value": {
@@ -3561,16 +3615,16 @@
         "display"
       ],
       "pins": {
-        "1": "time_display.digits[1].segments[4]",
-        "10": "time_display.digits[1].segments[6]",
-        "2": "time_display.digits[1].segments[3]",
+        "1": "time_display.digits[1].segments[7]",
+        "10": "time_display.digits[1].segments[0]",
+        "2": "time_display.digits[1].segments[6]",
         "3": "v5",
-        "4": "time_display.digits[1].segments[2]",
-        "5": "time_display.digits[1].segments[7]",
-        "6": "time_display.digits[1].segments[1]",
-        "7": "time_display.digits[1].segments[0]",
+        "4": "time_display.digits[1].segments[5]",
+        "5": "time_display.digits[1].segments[4]",
+        "6": "time_display.digits[1].segments[3]",
+        "7": "time_display.digits[1].segments[2]",
         "8": "v5",
-        "9": "time_display.digits[1].segments[5]"
+        "9": "time_display.digits[1].segments[1]"
       },
       "reference": "DS2",
       "value": {
@@ -3655,16 +3709,16 @@
         "display"
       ],
       "pins": {
-        "1": "time_display.digits[2].segments[4]",
-        "10": "time_display.digits[2].segments[6]",
-        "2": "time_display.digits[2].segments[3]",
+        "1": "time_display.digits[2].segments[7]",
+        "10": "time_display.digits[2].segments[0]",
+        "2": "time_display.digits[2].segments[6]",
         "3": "v5",
-        "4": "time_display.digits[2].segments[2]",
-        "5": "time_display.digits[2].segments[7]",
-        "6": "time_display.digits[2].segments[1]",
-        "7": "time_display.digits[2].segments[0]",
+        "4": "time_display.digits[2].segments[5]",
+        "5": "time_display.digits[2].segments[4]",
+        "6": "time_display.digits[2].segments[3]",
+        "7": "time_display.digits[2].segments[2]",
         "8": "v5",
-        "9": "time_display.digits[2].segments[5]"
+        "9": "time_display.digits[2].segments[1]"
       },
       "reference": "DS3",
       "value": {
@@ -3749,16 +3803,16 @@
         "display"
       ],
       "pins": {
-        "1": "time_display.digits[3].segments[4]",
-        "10": "time_display.digits[3].segments[6]",
-        "2": "time_display.digits[3].segments[3]",
+        "1": "time_display.digits[3].segments[7]",
+        "10": "time_display.digits[3].segments[0]",
+        "2": "time_display.digits[3].segments[6]",
         "3": "v5",
-        "4": "time_display.digits[3].segments[2]",
-        "5": "time_display.digits[3].segments[7]",
-        "6": "time_display.digits[3].segments[1]",
-        "7": "time_display.digits[3].segments[0]",
+        "4": "time_display.digits[3].segments[5]",
+        "5": "time_display.digits[3].segments[4]",
+        "6": "time_display.digits[3].segments[3]",
+        "7": "time_display.digits[3].segments[2]",
         "8": "v5",
-        "9": "time_display.digits[3].segments[5]"
+        "9": "time_display.digits[3].segments[1]"
       },
       "reference": "DS4",
       "value": {
@@ -3843,16 +3897,16 @@
         "display"
       ],
       "pins": {
-        "1": "time_display.digits[4].segments[4]",
-        "10": "time_display.digits[4].segments[6]",
-        "2": "time_display.digits[4].segments[3]",
+        "1": "time_display.digits[4].segments[7]",
+        "10": "time_display.digits[4].segments[0]",
+        "2": "time_display.digits[4].segments[6]",
         "3": "v5",
-        "4": "time_display.digits[4].segments[2]",
-        "5": "time_display.digits[4].segments[7]",
-        "6": "time_display.digits[4].segments[1]",
-        "7": "time_display.digits[4].segments[0]",
+        "4": "time_display.digits[4].segments[5]",
+        "5": "time_display.digits[4].segments[4]",
+        "6": "time_display.digits[4].segments[3]",
+        "7": "time_display.digits[4].segments[2]",
         "8": "v5",
-        "9": "time_display.digits[4].segments[5]"
+        "9": "time_display.digits[4].segments[1]"
       },
       "reference": "DS5",
       "value": {
@@ -3937,16 +3991,16 @@
         "display"
       ],
       "pins": {
-        "1": "time_display.digits[5].segments[4]",
-        "10": "time_display.digits[5].segments[6]",
-        "2": "time_display.digits[5].segments[3]",
+        "1": "time_display.digits[5].segments[7]",
+        "10": "time_display.digits[5].segments[0]",
+        "2": "time_display.digits[5].segments[6]",
         "3": "v5",
-        "4": "time_display.digits[5].segments[2]",
-        "5": "time_display.digits[5].segments[7]",
-        "6": "time_display.digits[5].segments[1]",
-        "7": "time_display.digits[5].segments[0]",
+        "4": "time_display.digits[5].segments[5]",
+        "5": "time_display.digits[5].segments[4]",
+        "6": "time_display.digits[5].segments[3]",
+        "7": "time_display.digits[5].segments[2]",
         "8": "v5",
-        "9": "time_display.digits[5].segments[5]"
+        "9": "time_display.digits[5].segments[1]"
       },
       "reference": "DS6",
       "value": {
@@ -4031,16 +4085,16 @@
         "display"
       ],
       "pins": {
-        "1": "time_display.digits[6].segments[4]",
-        "10": "time_display.digits[6].segments[6]",
-        "2": "time_display.digits[6].segments[3]",
+        "1": "time_display.digits[6].segments[7]",
+        "10": "time_display.digits[6].segments[0]",
+        "2": "time_display.digits[6].segments[6]",
         "3": "v5",
-        "4": "time_display.digits[6].segments[2]",
-        "5": "time_display.digits[6].segments[7]",
-        "6": "time_display.digits[6].segments[1]",
-        "7": "time_display.digits[6].segments[0]",
+        "4": "time_display.digits[6].segments[5]",
+        "5": "time_display.digits[6].segments[4]",
+        "6": "time_display.digits[6].segments[3]",
+        "7": "time_display.digits[6].segments[2]",
         "8": "v5",
-        "9": "time_display.digits[6].segments[5]"
+        "9": "time_display.digits[6].segments[1]"
       },
       "reference": "DS7",
       "value": {
@@ -4125,16 +4179,16 @@
         "display"
       ],
       "pins": {
-        "1": "time_display.digits[7].segments[4]",
-        "10": "time_display.digits[7].segments[6]",
-        "2": "time_display.digits[7].segments[3]",
+        "1": "time_display.digits[7].segments[7]",
+        "10": "time_display.digits[7].segments[0]",
+        "2": "time_display.digits[7].segments[6]",
         "3": "v5",
-        "4": "time_display.digits[7].segments[2]",
-        "5": "time_display.digits[7].segments[7]",
-        "6": "time_display.digits[7].segments[1]",
-        "7": "time_display.digits[7].segments[0]",
+        "4": "time_display.digits[7].segments[5]",
+        "5": "time_display.digits[7].segments[4]",
+        "6": "time_display.digits[7].segments[3]",
+        "7": "time_display.digits[7].segments[2]",
         "8": "v5",
-        "9": "time_display.digits[7].segments[5]"
+        "9": "time_display.digits[7].segments[1]"
       },
       "reference": "DS8",
       "value": {
@@ -4219,16 +4273,16 @@
         "display"
       ],
       "pins": {
-        "1": "time_display.digits[8].segments[4]",
-        "10": "time_display.digits[8].segments[6]",
-        "2": "time_display.digits[8].segments[3]",
+        "1": "time_display.digits[8].segments[7]",
+        "10": "time_display.digits[8].segments[0]",
+        "2": "time_display.digits[8].segments[6]",
         "3": "v5",
-        "4": "time_display.digits[8].segments[2]",
-        "5": "time_display.digits[8].segments[7]",
-        "6": "time_display.digits[8].segments[1]",
-        "7": "time_display.digits[8].segments[0]",
+        "4": "time_display.digits[8].segments[5]",
+        "5": "time_display.digits[8].segments[4]",
+        "6": "time_display.digits[8].segments[3]",
+        "7": "time_display.digits[8].segments[2]",
         "8": "v5",
-        "9": "time_display.digits[8].segments[5]"
+        "9": "time_display.digits[8].segments[1]"
       },
       "reference": "DS9",
       "value": {
@@ -4269,7 +4323,7 @@
       }
     },
     "timebase.clock_jumper": {
-      "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical",
+      "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical_SMD_Pin1Left",
       "path": [
         "timebase",
         "clock_jumper"
@@ -4302,7 +4356,7 @@
       }
     },
     "timebase.direction_jumper": {
-      "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical",
+      "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical_SMD_Pin1Left",
       "path": [
         "timebase",
         "direction_jumper"
@@ -4664,7 +4718,7 @@
       }
     },
     "timebase.sma": {
-      "footprint": "Connector_Coaxial:SMA_Amphenol_132289_EdgeMount",
+      "footprint": "Connector_Coaxial:SMA_Amphenol_132134_Vertical",
       "path": [
         "timebase",
         "sma"
@@ -4676,7 +4730,7 @@
       "reference": "J6",
       "value": {
         "type": "string",
-        "value": "SMA-KE"
+        "value": "SMA-KE901"
       }
     },
     "timebase.sma_termination": {
@@ -4975,8 +5029,22 @@
         "value": "100nF"
       }
     },
+    "trim_probe": {
+      "footprint": "Connector_PinHeader_2.54mm:PinHeader_2x02_P2.54mm_Vertical_SMD",
+      "path": [
+        "trim_probe"
+      ],
+      "pins": {
+        "1": "gnd",
+        "2": "efc",
+        "3": "direction",
+        "4": "v3v3_quiet"
+      },
+      "reference": "J11",
+      "value": null
+    },
     "usb_power.connector": {
-      "footprint": "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12",
+      "footprint": "HonestClock:USB_C_Receptacle_Hanxia_HX-TYPE-C-16P-180-LT-H10.0_Vertical",
       "path": [
         "usb_power",
         "connector"
@@ -5003,7 +5071,7 @@
       "reference": "J7",
       "value": {
         "type": "string",
-        "value": "TYPE-C-31-M-12"
+        "value": "HX-TYPE-C 16P 180 LT H10.0"
       }
     },
     "usb_power.esd": {

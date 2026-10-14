@@ -31,3 +31,13 @@ subprojects/tomlplusplus-*/
 subprojects/config-boost-*/
 subprojects/multiprecision-boost-*/
 subprojects/.wraplock
+
+# KiCad per-user view state, backups, local history, caches, and lock files
+.history/
+*.kicad_prl
+*-backups/
+fp-info-cache
+~*.lck
+
+# Local board snapshots taken between placement passes
+examples/clock/pcb/snapshots/

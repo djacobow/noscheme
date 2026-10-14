@@ -8909,6 +8909,281 @@
       "sha256": "e5f24b6fea852f86171042806da48490229c9c8025b6d266b8cad6485b26e79f",
       "unnumbered_pads": 0
     },
+    "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical_SMD_Pin1Left": {
+      "exists": true,
+      "name": "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical_SMD_Pin1Left",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "rect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_PinHeader_2.54mm.pretty/PinHeader_1x03_P2.54mm_Vertical_SMD_Pin1Left.kicad_mod",
+      "sha256": "2fe29a4a54f35c6bd7410a04bb624542416e6dececa27feb91f5201dab26de8e",
+      "unnumbered_pads": 0
+    },
+    "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical": {
+      "exists": true,
+      "name": "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "3",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "4",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_PinHeader_2.54mm.pretty/PinHeader_1x04_P2.54mm_Vertical.kicad_mod",
+      "sha256": "571d2d16b49795f8f9a91f96cc83fd2adf49890cd66c377189c44204ebd03c29",
+      "unnumbered_pads": 0
+    },
+    "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical_SMD_Pin1Left": {
+      "exists": true,
+      "name": "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical_SMD_Pin1Left",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "rect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_PinHeader_2.54mm.pretty/PinHeader_1x04_P2.54mm_Vertical_SMD_Pin1Left.kicad_mod",
+      "sha256": "3c62bf0d2fb5d688a2771a6fb8f8c5cec1dab200a2737d04728de25c8580f15e",
+      "unnumbered_pads": 0
+    },
+    "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical": {
+      "exists": true,
+      "name": "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "3",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "4",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "5",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_PinHeader_2.54mm.pretty/PinHeader_1x05_P2.54mm_Vertical.kicad_mod",
+      "sha256": "4b62e226ec163657a79acde1229c1fca2b2453ff75fddcbc038fc7484bbc2711",
+      "unnumbered_pads": 0
+    },
+    "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical_SMD_Pin1Left": {
+      "exists": true,
+      "name": "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical_SMD_Pin1Left",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "rect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_PinHeader_2.54mm.pretty/PinHeader_1x05_P2.54mm_Vertical_SMD_Pin1Left.kicad_mod",
+      "sha256": "5bbc2b1ecdfd3d65ce48a2542292f7bed799b9fdd02ae62a3643e09f5ea41538",
+      "unnumbered_pads": 0
+    },
+    "Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical": {
+      "exists": true,
+      "name": "Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "3",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "4",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "5",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "6",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_PinHeader_2.54mm.pretty/PinHeader_1x06_P2.54mm_Vertical.kicad_mod",
+      "sha256": "5f2993c50dbd5024384bf6fa972fcd10d40d0837039e1e371b326a27d9f5b8b7",
+      "unnumbered_pads": 0
+    },
+    "Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical_SMD_Pin1Left": {
+      "exists": true,
+      "name": "Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical_SMD_Pin1Left",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "rect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_PinHeader_2.54mm.pretty/PinHeader_1x06_P2.54mm_Vertical_SMD_Pin1Left.kicad_mod",
+      "sha256": "ef64747be69aabb9ed61e2363d2a099e03f02bdbe9051e2af7d78df8d5eff8f0",
+      "unnumbered_pads": 0
+    },
     "Connector_PinHeader_2.54mm:PinHeader_1x07_P2.54mm_Vertical": {
       "exists": true,
       "name": "Connector_PinHeader_2.54mm:PinHeader_1x07_P2.54mm_Vertical",
@@ -8960,6 +9235,88 @@
       ],
       "path": "/usr/share/kicad/footprints/Connector_PinHeader_2.54mm.pretty/PinHeader_1x07_P2.54mm_Vertical.kicad_mod",
       "sha256": "b68c5749fd4d81ff8a7e3ef1223a9081acd4a879079e7c2c9d5bcb9363b02630",
+      "unnumbered_pads": 0
+    },
+    "Connector_PinHeader_2.54mm:PinHeader_2x02_P2.54mm_Vertical_SMD": {
+      "exists": true,
+      "name": "Connector_PinHeader_2.54mm:PinHeader_2x02_P2.54mm_Vertical_SMD",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "rect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_PinHeader_2.54mm.pretty/PinHeader_2x02_P2.54mm_Vertical_SMD.kicad_mod",
+      "sha256": "aebfda98e26ccfd4f6f99b2d5cc431c6785870666160fd253a5ad282057a3fbc",
+      "unnumbered_pads": 0
+    },
+    "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical_SMD": {
+      "exists": true,
+      "name": "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical_SMD",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "2",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "3",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "4",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "5",
+          "shape": "rect",
+          "technology": "smd"
+        },
+        {
+          "number": "6",
+          "shape": "rect",
+          "technology": "smd"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "path": "/usr/share/kicad/footprints/Connector_PinHeader_2.54mm.pretty/PinHeader_2x03_P2.54mm_Vertical_SMD.kicad_mod",
+      "sha256": "83aa463be19fb4a4e796b2c1fad396a2e162bc40747fba3289a177b822d3cd25",
       "unnumbered_pads": 0
     },
     "Connector_PinHeader_2.54mm:PinHeader_2x08_P2.54mm_Vertical": {
@@ -13019,6 +13376,321 @@
       "path": "/usr/share/kicad/footprints/Display_7Segment.pretty/7SegmentLED_LTS6760_LTS6780.kicad_mod",
       "sha256": "2f8008f591b58604b64ca582179940ee4a411a15e4623648827e72153136c2fe",
       "unnumbered_pads": 0
+    },
+    "HonestClock:OLED_SSD1309_2.42in_Module": {
+      "exists": true,
+      "name": "HonestClock:OLED_SSD1309_2.42in_Module",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "3",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "4",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "5",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "6",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "7",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "path": "examples/clock/pcb/HonestClock.pretty/OLED_SSD1309_2.42in_Module.kicad_mod",
+      "sha256": "768149e5e58e159d41052b32d01510eef31e6aae9fa5dd08c7bc02236bc03a57",
+      "unnumbered_pads": 4
+    },
+    "HonestClock:RJ45_HanRun_HY951180A_Vertical": {
+      "exists": true,
+      "name": "HonestClock:RJ45_HanRun_HY951180A_Vertical",
+      "pad_records": [
+        {
+          "number": "1",
+          "shape": "rect",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "2",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "3",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "4",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "5",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "6",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "7",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "8",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "12",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "11",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "10",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "9",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "circle",
+          "technology": "thru_hole"
+        },
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "SH",
+          "shape": "circle",
+          "technology": "thru_hole"
+        }
+      ],
+      "pads": [
+        "1",
+        "10",
+        "11",
+        "12",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "SH"
+      ],
+      "path": "examples/clock/pcb/HonestClock.pretty/RJ45_HanRun_HY951180A_Vertical.kicad_mod",
+      "sha256": "e1ea2f47431802633e8bafb28ffd3222262465c219b6023055104922bd9db7dd",
+      "unnumbered_pads": 2
+    },
+    "HonestClock:USB_C_Receptacle_Hanxia_HX-TYPE-C-16P-180-LT-H10.0_Vertical": {
+      "exists": true,
+      "name": "HonestClock:USB_C_Receptacle_Hanxia_HX-TYPE-C-16P-180-LT-H10.0_Vertical",
+      "pad_records": [
+        {
+          "number": "B1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B7",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A6",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B8",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A5",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B9",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A4",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "B12",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "A1",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "SH",
+          "shape": "roundrect",
+          "technology": "smd"
+        },
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        },
+        {
+          "number": "",
+          "shape": "circle",
+          "technology": "np_thru_hole"
+        }
+      ],
+      "pads": [
+        "A1",
+        "A12",
+        "A4",
+        "A5",
+        "A6",
+        "A7",
+        "A8",
+        "A9",
+        "B1",
+        "B12",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "SH"
+      ],
+      "path": "examples/clock/pcb/HonestClock.pretty/USB_C_Receptacle_Hanxia_HX-TYPE-C-16P-180-LT-H10.0_Vertical.kicad_mod",
+      "sha256": "a29a8cbba46e682f2f731094aa3b0b0fb827968b3ef33d8ae081a0a03b3f4fc5",
+      "unnumbered_pads": 2
     },
     "Inductor_SMD:L_0603_1608Metric": {
       "exists": true,
