@@ -4,9 +4,10 @@ NoScheme is a language and compiler for designing PCB circuits using text
 rather than drawing schematics.
 
 You can write explicit components and named connections in `.nosch` files,
-organize circuits into reusable blocks, and export a netlist to KiCad for
-placement and routing. It is designed as a replacement for `eeschema` and a
-source of netlists for `pcbnew`.
+organize circuits into reusable blocks, and export them to KiCad for placement
+and routing. It is designed as a replacement for drawing schematics in
+`eeschema`: NoScheme generates the KiCad schematic, one sheet per block, and
+KiCad's PCB editor updates the board from it as usual.
 
 The aim is to make circuit descriptions easy to edit, review, and version
 alongside firmware, and to provide an extensible set of static checks for
@@ -61,8 +62,9 @@ being.
 ## Status
 
 This is an actively developed proof of concept. Several examples, including an
-STM32 reference board, compile and their netlists have successfully populated a
-KiCad board. Placement, routing, and hardware validation remain separate steps.
+STM32 reference board, compile, and their netlists have successfully populated a
+KiCad board. Every example's generated KiCad schematic reads back in KiCad with
+the same connectivity and passes KiCad's schematic ERC. Placement, routing, and hardware validation remain separate steps.
 
 ## Documentation
 

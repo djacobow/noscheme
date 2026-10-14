@@ -147,6 +147,12 @@ def main(argv=None):
     exporter.add_argument(
         "--footprints", type=Path, required=True, help="explicit converted footprints.json"
     )
+    exporter.add_argument(
+        "--schematic",
+        type=Path,
+        help="also write a hierarchical KiCad schematic rooted at this .kicad_sch "
+        "(normally beside the .kicad_pro), for Update PCB from Schematic",
+    )
     exporter.add_argument("--diagnostics", choices=["text", "json"], default="text")
     bom = sub.add_parser("export-bom", help="write a grouped CSV bill of materials")
     bom.add_argument("--project", type=Path, default=Path("."))
@@ -215,6 +221,8 @@ def main(argv=None):
         cli.error("--effort must be positive")
     if args.command == "lsp":
         return launch(args, lsp)
+    if getattr(args, "schematic", None) and getattr(args, "implementation", "python") == "native":
+        cli.error("--schematic is not supported by --implementation native yet")
     if getattr(args, "native_tool", None) and args.implementation != "native":
         cli.error("--native-tool requires --implementation native")
     try:
@@ -281,6 +289,7 @@ def main(argv=None):
                 args.footprints,
                 configurations=args.erc_configuration,
                 warnings=export_warnings,
+                schematic=args.schematic,
             )
             electrical = report_diagnostics(circuit)
             print(json.dumps(report, indent=2))

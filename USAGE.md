@@ -145,7 +145,7 @@ extensible, if you want to create some rules specific to your components.
 | Procurement review | `export-bom` | Grouped CSV, fitted/DNP quantities, part numbers |
 | Design review | `export-hierarchy` | SVG of nested blocks; `--nets` adds port nets |
 | Design review | `export-schematic` | One-sheet SVG schematic with every block drawn open |
-| PCB handoff | `export-kicad` | Footprint validation, netlist, changes, ERC reports |
+| PCB handoff | `export-kicad --schematic` | Footprint validation, KiCad sheets for F8, changes, ERC reports |
 
 `compile` and `export-kicad` can succeed and publish artifacts despite
 electrical errors. Use `check` as the electrical gate in automation.
@@ -277,60 +277,98 @@ reference](docs/LRM.md#134-bills-of-materials) for override and grouping rules.
 
 ## 7. Export to KiCad and iterate
 
-The STM32 example supplies a complete footprint snapshot for trying the
-handoff:
+NoScheme hands a design to KiCad as a generated KiCad schematic. KiCad's PCB
+editor then updates the board from it, the same way it would from a drawn
+schematic, so placement and routing survive every change.
+
+### First time: set up the KiCad project
+
+1. **Snapshot footprints.** Export validates every assigned footprint against a
+   snapshot of the libraries (`convert-library` and a combined
+   `footprints.json`; see [library conversion](docs/LRM.md#131-library-conversion-and-footprints)).
+   The STM32 example ships one.
+2. **Create the KiCad project** (File → New Project), for example
+   `my-board/pcb/board.kicad_pro`. Set up the board outline, stackup, design
+   rules, and the net classes the source names (such as `Power`), and add an
+   `fp-lib-table` for any project footprint libraries. KiCad also creates an
+   empty `board.kicad_sch`; the export replaces it.
+3. **Check and export,** naming the project's root sheet:
+
+   ```sh
+   noscheme check --project my-board
+   noscheme export-kicad --project my-board --footprints my-board/footprints.json \
+     --schematic my-board/pcb/board.kicad_sch
+   ```
+
+4. **Populate the board.** Open the project in KiCad, open the PCB editor from
+   the project window, and choose **Tools → Update PCB from Schematic** (F8).
+   Review the changes and select **Update PCB**. You do not need to open the
+   schematic editor: the PCB editor reads the schematic itself. The STM32
+   example should provide 58 footprints to place.
+
+Then place, route, and run DRC in KiCad; NoScheme does not perform those
+phases.
+
+The export writes, beside the root sheet:
+
+- **The sheets:** one per block instance, mirroring the source hierarchy, with
+  one shared sheet file for identical blocks (an instance array is one file
+  used once per element). Each part is a generated box symbol with a label on
+  every pin; the labels give every net the same name the netlist uses.
+- **`noscheme.kicad_sym`,** the generated symbols, registered in the project's
+  `sym-lib-table` (other entries are kept).
+- **Net classes:** a source `net_class: "Power"` becomes a KiCad net-class
+  directive, so F8 assigns the class. Define the class and its widths and
+  clearances in the KiCad project first.
+- **What KiCad's ERC needs:** when NoScheme's ERC passes, KiCad's schematic ERC
+  should too. The sheets carry no-connect flags on every pin NoScheme leaves
+  open and power flags where KiCad expects a supply driver.
+
+It also writes the reports in `build/` (`erc.txt`, `export.json`,
+`changes.txt`, `nets.txt`) and updates the identity state. Inspect
+`changes.txt` before updating the board. Missing footprints are reported and
+omitted; an assigned footprint absent from the snapshot, or a pin/pad mismatch,
+blocks export. See [KiCad schematics](docs/LRM.md#137-kicad-schematics) for the
+details.
+
+### After every change
+
+1. Edit the source, then run `check` and the same `export-kicad` command.
+2. In the PCB editor, press F8, review the dialog (footprints added, removed,
+   or swapped; values; net renames), and update.
+
+The sheets are rewritten from scratch on every export, deterministically: an
+unchanged design gives byte-identical files. Edits made in KiCad's schematic
+editor are overwritten, so make circuit changes in the source; there is no
+CAD-to-source synchronization. Sheets an earlier export wrote and no longer
+needs are deleted; a sheet saved from KiCad is never treated as generated. If
+the schematic editor has the sheets open while you export, close it or reload,
+so it does not save its stale copy over the new one.
+
+Keep the PCB under version control and review layout preservation after each
+update.
+
+### Netlist import (fallback)
+
+`export-kicad` always writes `build/board.net` too, a KiCad netlist with the
+same references, footprints, and net names. Use it where a schematic cannot be,
+such as a PCB editor opened on its own rather than from a project: **File →
+Import → Netlist…**, then **Load and Test Netlist** and **Update PCB**. A netlist
+does not carry net classes; apply `build/netclasses.json` to a copy of the
+project with `update-kicad-classes`:
 
 ```sh
-noscheme check --project examples/stm32h523
-noscheme export-kicad --project examples/stm32h523 \
-  --footprints examples/stm32h523/kicad_lib/footprints.json
+noscheme update-kicad-classes my-board/pcb/board.kicad_pro \
+  --memberships my-board/build/netclasses.json \
+  --output my-board/pcb/updated.kicad_pro
 ```
 
-For your project, use the same command with `--project my-board --target demo`
-and a snapshot covering your selected footprints. Named-target artifacts go in
-`build/demo`; the STM32 example explicitly sets its `default` target output
-directory to `build`.
+It preserves KiCad class settings and rejects undefined classes. Review the copy
+before replacing the original.
 
-Inspect `erc.txt`, `export.json`, and `changes.txt` before importing
-`board.net`. `nets.txt`/`nets.json` and `names.json` help trace physical nets
-back to source. Missing footprints are reported and omitted from the netlist;
-an assigned footprint absent from the snapshot, or a pin/pad mismatch, blocks
-export.
-
-In KiCad PCB Editor, use **File → Import → Netlist…**, choose `board.net`, then
-**Load and Test Netlist**. Review the report and select **Update PCB**. The
-STM32 example should provide 58 footprints to place. Save the PCB outside
-generated `build/`, then perform placement, routing, physical DRC, and
-fabrication review in KiCad. NoScheme export does not perform those phases.
-
-After a circuit change, repeat `check`, BOM export if needed, and
-`export-kicad`. Review the change report and import the new netlist into the
-existing PCB. Keep the previous PCB under version control and inspect layout
-preservation; the STM32 reference has demonstrated initial population, not a
-routed-board update qualification. Keep component/connectivity changes in
-NoScheme source; there is no CAD-to-source synchronization.
-
-Net-class membership requires a separate project update; importing `board.net`
-does not assign classes. Declare membership on the source net:
-
-```nosch
-net.power supply:
-  net_class: "Power"
-```
-
-Create the `Power` class and its width/clearance settings in KiCad first. After
-exporting, apply `netclasses.json` to a new project copy:
-
-```sh
-noscheme update-kicad-classes my-board/board.kicad_pro \
-  --memberships my-board/build/demo/netclasses.json \
-  --output my-board/updated.kicad_pro
-```
-
-The command preserves KiCad class settings and rejects undefined classes.
-Review the new project copy before replacing the original project file, then
-reopen that project in KiCad. Repeat this step when memberships change. See the
-[CAD reference](docs/LRM.md#133-names-and-net-classes) for the membership contract.
+A board first populated from `board.net` links its footprints to flat netlist
+UUIDs. The first schematic update of such a board needs F8's **Re-link
+footprints to schematic symbols based on their reference designators** option.
 
 ## 8. Keep identities and reproducible inputs
 
@@ -339,7 +377,11 @@ Commit these with the circuit:
 - `.nosch` sources and `noscheme.toml`, including custom ERC modules if used.
 - Converted library snapshots, reports, attribution, and regeneration instructions.
 - Each generated `noscheme.<target>.state.json`.
-- KiCad PCB/project files stored outside generated output.
+- The KiCad project: `.kicad_pro`, `.kicad_pcb`, `fp-lib-table`, and the
+  generated sheets, `noscheme.kicad_sym`, and `sym-lib-table`. The board's
+  footprints link to the sheets' symbols, so version them together. Leave out
+  KiCad's per-user and scratch files (`*.kicad_prl`, `*-backups/`,
+  `fp-info-cache`, lock files).
 - The NoScheme revision and reviewed design assumptions.
 
 Ignore regenerable `build/` output during normal development; retain reviewed
@@ -373,9 +415,9 @@ environment, prefix commands with `uv run --locked`.
 | `noscheme export-bom --project PATH` | Write grouped CSV BOM and update reference reservations |
 | `noscheme export-hierarchy --project PATH [--nets] [--parts] [--depth N]` | Draw the block hierarchy as `hierarchy.svg` ([details](docs/LRM.md#135-hierarchy-diagrams)) |
 | `noscheme export-schematic --project PATH [--seed N] [--effort X]` | Draw the whole design on one sheet as `schematic.svg` ([details](docs/LRM.md#136-schematic-sheets)) |
-| `noscheme export-kicad --project PATH --footprints FILE` | Validate footprints, export netlist, and update state |
+| `noscheme export-kicad --project PATH --footprints FILE [--schematic ROOT.kicad_sch]` | Validate footprints, write KiCad sheets (with `--schematic`) and a netlist, and update state |
 | `noscheme convert-library FILE --output NEW_DIRECTORY` | Convert a KiCad symbol library |
-| `noscheme update-kicad-classes INPUT --memberships FILE --output NEW_FILE` | Update class membership in a project copy |
+| `noscheme update-kicad-classes INPUT --memberships FILE --output NEW_FILE` | Update class membership in a project copy (netlist-import fallback only) |
 | `noscheme-lsp [--project PATH]` | Run the language server over stdin/stdout |
 
 Project commands accept `--target NAME` to select a named target. Without it,
@@ -443,7 +485,9 @@ Compilation produces `circuit.json`, `erc.txt`, and `erc.json`. Hierarchy export
 produces `hierarchy.svg`, and schematic export `schematic.svg`. KiCad export
 produces ERC reports, `board.net`, `names.json`, `netclasses.json`, `nets.txt`, `nets.json`,
 `changes.txt`, and `export.json`, plus persistent `noscheme.<target>.state.json` outside the
-output directory. Change reports compare against the last successful export.
+output directory, and with `--schematic` the KiCad sheets, `noscheme.kicad_sym`, and
+`sym-lib-table` beside the root sheet it names. Change reports compare against the last
+successful export.
 `changes.txt` lists before/after values, footprints, references, paths, and each
 changed pin connection. `export.json.probable_renames` lists unique pairs of
 removed/added identities with exactly matching footprints, values, and pin nets.
@@ -452,23 +496,27 @@ references, or placement; added and removed identities remain distinct. To retai
 identity across a planned source rename, set explicit `identity` metadata before
 exporting the renamed design ([CAD identities](docs/LRM.md#13-cad-identities-and-export)).
 
-Every exported physical component has two netlist properties, also exported as
-fields so KiCad can copy them into footprint properties:
+KiCad copies each symbol's fields into its footprint's properties (select a
+footprint and press `E`). From the sheets, a part carries `noscheme_path`, its
+path within its block's sheet, such as `driver`; the footprint's KiCad sheet
+path (`/time_display/digits[0]/`) says which block instance it belongs to. A
+shared sheet cannot hold per-instance values, so the sheets carry no
+`noscheme_identity`. They also carry the BOM fields `Manufacturer`, `MPN`,
+`Supplier`, and `Supplier Part Number`, and KiCad's DNP flag.
 
-- `noscheme_path`: its current full source instance path, relative to the board,
+In `board.net`, connectivity is flat and every component has two properties
+instead:
+
+- `noscheme_path`: its full source instance path, relative to the board,
   including nested block names and array indices, such as `indicators[0].resistor`.
 - `noscheme_identity`: its stable identity used to allocate UUIDs and references.
   Explicit identity metadata can keep this different from the current source
   path after a rename.
 
-Connectivity remains flattened. These properties describe the source hierarchy;
-they do not create KiCad sheets or alter footprint placement. After updating
-the PCB from the netlist, select a footprint and press `E` to inspect its fields
-in Footprint Properties. The user verified both fields after importing the
-STM32 example into KiCad.
-
-Explicit `no_connect` bindings and unconnected `use.disallowed` pins are
-exported on individual synthetic nets with node `pintype: no_connect`. This
+In the sheets, every pin NoScheme leaves open, and every pin alone on its net,
+gets a no-connect flag. In `board.net`, explicit `no_connect` bindings and
+unconnected `use.disallowed` pins are exported on individual synthetic nets
+with node `pintype: no_connect`. This
 lets KiCad distinguish intentionally unused pads from pins missing in the
 netlist, including footprints with duplicate mounting-pad numbers. Names use
 the stable component UUID and pin number, with a suffix if needed to avoid a
@@ -482,7 +530,10 @@ there is no alias). A single known role maps to the corresponding KiCad pin type
 analog and digital inputs/outputs share KiCad's input/output types, ground maps
 to `power_in`, and explicitly tri-state-capable outputs map to `tri_state`.
 Unknown, unresolved, or differing instance types in a shared component entry
-become `unspecified`. NoScheme ERC remains authoritative. The field format follows
+become `unspecified`. The sheets' symbols use the same mapping, except that a
+pin type that would trip KiCad's schematic ERC (`unspecified`, or a pair KiCad's
+pin-conflict matrix rejects) is drawn passive. NoScheme ERC remains
+authoritative. The field format follows
 [KiCad's documented libparts format](https://github.com/KiCad/kicad-doc/blob/master/src/eeschema/eeschema_creating_customized_netlists_and_bom_files.adoc);
 PCB Editor display behavior still requires manual validation.
 

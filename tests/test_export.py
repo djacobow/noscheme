@@ -244,10 +244,13 @@ def test_publication_io_failure_rolls_back(setup, monkeypatch):
 
 
 def test_name_adapter_reverse_map():
-    adapter = KiCadNames()
+    """`/` separates block instances (KiCad sheets); `.` joins steps within one."""
+    adapter = KiCadNames([("bank", 0)])
     for path, expected in [
         (["#supply"], "#supply"),
         (["bank", 0, "A#"], "/bank[0]/A#"),
+        (["bank", 0, "pair", "a"], "/bank[0]/pair.a"),
+        (["link", "a"], "/link.a"),
         (["RESET#"], "RESET#"),
     ]:
         net = {"name": expected, "path": path}

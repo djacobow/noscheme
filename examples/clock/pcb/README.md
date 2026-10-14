@@ -118,22 +118,25 @@ From the repository root:
 
 ```sh
 uv run --locked noscheme export-kicad --project examples/clock \
-  --footprints examples/clock/kicad_lib/footprints.json
+  --footprints examples/clock/kicad_lib/footprints.json \
+  --schematic examples/clock/pcb/honest_clock.kicad_sch
 ```
 
+This writes the KiCad schematic here: `honest_clock.kicad_sch` and one sheet
+file per distinct block (the nine digits share `display_Digit.kicad_sch`),
+plus `noscheme.kicad_sym`, registered in `sym-lib-table`. They are generated
+and committed with the board; edits made in KiCad are overwritten.
+
 1. In KiCad, open `honest_clock.kicad_pro`, then the PCB editor.
-2. **File → Import → Netlist…**, choose `examples/clock/build/board.net`, then
-   **Load and Test Netlist** and **Update PCB**.
+2. **Tools → Update PCB from Schematic** (F8). Review the changes, then
+   **Update PCB**. The schematic editor need not be open.
 3. The plane zones are already tied to `gnd`, `v3v3`, and `v5`; refill zones
    (**B**) once parts are placed.
 
-Net-class membership comes from `net_class: "Power"` in `main.nosch`, not from
-the netlist. When memberships change, apply them to a project copy and review
-it before replacing this file:
+The board was first populated from `build/board.net`, whose footprint links
+differ from the schematic's. The first F8 after that needs **Re-link footprints
+to schematic symbols based on their reference designators** ticked.
 
-```sh
-uv run --locked noscheme update-kicad-classes \
-  examples/clock/pcb/honest_clock.kicad_pro \
-  --memberships examples/clock/build/netclasses.json \
-  --output examples/clock/pcb/updated.kicad_pro
-```
+Net-class membership comes from `net_class: "Power"` in `main.nosch`. The
+schematic carries it to the board on every update; the `Power` class's widths
+and clearances stay in `honest_clock.kicad_pro`.

@@ -1864,9 +1864,20 @@ The KiCad adapter converts source names and writes a reversible mapping. This
 does not synchronize CAD circuit edits back into source. Source names and source
 locations remain in the circuit representation.
 
+Exported net names follow KiCad's hierarchical form, so the netlist and the
+generated schematic (section 13.7) name every net alike. A net's path splits at
+its deepest enclosing block instance: block steps join with `/` (KiCad sheet
+separators), and steps within that block, such as bundle fields, join with `.`.
+Array indices attach to their step. A root net with a single step keeps its
+bare name (`gnd`, `pps`); any other root net starts with `/` (`/leds.clock`).
+A net inside `time_display.digits[0]` is `/time_display/digits[0]/segments[0]`.
+
 `net_class: "Name"` assigns membership. KiCad owns class settings such as width
-and clearance. `update-kicad-classes` writes a new project copy preserving those
-settings and rejects undefined classes. Language-level differential-pair metadata
+and clearance. The generated schematic (section 13.7) carries membership as
+KiCad net-class directives, so updating the board from it assigns the classes.
+For the netlist-import fallback, `update-kicad-classes` writes a new project
+copy with the memberships, preserving those settings and rejecting undefined
+classes. Language-level differential-pair metadata
 is not implemented; it must not be inferred to work from source-name suffixes.
 
 ### 13.4 Bills of materials
@@ -2007,6 +2018,59 @@ the source, which stays the design of record.
 The command refuses to overwrite project inputs. It prints a JSON summary with
 the output path, the block and part counts, the number of distinct block
 layouts, and `unrouted`. It is implemented in Python only.
+
+### 13.7 KiCad schematics
+
+`noscheme export-kicad ... --schematic PATH.kicad_sch` also writes a
+hierarchical KiCad schematic rooted at `PATH.kicad_sch`, with its sub-sheets
+beside it. Put it beside the board's `.kicad_pro`, with the project's name, and
+use KiCad's **Update PCB from Schematic** (F8) to update the board. It is
+written in the same atomic publication as the netlist and identity state, and
+uses the same references, values, footprints, and net names. The sheets are an
+export: the source stays the design of record. Every export rewrites them from
+scratch, deterministically, so edits made in KiCad are overwritten. Only the
+Python implementation supports it so far.
+
+- **Sheets.** Each block instance is a sheet named for its instance (such as
+  `digits[0]`), and the root is the root sheet. Block instances whose parts,
+  values, footprints, BOM fields, and rail connections all match share one
+  sheet file, so an instance array is one file used once per element. A sheet
+  file is named for its block definition (`display_Digit.kicad_sch`).
+- **Stale sheets.** A `.kicad_sch` in that directory that an earlier export
+  wrote (its generator is `noscheme`) and this one does not is deleted. KiCad
+  rewrites the generator when it saves a sheet, so a sheet saved from KiCad is
+  never deleted.
+- **Symbols** are generated boxes, not KiCad library art: pins in number order,
+  first half on the left, two-pin parts small and horizontal. They are embedded
+  in the sheets and also written to `noscheme.kicad_sym`, which the export
+  registers in the directory's `sym-lib-table`, keeping other entries.
+- **Connections** are labels on pin ends, never wires. Rails and single-step
+  root nets use global labels; a net declared in a block uses a local label on
+  its sheet; a net entering a block through a port uses a hierarchical label
+  named for the port field, matched by a sheet pin on the block's sheet symbol.
+  Rail ports, and ports the block does not use, have no sheet pin.
+- **Net classes.** Each `net_class` membership becomes one KiCad net-class
+  directive on the net. The class must be defined in the KiCad project.
+- **KiCad's ERC.** NoScheme's ERC has already judged every connection, so the
+  sheets are drawn for KiCad's schematic ERC to agree with it:
+  - Every pin NoScheme leaves open gets a no-connect flag, as does a pin alone
+    on its net. KiCad then names such a net `unconnected-(...)`.
+  - A net with a power input but no power output gets a `PWR_FLAG`.
+  - Pin types follow the netlist's role mapping, except that an `unspecified`
+    type, or one of a pair KiCad's default pin-conflict matrix rejects, is
+    drawn passive.
+
+  A decoration in a shared sheet appears in every instance, so it is placed
+  only where it is right for all of them. With NoScheme's ERC clean, KiCad's
+  should report nothing.
+- **Fields.** Each symbol carries `noscheme_path`, its path within its sheet,
+  and the BOM fields (`Manufacturer`, `MPN`, `Supplier`,
+  `Supplier Part Number`); `dnp: true` sets KiCad's DNP flag.
+- **UUIDs** derive from the identity namespace, so re-exports are stable. KiCad
+  links a footprint to `/root/sheet.../symbol` UUIDs, not the netlist's flat
+  ones: the first update of a board placed from `board.net` needs F8's
+  "Re-link footprints to schematic symbols based on their reference
+  designators" option.
 
 ## 14. Complete example
 

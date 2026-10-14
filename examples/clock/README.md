@@ -42,8 +42,12 @@ From the repository root:
 uv run --locked noscheme check --project examples/clock
 uv run --locked noscheme export-bom --project examples/clock
 uv run --locked noscheme export-kicad --project examples/clock \
-  --footprints examples/clock/kicad_lib/footprints.json
+  --footprints examples/clock/kicad_lib/footprints.json \
+  --schematic examples/clock/pcb/honest_clock.kicad_sch
 ```
+
+The last command writes the KiCad schematic into the board's project; see
+[pcb/README.md](pcb/README.md#bring-parts-in) for updating the board from it.
 
 ERC reports no errors. It does report two `erc.incomplete_budget` warnings,
 for the 5 V and 3.3 V rails, because loads are not annotated per pin; HMS.md

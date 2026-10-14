@@ -279,20 +279,40 @@ std::string part_value(const Json &part) {
     text.resize(text.size() - 2);
   return text;
 }
-std::string path_name(const Json &path, bool net) {
-  std::vector<std::string> segments;
-  for (const auto &part : path)
-    if (part.is_string())
-      segments.push_back(part);
+std::vector<std::string> segments(const Json &path, size_t begin, size_t end) {
+  std::vector<std::string> out;
+  for (size_t i = begin; i < end; ++i)
+    if (path[i].is_string())
+      out.push_back(path[i]);
     else
-      segments.back() += "[" + part.dump() + "]";
-  std::string result = net && segments.size() > 1 ? "/" : "";
-  for (const auto &segment : segments) {
-    if (!result.empty() && result != "/")
-      result += net ? "/" : ".";
-    result += segment;
+      out.back() += "[" + path[i].dump() + "]";
+  return out;
+}
+std::string joined(const std::vector<std::string> &parts, const char *sep) {
+  std::string out;
+  for (const auto &part : parts)
+    out += (out.empty() ? "" : sep) + part;
+  return out;
+}
+std::string path_name(const Json &path) {
+  return joined(segments(path, 0, path.size()), ".");
+}
+// KiCad's hierarchical form: `/` between enclosing block instances (sheets),
+// `.` within one. A root net with one plain step keeps its bare name.
+std::string net_name(const Json &path, const std::set<Json> &blocks) {
+  size_t cut = 0;
+  for (size_t n = 1; n < path.size(); ++n) {
+    Json prefix = Json::array();
+    for (size_t i = 0; i < n; ++i)
+      prefix.push_back(path[i]);
+    if (blocks.contains(prefix))
+      cut = n;
   }
-  return result;
+  auto block = segments(path, 0, cut);
+  auto inner = segments(path, cut, path.size());
+  if (!block.empty())
+    return "/" + joined(block, "/") + "/" + joined(inner, ".");
+  return (inner.size() > 1 ? "/" : "") + joined(inner, ".");
 }
 std::string pin_kind(const Json &pin) {
   static const std::map<std::string, std::string> types{
@@ -328,8 +348,11 @@ Rendered render(const Json &circuit, const Json &state) {
   Rendered result;
   std::map<std::string, std::string> net_names;
   std::set<std::string> reserved;
+  std::set<Json> blocks;
+  for (const auto &block : circuit["blocks"])
+    blocks.insert(block["path"]);
   for (const auto &net : circuit["nets"]) {
-    auto name = path_name(net["path"], true);
+    auto name = net_name(net["path"], blocks);
     if (result.names.contains(name) &&
         result.names[name]["path"] != net["path"])
       throw std::invalid_argument("exported net-name collision: " + repr(name));
@@ -370,7 +393,7 @@ Rendered render(const Json &circuit, const Json &state) {
     for (const auto &[name, value] :
          std::vector<std::pair<std::string, std::string>>{
              {"noscheme_identity", id},
-             {"noscheme_path", path_name(part["path"], false)}}) {
+             {"noscheme_path", path_name(part["path"])}}) {
       component.push_back(
           form("property", {field("name", name), field("value", value)}));
       fields.push_back(form("field", {field("name", name), quote(value)}));

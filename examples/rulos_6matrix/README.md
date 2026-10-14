@@ -101,21 +101,23 @@ From the repository root:
 uv run --locked noscheme check --project examples/rulos_6matrix
 uv run --locked noscheme export-kicad \
   --project examples/rulos_6matrix \
-  --footprints examples/rulos_6matrix/kicad_lib/footprints.json
+  --footprints examples/rulos_6matrix/kicad_lib/footprints.json \
+  --schematic my-kicad/rulos_6matrix.kicad_sch
 ```
 
-The netlist is `examples/rulos_6matrix/build/board.net`. All 93 parts have
-footprints and are included. No installed Eagle or KiCad libraries are needed
-to compile or generate the netlist.
+`--schematic` names the root sheet of a KiCad project you create (here
+`my-kicad/rulos_6matrix.kicad_pro`); the export writes the generated sheets
+beside it. All 93 parts have footprints and are included. No installed Eagle or
+KiCad libraries are needed to compile or export.
 
 C8 and C9 now provide 94 µF nominal on the buck output. This exceeds TI’s
 20–68 µF design table and uses aluminum electrolytics instead of the original
 ceramic. Buck stability, ripple, and startup remain bench-validation items.
 
-For PCB Editor, install the standard KiCad footprint libraries and create/save
-a KiCad project. Import `build/board.net`, inspect **Load and Test Netlist**,
-then use **Update PCB**. No custom footprint library or project library table
-is needed. The original placement, routing, board outline, and standalone
+For PCB Editor, install the standard KiCad footprint libraries, open the
+project, and use **Tools → Update PCB from Schematic** (F8) in the PCB editor.
+No custom footprint library is needed. The netlist `build/board.net` remains
+available for **File → Import → Netlist…**. The original placement, routing, board outline, and standalone
 mounting holes are not included.
 
 ## Changes from the original design

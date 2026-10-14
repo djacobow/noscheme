@@ -104,7 +104,8 @@ Run these commands from the repository root:
 ```
 
 `parse`, `load`, `resolve`, `lint`, `evaluate`, `check`, `compile`, `format`, and
-`export-kicad` accept these options. `--native-tool` can be omitted if
+`export-kicad` accept these options. Native `export-kicad` does not write KiCad
+schematics yet: `--schematic` with `--implementation native` is an error. `--native-tool` can be omitted if
 `noscheme-native` is on PATH. Remove the options, or select
 `--implementation python`, to switch back. An unavailable native executable is
 an error; the launcher does not silently fall back to Python.

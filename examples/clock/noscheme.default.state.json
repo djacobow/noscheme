@@ -1778,7 +1778,7 @@
     }
   },
   "namespace": "552bea5f-7b81-466c-aaa8-d028b427bf2f",
-  "netlist_sha256": "b074eeeba1175abc80c46fc596967a9635b32fa5157d7367157d8457932f8f26",
+  "netlist_sha256": "76aef2f1eb9975ecb003e52c2578d410f08da8e1c183af1c4b31d169e237203b",
   "previous_parts": {
     "annunciators[0].led": {
       "footprint": "LED_SMD:LED_0603_1608Metric",

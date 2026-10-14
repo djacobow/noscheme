@@ -177,20 +177,49 @@ def assign(circuit, state, path):
     return state
 
 
-class KiCadNames:
-    """Reversible mapping for currently legal NoScheme source path segments."""
+def segments(path):
+    """Path steps with array indices attached: ['bank', 0, 'A'] -> ['bank[0]', 'A']."""
+    out = []
+    for part in path:
+        if type(part) is int:
+            out[-1] += f"[{part}]"
+        else:
+            out.append(part)
+    return out
 
-    def __init__(self):
+
+class KiCadNames:
+    """Reversible net names in KiCad's own hierarchical form.
+
+    KiCad names a net `/sheet/sub-sheet/label`, with `/` only between sheets.
+    A NoScheme net's path splits at its deepest enclosing block instance:
+    block steps join with `/`, the steps within the block (bundle fields)
+    join with `.`. A root net with a single plain step keeps its bare name,
+    like a KiCad global label; any other root net starts with `/`, like a
+    KiCad local label on the root sheet.
+    """
+
+    def __init__(self, blocks=()):
+        self.blocks = {tuple(b) for b in blocks}
         self.reverse = {}
 
+    def split(self, path):
+        """(enclosing block path, steps within it) for a net path."""
+        path = tuple(path)
+        cut = max((n for n in range(len(path)) if path[:n] in self.blocks), default=0)
+        return path[:cut], path[cut:]
+
+    def local(self, path):
+        """The net's label text within its block's sheet."""
+        return ".".join(segments(self.split(path)[1]))
+
     def encode(self, net):
-        segments = []
-        for part in net["path"]:
-            if type(part) is int:
-                segments[-1] += f"[{part}]"
-            else:
-                segments.append(part)
-        name = ("/" if len(segments) > 1 else "") + "/".join(segments)
+        block, rest = self.split(net["path"])
+        inner = segments(rest)
+        if block:
+            name = "/" + "/".join(segments(block)) + "/" + ".".join(inner)
+        else:
+            name = ("/" if len(inner) > 1 else "") + ".".join(inner)
         previous = self.reverse.get(name)
         if previous is not None and previous["path"] != net["path"]:
             raise ValueError(f"exported net-name collision: {name!r}")
@@ -256,22 +285,27 @@ KICAD_PIN_TYPES = {
 }
 
 
+def pin_kind(records):
+    """KiCad pin type for one pin across instances; disagreement is unspecified.
+
+    Shared library records must not pick one instance's role arbitrarily.
+    """
+    kinds = set()
+    for record in records:
+        roles = effective_roles(record, external=False)
+        kind = KICAD_PIN_TYPES.get(roles[0], "unspecified") if len(roles) == 1 else "unspecified"
+        if kind == "output" and attribute(record, "tristate_capable", False):
+            kind = "tri_state"
+        kinds.add(kind)
+    return next(iter(kinds)) if len(kinds) == 1 else "unspecified"
+
+
 def libpart_pins(parts):
-    """Shared library records must not pick one instance's role arbitrarily."""
     pins = []
     for number in sorted(parts[0]["pins"]):
         records = [part["pins"][number] for part in parts]
         aliases = attribute(records[0], "aliases", [])
-        kinds = set()
-        for record in records:
-            roles = effective_roles(record, external=False)
-            kind = (
-                KICAD_PIN_TYPES.get(roles[0], "unspecified") if len(roles) == 1 else "unspecified"
-            )
-            if kind == "output" and attribute(record, "tristate_capable", False):
-                kind = "tri_state"
-            kinds.add(kind)
-        kind = next(iter(kinds)) if len(kinds) == 1 else "unspecified"
+        kind = pin_kind(records)
         pins.append(
             form(
                 "pin",
@@ -283,11 +317,9 @@ def libpart_pins(parts):
     return form("pins", *pins)
 
 
-def render(circuit, state):
-    names = KiCadNames()
-    net_names = {net["name"]: names.encode(net) for net in circuit["nets"]}
-    reserved_net_names = set(net_names.values())
-    components, libparts, nets, membership = [], {}, {}, {}
+def net_classes(circuit):
+    """Source net name -> its declared `net_class`."""
+    out = {}
     for net in circuit["nets"]:
         classes = {
             d["metadata"]["net_class"]["value"]
@@ -297,7 +329,16 @@ def render(circuit, state):
         if len(classes) > 1:
             raise ValueError(f"conflicting classes on net {net['name']!r}")
         if classes:
-            membership[net_names[net["name"]]] = sorted(classes)
+            out[net["name"]] = classes.pop()
+    return out
+
+
+def render(circuit, state):
+    names = KiCadNames(b["path"] for b in circuit["blocks"])
+    net_names = {net["name"]: names.encode(net) for net in circuit["nets"]}
+    reserved_net_names = set(net_names.values())
+    components, libparts, nets = [], {}, {}
+    membership = {net_names[n]: [kind] for n, kind in net_classes(circuit).items()}
     definitions = {}
     for part in circuit["parts"]:
         if attribute(part, "footprint"):
@@ -468,7 +509,14 @@ def change_lines(changes):
     return lines
 
 
-def export_project(project, circuit, footprint_records, *, configurations=None, warnings=None):
+def export_project(
+    project, circuit, footprint_records, *, configurations=None, warnings=None, schematic=None
+):
+    """Write the netlist and reports; with `schematic`, also the KiCad sheets.
+
+    `schematic` names the root sheet, normally `<project>.kicad_sch` beside
+    the `.kicad_pro`; sub-sheets go in the same directory.
+    """
     apply_erc(circuit, configurations, registry=project.config.erc_registry)
     state_path = project.config.state_path
     export_warnings = state_warnings(project.config)
@@ -568,6 +616,32 @@ def export_project(project, circuit, footprint_records, *, configurations=None, 
         + "\n",
         state_path: json.dumps(updated, indent=2, sort_keys=True) + "\n",
     }
+    sheets = []
+    if schematic is not None:
+        from .sheets import generated, library_table, render_schematic
+
+        schematic = Path(schematic)
+        try:
+            rendered = render_schematic(circuit, updated, schematic.stem, schematic.stem)
+        except ValueError as exc:
+            fail(project.config.path, "export.schematic", str(exc))
+        for name, text in rendered.items():
+            files[schematic.parent / name] = text
+            sheets.append(str(schematic.parent / name))
+        table = schematic.parent / "sym-lib-table"
+        files[table] = library_table(table.read_text() if table.exists() else None)
+        stale = [
+            path
+            for path in schematic.parent.glob("*.kicad_sch")
+            if path not in files and generated(path)
+        ]
     validate_export_paths(project, files, (footprint_records,))
     publish(files)
-    return {"output": str(out / "board.net"), "state": str(state_path), **report}
+    result = {"output": str(out / "board.net"), "state": str(state_path), **report}
+    if schematic is not None:
+        # Sheets an earlier export wrote and this one no longer needs.
+        for path in stale:
+            path.unlink()
+        result["schematic"] = sorted(sheets)
+        result["schematic_removed"] = sorted(str(p) for p in stale)
+    return result
